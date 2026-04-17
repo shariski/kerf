@@ -51,7 +51,16 @@ Real-time SVG render of both halves matching the user's chosen layout:
 
 ### 4.3 Adaptive Practice Mode (Primary Mode)
 
-The default mode covering ~80% of expected user time. The engine selects words via weighted random sampling against the user's weakness profile.
+The default mode covering ~80% of expected user time.
+
+**MVP content generation strategy: word-picker approach.** The engine uses a static English word corpus (target ~10,000 words) and selects words via weighted random sampling based on the user's weakness profile. Words with more occurrences of weak characters/bigrams get higher selection probability.
+
+Output format: disjoint word sequences (no narrative flow). Example output when user is weak in B/N/T: "bench better beneath button bottom bond never bend bin bet bait". This is **functionally effective for muscle memory training** but does not attempt to produce coherent prose.
+
+**Known trade-off vs. competitor platforms:** Some adaptive typing platforms (notably Typerfast) generate coherent prose themed around target characters — text that reads like an article while stealth-embedding weakness-relevant letters. This produces a more engaging "smart" feel. We deliberately do not pursue this in MVP because:
+- Real-time content generation requires LLM integration (latency, cost, reliability burdens)
+- Word-picker approach proves the adaptive engine works before investing in content-quality upgrade
+- LLM-based content generation is queued as a V2 feature (see §5 Tier 2)
 
 **Available filters:**
 - Hand isolation: restrict to words using only one side
@@ -103,6 +112,7 @@ User opted for "show everything explicitly". The dashboard displays:
 - Phantom Key Detection ("I peeked" button)
 
 **Tier 2 (V1.5 – V2):**
+- LLM-based content generation (coherent prose themed around target weakness characters) — upgrade from word-picker MVP approach
 - Real Sentence Mode
 - Phantom Key Detection
 - Layer Training

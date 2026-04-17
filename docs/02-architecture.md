@@ -220,20 +220,56 @@ function computeWeaknessScore(
 - Cold start (new user): use default baseline (mean error rate 5%, mean keystroke 250ms)
 - Decay: discount events older than 30 days
 
-### 4.2 Exercise Generation: Adaptive Mode
+### 4.2 Exercise Generation: Adaptive Mode (Word-Picker Approach)
+
+**MVP strategy: static corpus + weighted random sampling.** The engine does NOT generate content; it selects from a pre-built English word corpus. Output is a sequence of disjoint words, not coherent prose.
+
+**Corpus:** curated list of ~10,000 common English words, precomputed with metadata:
+- Length (characters)
+- Constituent characters
+- Bigrams (adjacent character pairs)
+- Frequency rank (from a standard English corpus frequency list)
+- Hand distribution (left/right/mixed based on finger assignment table)
 
 ```
-Input: top 10 weakness units (mixed character + bigram)
+Input: top 10 weakness units (mixed character + bigram) + user filters
 Output: array of words for the exercise (target ~50 words or ~300 chars)
 
 Algorithm:
-1. Filter word_corpus by user filters (hand isolation, max length)
+1. Filter word_corpus by user filters:
+   - Hand isolation (left-only / right-only / either)
+   - Max word length
+   - Max difficulty score
 2. For each word in the filtered corpus, compute a match score:
    match_score(word) = sum(weakness_score(unit) for unit in word.characters + word.bigrams)
 3. Weighted random sampling: probability(word) ∝ match_score(word)
-4. Sample until reaching target count
+4. Sample until reaching target count (typically 40-60 words)
 5. Shuffle (avoid clustering similar words sequentially)
+6. Return word array to UI
 ```
+
+**Performance characteristics:**
+- Generation time: <100ms (pure client-side computation on pre-loaded corpus)
+- Memory: corpus is ~200KB JSON, loaded once per session
+- Offline capable: no server round-trip needed for content generation
+
+**Quality characteristics (honest assessment):**
+- Output is functional for muscle memory training — target characters appear more frequently in the selected words than in baseline English text
+- Output does NOT read as coherent prose — words are disjoint, chosen for character distribution not narrative
+- User experience is "drill-like" rather than "reading-like"
+- This is a deliberate MVP trade-off documented in 01-product-spec.md §4.3
+
+**V2 upgrade path (NOT in MVP scope):**
+
+Future versions may replace or supplement this with LLM-generated content, where a model is prompted to produce coherent prose themed around target weakness characters. Design considerations for V2:
+
+- Trade-off between real-time generation (2-3s latency) vs. pre-generated content library
+- Cost monitoring (per-session API costs)
+- Caching strategy (identical weakness profiles could reuse generated content)
+- Quality validation (verify generated content actually hits target character distribution)
+- Fallback strategy (if LLM call fails, fall back to word-picker)
+
+For MVP, all LLM integration is explicitly out of scope. The word-picker approach must prove the adaptive engine delivers value before investing in content-quality upgrade.
 
 ### 4.3 Exercise Generation: Targeted Drill
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leftype-Rightype — Practice Page Wireframe</title>
+<title>Leftype-Rightype — Practice Page Wireframe (revised)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -29,7 +29,6 @@
     --font-sans: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     
-    /* Finger colors */
     --finger-l-pinky: #C2410C;
     --finger-l-ring: #A16207;
     --finger-l-middle: #65A30D;
@@ -52,11 +51,11 @@
     min-height: 100vh;
   }
   
-  /* Wireframe shell (the meta-UI) */
+  /* Wireframe meta-header */
   .wireframe-header {
     background: var(--lr-bg-surface);
     border-bottom: 1px solid var(--lr-border-default);
-    padding: 16px 32px;
+    padding: 12px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -64,23 +63,18 @@
     top: 0;
     z-index: 100;
   }
-  .wireframe-title {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-  }
+  .wireframe-title { font-family: var(--font-mono); font-size: 13px; color: var(--lr-text-secondary); }
   .wireframe-title strong { color: var(--lr-amber-base); }
   .state-switcher { display: flex; gap: 4px; }
   .state-btn {
     background: transparent;
     border: 1px solid var(--lr-border-default);
     color: var(--lr-text-secondary);
-    padding: 6px 14px;
+    padding: 4px 12px;
     border-radius: 4px;
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
-    transition: all 150ms;
   }
   .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
   .state-btn.active { 
@@ -90,7 +84,7 @@
     font-weight: 600;
   }
   
-  /* App nav (the actual product nav) */
+  /* App nav */
   .app-nav {
     height: 48px;
     background: var(--lr-bg-base);
@@ -99,8 +93,15 @@
     align-items: center;
     padding: 0 32px;
     gap: 32px;
+    position: sticky;
+    top: 47px;
+    z-index: 90;
+    transition: opacity 300ms;
   }
-  .app-nav.hidden { display: none; }
+  .app-nav.hidden-typing {
+    opacity: 0;
+    pointer-events: none;
+  }
   .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
   .nav-links { display: flex; gap: 24px; flex: 1; }
   .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
@@ -108,33 +109,246 @@
   .nav-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
   .nav-avatar { background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--lr-text-primary); }
   
-  /* Page wrapper */
-  .page { min-height: calc(100vh - 48px - 64px); padding: 48px 32px; max-width: 1100px; margin: 0 auto; }
-  .page.no-nav { min-height: calc(100vh - 64px); }
+  /* Session progress bar */
+  .session-progress {
+    height: 2px;
+    background: var(--lr-bg-surface);
+    position: sticky;
+    top: 95px;
+    z-index: 85;
+    display: none;
+  }
+  .session-progress.visible { display: block; }
+  .session-progress-fill {
+    height: 100%;
+    background: var(--lr-amber-base);
+    width: 45%;
+    transition: width 200ms;
+  }
   
-  /* === STATE 1: PRE-SESSION === */
-  .pre-session { display: none; }
-  .pre-session.active { display: block; }
+  /* Page container - unified for all states */
+  .practice-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    min-height: calc(100vh - 95px);
+  }
   
-  .pre-session-header { margin-bottom: 48px; }
-  .breadcrumb { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .pre-session-title { font-size: 28px; font-weight: 600; line-height: 1.2; margin-bottom: 8px; }
-  .pre-session-subtitle { color: var(--lr-text-secondary); font-size: 14px; }
+  /* Stage element (wraps all states) */
+  .stage {
+    position: relative;
+    min-height: 500px;
+  }
+  .stage-content {
+    display: none;
+  }
+  .stage-content.active {
+    display: block;
+    animation: stageIn 300ms ease;
+  }
+  @keyframes stageIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   
-  .keyboard-context { 
-    display: flex; 
-    align-items: center; 
-    gap: 12px;
-    padding: 12px 16px;
+  /* === PRE-SESSION STATE === */
+  .pre-session { text-align: center; padding-top: 48px; }
+  
+  .pre-keyboard-context {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
     background: var(--lr-bg-surface);
     border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--lr-text-secondary);
     margin-bottom: 32px;
+  }
+  .pre-keyboard-context .pill-icon { color: var(--lr-amber-base); font-family: var(--font-mono); }
+  .pre-keyboard-context .pill-name { font-family: var(--font-mono); color: var(--lr-text-primary); font-weight: 600; }
+  .pre-keyboard-context .pill-switch { color: var(--lr-text-tertiary); cursor: pointer; }
+  .pre-keyboard-context .pill-switch:hover { color: var(--lr-text-primary); }
+  
+  .pre-title {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .pre-subtitle {
+    font-size: 14px;
+    color: var(--lr-text-secondary);
+    margin-bottom: 40px;
+  }
+  
+  .pre-cta-primary {
+    background: var(--lr-bg-surface);
+    border: 2px solid var(--lr-amber-base);
+    border-radius: 10px;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 150ms;
+    margin-bottom: 32px;
+    text-align: left;
+    width: 100%;
+  }
+  .pre-cta-primary:hover { background: var(--lr-amber-faint); transform: translateY(-1px); }
+  .pre-cta-primary-text { display: flex; flex-direction: column; gap: 4px; }
+  .pre-cta-primary-label { font-size: 16px; font-weight: 700; color: var(--lr-text-primary); }
+  .pre-cta-primary-meta { font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-secondary); }
+  .pre-cta-primary-meta .highlight { color: var(--lr-amber-base); font-weight: 700; }
+  .pre-cta-primary-action { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--lr-text-secondary); }
+  .pre-cta-primary-action .shortcut {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: var(--lr-bg-elevated);
+    padding: 3px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--lr-border-default);
+  }
+  .pre-cta-primary-action .arrow { font-size: 18px; color: var(--lr-amber-base); }
+  
+  .pre-modes-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .pre-modes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .mode-card {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 20px 18px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 150ms;
+  }
+  .mode-card:hover { border-color: var(--lr-border-strong); background: var(--lr-bg-elevated); }
+  .mode-card-icon {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--lr-amber-base);
+    margin-bottom: 8px;
+  }
+  .mode-card-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .mode-card-desc { font-size: 12px; color: var(--lr-text-secondary); line-height: 1.5; }
+  
+  .pre-filters {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .pre-filters-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--lr-text-secondary);
+  }
+  .pre-filters-header:hover { background: var(--lr-bg-elevated); }
+  .pre-filters-caret {
+    font-family: var(--font-mono);
+    color: var(--lr-text-tertiary);
+    transition: transform 150ms;
+  }
+  .pre-filters-caret.open { transform: rotate(90deg); }
+  .pre-filters-content {
+    padding: 16px 20px;
+    border-top: 1px solid var(--lr-border-subtle);
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .pre-filters-content.open { display: flex; }
+  .filter-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 16px;
+    align-items: center;
     font-size: 13px;
   }
-  .keyboard-context-icon {
+  .filter-label { color: var(--lr-text-secondary); text-align: left; }
+  .filter-pills {
+    display: flex;
+    gap: 4px;
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .filter-pill {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--lr-text-secondary);
+    cursor: pointer;
+    transition: all 100ms;
+  }
+  .filter-pill.active {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    font-weight: 600;
+  }
+  
+  /* === ACTIVE TYPING STATE === */
+  .active-typing {
+    padding-top: 64px;
+    text-align: center;
+  }
+  .typing-area {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+    color: var(--lr-text-tertiary);
+    text-align: left;
+    padding: 32px 0;
+    min-height: 180px;
+    user-select: none;
+  }
+  .typing-area .typed { color: var(--lr-text-secondary); }
+  .typing-area .current {
+    color: var(--lr-text-primary);
+    background: var(--lr-amber-subtle);
+    border-radius: 2px;
+    padding: 2px 1px;
+  }
+  .typing-area .error {
+    color: var(--lr-error);
+    text-decoration: underline;
+    text-decoration-color: var(--lr-error);
+    text-decoration-thickness: 2px;
+  }
+  
+  .visual-keyboard {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    opacity: 0.8;
+  }
+  .vk-half { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .vk-key {
     width: 32px;
-    height: 20px;
+    height: 32px;
     background: var(--lr-bg-elevated);
     border: 1px solid var(--lr-border-default);
     border-radius: 3px;
@@ -142,384 +356,250 @@
     align-items: center;
     justify-content: center;
     font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--lr-text-secondary);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
   }
-  .keyboard-context-info { flex: 1; }
-  .keyboard-context-label { font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
-  .keyboard-context-name { font-family: var(--font-mono); font-size: 13px; color: var(--lr-text-primary); font-weight: 500; }
-  .keyboard-context-switch { font-size: 12px; color: var(--lr-amber-base); cursor: pointer; }
-  
-  /* Mode cards */
-  .mode-section { margin-bottom: 32px; }
-  .section-label { font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 12px; }
-  
-  .mode-primary {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-amber-base);
-    border-radius: 8px;
-    padding: 24px 28px;
-    cursor: pointer;
-    transition: all 150ms;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  .mode-primary:hover { background: var(--lr-bg-elevated); }
-  .mode-primary-info h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-  .mode-primary-info p { color: var(--lr-text-secondary); font-size: 13px; }
-  .mode-primary-cta {
+  .vk-key.active {
     background: var(--lr-amber-base);
     color: var(--lr-text-inverse);
-    padding: 12px 24px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    display: flex;
+    font-weight: 700;
+    border-color: var(--lr-amber-hover);
+    box-shadow: 0 0 0 2px var(--lr-amber-faint);
+  }
+  .vk-key.finger-l-pinky { border-left: 2px solid var(--finger-l-pinky); }
+  .vk-key.finger-l-ring { border-left: 2px solid var(--finger-l-ring); }
+  .vk-key.finger-l-middle { border-left: 2px solid var(--finger-l-middle); }
+  .vk-key.finger-l-index { border-left: 2px solid var(--finger-l-index); }
+  .vk-key.finger-r-index { border-left: 2px solid var(--finger-r-index); }
+  .vk-key.finger-r-middle { border-left: 2px solid var(--finger-r-middle); }
+  .vk-key.finger-r-ring { border-left: 2px solid var(--finger-r-ring); }
+  .vk-key.finger-r-pinky { border-left: 2px solid var(--finger-r-pinky); }
+  
+  .live-wpm {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--lr-text-tertiary);
+    display: none;
+    z-index: 50;
+  }
+  .live-wpm.visible { display: block; }
+  .live-wpm-value {
+    font-size: 18px;
+    color: var(--lr-text-primary);
+    font-weight: 700;
+  }
+  
+  .shortcut-hints {
+    position: fixed;
+    bottom: 32px;
+    left: 32px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 50;
+  }
+  .shortcut-hints.visible { display: flex; }
+  .shortcut-hints kbd {
+    font-family: var(--font-mono);
+    background: var(--lr-bg-elevated);
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-secondary);
+  }
+  
+  /* === POST-SESSION STATE (INLINE) === */
+  .post-session { padding-top: 32px; }
+  
+  .post-complete-mark {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .post-complete-mark-badge {
+    display: inline-flex;
     align-items: center;
     gap: 8px;
+    padding: 6px 14px;
+    background: var(--lr-amber-faint);
+    border: 1px solid var(--lr-amber-base);
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-amber-base);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
   }
-  .mode-primary-cta-shortcut {
+  .post-complete-mark-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--lr-amber-base);
+    border-radius: 50%;
+  }
+  
+  .post-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    line-height: 1.2;
+  }
+  
+  .post-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--lr-border-subtle);
+  }
+  .post-stat { text-align: center; }
+  .post-stat-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .post-stat-value {
+    font-family: var(--font-mono);
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--lr-text-primary);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .post-stat-value.featured { color: var(--lr-amber-base); }
+  .post-stat-delta { font-family: var(--font-mono); font-size: 11px; }
+  .post-stat-delta.up { color: var(--lr-success); }
+  .post-stat-delta.down { color: var(--lr-error); }
+  .post-stat-delta.neutral { color: var(--lr-text-tertiary); }
+  
+  .post-section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  
+  .weakness-shifts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 36px;
+  }
+  .shift-group {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .shift-group-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .shift-group.improved .shift-group-title { color: var(--lr-success); }
+  .shift-group.emergent .shift-group-title { color: var(--lr-warning); }
+  .shift-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--lr-text-secondary);
+  }
+  .shift-pill {
+    background: var(--lr-bg-elevated);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--lr-text-primary);
+  }
+  .shift-delta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-left: auto;
+  }
+  .shift-delta.improved { color: var(--lr-success); }
+  .shift-delta.worse { color: var(--lr-warning); }
+  
+  .insight {
+    background: var(--lr-amber-faint);
+    border-left: 3px solid var(--lr-amber-base);
+    padding: 20px 24px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 36px;
+  }
+  .insight-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--lr-amber-base);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .insight-text { font-size: 14px; line-height: 1.7; color: var(--lr-text-primary); }
+  .insight-text strong { color: var(--lr-amber-base); font-family: var(--font-mono); }
+  
+  .post-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .post-btn {
+    padding: 14px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 150ms;
+  }
+  .post-btn-primary {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+  }
+  .post-btn-primary:hover { background: var(--lr-amber-hover); }
+  .post-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-primary);
+  }
+  .post-btn-secondary:hover { background: var(--lr-bg-elevated); }
+  .post-btn-shortcut {
     font-family: var(--font-mono);
     font-size: 10px;
     background: rgba(0,0,0,0.2);
     padding: 2px 6px;
     border-radius: 3px;
   }
-  
-  .mode-secondary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .mode-secondary {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    padding: 16px 20px;
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .mode-secondary:hover { border-color: var(--lr-border-strong); background: var(--lr-bg-elevated); }
-  .mode-secondary h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .mode-secondary p { color: var(--lr-text-secondary); font-size: 12px; line-height: 1.5; }
-  
-  /* Filters */
-  .filters {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .filters-toggle {
-    padding: 12px 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 13px;
-  }
-  .filters-toggle-label { color: var(--lr-text-secondary); display: flex; align-items: center; gap: 8px; }
-  .filters-toggle-chevron { color: var(--lr-text-tertiary); font-family: var(--font-mono); }
-  .filters-content {
-    border-top: 1px solid var(--lr-border-subtle);
-    padding: 16px;
-    display: none;
-  }
-  .filters.expanded .filters-content { display: block; }
-  .filter-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
-  .filter-row:last-child { margin-bottom: 0; }
-  .filter-label { font-size: 12px; color: var(--lr-text-secondary); width: 120px; }
-  .filter-pills { display: flex; gap: 4px; }
-  .filter-pill {
+  .post-btn-secondary .post-btn-shortcut {
     background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
     color: var(--lr-text-secondary);
-    padding: 4px 12px;
-    border-radius: 3px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-  .filter-pill.active { background: var(--lr-amber-subtle); border-color: var(--lr-amber-base); color: var(--lr-amber-base); }
-  
-  /* === STATE 2: ACTIVE TYPING === */
-  .active-typing { display: none; }
-  .active-typing.active { display: block; }
-  
-  .typing-stage {
-    min-height: calc(100vh - 64px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    position: relative;
   }
   
-  /* Live WPM indicator */
-  .live-wpm {
-    position: absolute;
-    bottom: 32px;
-    right: 32px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .live-wpm-value {
-    font-size: 14px;
-    color: var(--lr-text-secondary);
-    font-weight: 700;
-  }
-  
-  /* Session progress bar */
-  .session-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--lr-border-subtle);
-  }
-  .session-progress-fill {
-    height: 100%;
-    background: var(--lr-amber-base);
-    width: 35%;
-    transition: width 200ms;
-  }
-  
-  /* Typing area */
-  .typing-area {
-    max-width: 800px;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 32px;
-  }
-  .typing-text {
-    font-family: var(--font-mono);
-    font-size: 30px;
-    line-height: 1.7;
-    letter-spacing: 0.02em;
-    word-spacing: 0.1em;
-  }
-  .typing-text .typed { color: var(--lr-text-tertiary); }
-  .typing-text .current { background: var(--lr-amber-base); color: var(--lr-text-inverse); padding: 0 4px; border-radius: 3px; }
-  .typing-text .upcoming { color: var(--lr-text-secondary); }
-  .typing-text .error { color: var(--lr-error); text-decoration: underline wavy var(--lr-error); }
-  
-  /* Visual keyboard (toggle visible) */
-  .visual-keyboard {
-    width: 100%;
-    max-width: 720px;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 24px;
-    margin-top: 32px;
-    transition: opacity 200ms, transform 200ms;
-  }
-  .visual-keyboard.hidden { display: none; }
-  .keyboard-halves { display: flex; justify-content: space-between; gap: 48px; }
-  .keyboard-half { flex: 1; }
-  .keyboard-half-label { 
-    font-family: var(--font-mono); 
-    font-size: 10px; 
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase; 
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-  .key-grid { display: grid; gap: 4px; }
-  .sofle-left { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 32px); }
-  .sofle-right { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 32px); }
-  .key {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    position: relative;
-  }
-  .key[data-finger="l-pinky"] { border-bottom: 2px solid var(--finger-l-pinky); }
-  .key[data-finger="l-ring"] { border-bottom: 2px solid var(--finger-l-ring); }
-  .key[data-finger="l-middle"] { border-bottom: 2px solid var(--finger-l-middle); }
-  .key[data-finger="l-index"] { border-bottom: 2px solid var(--finger-l-index); }
-  .key[data-finger="r-index"] { border-bottom: 2px solid var(--finger-r-index); }
-  .key[data-finger="r-middle"] { border-bottom: 2px solid var(--finger-r-middle); }
-  .key[data-finger="r-ring"] { border-bottom: 2px solid var(--finger-r-ring); }
-  .key[data-finger="r-pinky"] { border-bottom: 2px solid var(--finger-r-pinky); }
-  
-  .key.target {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    border-color: var(--lr-amber-base);
-    font-weight: 700;
-  }
-  
-  /* Shortcut hint */
-  .shortcut-hint {
-    position: absolute;
-    bottom: 32px;
-    left: 32px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    display: flex;
-    gap: 12px;
-  }
-  .kbd {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-bottom-width: 2px;
-    border-radius: 3px;
-    padding: 1px 6px;
-    font-size: 10px;
-    color: var(--lr-text-secondary);
-    margin: 0 2px;
-  }
-  
-  /* === STATE 3: POST-SESSION MODAL === */
-  .post-session-bg { display: none; }
-  .post-session-bg.active { 
-    display: flex;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    align-items: center;
-    justify-content: center;
-    padding: 32px;
-    z-index: 50;
-    backdrop-filter: blur(4px);
-  }
-  
-  .post-session-modal {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 12px;
-    width: 100%;
-    max-width: 640px;
-    max-height: 85vh;
-    overflow-y: auto;
-  }
-  .modal-header {
-    padding: 24px 28px 16px;
-    border-bottom: 1px solid var(--lr-border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .modal-title { font-size: 18px; font-weight: 600; }
-  .modal-close { 
-    background: transparent; 
-    border: none; 
-    color: var(--lr-text-tertiary); 
-    cursor: pointer; 
-    font-size: 18px;
-    padding: 4px 8px;
-    font-family: var(--font-mono);
-  }
-  .modal-close:hover { color: var(--lr-text-primary); }
-  .modal-body { padding: 24px 28px; }
-  
-  /* Stats grid */
-  .summary-stats { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 12px; 
-    margin-bottom: 24px;
-  }
-  .summary-stat {
-    background: var(--lr-bg-elevated);
-    border-radius: 6px;
-    padding: 16px;
-    text-align: center;
-  }
-  .summary-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--lr-text-tertiary); margin-bottom: 6px; font-weight: 600; }
-  .summary-stat-value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--lr-amber-base); line-height: 1; }
-  .summary-stat-delta { font-size: 11px; color: var(--lr-success); font-family: var(--font-mono); margin-top: 4px; }
-  .summary-stat-delta.negative { color: var(--lr-error); }
-  
-  /* Weakness changes */
-  .weakness-changes { margin-bottom: 24px; }
-  .weakness-changes-title { font-size: 12px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 12px; }
-  .weakness-change-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
-    background: var(--lr-bg-elevated);
-    border-radius: 4px;
-    margin-bottom: 6px;
-    font-size: 13px;
-  }
-  .weakness-change-key {
-    background: var(--lr-amber-subtle);
-    color: var(--lr-amber-base);
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 12px;
-  }
-  .weakness-change-arrow { font-family: var(--font-mono); color: var(--lr-text-tertiary); }
-  .weakness-change-delta { 
-    font-family: var(--font-mono); 
-    font-size: 12px; 
-    color: var(--lr-success); 
-    font-weight: 600;
-  }
-  .weakness-change-delta.negative { color: var(--lr-error); }
-  
-  /* Plain language insight */
-  .insight-text {
-    background: var(--lr-amber-faint);
-    border-left: 2px solid var(--lr-amber-base);
-    padding: 16px 20px;
-    border-radius: 0 6px 6px 0;
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--lr-text-primary);
-    margin-bottom: 24px;
-  }
-  
-  /* Modal actions */
-  .modal-actions {
-    padding: 20px 28px;
-    border-top: 1px solid var(--lr-border-subtle);
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
-  .modal-cta-primary {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    flex: 1;
-  }
-  .modal-cta-primary:hover { background: var(--lr-amber-hover); }
-  .modal-cta-secondary {
-    background: transparent;
-    color: var(--lr-text-secondary);
-    border: 1px solid var(--lr-border-default);
-    padding: 10px 16px;
-    border-radius: 4px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .modal-cta-secondary:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
-  
-  /* Wireframe annotations */
   .annotation {
     position: fixed;
     bottom: 24px;
@@ -528,8 +608,8 @@
     background: var(--lr-bg-overlay);
     border: 1px solid var(--lr-border-strong);
     border-radius: 6px;
-    padding: 12px 20px;
-    font-size: 12px;
+    padding: 10px 18px;
+    font-size: 11px;
     color: var(--lr-text-secondary);
     font-family: var(--font-mono);
     z-index: 200;
@@ -542,19 +622,17 @@
 </head>
 <body>
 
-<!-- Wireframe meta-header -->
 <div class="wireframe-header">
   <div class="wireframe-title">
-    Practice page wireframe v0.1 · <strong>/practice</strong>
+    Practice wireframe v0.2 · <strong>/practice</strong> · inline transition (no modal)
   </div>
   <div class="state-switcher">
-    <button class="state-btn active" data-state="pre">1 · Pre-session</button>
-    <button class="state-btn" data-state="active">2 · Active typing</button>
-    <button class="state-btn" data-state="post">3 · Post-session</button>
+    <button class="state-btn active" data-state="pre">pre-session</button>
+    <button class="state-btn" data-state="active">active typing</button>
+    <button class="state-btn" data-state="post">post-session (inline)</button>
   </div>
 </div>
 
-<!-- App nav (visible in pre-session and post-session, hidden in active typing) -->
 <div class="app-nav" id="appNav">
   <div class="nav-logo">leftype-rightype</div>
   <div class="nav-links">
@@ -568,301 +646,281 @@
   </div>
 </div>
 
-<!-- STATE 1: PRE-SESSION -->
-<div class="page pre-session active" id="state-pre">
-  <div class="pre-session-header">
-    <div class="breadcrumb">Ready to practice</div>
-    <h1 class="pre-session-title">What kind of practice today?</h1>
-    <p class="pre-session-subtitle">Pick a mode and start typing. Press Enter to continue with the default option.</p>
-  </div>
-  
-  <div class="keyboard-context">
-    <div class="keyboard-context-icon">⊞⊞</div>
-    <div class="keyboard-context-info">
-      <div class="keyboard-context-label">Active keyboard</div>
-      <div class="keyboard-context-name">sofle v2 · right-handed</div>
-    </div>
-    <div class="keyboard-context-switch">switch →</div>
-  </div>
-  
-  <div class="mode-section">
-    <div class="section-label">Recommended</div>
-    <div class="mode-primary">
-      <div class="mode-primary-info">
-        <h3>Continue adaptive practice</h3>
-        <p>Engine will focus on your top 3 weaknesses: B, er, T</p>
-      </div>
-      <button class="mode-primary-cta">
-        Start
-        <span class="mode-primary-cta-shortcut">⏎</span>
-      </button>
-    </div>
-  </div>
-  
-  <div class="mode-section">
-    <div class="section-label">Other modes</div>
-    <div class="mode-secondary-grid">
-      <div class="mode-secondary">
-        <h4>Drill weakness</h4>
-        <p>Targeted reps on a specific letter or bigram</p>
-      </div>
-      <div class="mode-secondary">
-        <h4>Warm up</h4>
-        <p>Gentle exercise with familiar words first</p>
-      </div>
-      <div class="mode-secondary">
-        <h4>Hand isolation</h4>
-        <p>Practice one hand at a time</p>
-      </div>
-    </div>
-  </div>
-  
-  <div class="filters" id="filters">
-    <div class="filters-toggle" onclick="document.getElementById('filters').classList.toggle('expanded')">
-      <div class="filters-toggle-label">
-        <span>⚙</span> Filters & options
-      </div>
-      <div class="filters-toggle-chevron">▾</div>
-    </div>
-    <div class="filters-content">
-      <div class="filter-row">
-        <div class="filter-label">Hand isolation</div>
-        <div class="filter-pills">
-          <div class="filter-pill active">Both hands</div>
-          <div class="filter-pill">Left only</div>
-          <div class="filter-pill">Right only</div>
-        </div>
-      </div>
-      <div class="filter-row">
-        <div class="filter-label">Max word length</div>
-        <div class="filter-pills">
-          <div class="filter-pill">3</div>
-          <div class="filter-pill">5</div>
-          <div class="filter-pill active">No limit</div>
-        </div>
-      </div>
-      <div class="filter-row">
-        <div class="filter-label">Visual keyboard</div>
-        <div class="filter-pills">
-          <div class="filter-pill active">Visible</div>
-          <div class="filter-pill">Hidden</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="session-progress" id="progressBar">
+  <div class="session-progress-fill"></div>
 </div>
 
-<!-- STATE 2: ACTIVE TYPING -->
-<div class="active-typing" id="state-active">
-  <div class="typing-stage">
-    <div class="session-progress"><div class="session-progress-fill"></div></div>
+<div class="live-wpm" id="liveWpm">
+  <span class="live-wpm-value">58</span> wpm
+</div>
+<div class="shortcut-hints" id="shortcutHints">
+  <div><kbd>Esc</kbd> reveal nav</div>
+  <div><kbd>Tab</kbd>+<kbd>↵</kbd> restart</div>
+  <div><kbd>⌃</kbd>+<kbd>K</kbd> toggle keyboard</div>
+</div>
+
+<div class="practice-page">
+  <div class="stage">
     
-    <div class="typing-area">
-      <div class="typing-text">
-        <span class="typed">the quick brown fox jumps over </span><span class="current">t</span><span class="upcoming">he lazy dog and the bear</span>
-      </div>
-    </div>
-    
-    <div class="visual-keyboard" id="visualKeyboard">
-      <div class="keyboard-halves">
-        <!-- Left half -->
-        <div class="keyboard-half">
-          <div class="keyboard-half-label">Left</div>
-          <div class="key-grid sofle-left">
-            <div class="key" data-finger="l-pinky">1</div>
-            <div class="key" data-finger="l-ring">2</div>
-            <div class="key" data-finger="l-middle">3</div>
-            <div class="key" data-finger="l-index">4</div>
-            <div class="key" data-finger="l-index">5</div>
-            <div class="key">6</div>
-            
-            <div class="key" data-finger="l-pinky">q</div>
-            <div class="key" data-finger="l-ring">w</div>
-            <div class="key" data-finger="l-middle">e</div>
-            <div class="key" data-finger="l-index">r</div>
-            <div class="key target" data-finger="l-index">t</div>
-            <div class="key">.</div>
-            
-            <div class="key" data-finger="l-pinky">a</div>
-            <div class="key" data-finger="l-ring">s</div>
-            <div class="key" data-finger="l-middle">d</div>
-            <div class="key" data-finger="l-index">f</div>
-            <div class="key" data-finger="l-index">g</div>
-            <div class="key">.</div>
-            
-            <div class="key" data-finger="l-pinky">z</div>
-            <div class="key" data-finger="l-ring">x</div>
-            <div class="key" data-finger="l-middle">c</div>
-            <div class="key" data-finger="l-index">v</div>
-            <div class="key" data-finger="l-index">b</div>
-            <div class="key">.</div>
+    <!-- PRE-SESSION STATE -->
+    <div class="stage-content active" id="stage-pre">
+      <div class="pre-session">
+        <div class="pre-keyboard-context">
+          <span class="pill-icon">⊞</span>
+          <span>active</span>
+          <span class="pill-name">lily58</span>
+          <span class="pill-switch">switch →</span>
+        </div>
+        
+        <h1 class="pre-title">What will you practice?</h1>
+        <p class="pre-subtitle">Pick a mode, or just continue where you left off.</p>
+        
+        <button class="pre-cta-primary">
+          <div class="pre-cta-primary-text">
+            <span class="pre-cta-primary-label">Continue adaptive practice</span>
+            <span class="pre-cta-primary-meta">focus on <span class="highlight">B, er, T</span> · ~50 words · ~2 min</span>
+          </div>
+          <div class="pre-cta-primary-action">
+            <span class="shortcut">⏎</span>
+            <span class="arrow">→</span>
+          </div>
+        </button>
+        
+        <div class="pre-modes-label">or pick a different mode</div>
+        <div class="pre-modes">
+          <div class="mode-card">
+            <div class="mode-card-icon">◎</div>
+            <div class="mode-card-name">Drill weakness</div>
+            <div class="mode-card-desc">Target a specific letter or bigram, repeatedly</div>
+          </div>
+          <div class="mode-card">
+            <div class="mode-card-icon">◷</div>
+            <div class="mode-card-name">Warm up</div>
+            <div class="mode-card-desc">Comfortable pace, no evaluation tracking</div>
+          </div>
+          <div class="mode-card">
+            <div class="mode-card-icon">⬌</div>
+            <div class="mode-card-name">Hand isolation</div>
+            <div class="mode-card-desc">Practice with left or right hand only</div>
           </div>
         </div>
         
-        <!-- Right half -->
-        <div class="keyboard-half">
-          <div class="keyboard-half-label">Right</div>
-          <div class="key-grid sofle-right">
-            <div class="key">7</div>
-            <div class="key" data-finger="r-index">8</div>
-            <div class="key" data-finger="r-middle">9</div>
-            <div class="key" data-finger="r-ring">0</div>
-            <div class="key" data-finger="r-pinky">-</div>
-            <div class="key" data-finger="r-pinky">=</div>
-            
-            <div class="key">.</div>
-            <div class="key" data-finger="r-index">y</div>
-            <div class="key" data-finger="r-index">u</div>
-            <div class="key" data-finger="r-middle">i</div>
-            <div class="key" data-finger="r-ring">o</div>
-            <div class="key" data-finger="r-pinky">p</div>
-            
-            <div class="key">.</div>
-            <div class="key" data-finger="r-index">h</div>
-            <div class="key" data-finger="r-index">j</div>
-            <div class="key" data-finger="r-middle">k</div>
-            <div class="key" data-finger="r-ring">l</div>
-            <div class="key" data-finger="r-pinky">;</div>
-            
-            <div class="key">.</div>
-            <div class="key" data-finger="r-index">n</div>
-            <div class="key" data-finger="r-index">m</div>
-            <div class="key" data-finger="r-middle">,</div>
-            <div class="key" data-finger="r-ring">.</div>
-            <div class="key" data-finger="r-pinky">/</div>
+        <div class="pre-filters">
+          <div class="pre-filters-header" onclick="toggleFilters()">
+            <span>Filters & options</span>
+            <span class="pre-filters-caret" id="filtersCaret">▶</span>
+          </div>
+          <div class="pre-filters-content" id="filtersContent">
+            <div class="filter-row">
+              <span class="filter-label">Hand isolation</span>
+              <div class="filter-pills">
+                <div class="filter-pill active">Either</div>
+                <div class="filter-pill">Left only</div>
+                <div class="filter-pill">Right only</div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <span class="filter-label">Max word length</span>
+              <div class="filter-pills">
+                <div class="filter-pill">4</div>
+                <div class="filter-pill">6</div>
+                <div class="filter-pill active">8</div>
+                <div class="filter-pill">all</div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <span class="filter-label">Visual keyboard</span>
+              <div class="filter-pills">
+                <div class="filter-pill active">Visible</div>
+                <div class="filter-pill">Hidden</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
     
-    <div class="live-wpm">
-      <span>wpm</span>
-      <span class="live-wpm-value">62</span>
+    <!-- ACTIVE TYPING STATE -->
+    <div class="stage-content" id="stage-active">
+      <div class="active-typing">
+        <div class="typing-area">
+          <span class="typed">the quick brown fox jumps over the lazy </span><span class="error">b</span><span class="current">e</span><span style="color: var(--lr-text-tertiary);">nch bench between bench brother</span>
+        </div>
+        
+        <div class="visual-keyboard">
+          <div class="vk-half">
+            <div class="vk-key finger-l-pinky">q</div>
+            <div class="vk-key finger-l-ring">w</div>
+            <div class="vk-key finger-l-middle active">e</div>
+            <div class="vk-key finger-l-index">r</div>
+            <div class="vk-key finger-l-index">t</div>
+            <div class="vk-key">·</div>
+            <div class="vk-key finger-l-pinky">a</div>
+            <div class="vk-key finger-l-ring">s</div>
+            <div class="vk-key finger-l-middle">d</div>
+            <div class="vk-key finger-l-index">f</div>
+            <div class="vk-key finger-l-index">g</div>
+            <div class="vk-key">·</div>
+            <div class="vk-key finger-l-pinky">z</div>
+            <div class="vk-key finger-l-ring">x</div>
+            <div class="vk-key finger-l-middle">c</div>
+            <div class="vk-key finger-l-index">v</div>
+            <div class="vk-key finger-l-index">b</div>
+            <div class="vk-key">·</div>
+          </div>
+          <div class="vk-half">
+            <div class="vk-key">·</div>
+            <div class="vk-key finger-r-index">y</div>
+            <div class="vk-key finger-r-index">u</div>
+            <div class="vk-key finger-r-middle">i</div>
+            <div class="vk-key finger-r-ring">o</div>
+            <div class="vk-key finger-r-pinky">p</div>
+            <div class="vk-key">·</div>
+            <div class="vk-key finger-r-index">h</div>
+            <div class="vk-key finger-r-index">j</div>
+            <div class="vk-key finger-r-middle">k</div>
+            <div class="vk-key finger-r-ring">l</div>
+            <div class="vk-key finger-r-pinky">;</div>
+            <div class="vk-key">·</div>
+            <div class="vk-key finger-r-index">n</div>
+            <div class="vk-key finger-r-index">m</div>
+            <div class="vk-key finger-r-middle">,</div>
+            <div class="vk-key finger-r-ring">.</div>
+            <div class="vk-key finger-r-pinky">/</div>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <div class="shortcut-hint">
-      <span><span class="kbd">Esc</span> reveal nav</span>
-      <span><span class="kbd">⇥</span> <span class="kbd">⏎</span> restart</span>
-      <span><span class="kbd">^</span><span class="kbd">K</span> toggle keyboard</span>
+    <!-- POST-SESSION STATE (INLINE) -->
+    <div class="stage-content" id="stage-post">
+      <div class="post-session">
+        
+        <div class="post-complete-mark">
+          <div class="post-complete-mark-badge">
+            <span class="post-complete-mark-dot"></span>
+            session complete
+          </div>
+        </div>
+        
+        <h1 class="post-title">Nice one.</h1>
+        
+        <div class="post-stats">
+          <div class="post-stat">
+            <div class="post-stat-label">speed</div>
+            <div class="post-stat-value featured">62</div>
+            <div class="post-stat-delta up">↑ 4 wpm vs avg</div>
+          </div>
+          <div class="post-stat">
+            <div class="post-stat-label">accuracy</div>
+            <div class="post-stat-value">94%</div>
+            <div class="post-stat-delta up">↑ 2% vs avg</div>
+          </div>
+          <div class="post-stat">
+            <div class="post-stat-label">time</div>
+            <div class="post-stat-value">2:14</div>
+            <div class="post-stat-delta neutral">50 words</div>
+          </div>
+        </div>
+        
+        <div class="post-section-label">Weakness shifts from this session</div>
+        <div class="weakness-shifts">
+          <div class="shift-group improved">
+            <div class="shift-group-title">
+              <span>✓</span>
+              <span>improved</span>
+            </div>
+            <div class="shift-row">
+              <span class="shift-pill">B</span>
+              <span>error rate dropped</span>
+              <span class="shift-delta improved">−4%</span>
+            </div>
+            <div class="shift-row">
+              <span class="shift-pill">er</span>
+              <span>faster transitions</span>
+              <span class="shift-delta improved">−18ms</span>
+            </div>
+          </div>
+          <div class="shift-group emergent">
+            <div class="shift-group-title">
+              <span>⚠</span>
+              <span>watch this</span>
+            </div>
+            <div class="shift-row">
+              <span class="shift-pill">T</span>
+              <span>slower than baseline</span>
+              <span class="shift-delta worse">+12ms</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="insight">
+          <div class="insight-label">What engine noticed</div>
+          <div class="insight-text">
+            Your <strong>B</strong> accuracy improved significantly this session. Meanwhile, <strong>T</strong> hesitation crept up — possibly from attention fatigue late in the exercise. Next exercise will give T a light reinforcement boost.
+          </div>
+        </div>
+        
+        <div class="post-actions">
+          <button class="post-btn post-btn-primary">
+            Practice again
+            <span class="post-btn-shortcut">⏎</span>
+          </button>
+          <button class="post-btn post-btn-secondary">
+            Retry same exercise
+            <span class="post-btn-shortcut">⇥</span>
+          </button>
+          <button class="post-btn post-btn-secondary">
+            View dashboard
+            <span class="post-btn-shortcut">⌘D</span>
+          </button>
+        </div>
+        
+      </div>
     </div>
+    
   </div>
 </div>
 
-<!-- STATE 3: POST-SESSION MODAL (overlays state 1) -->
-<div class="post-session-bg" id="state-post">
-  <div class="post-session-modal">
-    <div class="modal-header">
-      <div class="modal-title">Session complete</div>
-      <button class="modal-close" onclick="setState('pre')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="summary-stats">
-        <div class="summary-stat">
-          <div class="summary-stat-label">wpm</div>
-          <div class="summary-stat-value">62</div>
-          <div class="summary-stat-delta">+4 vs avg</div>
-        </div>
-        <div class="summary-stat">
-          <div class="summary-stat-label">accuracy</div>
-          <div class="summary-stat-value">94%</div>
-          <div class="summary-stat-delta">+2%</div>
-        </div>
-        <div class="summary-stat">
-          <div class="summary-stat-label">time</div>
-          <div class="summary-stat-value">02:14</div>
-          <div class="summary-stat-delta" style="color: var(--lr-text-tertiary);">52 words</div>
-        </div>
-      </div>
-      
-      <div class="weakness-changes">
-        <div class="weakness-changes-title">Weakness shifts this session</div>
-        <div class="weakness-change-row">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span class="weakness-change-key">B</span>
-            <span style="color: var(--lr-text-secondary);">error rate</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-family: var(--font-mono); color: var(--lr-text-tertiary);">18%</span>
-            <span class="weakness-change-arrow">→</span>
-            <span style="font-family: var(--font-mono); color: var(--lr-text-primary);">9%</span>
-            <span class="weakness-change-delta">-9%</span>
-          </div>
-        </div>
-        <div class="weakness-change-row">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span class="weakness-change-key">er</span>
-            <span style="color: var(--lr-text-secondary);">error rate</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-family: var(--font-mono); color: var(--lr-text-tertiary);">14%</span>
-            <span class="weakness-change-arrow">→</span>
-            <span style="font-family: var(--font-mono); color: var(--lr-text-primary);">11%</span>
-            <span class="weakness-change-delta">-3%</span>
-          </div>
-        </div>
-        <div class="weakness-change-row">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span class="weakness-change-key">th</span>
-            <span style="color: var(--lr-text-secondary);">new weakness</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-family: var(--font-mono); color: var(--lr-text-tertiary);">—</span>
-            <span class="weakness-change-arrow">→</span>
-            <span style="font-family: var(--font-mono); color: var(--lr-text-primary);">12%</span>
-            <span class="weakness-change-delta negative">+12%</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="insight-text">
-        Solid session. The letter <strong>B</strong> dropped from 18% to 9% error rate — you're getting comfortable with reaching to it on the columnar layout. Watch for <strong>th</strong> next time, it emerged as a new struggle area.
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-cta-primary" onclick="setState('active')">Practice again →</button>
-      <button class="modal-cta-secondary">Retry same exercise</button>
-      <button class="modal-cta-secondary">View dashboard</button>
-    </div>
-  </div>
-</div>
-
-<!-- Annotation hint (changes per state) -->
 <div class="annotation" id="annotation">
-  <strong>State 1: Pre-session</strong> — entry point with primary CTA + secondary modes + collapsible filters
+  <strong>Pre-session state</strong> · keyboard context + primary CTA + 3 mode cards + collapsible filters
 </div>
 
 <script>
   function setState(state) {
-    // Update state buttons
     document.querySelectorAll('.state-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.state === state);
     });
+    document.querySelectorAll('.stage-content').forEach(s => s.classList.remove('active'));
+    document.getElementById('stage-' + state).classList.add('active');
     
-    // Show/hide states
-    const pre = document.getElementById('state-pre');
-    const active = document.getElementById('state-active');
-    const post = document.getElementById('state-post');
-    const nav = document.getElementById('appNav');
     const annotation = document.getElementById('annotation');
+    const nav = document.getElementById('appNav');
+    const progress = document.getElementById('progressBar');
+    const liveWpm = document.getElementById('liveWpm');
+    const shortcuts = document.getElementById('shortcutHints');
     
-    pre.classList.remove('active');
-    active.classList.remove('active');
-    post.classList.remove('active');
+    nav.classList.remove('hidden-typing');
+    progress.classList.remove('visible');
+    liveWpm.classList.remove('visible');
+    shortcuts.classList.remove('visible');
     
     if (state === 'pre') {
-      pre.classList.add('active');
-      nav.classList.remove('hidden');
-      annotation.innerHTML = '<strong>State 1: Pre-session</strong> — entry point with primary CTA + secondary modes + collapsible filters';
+      annotation.innerHTML = '<strong>Pre-session state</strong> · keyboard context + primary CTA + 3 mode cards + collapsible filters';
     } else if (state === 'active') {
-      active.classList.add('active');
-      nav.classList.add('hidden');
-      annotation.innerHTML = '<strong>State 2: Active typing</strong> — nav auto-hidden, minimal chrome, visual keyboard toggleable via <code>Ctrl+K</code>';
+      nav.classList.add('hidden-typing');
+      progress.classList.add('visible');
+      liveWpm.classList.add('visible');
+      shortcuts.classList.add('visible');
+      annotation.innerHTML = '<strong>Active typing state</strong> · nav auto-hidden · progress bar 45% · live WPM bottom-right · shortcut hints bottom-left';
     } else if (state === 'post') {
-      pre.classList.add('active');
-      nav.classList.remove('hidden');
-      post.classList.add('active');
-      annotation.innerHTML = '<strong>State 3: Post-session</strong> — modal overlay on top of pre-session, dismiss returns to pre-session ready for next';
+      annotation.innerHTML = '<strong>Post-session INLINE</strong> · same page, no modal · smoothly replaces typing area with summary · nav visible again · stats + weakness shifts + insight + actions';
     }
+  }
+  
+  function toggleFilters() {
+    document.getElementById('filtersContent').classList.toggle('open');
+    document.getElementById('filtersCaret').classList.toggle('open');
   }
   
   document.querySelectorAll('.state-btn').forEach(btn => {

@@ -123,17 +123,28 @@ This means Claude Code never needs SSH access or VPS credentials.
 - Review test fixtures to make sure they represent realistic user data
 - Validate that baseline computation makes intuitive sense (e.g., a user with 95% accuracy should get baseline error rate around 5%)
 
-### Task 1.3: Adaptive engine
+### Task 1.3: Adaptive engine (word-picker approach)
+
+**Content generation strategy for MVP: word-picker (see 02-architecture.md §4.2).** The engine selects from a static English word corpus, not LLM-generated content. LLM-based content generation is a V2 feature.
 
 **Claude Code scope:**
+- Curate English word corpus (target ~10,000 words): source from a permissively-licensed frequency list (e.g., Google 10000 English, or Peter Norvig's corpus), filter out offensive/profane words manually
+- Precompute corpus metadata: for each word compute length, constituent characters, bigrams, frequency rank, hand distribution (per Sofle and Lily58 finger assignment tables)
+- Store corpus as static JSON file (target <300KB) loaded client-side
 - Implement `weaknessScore.ts` with the formula in 02-architecture.md
-- Implement `exerciseGenerator.ts` (adaptive mode) with seeded random for testability
+- Implement `exerciseGenerator.ts` (adaptive mode, word-picker) with seeded random for testability
 - Implement `drillGenerator.ts` (targeted drill) with synthetic string generation
 - Unit tests with fixture data
 
 **Your scope:**
+- Review the curated corpus and remove any words that feel inappropriate for a typing platform (offensive, overly complex, overly simple)
 - Review the weakness scoring formula and challenge if any coefficient feels wrong
 - Test the exercise generator manually: feed it a fake user weak in B, verify generated words contain B more frequently than baseline
+- **Gut-check the output quality**: the word-picker produces disjoint words, not prose. Validate that this feels acceptable for MVP launch, or flag if it feels too rough even as an MVP compromise
+
+**Explicitly out of scope for MVP:**
+- LLM integration for content generation (deferred to V2)
+- Any server-side content generation (everything must run client-side on the static corpus)
 
 ### Task 1.4: Insight generator
 
