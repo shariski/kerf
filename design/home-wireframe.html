@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Leftype-Rightype — Home Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lr-bg-base: #181410;
+    --lr-bg-surface: #221C17;
+    --lr-bg-elevated: #2A2320;
+    --lr-bg-overlay: #322A26;
+    --lr-text-primary: #F2EAE0;
+    --lr-text-secondary: #9A8E80;
+    --lr-text-tertiary: #685D52;
+    --lr-text-inverse: #181410;
+    --lr-border-subtle: #2F2820;
+    --lr-border-default: #3A3128;
+    --lr-border-strong: #4A3F35;
+    --lr-amber-base: #F59E0B;
+    --lr-amber-hover: #FBBF24;
+    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+    --lr-amber-faint: rgba(245, 158, 11, 0.08);
+    --lr-success: #22C55E;
+    --lr-error: #EF4444;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--lr-bg-base);
+    color: var(--lr-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  
+  /* Wireframe meta-header */
+  .wireframe-header {
+    background: var(--lr-bg-surface);
+    border-bottom: 1px solid var(--lr-border-default);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .wireframe-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--lr-text-secondary);
+  }
+  .wireframe-title strong { color: var(--lr-amber-base); }
+  .state-switcher { display: flex; gap: 4px; }
+  .state-btn {
+    background: transparent;
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-secondary);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
+  .state-btn.active { 
+    background: var(--lr-amber-base); 
+    color: var(--lr-text-inverse); 
+    border-color: var(--lr-amber-base);
+    font-weight: 600;
+  }
+  
+  /* App nav */
+  .app-nav {
+    height: 48px;
+    background: var(--lr-bg-base);
+    border-bottom: 1px solid var(--lr-border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    gap: 32px;
+    position: sticky;
+    top: 47px;
+    z-index: 90;
+  }
+  .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+  .nav-links { display: flex; gap: 24px; flex: 1; }
+  .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
+  .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
+  .nav-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
+  .nav-avatar { background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--lr-text-primary); }
+  
+  /* Page container */
+  .page { 
+    max-width: 720px; 
+    margin: 0 auto; 
+    padding: 64px 32px;
+  }
+  
+  /* === GREETING === */
+  .greeting {
+    margin-bottom: 40px;
+  }
+  .greeting-line {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .greeting-title {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .greeting-title .highlight { color: var(--lr-amber-base); }
+  .greeting-subtitle {
+    color: var(--lr-text-secondary);
+    font-size: 14px;
+  }
+  
+  /* === ACTIVE KEYBOARD INDICATOR === */
+  .keyboard-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--lr-text-secondary);
+    cursor: pointer;
+    transition: all 150ms;
+    margin-bottom: 24px;
+  }
+  .keyboard-pill:hover { border-color: var(--lr-border-strong); }
+  .keyboard-pill-icon { font-family: var(--font-mono); color: var(--lr-amber-base); font-size: 11px; }
+  .keyboard-pill-name { font-family: var(--font-mono); color: var(--lr-text-primary); font-weight: 600; }
+  .keyboard-pill-switch { color: var(--lr-text-tertiary); font-size: 11px; margin-left: 4px; }
+  
+  /* === HERO CTA === */
+  .hero-cta-group {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  
+  .cta-primary {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    border: none;
+    border-radius: 10px;
+    padding: 20px 24px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 150ms;
+  }
+  .cta-primary:hover { background: var(--lr-amber-hover); }
+  .cta-primary-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cta-primary-label {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .cta-primary-meta {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.75;
+    font-family: var(--font-mono);
+  }
+  .cta-primary-arrow {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .cta-shortcut {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: rgba(0,0,0,0.2);
+    padding: 3px 7px;
+    border-radius: 3px;
+    color: var(--lr-text-inverse);
+    align-self: center;
+    margin-left: 10px;
+  }
+  
+  .cta-secondary {
+    background: transparent;
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-primary);
+    border-radius: 10px;
+    padding: 20px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 150ms;
+  }
+  .cta-secondary:hover { background: var(--lr-bg-elevated); border-color: var(--lr-border-strong); }
+  .cta-secondary-icon { color: var(--lr-amber-base); font-family: var(--font-mono); }
+  
+  /* === PREVIEW CARDS === */
+  .preview-section {
+    margin-bottom: 20px;
+  }
+  .preview-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .preview-link {
+    color: var(--lr-amber-base);
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .preview-link:hover { text-decoration: underline; }
+  
+  /* Last session card */
+  .last-session {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 150ms;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .last-session:hover { border-color: var(--lr-border-strong); background: var(--lr-bg-elevated); }
+  
+  .last-session-when {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    min-width: 80px;
+  }
+  
+  .last-session-stats {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    flex: 1;
+  }
+  .ls-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .ls-stat-value {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--lr-text-primary);
+  }
+  .ls-stat-unit {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+  }
+  
+  .last-session-arrow {
+    color: var(--lr-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 18px;
+  }
+  
+  /* Activity + weakness combined card (space efficient) */
+  .activity-weakness-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  /* Activity strip */
+  .activity-strip {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .activity-strip-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .activity-strip-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .activity-strip-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+  }
+  .activity-cells {
+    display: grid;
+    grid-template-columns: repeat(30, 1fr);
+    gap: 3px;
+  }
+  .activity-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-subtle);
+  }
+  .activity-cell.lvl-1 { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.3); }
+  .activity-cell.lvl-2 { background: rgba(245,158,11,0.4); border-color: rgba(245,158,11,0.5); }
+  .activity-cell.lvl-3 { background: rgba(245,158,11,0.6); border-color: rgba(245,158,11,0.7); }
+  .activity-cell.lvl-4 { background: var(--lr-amber-base); border-color: var(--lr-amber-base); }
+  
+  /* Weakness preview */
+  .weakness-strip {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .weakness-strip:hover { border-color: var(--lr-border-strong); }
+  .weakness-strip-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .weakness-strip-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .weakness-strip-link {
+    color: var(--lr-amber-base);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .weakness-pills {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .weakness-pill {
+    background: var(--lr-amber-subtle);
+    color: var(--lr-amber-base);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .weakness-divider {
+    color: var(--lr-text-tertiary);
+    font-family: var(--font-mono);
+  }
+  .weakness-stat-line {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    margin-top: 8px;
+  }
+  
+  /* === ZERO STATE === */
+  .zero-state {
+    text-align: center;
+    padding: 32px 0;
+  }
+  .zero-state .greeting {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .zero-welcome {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .zero-welcome .highlight { color: var(--lr-amber-base); }
+  .zero-message {
+    font-size: 15px;
+    color: var(--lr-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 40px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .zero-keyboard-pill {
+    margin-bottom: 32px;
+    display: inline-flex;
+  }
+  .zero-cta {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  .zero-cta .cta-primary {
+    justify-content: center;
+    padding: 24px 32px;
+  }
+  .zero-cta .cta-primary-text {
+    align-items: center;
+  }
+  .zero-cta-subtle {
+    background: transparent;
+    border: none;
+    color: var(--lr-text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 12px;
+    font-weight: 500;
+  }
+  .zero-cta-subtle:hover { color: var(--lr-text-primary); }
+  
+  /* Annotation */
+  .annotation {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--lr-bg-overlay);
+    border: 1px solid var(--lr-border-strong);
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 11px;
+    color: var(--lr-text-secondary);
+    font-family: var(--font-mono);
+    z-index: 90;
+    max-width: 80vw;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .annotation strong { color: var(--lr-amber-base); }
+  
+  /* State visibility */
+  .state-content { display: none; }
+  .state-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Wireframe meta-header -->
+<div class="wireframe-header">
+  <div class="wireframe-title">
+    Home/lobby wireframe v0.1 · <strong>/</strong>
+  </div>
+  <div class="state-switcher">
+    <button class="state-btn active" data-state="returning">returning user</button>
+    <button class="state-btn" data-state="zero">zero data (new user)</button>
+  </div>
+</div>
+
+<!-- App nav -->
+<div class="app-nav">
+  <div class="nav-logo">leftype-rightype</div>
+  <div class="nav-links">
+    <span class="nav-link">Practice</span>
+    <span class="nav-link">Dashboard</span>
+    <span class="nav-link">Keyboards</span>
+  </div>
+  <div class="nav-right">
+    <span>⚙</span>
+    <span class="nav-avatar">U</span>
+  </div>
+</div>
+
+<!-- RETURNING USER STATE -->
+<div class="state-content active" id="state-returning">
+  <div class="page">
+    
+    <div class="greeting">
+      <div class="greeting-line">welcome back</div>
+      <h1 class="greeting-title">Ready to <span class="highlight">practice</span>?</h1>
+      <p class="greeting-subtitle">Pick up where you left off, or try something different today.</p>
+    </div>
+    
+    <!-- Active keyboard -->
+    <div class="keyboard-pill">
+      <span class="keyboard-pill-icon">⊞</span>
+      <span>active keyboard</span>
+      <span class="keyboard-pill-name">lily58</span>
+      <span class="keyboard-pill-switch">switch →</span>
+    </div>
+    
+    <!-- Hero CTA -->
+    <div class="hero-cta-group">
+      <button class="cta-primary">
+        <div class="cta-primary-text">
+          <span class="cta-primary-label">Continue adaptive practice</span>
+          <span class="cta-primary-meta">focus on B, er, T today</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="cta-shortcut">⏎ enter</span>
+          <span class="cta-primary-arrow">→</span>
+        </div>
+      </button>
+      <button class="cta-secondary">
+        <span class="cta-secondary-icon">◎</span>
+        Drill weakness
+      </button>
+    </div>
+    
+    <!-- LAST SESSION PREVIEW -->
+    <div class="preview-section">
+      <div class="preview-label">
+        Last session
+        <span class="preview-link">view all →</span>
+      </div>
+      <div class="last-session">
+        <div class="last-session-when">2 hours ago</div>
+        <div class="last-session-stats">
+          <div class="ls-stat"><span class="ls-stat-value">62</span><span class="ls-stat-unit">wpm</span></div>
+          <div class="ls-stat"><span class="ls-stat-value">94</span><span class="ls-stat-unit">%</span></div>
+          <div class="ls-stat"><span class="ls-stat-value">2:14</span></div>
+        </div>
+        <div class="last-session-arrow">→</div>
+      </div>
+    </div>
+    
+    <!-- ACTIVITY & WEAKNESS COMBINED -->
+    <div class="activity-weakness-grid">
+      
+      <!-- Activity strip -->
+      <div class="activity-strip">
+        <div class="activity-strip-header">
+          <div class="activity-strip-title">Last 30 days</div>
+          <div class="activity-strip-meta">12 day streak</div>
+        </div>
+        <div class="activity-cells" id="activityGrid">
+          <!-- generated via JS -->
+        </div>
+      </div>
+      
+      <!-- Weakness strip -->
+      <div class="weakness-strip">
+        <div class="weakness-strip-header">
+          <div class="weakness-strip-title">Current focus</div>
+          <span class="weakness-strip-link">full ranking →</span>
+        </div>
+        <div class="weakness-pills">
+          <span class="weakness-pill">B</span>
+          <span class="weakness-divider">·</span>
+          <span class="weakness-pill">er</span>
+          <span class="weakness-divider">·</span>
+          <span class="weakness-pill">T</span>
+        </div>
+        <div class="weakness-stat-line">top 3 weaknesses on sofle · next exercise will emphasize these</div>
+      </div>
+      
+    </div>
+    
+  </div>
+</div>
+
+<!-- ZERO DATA STATE -->
+<div class="state-content" id="state-zero">
+  <div class="page">
+    <div class="zero-state">
+      
+      <div class="greeting">
+        <div class="greeting-line">welcome to leftype-rightype</div>
+        <h1 class="zero-welcome">Let's build your <span class="highlight">split muscle memory</span>.</h1>
+        <p class="zero-message">
+          Your adaptive engine is ready. Start your first session — we'll capture a baseline, then tailor exercises to your actual weaknesses on split layout.
+        </p>
+      </div>
+      
+      <div class="keyboard-pill zero-keyboard-pill">
+        <span class="keyboard-pill-icon">⊞</span>
+        <span>active keyboard</span>
+        <span class="keyboard-pill-name">lily58</span>
+        <span class="keyboard-pill-switch">switch →</span>
+      </div>
+      
+      <div class="zero-cta">
+        <button class="cta-primary">
+          <div class="cta-primary-text">
+            <span class="cta-primary-label">Start your first session</span>
+            <span class="cta-primary-meta">~3 minutes · baseline capture</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="cta-shortcut">⏎ enter</span>
+          </div>
+        </button>
+        <button class="zero-cta-subtle">
+          Or read how it works first →
+        </button>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<div class="annotation" id="annotation">
+  <strong>Returning user state</strong> · hero CTA + keyboard pill + last session + activity strip + weakness pills · centered 720px column
+</div>
+
+<script>
+  // Generate activity grid
+  const grid = document.getElementById('activityGrid');
+  const levels = [0, 1, 0, 2, 3, 0, 1, 0, 0, 2, 1, 3, 4, 0, 0, 1, 2, 0, 3, 4, 2, 0, 1, 3, 4, 2, 1, 3, 4, 3];
+  levels.forEach(lvl => {
+    const cell = document.createElement('div');
+    cell.className = 'activity-cell' + (lvl > 0 ? ' lvl-' + lvl : '');
+    grid.appendChild(cell);
+  });
+  
+  // State switcher
+  function setState(state) {
+    document.querySelectorAll('.state-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.state === state);
+    });
+    document.querySelectorAll('.state-content').forEach(s => s.classList.remove('active'));
+    document.getElementById('state-' + state).classList.add('active');
+    
+    const annotation = document.getElementById('annotation');
+    if (state === 'returning') {
+      annotation.innerHTML = '<strong>Returning user state</strong> · hero CTA + keyboard pill + last session + activity strip + weakness pills · centered 720px column';
+    } else {
+      annotation.innerHTML = '<strong>Zero data state</strong> · no previews, no stats · just welcome + active keyboard + big "start first session" CTA';
+    }
+  }
+  
+  document.querySelectorAll('.state-btn').forEach(btn => {
+    btn.addEventListener('click', () => setState(btn.dataset.state));
+  });
+</script>
+
+</body>
+</html>

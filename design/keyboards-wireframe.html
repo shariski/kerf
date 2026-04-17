@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Leftype-Rightype — Keyboards Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lr-bg-base: #181410;
+    --lr-bg-surface: #221C17;
+    --lr-bg-elevated: #2A2320;
+    --lr-bg-overlay: #322A26;
+    --lr-text-primary: #F2EAE0;
+    --lr-text-secondary: #9A8E80;
+    --lr-text-tertiary: #685D52;
+    --lr-text-inverse: #181410;
+    --lr-border-subtle: #2F2820;
+    --lr-border-default: #3A3128;
+    --lr-border-strong: #4A3F35;
+    --lr-amber-base: #F59E0B;
+    --lr-amber-hover: #FBBF24;
+    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+    --lr-amber-faint: rgba(245, 158, 11, 0.08);
+    --lr-success: #22C55E;
+    --lr-error: #EF4444;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--lr-bg-base);
+    color: var(--lr-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  
+  /* Wireframe meta-header */
+  .wireframe-header {
+    background: var(--lr-bg-surface);
+    border-bottom: 1px solid var(--lr-border-default);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .wireframe-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--lr-text-secondary);
+  }
+  .wireframe-title strong { color: var(--lr-amber-base); }
+  .state-switcher { display: flex; gap: 4px; }
+  .state-btn {
+    background: transparent;
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-secondary);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
+  .state-btn.active { 
+    background: var(--lr-amber-base); 
+    color: var(--lr-text-inverse); 
+    border-color: var(--lr-amber-base);
+    font-weight: 600;
+  }
+  
+  /* App nav */
+  .app-nav {
+    height: 48px;
+    background: var(--lr-bg-base);
+    border-bottom: 1px solid var(--lr-border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    gap: 32px;
+    position: sticky;
+    top: 47px;
+    z-index: 90;
+  }
+  .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+  .nav-links { display: flex; gap: 24px; flex: 1; }
+  .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
+  .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
+  .nav-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
+  .nav-avatar { background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--lr-text-primary); }
+  
+  /* Page container */
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px; }
+  
+  /* Page header */
+  .page-header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--lr-border-subtle); }
+  .page-breadcrumb { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .page-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+  .page-title { font-size: 32px; font-weight: 700; line-height: 1.2; }
+  .page-subtitle { color: var(--lr-text-secondary); font-size: 14px; margin-top: 8px; }
+  
+  /* Add new button */
+  .btn-add {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 150ms;
+  }
+  .btn-add:hover { background: var(--lr-amber-hover); }
+  .btn-add-icon { font-family: var(--font-mono); font-size: 16px; line-height: 1; }
+  
+  /* === KEYBOARD CARDS GRID === */
+  .keyboards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  
+  .keyboard-card {
+    background: var(--lr-bg-surface);
+    border: 2px solid var(--lr-border-subtle);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 200ms;
+    position: relative;
+  }
+  .keyboard-card:hover {
+    border-color: var(--lr-border-strong);
+    transform: translateY(-2px);
+  }
+  .keyboard-card.active {
+    border-color: var(--lr-amber-base);
+  }
+  
+  .card-image-area {
+    aspect-ratio: 16 / 10;
+    background: var(--lr-bg-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid var(--lr-border-subtle);
+    overflow: hidden;
+  }
+  
+  /* Active badge - top right of image */
+  .active-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .active-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--lr-text-inverse);
+    border-radius: 50%;
+  }
+  
+  /* Photo placeholder (consistent with onboarding) */
+  .photo-placeholder {
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    opacity: 0.6;
+  }
+  .photo-half {
+    flex: 1;
+    aspect-ratio: 5 / 3;
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-default);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+  }
+  .photo-key-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+  }
+  .photo-key {
+    aspect-ratio: 1;
+    background: var(--lr-bg-overlay);
+    border-radius: 1px;
+  }
+  .photo-thumbs {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    margin-top: 6px;
+  }
+  .photo-thumb {
+    width: 12px;
+    height: 8px;
+    background: var(--lr-bg-overlay);
+    border-radius: 1px;
+  }
+  .photo-thumb.large { width: 18px; }
+  
+  .photo-label {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    color: var(--lr-text-tertiary);
+    background: rgba(0,0,0,0.5);
+    padding: 1px 5px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+  
+  /* Card body */
+  .card-body {
+    padding: 16px 20px;
+  }
+  .card-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  /* Card menu (3-dot) */
+  .card-menu {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-secondary);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 150ms;
+  }
+  .keyboard-card:hover .card-menu { opacity: 1; }
+  .card-menu:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
+  .keyboard-card.active .card-menu {
+    /* Active card has badge in top-right, menu moves to top-left */
+    right: auto;
+    left: 12px;
+  }
+  
+  /* === ADD NEW CARD (placeholder card) === */
+  .add-card {
+    background: transparent;
+    border: 2px dashed var(--lr-border-default);
+    border-radius: 10px;
+    aspect-ratio: 4 / 3;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 200ms;
+    color: var(--lr-text-tertiary);
+  }
+  .add-card:hover {
+    border-color: var(--lr-amber-base);
+    color: var(--lr-amber-base);
+    background: var(--lr-amber-faint);
+  }
+  .add-card-icon {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1;
+  }
+  .add-card-label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  
+  /* === EMPTY STATE (kalau cuma 1 keyboard) === */
+  .empty-message {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--lr-text-secondary);
+    font-size: 13px;
+  }
+  .empty-message-icon {
+    color: var(--lr-amber-base);
+    font-family: var(--font-mono);
+    font-size: 18px;
+  }
+  .empty-message-text { flex: 1; line-height: 1.6; }
+  .empty-message-text strong { color: var(--lr-text-primary); font-weight: 500; }
+  
+  /* === TOAST NOTIFICATION (after switch) === */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--lr-bg-overlay);
+    border: 1px solid var(--lr-amber-base);
+    border-radius: 8px;
+    padding: 14px 20px;
+    display: none;
+    align-items: center;
+    gap: 16px;
+    z-index: 150;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    max-width: 480px;
+  }
+  .toast.visible {
+    display: flex;
+    animation: slideUp 200ms ease-out;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translate(-50%, 12px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+  .toast-icon {
+    color: var(--lr-amber-base);
+    font-family: var(--font-mono);
+    font-size: 16px;
+  }
+  .toast-text {
+    flex: 1;
+    font-size: 13px;
+    color: var(--lr-text-primary);
+  }
+  .toast-text strong { color: var(--lr-amber-base); font-family: var(--font-mono); }
+  .toast-undo {
+    background: transparent;
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-primary);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .toast-undo:hover { background: var(--lr-bg-surface); }
+  .toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--lr-amber-base);
+    border-radius: 0 0 8px 8px;
+    width: 100%;
+    transform-origin: left;
+    animation: shrink 5s linear forwards;
+  }
+  @keyframes shrink {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+  
+  /* === ADD NEW MODAL (overlay state) === */
+  .add-modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 24px;
+    backdrop-filter: blur(4px);
+  }
+  .add-modal-bg.visible { display: flex; }
+  
+  .add-modal {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-default);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .add-modal-header {
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid var(--lr-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .add-modal-title { font-size: 18px; font-weight: 600; }
+  .add-modal-prefilled-hint { 
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    margin-top: 4px;
+  }
+  .add-modal-prefilled-hint strong { color: var(--lr-amber-base); }
+  .add-modal-close {
+    background: transparent;
+    border: none;
+    color: var(--lr-text-tertiary);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+  }
+  .add-modal-close:hover { color: var(--lr-text-primary); }
+  .add-modal-body { padding: 24px 28px; }
+  
+  .add-modal-step {
+    margin-bottom: 28px;
+  }
+  .add-modal-step-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .add-modal-step-label .prefilled-tag {
+    background: var(--lr-success);
+    color: var(--lr-text-inverse);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+  
+  /* Mini keyboard cards */
+  .mini-keyboard-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .mini-keyboard-card {
+    background: var(--lr-bg-elevated);
+    border: 2px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 150ms;
+  }
+  .mini-keyboard-card:hover { border-color: var(--lr-border-strong); }
+  .mini-keyboard-card.selected { border-color: var(--lr-amber-base); background: var(--lr-amber-faint); }
+  .mini-keyboard-card.disabled { opacity: 0.4; cursor: not-allowed; }
+  .mini-keyboard-card.disabled:hover { border-color: var(--lr-border-subtle); }
+  
+  .mini-keyboard-thumb {
+    width: 60px;
+    height: 36px;
+    background: var(--lr-bg-base);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--lr-text-tertiary);
+    flex-shrink: 0;
+  }
+  .mini-keyboard-info { flex: 1; }
+  .mini-keyboard-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .mini-keyboard-meta { font-size: 11px; color: var(--lr-text-secondary); }
+  .mini-keyboard-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .mini-keyboard-status.added { color: var(--lr-text-tertiary); }
+  
+  /* Prefilled level cards (smaller) */
+  .level-cards-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .level-card-mini {
+    background: var(--lr-bg-elevated);
+    border: 2px solid var(--lr-border-subtle);
+    border-radius: 6px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 150ms;
+    text-align: center;
+  }
+  .level-card-mini:hover { border-color: var(--lr-border-strong); }
+  .level-card-mini.selected { border-color: var(--lr-amber-base); background: var(--lr-amber-faint); }
+  .level-card-mini-label { font-family: var(--font-mono); font-size: 10px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .level-card-mini.selected .level-card-mini-label { color: var(--lr-amber-base); }
+  .level-card-mini-name { font-size: 13px; font-weight: 600; }
+  
+  .add-modal-footer {
+    padding: 16px 28px;
+    border-top: 1px solid var(--lr-border-subtle);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .modal-btn-cancel {
+    background: transparent;
+    color: var(--lr-text-secondary);
+    border: 1px solid var(--lr-border-default);
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .modal-btn-cancel:hover { color: var(--lr-text-primary); }
+  .modal-btn-add {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  
+  /* Annotation */
+  .annotation {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--lr-bg-overlay);
+    border: 1px solid var(--lr-border-strong);
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 11px;
+    color: var(--lr-text-secondary);
+    font-family: var(--font-mono);
+    z-index: 90;
+    max-width: 80vw;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .annotation strong { color: var(--lr-amber-base); }
+</style>
+</head>
+<body>
+
+<!-- Wireframe meta-header -->
+<div class="wireframe-header">
+  <div class="wireframe-title">
+    Keyboards wireframe v0.1 · <strong>/keyboards</strong>
+  </div>
+  <div class="state-switcher">
+    <button class="state-btn active" data-state="default">2 profiles · default</button>
+    <button class="state-btn" data-state="single">1 profile · empty-ish</button>
+    <button class="state-btn" data-state="switching">switch in progress</button>
+    <button class="state-btn" data-state="adding">add new modal</button>
+  </div>
+</div>
+
+<!-- App nav -->
+<div class="app-nav">
+  <div class="nav-logo">leftype-rightype</div>
+  <div class="nav-links">
+    <span class="nav-link">Practice</span>
+    <span class="nav-link">Dashboard</span>
+    <span class="nav-link active">Keyboards</span>
+  </div>
+  <div class="nav-right">
+    <span>⚙</span>
+    <span class="nav-avatar">U</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-breadcrumb">Manage profiles</div>
+    <div class="page-title-row">
+      <div>
+        <h1 class="page-title">Your keyboards</h1>
+        <p class="page-subtitle">Each keyboard is a separate journey — stats, weakness ranking, and exercises are independent per profile.</p>
+      </div>
+      <button class="btn-add" onclick="setState('adding')">
+        <span class="btn-add-icon">+</span>
+        Add keyboard
+      </button>
+    </div>
+  </div>
+
+  <!-- DEFAULT STATE: 2 cards -->
+  <div id="state-default" style="display: block;">
+    <div class="keyboards-grid">
+      
+      <!-- Active card: Lily58 -->
+      <div class="keyboard-card active" id="card-lily58" onclick="switchTo('lily58')">
+        <div class="card-image-area">
+          <div class="active-badge">active</div>
+          <div class="card-menu">⋯</div>
+          <div class="photo-placeholder">
+            <div class="photo-half">
+              <div class="photo-key-grid">
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+              </div>
+              <div class="photo-thumbs">
+                <div class="photo-thumb"></div><div class="photo-thumb"></div>
+              </div>
+            </div>
+            <div class="photo-half">
+              <div class="photo-key-grid">
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+              </div>
+              <div class="photo-thumbs">
+                <div class="photo-thumb"></div><div class="photo-thumb"></div>
+              </div>
+            </div>
+          </div>
+          <div class="photo-label">PHOTO PLACEHOLDER</div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Lily58</div>
+          <div class="card-meta">58 keys · split columnar</div>
+        </div>
+      </div>
+      
+      <!-- Inactive card: Sofle -->
+      <div class="keyboard-card" id="card-sofle" onclick="switchTo('sofle')">
+        <div class="card-image-area">
+          <div class="card-menu">⋯</div>
+          <div class="photo-placeholder">
+            <div class="photo-half">
+              <div class="photo-key-grid">
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+              </div>
+              <div class="photo-thumbs">
+                <div class="photo-thumb"></div><div class="photo-thumb large"></div>
+              </div>
+            </div>
+            <div class="photo-half">
+              <div class="photo-key-grid">
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+              </div>
+              <div class="photo-thumbs">
+                <div class="photo-thumb large"></div><div class="photo-thumb"></div>
+              </div>
+            </div>
+          </div>
+          <div class="photo-label">PHOTO PLACEHOLDER</div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Sofle</div>
+          <div class="card-meta">58 keys · split columnar</div>
+        </div>
+      </div>
+      
+      <!-- Add new card -->
+      <div class="add-card" onclick="setState('adding')">
+        <div class="add-card-icon">+</div>
+        <div class="add-card-label">Add keyboard</div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- SINGLE PROFILE STATE -->
+  <div id="state-single" style="display: none;">
+    <div class="keyboards-grid">
+      
+      <div class="keyboard-card active">
+        <div class="card-image-area">
+          <div class="active-badge">active</div>
+          <div class="card-menu">⋯</div>
+          <div class="photo-placeholder">
+            <div class="photo-half">
+              <div class="photo-key-grid">
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+              </div>
+              <div class="photo-thumbs">
+                <div class="photo-thumb"></div><div class="photo-thumb"></div>
+              </div>
+            </div>
+            <div class="photo-half">
+              <div class="photo-key-grid">
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+                <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+              </div>
+              <div class="photo-thumbs">
+                <div class="photo-thumb"></div><div class="photo-thumb"></div>
+              </div>
+            </div>
+          </div>
+          <div class="photo-label">PHOTO PLACEHOLDER</div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Lily58</div>
+          <div class="card-meta">58 keys · split columnar</div>
+        </div>
+      </div>
+      
+      <div class="add-card" onclick="setState('adding')">
+        <div class="add-card-icon">+</div>
+        <div class="add-card-label">Add keyboard</div>
+      </div>
+    </div>
+    
+    <div class="empty-message">
+      <span class="empty-message-icon">⊞</span>
+      <div class="empty-message-text">
+        <strong>You only have one profile.</strong> Add another keyboard if you switch between split layouts — each gets its own independent stats and weakness tracking.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST: switch confirmation -->
+<div class="toast" id="toast">
+  <span class="toast-icon">→</span>
+  <span class="toast-text">Switched to <strong id="toast-name">Sofle</strong></span>
+  <button class="toast-undo">Undo</button>
+  <div class="toast-progress"></div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="add-modal-bg" id="addModal">
+  <div class="add-modal">
+    <div class="add-modal-header">
+      <div>
+        <div class="add-modal-title">Add a new keyboard</div>
+        <div class="add-modal-prefilled-hint">
+          dominant hand prefilled from your existing profile · <strong>right-handed</strong>
+        </div>
+      </div>
+      <button class="add-modal-close" onclick="setState('default')">✕</button>
+    </div>
+    <div class="add-modal-body">
+      
+      <!-- Step 1: Pick keyboard (only un-added options) -->
+      <div class="add-modal-step">
+        <div class="add-modal-step-label">
+          which keyboard?
+        </div>
+        <div class="mini-keyboard-cards">
+          <div class="mini-keyboard-card disabled">
+            <div class="mini-keyboard-thumb">⊞⊞</div>
+            <div class="mini-keyboard-info">
+              <div class="mini-keyboard-name">Lily58</div>
+              <div class="mini-keyboard-meta">58 keys · split columnar</div>
+            </div>
+            <div class="mini-keyboard-status added">added</div>
+          </div>
+          <div class="mini-keyboard-card selected">
+            <div class="mini-keyboard-thumb">⊞⊞</div>
+            <div class="mini-keyboard-info">
+              <div class="mini-keyboard-name">Sofle</div>
+              <div class="mini-keyboard-meta">58 keys · split columnar</div>
+            </div>
+            <div class="mini-keyboard-status">✓</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 2: Hand (prefilled, collapsed) -->
+      <div class="add-modal-step">
+        <div class="add-modal-step-label">
+          dominant hand
+          <span class="prefilled-tag">prefilled</span>
+        </div>
+        <div style="background: var(--lr-bg-elevated); border: 1px solid var(--lr-border-subtle); border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 13px; color: var(--lr-text-primary);">
+            <span style="font-family: var(--font-mono); color: var(--lr-amber-base); font-weight: 700; margin-right: 8px;">R</span>
+            Right-handed
+          </span>
+          <span style="font-size: 11px; color: var(--lr-text-tertiary); cursor: pointer;">change</span>
+        </div>
+      </div>
+      
+      <!-- Step 3: Level (active) -->
+      <div class="add-modal-step">
+        <div class="add-modal-step-label">
+          how comfortable on this keyboard?
+        </div>
+        <div class="level-cards-mini">
+          <div class="level-card-mini selected">
+            <div class="level-card-mini-label">level 1</div>
+            <div class="level-card-mini-name">First day</div>
+          </div>
+          <div class="level-card-mini">
+            <div class="level-card-mini-label">level 2</div>
+            <div class="level-card-mini-name">Few weeks in</div>
+          </div>
+          <div class="level-card-mini">
+            <div class="level-card-mini-label">level 3</div>
+            <div class="level-card-mini-name">Comfortable</div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    <div class="add-modal-footer">
+      <button class="modal-btn-cancel" onclick="setState('default')">Cancel</button>
+      <button class="modal-btn-add" onclick="addKeyboard()">Add Sofle</button>
+    </div>
+  </div>
+</div>
+
+<div class="annotation" id="annotation">
+  <strong>Default state</strong> · 2 profiles, Lily58 active · click inactive card to switch (with undo toast safety)
+</div>
+
+<script>
+  function setState(state) {
+    document.querySelectorAll('.state-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.state === state);
+    });
+    
+    const stateDefault = document.getElementById('state-default');
+    const stateSingle = document.getElementById('state-single');
+    const addModal = document.getElementById('addModal');
+    const toast = document.getElementById('toast');
+    const annotation = document.getElementById('annotation');
+    
+    stateDefault.style.display = 'none';
+    stateSingle.style.display = 'none';
+    addModal.classList.remove('visible');
+    toast.classList.remove('visible');
+    
+    if (state === 'default') {
+      stateDefault.style.display = 'block';
+      annotation.innerHTML = '<strong>Default state</strong> · 2 profiles, Lily58 active · click inactive card to switch (with undo toast safety)';
+    } else if (state === 'single') {
+      stateSingle.style.display = 'block';
+      annotation.innerHTML = '<strong>Single profile state</strong> · just after onboarding · empty-message nudges to add another keyboard';
+    } else if (state === 'switching') {
+      stateDefault.style.display = 'block';
+      // Toggle active card
+      document.getElementById('card-lily58').classList.remove('active');
+      document.getElementById('card-sofle').classList.add('active');
+      // Move active badge logic
+      relocateActiveBadge();
+      toast.classList.add('visible');
+      document.getElementById('toast-name').textContent = 'Sofle';
+      annotation.innerHTML = '<strong>Just switched</strong> · Sofle now active, undo toast at bottom (5s timeout, then dismisses) · note: instant switch + safety net pattern';
+    } else if (state === 'adding') {
+      stateDefault.style.display = 'block';
+      addModal.classList.add('visible');
+      annotation.innerHTML = '<strong>Add new modal</strong> · keyboard list excludes already-added profiles · dominant hand prefilled, level required';
+    }
+  }
+  
+  function relocateActiveBadge() {
+    // Move 'active' badge between cards
+    document.querySelectorAll('.keyboard-card').forEach(card => {
+      const badge = card.querySelector('.active-badge');
+      if (badge) badge.remove();
+    });
+    const activeCard = document.querySelector('.keyboard-card.active');
+    if (activeCard) {
+      const imageArea = activeCard.querySelector('.card-image-area');
+      const newBadge = document.createElement('div');
+      newBadge.className = 'active-badge';
+      newBadge.textContent = 'active';
+      imageArea.insertBefore(newBadge, imageArea.firstChild);
+    }
+  }
+  
+  function switchTo(profile) {
+    if (document.querySelector('.keyboard-card.active')?.id === 'card-' + profile) {
+      // Already active, no-op
+      return;
+    }
+    setState('switching');
+  }
+  
+  function addKeyboard() {
+    setState('default');
+    // Could update card list here in real implementation
+  }
+  
+  document.querySelectorAll('.state-btn').forEach(btn => {
+    btn.addEventListener('click', () => setState(btn.dataset.state));
+  });
+</script>
+
+</body>
+</html>

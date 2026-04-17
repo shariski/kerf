@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Leftype-Rightype — Practice Page Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lr-bg-base: #181410;
+    --lr-bg-surface: #221C17;
+    --lr-bg-elevated: #2A2320;
+    --lr-bg-overlay: #322A26;
+    --lr-text-primary: #F2EAE0;
+    --lr-text-secondary: #9A8E80;
+    --lr-text-tertiary: #685D52;
+    --lr-text-inverse: #181410;
+    --lr-border-subtle: #2F2820;
+    --lr-border-default: #3A3128;
+    --lr-border-strong: #4A3F35;
+    --lr-amber-base: #F59E0B;
+    --lr-amber-hover: #FBBF24;
+    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+    --lr-amber-faint: rgba(245, 158, 11, 0.08);
+    --lr-success: #22C55E;
+    --lr-error: #EF4444;
+    --lr-warning: #EAB308;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    
+    /* Finger colors */
+    --finger-l-pinky: #C2410C;
+    --finger-l-ring: #A16207;
+    --finger-l-middle: #65A30D;
+    --finger-l-index: #15803D;
+    --finger-r-index: #0E7490;
+    --finger-r-middle: #1D4ED8;
+    --finger-r-ring: #6D28D9;
+    --finger-r-pinky: #A21CAF;
+    --finger-thumb: #6B7280;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--lr-bg-base);
+    color: var(--lr-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  
+  /* Wireframe shell (the meta-UI) */
+  .wireframe-header {
+    background: var(--lr-bg-surface);
+    border-bottom: 1px solid var(--lr-border-default);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .wireframe-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--lr-text-secondary);
+  }
+  .wireframe-title strong { color: var(--lr-amber-base); }
+  .state-switcher { display: flex; gap: 4px; }
+  .state-btn {
+    background: transparent;
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-secondary);
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
+  .state-btn.active { 
+    background: var(--lr-amber-base); 
+    color: var(--lr-text-inverse); 
+    border-color: var(--lr-amber-base);
+    font-weight: 600;
+  }
+  
+  /* App nav (the actual product nav) */
+  .app-nav {
+    height: 48px;
+    background: var(--lr-bg-base);
+    border-bottom: 1px solid var(--lr-border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    gap: 32px;
+  }
+  .app-nav.hidden { display: none; }
+  .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+  .nav-links { display: flex; gap: 24px; flex: 1; }
+  .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
+  .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
+  .nav-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
+  .nav-avatar { background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--lr-text-primary); }
+  
+  /* Page wrapper */
+  .page { min-height: calc(100vh - 48px - 64px); padding: 48px 32px; max-width: 1100px; margin: 0 auto; }
+  .page.no-nav { min-height: calc(100vh - 64px); }
+  
+  /* === STATE 1: PRE-SESSION === */
+  .pre-session { display: none; }
+  .pre-session.active { display: block; }
+  
+  .pre-session-header { margin-bottom: 48px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .pre-session-title { font-size: 28px; font-weight: 600; line-height: 1.2; margin-bottom: 8px; }
+  .pre-session-subtitle { color: var(--lr-text-secondary); font-size: 14px; }
+  
+  .keyboard-context { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    font-size: 13px;
+  }
+  .keyboard-context-icon {
+    width: 32px;
+    height: 20px;
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-default);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--lr-text-secondary);
+  }
+  .keyboard-context-info { flex: 1; }
+  .keyboard-context-label { font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+  .keyboard-context-name { font-family: var(--font-mono); font-size: 13px; color: var(--lr-text-primary); font-weight: 500; }
+  .keyboard-context-switch { font-size: 12px; color: var(--lr-amber-base); cursor: pointer; }
+  
+  /* Mode cards */
+  .mode-section { margin-bottom: 32px; }
+  .section-label { font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 12px; }
+  
+  .mode-primary {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-amber-base);
+    border-radius: 8px;
+    padding: 24px 28px;
+    cursor: pointer;
+    transition: all 150ms;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .mode-primary:hover { background: var(--lr-bg-elevated); }
+  .mode-primary-info h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .mode-primary-info p { color: var(--lr-text-secondary); font-size: 13px; }
+  .mode-primary-cta {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mode-primary-cta-shortcut {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: rgba(0,0,0,0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  
+  .mode-secondary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .mode-secondary {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 6px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .mode-secondary:hover { border-color: var(--lr-border-strong); background: var(--lr-bg-elevated); }
+  .mode-secondary h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .mode-secondary p { color: var(--lr-text-secondary); font-size: 12px; line-height: 1.5; }
+  
+  /* Filters */
+  .filters {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .filters-toggle {
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+  .filters-toggle-label { color: var(--lr-text-secondary); display: flex; align-items: center; gap: 8px; }
+  .filters-toggle-chevron { color: var(--lr-text-tertiary); font-family: var(--font-mono); }
+  .filters-content {
+    border-top: 1px solid var(--lr-border-subtle);
+    padding: 16px;
+    display: none;
+  }
+  .filters.expanded .filters-content { display: block; }
+  .filter-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .filter-row:last-child { margin-bottom: 0; }
+  .filter-label { font-size: 12px; color: var(--lr-text-secondary); width: 120px; }
+  .filter-pills { display: flex; gap: 4px; }
+  .filter-pill {
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-default);
+    color: var(--lr-text-secondary);
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .filter-pill.active { background: var(--lr-amber-subtle); border-color: var(--lr-amber-base); color: var(--lr-amber-base); }
+  
+  /* === STATE 2: ACTIVE TYPING === */
+  .active-typing { display: none; }
+  .active-typing.active { display: block; }
+  
+  .typing-stage {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    position: relative;
+  }
+  
+  /* Live WPM indicator */
+  .live-wpm {
+    position: absolute;
+    bottom: 32px;
+    right: 32px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .live-wpm-value {
+    font-size: 14px;
+    color: var(--lr-text-secondary);
+    font-weight: 700;
+  }
+  
+  /* Session progress bar */
+  .session-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--lr-border-subtle);
+  }
+  .session-progress-fill {
+    height: 100%;
+    background: var(--lr-amber-base);
+    width: 35%;
+    transition: width 200ms;
+  }
+  
+  /* Typing area */
+  .typing-area {
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .typing-text {
+    font-family: var(--font-mono);
+    font-size: 30px;
+    line-height: 1.7;
+    letter-spacing: 0.02em;
+    word-spacing: 0.1em;
+  }
+  .typing-text .typed { color: var(--lr-text-tertiary); }
+  .typing-text .current { background: var(--lr-amber-base); color: var(--lr-text-inverse); padding: 0 4px; border-radius: 3px; }
+  .typing-text .upcoming { color: var(--lr-text-secondary); }
+  .typing-text .error { color: var(--lr-error); text-decoration: underline wavy var(--lr-error); }
+  
+  /* Visual keyboard (toggle visible) */
+  .visual-keyboard {
+    width: 100%;
+    max-width: 720px;
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 32px;
+    transition: opacity 200ms, transform 200ms;
+  }
+  .visual-keyboard.hidden { display: none; }
+  .keyboard-halves { display: flex; justify-content: space-between; gap: 48px; }
+  .keyboard-half { flex: 1; }
+  .keyboard-half-label { 
+    font-family: var(--font-mono); 
+    font-size: 10px; 
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase; 
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .key-grid { display: grid; gap: 4px; }
+  .sofle-left { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 32px); }
+  .sofle-right { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 32px); }
+  .key {
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-default);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-secondary);
+    position: relative;
+  }
+  .key[data-finger="l-pinky"] { border-bottom: 2px solid var(--finger-l-pinky); }
+  .key[data-finger="l-ring"] { border-bottom: 2px solid var(--finger-l-ring); }
+  .key[data-finger="l-middle"] { border-bottom: 2px solid var(--finger-l-middle); }
+  .key[data-finger="l-index"] { border-bottom: 2px solid var(--finger-l-index); }
+  .key[data-finger="r-index"] { border-bottom: 2px solid var(--finger-r-index); }
+  .key[data-finger="r-middle"] { border-bottom: 2px solid var(--finger-r-middle); }
+  .key[data-finger="r-ring"] { border-bottom: 2px solid var(--finger-r-ring); }
+  .key[data-finger="r-pinky"] { border-bottom: 2px solid var(--finger-r-pinky); }
+  
+  .key.target {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    border-color: var(--lr-amber-base);
+    font-weight: 700;
+  }
+  
+  /* Shortcut hint */
+  .shortcut-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 32px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    display: flex;
+    gap: 12px;
+  }
+  .kbd {
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-default);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 10px;
+    color: var(--lr-text-secondary);
+    margin: 0 2px;
+  }
+  
+  /* === STATE 3: POST-SESSION MODAL === */
+  .post-session-bg { display: none; }
+  .post-session-bg.active { 
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+  }
+  
+  .post-session-modal {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-default);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid var(--lr-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title { font-size: 18px; font-weight: 600; }
+  .modal-close { 
+    background: transparent; 
+    border: none; 
+    color: var(--lr-text-tertiary); 
+    cursor: pointer; 
+    font-size: 18px;
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+  }
+  .modal-close:hover { color: var(--lr-text-primary); }
+  .modal-body { padding: 24px 28px; }
+  
+  /* Stats grid */
+  .summary-stats { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; 
+    margin-bottom: 24px;
+  }
+  .summary-stat {
+    background: var(--lr-bg-elevated);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+  }
+  .summary-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--lr-text-tertiary); margin-bottom: 6px; font-weight: 600; }
+  .summary-stat-value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--lr-amber-base); line-height: 1; }
+  .summary-stat-delta { font-size: 11px; color: var(--lr-success); font-family: var(--font-mono); margin-top: 4px; }
+  .summary-stat-delta.negative { color: var(--lr-error); }
+  
+  /* Weakness changes */
+  .weakness-changes { margin-bottom: 24px; }
+  .weakness-changes-title { font-size: 12px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 12px; }
+  .weakness-change-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--lr-bg-elevated);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .weakness-change-key {
+    background: var(--lr-amber-subtle);
+    color: var(--lr-amber-base);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .weakness-change-arrow { font-family: var(--font-mono); color: var(--lr-text-tertiary); }
+  .weakness-change-delta { 
+    font-family: var(--font-mono); 
+    font-size: 12px; 
+    color: var(--lr-success); 
+    font-weight: 600;
+  }
+  .weakness-change-delta.negative { color: var(--lr-error); }
+  
+  /* Plain language insight */
+  .insight-text {
+    background: var(--lr-amber-faint);
+    border-left: 2px solid var(--lr-amber-base);
+    padding: 16px 20px;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--lr-text-primary);
+    margin-bottom: 24px;
+  }
+  
+  /* Modal actions */
+  .modal-actions {
+    padding: 20px 28px;
+    border-top: 1px solid var(--lr-border-subtle);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .modal-cta-primary {
+    background: var(--lr-amber-base);
+    color: var(--lr-text-inverse);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    flex: 1;
+  }
+  .modal-cta-primary:hover { background: var(--lr-amber-hover); }
+  .modal-cta-secondary {
+    background: transparent;
+    color: var(--lr-text-secondary);
+    border: 1px solid var(--lr-border-default);
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .modal-cta-secondary:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
+  
+  /* Wireframe annotations */
+  .annotation {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--lr-bg-overlay);
+    border: 1px solid var(--lr-border-strong);
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-size: 12px;
+    color: var(--lr-text-secondary);
+    font-family: var(--font-mono);
+    z-index: 200;
+    max-width: 80vw;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .annotation strong { color: var(--lr-amber-base); }
+</style>
+</head>
+<body>
+
+<!-- Wireframe meta-header -->
+<div class="wireframe-header">
+  <div class="wireframe-title">
+    Practice page wireframe v0.1 · <strong>/practice</strong>
+  </div>
+  <div class="state-switcher">
+    <button class="state-btn active" data-state="pre">1 · Pre-session</button>
+    <button class="state-btn" data-state="active">2 · Active typing</button>
+    <button class="state-btn" data-state="post">3 · Post-session</button>
+  </div>
+</div>
+
+<!-- App nav (visible in pre-session and post-session, hidden in active typing) -->
+<div class="app-nav" id="appNav">
+  <div class="nav-logo">leftype-rightype</div>
+  <div class="nav-links">
+    <span class="nav-link active">Practice</span>
+    <span class="nav-link">Dashboard</span>
+    <span class="nav-link">Keyboards</span>
+  </div>
+  <div class="nav-right">
+    <span>⚙</span>
+    <span class="nav-avatar">U</span>
+  </div>
+</div>
+
+<!-- STATE 1: PRE-SESSION -->
+<div class="page pre-session active" id="state-pre">
+  <div class="pre-session-header">
+    <div class="breadcrumb">Ready to practice</div>
+    <h1 class="pre-session-title">What kind of practice today?</h1>
+    <p class="pre-session-subtitle">Pick a mode and start typing. Press Enter to continue with the default option.</p>
+  </div>
+  
+  <div class="keyboard-context">
+    <div class="keyboard-context-icon">⊞⊞</div>
+    <div class="keyboard-context-info">
+      <div class="keyboard-context-label">Active keyboard</div>
+      <div class="keyboard-context-name">sofle v2 · right-handed</div>
+    </div>
+    <div class="keyboard-context-switch">switch →</div>
+  </div>
+  
+  <div class="mode-section">
+    <div class="section-label">Recommended</div>
+    <div class="mode-primary">
+      <div class="mode-primary-info">
+        <h3>Continue adaptive practice</h3>
+        <p>Engine will focus on your top 3 weaknesses: B, er, T</p>
+      </div>
+      <button class="mode-primary-cta">
+        Start
+        <span class="mode-primary-cta-shortcut">⏎</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="mode-section">
+    <div class="section-label">Other modes</div>
+    <div class="mode-secondary-grid">
+      <div class="mode-secondary">
+        <h4>Drill weakness</h4>
+        <p>Targeted reps on a specific letter or bigram</p>
+      </div>
+      <div class="mode-secondary">
+        <h4>Warm up</h4>
+        <p>Gentle exercise with familiar words first</p>
+      </div>
+      <div class="mode-secondary">
+        <h4>Hand isolation</h4>
+        <p>Practice one hand at a time</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="filters" id="filters">
+    <div class="filters-toggle" onclick="document.getElementById('filters').classList.toggle('expanded')">
+      <div class="filters-toggle-label">
+        <span>⚙</span> Filters & options
+      </div>
+      <div class="filters-toggle-chevron">▾</div>
+    </div>
+    <div class="filters-content">
+      <div class="filter-row">
+        <div class="filter-label">Hand isolation</div>
+        <div class="filter-pills">
+          <div class="filter-pill active">Both hands</div>
+          <div class="filter-pill">Left only</div>
+          <div class="filter-pill">Right only</div>
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-label">Max word length</div>
+        <div class="filter-pills">
+          <div class="filter-pill">3</div>
+          <div class="filter-pill">5</div>
+          <div class="filter-pill active">No limit</div>
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-label">Visual keyboard</div>
+        <div class="filter-pills">
+          <div class="filter-pill active">Visible</div>
+          <div class="filter-pill">Hidden</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATE 2: ACTIVE TYPING -->
+<div class="active-typing" id="state-active">
+  <div class="typing-stage">
+    <div class="session-progress"><div class="session-progress-fill"></div></div>
+    
+    <div class="typing-area">
+      <div class="typing-text">
+        <span class="typed">the quick brown fox jumps over </span><span class="current">t</span><span class="upcoming">he lazy dog and the bear</span>
+      </div>
+    </div>
+    
+    <div class="visual-keyboard" id="visualKeyboard">
+      <div class="keyboard-halves">
+        <!-- Left half -->
+        <div class="keyboard-half">
+          <div class="keyboard-half-label">Left</div>
+          <div class="key-grid sofle-left">
+            <div class="key" data-finger="l-pinky">1</div>
+            <div class="key" data-finger="l-ring">2</div>
+            <div class="key" data-finger="l-middle">3</div>
+            <div class="key" data-finger="l-index">4</div>
+            <div class="key" data-finger="l-index">5</div>
+            <div class="key">6</div>
+            
+            <div class="key" data-finger="l-pinky">q</div>
+            <div class="key" data-finger="l-ring">w</div>
+            <div class="key" data-finger="l-middle">e</div>
+            <div class="key" data-finger="l-index">r</div>
+            <div class="key target" data-finger="l-index">t</div>
+            <div class="key">.</div>
+            
+            <div class="key" data-finger="l-pinky">a</div>
+            <div class="key" data-finger="l-ring">s</div>
+            <div class="key" data-finger="l-middle">d</div>
+            <div class="key" data-finger="l-index">f</div>
+            <div class="key" data-finger="l-index">g</div>
+            <div class="key">.</div>
+            
+            <div class="key" data-finger="l-pinky">z</div>
+            <div class="key" data-finger="l-ring">x</div>
+            <div class="key" data-finger="l-middle">c</div>
+            <div class="key" data-finger="l-index">v</div>
+            <div class="key" data-finger="l-index">b</div>
+            <div class="key">.</div>
+          </div>
+        </div>
+        
+        <!-- Right half -->
+        <div class="keyboard-half">
+          <div class="keyboard-half-label">Right</div>
+          <div class="key-grid sofle-right">
+            <div class="key">7</div>
+            <div class="key" data-finger="r-index">8</div>
+            <div class="key" data-finger="r-middle">9</div>
+            <div class="key" data-finger="r-ring">0</div>
+            <div class="key" data-finger="r-pinky">-</div>
+            <div class="key" data-finger="r-pinky">=</div>
+            
+            <div class="key">.</div>
+            <div class="key" data-finger="r-index">y</div>
+            <div class="key" data-finger="r-index">u</div>
+            <div class="key" data-finger="r-middle">i</div>
+            <div class="key" data-finger="r-ring">o</div>
+            <div class="key" data-finger="r-pinky">p</div>
+            
+            <div class="key">.</div>
+            <div class="key" data-finger="r-index">h</div>
+            <div class="key" data-finger="r-index">j</div>
+            <div class="key" data-finger="r-middle">k</div>
+            <div class="key" data-finger="r-ring">l</div>
+            <div class="key" data-finger="r-pinky">;</div>
+            
+            <div class="key">.</div>
+            <div class="key" data-finger="r-index">n</div>
+            <div class="key" data-finger="r-index">m</div>
+            <div class="key" data-finger="r-middle">,</div>
+            <div class="key" data-finger="r-ring">.</div>
+            <div class="key" data-finger="r-pinky">/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="live-wpm">
+      <span>wpm</span>
+      <span class="live-wpm-value">62</span>
+    </div>
+    
+    <div class="shortcut-hint">
+      <span><span class="kbd">Esc</span> reveal nav</span>
+      <span><span class="kbd">⇥</span> <span class="kbd">⏎</span> restart</span>
+      <span><span class="kbd">^</span><span class="kbd">K</span> toggle keyboard</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATE 3: POST-SESSION MODAL (overlays state 1) -->
+<div class="post-session-bg" id="state-post">
+  <div class="post-session-modal">
+    <div class="modal-header">
+      <div class="modal-title">Session complete</div>
+      <button class="modal-close" onclick="setState('pre')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="summary-stats">
+        <div class="summary-stat">
+          <div class="summary-stat-label">wpm</div>
+          <div class="summary-stat-value">62</div>
+          <div class="summary-stat-delta">+4 vs avg</div>
+        </div>
+        <div class="summary-stat">
+          <div class="summary-stat-label">accuracy</div>
+          <div class="summary-stat-value">94%</div>
+          <div class="summary-stat-delta">+2%</div>
+        </div>
+        <div class="summary-stat">
+          <div class="summary-stat-label">time</div>
+          <div class="summary-stat-value">02:14</div>
+          <div class="summary-stat-delta" style="color: var(--lr-text-tertiary);">52 words</div>
+        </div>
+      </div>
+      
+      <div class="weakness-changes">
+        <div class="weakness-changes-title">Weakness shifts this session</div>
+        <div class="weakness-change-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="weakness-change-key">B</span>
+            <span style="color: var(--lr-text-secondary);">error rate</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: var(--font-mono); color: var(--lr-text-tertiary);">18%</span>
+            <span class="weakness-change-arrow">→</span>
+            <span style="font-family: var(--font-mono); color: var(--lr-text-primary);">9%</span>
+            <span class="weakness-change-delta">-9%</span>
+          </div>
+        </div>
+        <div class="weakness-change-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="weakness-change-key">er</span>
+            <span style="color: var(--lr-text-secondary);">error rate</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: var(--font-mono); color: var(--lr-text-tertiary);">14%</span>
+            <span class="weakness-change-arrow">→</span>
+            <span style="font-family: var(--font-mono); color: var(--lr-text-primary);">11%</span>
+            <span class="weakness-change-delta">-3%</span>
+          </div>
+        </div>
+        <div class="weakness-change-row">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="weakness-change-key">th</span>
+            <span style="color: var(--lr-text-secondary);">new weakness</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: var(--font-mono); color: var(--lr-text-tertiary);">—</span>
+            <span class="weakness-change-arrow">→</span>
+            <span style="font-family: var(--font-mono); color: var(--lr-text-primary);">12%</span>
+            <span class="weakness-change-delta negative">+12%</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="insight-text">
+        Solid session. The letter <strong>B</strong> dropped from 18% to 9% error rate — you're getting comfortable with reaching to it on the columnar layout. Watch for <strong>th</strong> next time, it emerged as a new struggle area.
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cta-primary" onclick="setState('active')">Practice again →</button>
+      <button class="modal-cta-secondary">Retry same exercise</button>
+      <button class="modal-cta-secondary">View dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- Annotation hint (changes per state) -->
+<div class="annotation" id="annotation">
+  <strong>State 1: Pre-session</strong> — entry point with primary CTA + secondary modes + collapsible filters
+</div>
+
+<script>
+  function setState(state) {
+    // Update state buttons
+    document.querySelectorAll('.state-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.state === state);
+    });
+    
+    // Show/hide states
+    const pre = document.getElementById('state-pre');
+    const active = document.getElementById('state-active');
+    const post = document.getElementById('state-post');
+    const nav = document.getElementById('appNav');
+    const annotation = document.getElementById('annotation');
+    
+    pre.classList.remove('active');
+    active.classList.remove('active');
+    post.classList.remove('active');
+    
+    if (state === 'pre') {
+      pre.classList.add('active');
+      nav.classList.remove('hidden');
+      annotation.innerHTML = '<strong>State 1: Pre-session</strong> — entry point with primary CTA + secondary modes + collapsible filters';
+    } else if (state === 'active') {
+      active.classList.add('active');
+      nav.classList.add('hidden');
+      annotation.innerHTML = '<strong>State 2: Active typing</strong> — nav auto-hidden, minimal chrome, visual keyboard toggleable via <code>Ctrl+K</code>';
+    } else if (state === 'post') {
+      pre.classList.add('active');
+      nav.classList.remove('hidden');
+      post.classList.add('active');
+      annotation.innerHTML = '<strong>State 3: Post-session</strong> — modal overlay on top of pre-session, dismiss returns to pre-session ready for next';
+    }
+  }
+  
+  document.querySelectorAll('.state-btn').forEach(btn => {
+    btn.addEventListener('click', () => setState(btn.dataset.state));
+  });
+</script>
+
+</body>
+</html>
