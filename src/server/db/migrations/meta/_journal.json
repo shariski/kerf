@@ -15,6 +15,13 @@
       "when": 1776514246790,
       "tag": "0001_chief_masked_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776514439222,
+      "tag": "0002_illegal_valeria_richards",
+      "breakpoints": true
     }
   ]
 }
