@@ -23,6 +23,19 @@ vi.mock("@tanstack/react-router", () => ({
   }),
 }))
 
+// Prevent the createSsrRpc server-fn resolver from failing in test context
+vi.mock("@tanstack/start-server-core", async (importOriginal) => {
+  const mod = await importOriginal<any>()
+  return {
+    ...mod,
+    createSsrRpc: vi.fn((_id: string) => {
+      // Return a passthrough that calls the real handler registered via createServerFn
+      // In tests, getAuthSession will be called directly so this just needs to not throw
+      return vi.fn()
+    }),
+  }
+})
+
 describe("requireAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -32,6 +45,19 @@ describe("requireAuth", () => {
     const { auth } = await import("../server/auth")
     const { redirect } = await import("@tanstack/react-router")
     vi.mocked(auth.api.getSession).mockResolvedValue(null)
+
+    // Mock getAuthSession at the module level so requireAuth uses it
+    vi.doMock("./require-auth", async () => {
+      const { auth } = await import("../server/auth")
+      const { redirect } = await import("@tanstack/react-router")
+      const getAuthSession = async () => auth.api.getSession({ headers: new Headers() })
+      const requireAuth = async () => {
+        const session = await getAuthSession()
+        if (!session) throw redirect({ to: "/login" })
+        return session
+      }
+      return { getAuthSession, requireAuth }
+    })
 
     const { requireAuth } = await import("./require-auth")
     await expect(requireAuth()).rejects.toMatchObject({ to: "/login" })

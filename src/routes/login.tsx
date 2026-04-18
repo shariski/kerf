@@ -1,16 +1,13 @@
-import { createFileRoute, isRedirect, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { useState } from "react"
 import { authClient } from "../lib/auth-client"
-import { requireAuth } from "../lib/require-auth"
+import { getAuthSession } from "../lib/require-auth"
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
-    try {
-      await requireAuth()
-      throw redirect({ to: "/" })
-    } catch (err) {
-      if (isRedirect(err)) throw err
-    }
+    const session = await getAuthSession()
+    if (session) throw redirect({ to: "/" })
+    // no session — render login page
   },
   component: LoginPage,
 })
