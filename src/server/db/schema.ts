@@ -108,7 +108,7 @@ export const characterStats = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     keyboardProfileId: uuid("keyboard_profile_id")
       .notNull()
-      .references(() => keyboardProfiles.id),
+      .references(() => keyboardProfiles.id, { onDelete: "cascade" }),
     character: text("character").notNull(),
     totalAttempts: integer("total_attempts").notNull().default(0),
     totalErrors: integer("total_errors").notNull().default(0),
@@ -140,7 +140,7 @@ export const bigramStats = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     keyboardProfileId: uuid("keyboard_profile_id")
       .notNull()
-      .references(() => keyboardProfiles.id),
+      .references(() => keyboardProfiles.id, { onDelete: "cascade" }),
     bigram: text("bigram").notNull(),
     totalAttempts: integer("total_attempts").notNull().default(0),
     totalErrors: integer("total_errors").notNull().default(0),
@@ -174,7 +174,7 @@ export const splitMetricsSnapshots = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     keyboardProfileId: uuid("keyboard_profile_id")
       .notNull()
-      .references(() => keyboardProfiles.id),
+      .references(() => keyboardProfiles.id, { onDelete: "cascade" }),
     // Metric 1: Inner column error rate (B, G, H, N, T, Y)
     innerColAttempts: integer("inner_col_attempts").notNull().default(0),
     innerColErrors: integer("inner_col_errors").notNull().default(0),
