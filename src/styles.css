@@ -1,6 +1,36 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* ── Font loading ──
+   TODO: Place actual .woff2 files in public/fonts/ before deploying.
+   Until then, fonts fall back to the system stacks declared in @theme.
+   See public/fonts/README.md for download sources.
+   ────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Variable.woff2") format("woff2-variations");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  /* Variable axes supported: wght (100–900), opsz (9–144), SOFT (0–100), WONK (0–1) */
+  src: url("/fonts/Fraunces-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ── kerf design tokens ── */
 @theme {
