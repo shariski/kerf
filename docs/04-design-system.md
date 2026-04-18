@@ -300,13 +300,45 @@ This section will expand significantly as we build out the design system. For v0
 
 ## 10. Logo / Wordmark
 
-> Status: TBD. Naming itself is still under review (see open question in 01-product-spec.md or future discussion).
+**Wordmark**: `kerf.` (lowercase, with trailing period as accent)
 
-For v0.1, use wordmark only:
+**Typography**:
 
-- Text: `leftype-rightype` (lowercase)
-- Font: JetBrains Mono, weight 700
-- Color: `--lr-text-primary` with "left" and "right" parts in different finger colors as a subtle visual hook (e.g., "leftype" in left-index green, "rightype" in right-index teal)
+- Font: Fraunces (serif), weight 700
+- Font variation settings: `"opsz" 144, "SOFT" 100`
+- The `opsz 144` setting engages Fraunces' display-optical-size variant (higher contrast, more pronounced terminals), and `SOFT 100` maxes the softness axis for rounded, warm character edges
+- Letter-spacing: -0.02em (tight, but not crushed)
+
+**Color**:
+
+- `kerf` — `--lr-text-primary` (#F2EAE0)
+- `.` (trailing period) — `--lr-amber-base` (#F59E0B)
+
+**Rationale**: "kerf" is the narrow slit left by a saw blade — precise, deliberate, the mark of a tool doing its work. Fraunces' soft-but-sharp display cut mirrors that duality (serif = craft, soft axis = warmth). The amber period is the single brand accent moment — small, earned, unmistakable.
+
+**Sizing reference**:
+
+- Navigation bar wordmark: 20px
+- Login / onboarding wordmark: 32px
+- Hero / marketing contexts: 48px+
+
+**Font loading**: Fraunces is a variable font. Self-host the variable `.woff2` and declare it alongside Inter and JetBrains Mono (see §11.2).
+
+```css
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/Fraunces-Variable.woff2") format("woff2-variations");
+  font-weight: 400 900;
+  font-display: swap;
+}
+```
+
+**Usage rules**:
+
+- Never recolor the wordmark beyond the spec above
+- Never substitute the font — Fraunces with those exact variation settings is the wordmark
+- Never drop the trailing period — it's not punctuation, it's the mark
+- Never use the wordmark inline inside body copy — it's a brand element, not a word
 
 ## 11. Implementation Notes
 

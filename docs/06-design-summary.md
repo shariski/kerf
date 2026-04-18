@@ -2,7 +2,7 @@
 
 > Consolidation of all design decisions made during brainstorming
 > Companion to 04-design-system.md and 05-information-architecture.md
-> Status: v0.2 (transition-focused revision)
+> Status: v0.3 (rebrand to kerf)
 > Last updated: 2026-04-18
 
 ## Purpose of This Document
@@ -363,6 +363,15 @@ All wireframes are interactive HTML in `design/` folder:
 Navigate all wireframes via `design/index.html`.
 
 ## Revision History
+
+**v0.3 (2026-04-18)** — rebrand to kerf
+
+- Product renamed from `leftype-rightype` to `kerf.`
+- Wordmark redesigned: Fraunces (weight 700, opsz 144, SOFT 100) with amber trailing period as sole accent moment
+- All HTML wireframes updated to display new wordmark
+- Design token prefix `--lr-*` retained for MVP (rename to `--kerf-*` deferred; brand hygiene debt logged)
+- 04-design-system.md §10 rewritten with new wordmark spec + font loading directive
+- Naming rationale: "kerf" = the slit a saw blade leaves, evoking the precision-tool aesthetic the product aims for
 
 **v0.2.1 (2026-04-18)** — vim scroll shortcut increment
 
