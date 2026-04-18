@@ -27,60 +27,75 @@ vi.mock("@tanstack/react-router", async () => {
   };
 });
 
-// The keyboard SVGs render many nested paths that aren't relevant to the
-// onboarding behavior under test — stub them with lightweight placeholders.
-vi.mock("#/components/keyboard", () => ({
-  SofleSVG: (props: { className?: string }) => (
-    <div data-testid="sofle-svg" className={props.className} />
-  ),
-  Lily58SVG: (props: { className?: string }) => (
-    <div data-testid="lily58-svg" className={props.className} />
-  ),
-}));
-
 import { OnboardingPage } from "./onboarding";
 
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.useRealTimers();
 });
 
 describe("OnboardingPage", () => {
-  it("starts on step 1 with Next disabled until a keyboard is picked", () => {
+  it("starts on step 1 with Lily58 pre-selected and Continue enabled", () => {
     render(<OnboardingPage />);
 
     expect(screen.getByText(/step 1 of 3/i)).toBeTruthy();
     expect(screen.getByText(/first, your keyboard/i)).toBeTruthy();
-    const next = screen.getByRole("button", { name: /next/i });
-    expect(next.hasAttribute("disabled")).toBe(true);
+    expect(
+      screen.getByRole("heading", {
+        name: /which split keyboard are you using/i,
+      }),
+    ).toBeTruthy();
+
+    // Spec default (docs/06-design-summary.md §/onboarding): Lily58.
+    expect(
+      screen.getByRole("button", { name: /^lily58$/i }).getAttribute(
+        "aria-pressed",
+      ),
+    ).toBe("true");
+    expect(
+      screen.getByRole("button", { name: /^sofle$/i }).getAttribute(
+        "aria-pressed",
+      ),
+    ).toBe("false");
+
+    const cta = screen.getByRole("button", { name: /^continue/i });
+    expect(cta.hasAttribute("disabled")).toBe(false);
   });
 
-  it("disables Back on step 1", () => {
-    render(<OnboardingPage />);
-    const back = screen.getByRole("button", { name: /back/i });
-    expect(back.hasAttribute("disabled")).toBe(true);
+  it("hides Back on step 1 (preserves layout space)", () => {
+    const { container } = render(<OnboardingPage />);
+    const back = Array.from(container.querySelectorAll("button")).find((b) =>
+      /back/i.test(b.textContent ?? ""),
+    );
+    expect(back).toBeTruthy();
+    expect(back?.style.visibility).toBe("hidden");
   });
 
-  it("advances through all three steps and submits the profile", async () => {
+  it("advances through all three steps, submits, and lands on the summary", async () => {
     createKeyboardProfile.mockResolvedValueOnce({ id: "p1" });
     render(<OnboardingPage />);
 
     // Step 1: pick Sofle.
-    fireEvent.click(screen.getByRole("button", { name: /sofle/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^sofle$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
 
     // Step 2: pick Right.
     expect(screen.getByText(/step 2 of 3/i)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /right-handed/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
 
-    // Step 3: pick a level.
+    // Step 3: pick level 1.
     expect(screen.getByText(/step 3 of 3/i)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /first day on split/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /first day on split/i }),
+    );
 
-    const submit = screen.getByRole("button", { name: /start first session/i });
-    expect(submit.hasAttribute("disabled")).toBe(false);
-    fireEvent.click(submit);
+    const finish = screen.getByRole("button", { name: /finish setup/i });
+    expect(finish.hasAttribute("disabled")).toBe(false);
+    fireEvent.click(finish);
 
     await vi.waitFor(() => {
       expect(createKeyboardProfile).toHaveBeenCalledExactlyOnceWith({
@@ -92,22 +107,56 @@ describe("OnboardingPage", () => {
       });
     });
 
+    // Landing shown.
+    await screen.findByText(/you're ready/i);
+    expect(screen.getByText(/all set/i)).toBeTruthy();
+
+    // Click "Start first session" to jump past the auto-redirect.
+    fireEvent.click(
+      screen.getByRole("button", { name: /start first session/i }),
+    );
+    expect(navigate).toHaveBeenCalledWith({ to: "/practice" });
+  });
+
+  it("landing auto-redirects after 3 seconds", async () => {
+    vi.useFakeTimers();
+    createKeyboardProfile.mockResolvedValueOnce({ id: "p1" });
+    render(<OnboardingPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^sofle$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
+    fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /first day on split/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
+
+    // Flush the pending createKeyboardProfile promise.
     await vi.waitFor(() => {
-      expect(navigate).toHaveBeenCalledExactlyOnceWith({ to: "/practice" });
+      expect(createKeyboardProfile).toHaveBeenCalled();
     });
+    // Landing should render.
+    await vi.waitFor(() => {
+      expect(screen.getByText(/you're ready/i)).toBeTruthy();
+    });
+
+    expect(navigate).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(3000);
+    expect(navigate).toHaveBeenCalledWith({ to: "/practice" });
   });
 
   it("Back navigates to the previous step while preserving selections", () => {
     render(<OnboardingPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: /lily58/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^lily58$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     fireEvent.click(screen.getByRole("button", { name: /left-handed/i }));
 
     fireEvent.click(screen.getByRole("button", { name: /back/i }));
     expect(screen.getByText(/step 1 of 3/i)).toBeTruthy();
 
-    const lily58Card = screen.getByRole("button", { name: /lily58/i });
+    const lily58Card = screen.getByRole("button", { name: /^lily58$/i });
     expect(lily58Card.getAttribute("aria-pressed")).toBe("true");
   });
 
@@ -115,14 +164,14 @@ describe("OnboardingPage", () => {
     createKeyboardProfile.mockRejectedValueOnce(new Error("boom"));
     render(<OnboardingPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: /sofle/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^sofle$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByRole("button", { name: /comfortable already/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     fireEvent.click(
-      screen.getByRole("button", { name: /start first session/i }),
+      screen.getByRole("button", { name: /comfortable, refining/i }),
     );
+    fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
 
     await screen.findByRole("alert");
     expect(screen.getByRole("alert").textContent).toMatch(/try again/i);
@@ -140,11 +189,11 @@ describe("OnboardingPage", () => {
   it("uses calm, non-hyped copy throughout", () => {
     render(<OnboardingPage />);
 
-    // Advance to the level step (which has the most descriptive copy).
-    fireEvent.click(screen.getByRole("button", { name: /sofle/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    // Advance to the level step (most descriptive copy).
+    fireEvent.click(screen.getByRole("button", { name: /^sofle$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
 
     const text = document.body.textContent ?? "";
     const banned = [

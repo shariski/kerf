@@ -1,8 +1,17 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useRouterState,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+
+// Routes that own their full viewport chrome and should not render the
+// starter Header/Footer (onboarding has its own logo + progress bar).
+const CHROMELESS_PATHS = ['/onboarding']
 
 import appCss from '../styles.css?url'
 
@@ -33,6 +42,8 @@ export const Route = createRootRoute({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const chromeless = CHROMELESS_PATHS.some((p) => pathname.startsWith(p))
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -40,9 +51,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-        <Header />
+        {!chromeless && <Header />}
         {children}
-        <Footer />
+        {!chromeless && <Footer />}
         <TanStackDevtools
           config={{
             position: 'bottom-right',
