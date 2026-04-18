@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kerf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kerf_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-kerf_dev}
+    volumes:
+      - kerf_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kerf}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  kerf_postgres_data:
