@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Leftype-Rightype — Keyboard SVG Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lr-bg-base: #181410;
+    --lr-bg-surface: #221C17;
+    --lr-bg-elevated: #2A2320;
+    --lr-bg-overlay: #322A26;
+    --lr-text-primary: #F2EAE0;
+    --lr-text-secondary: #9A8E80;
+    --lr-text-tertiary: #685D52;
+    --lr-border-subtle: #2F2820;
+    --lr-border-default: #3A3128;
+    --lr-amber-base: #F59E0B;
+    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+    --lr-amber-faint: rgba(245, 158, 11, 0.08);
+    
+    --finger-l-pinky: #C2410C;
+    --finger-l-ring: #A16207;
+    --finger-l-middle: #65A30D;
+    --finger-l-index: #15803D;
+    --finger-r-index: #0E7490;
+    --finger-r-middle: #1D4ED8;
+    --finger-r-ring: #6D28D9;
+    --finger-r-pinky: #A21CAF;
+    --finger-thumb: #6B7280;
+    
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--lr-bg-base);
+    color: var(--lr-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 48px 32px;
+    min-height: 100vh;
+  }
+  
+  .container { max-width: 1100px; margin: 0 auto; }
+  
+  .hero {
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--lr-border-subtle);
+  }
+  .wordmark {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--lr-text-secondary);
+  }
+  .wordmark .accent { color: var(--lr-amber-base); }
+  .hero h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; line-height: 1.2; }
+  .hero p { color: var(--lr-text-secondary); max-width: 640px; }
+  .hero-meta { font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-tertiary); margin-top: 12px; }
+  
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--lr-border-subtle);
+  }
+  .section-title { font-size: 22px; font-weight: 600; }
+  .section-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .section-desc { color: var(--lr-text-secondary); margin-bottom: 24px; font-size: 13px; }
+  
+  .kb-preview {
+    background: var(--lr-bg-surface);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+  }
+  
+  .kb-preview.with-fingers {
+    background: var(--lr-bg-elevated);
+  }
+  
+  .kb-preview svg { max-width: 100%; height: auto; }
+  
+  /* Keyboard key styling via CSS variables */
+  .kb-preview svg {
+    --key-face: #2A2320;
+    --key-edge: #3A3128;
+    --key-label: #9A8E80;
+  }
+  
+  /* Base key style */
+  svg .key {
+    fill: var(--key-face);
+    stroke: var(--key-edge);
+    stroke-width: 1;
+    transition: fill 100ms;
+  }
+  svg .key-highlight {
+    fill: var(--key-edge);
+    opacity: 0.35;
+  }
+  svg .key-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    fill: var(--key-label);
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+    user-select: none;
+  }
+  
+  /* Finger coloring - applies to left-edge bar only, not whole key */
+  .kb-preview.with-fingers svg .finger-bar {
+    width: 3;
+    height: 30;
+    rx: 1.5;
+  }
+  
+  /* Target key highlight */
+  svg .key.target {
+    fill: var(--lr-amber-base);
+    stroke: #FBBF24;
+    stroke-width: 1.5;
+  }
+  svg .key.target ~ .key-label,
+  svg .key-label.on-target {
+    fill: var(--lr-bg-base);
+  }
+  
+  /* Active / highlighted state for demo */
+  svg .key.demo-hl {
+    fill: var(--lr-amber-base);
+    stroke: #FBBF24;
+  }
+  
+  /* Encoder */
+  svg .encoder-body {
+    fill: var(--key-face);
+    stroke: var(--lr-amber-base);
+    stroke-width: 1.5;
+  }
+  svg .encoder-inner {
+    fill: none;
+    stroke: var(--key-edge);
+    stroke-width: 0.8;
+  }
+  svg .encoder-tick {
+    stroke: var(--lr-amber-base);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  
+  /* Variant card grids */
+  .variants {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .variant {
+    background: var(--lr-bg-elevated);
+    border: 1px solid var(--lr-border-subtle);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .variant-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lr-amber-base);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .variant-desc {
+    font-size: 12px;
+    color: var(--lr-text-secondary);
+    margin-bottom: 16px;
+  }
+  .variant svg { max-width: 100%; height: auto; }
+  
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--lr-border-subtle);
+    text-align: center;
+    font-size: 12px;
+    color: var(--lr-text-tertiary);
+    font-family: var(--font-mono);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="wordmark">leftype<span class="accent">-</span>rightype</div>
+    <h1>Keyboard SVG preview</h1>
+    <p>Schematic clean style, top-down view. Geometry is accurate to the open-source specs (Sofle v2: 6×4+5, Lily58: 6×4+4). CSS variables control theming — keys, finger colors, and amber accent swap with the parent page.</p>
+    <div class="hero-meta">v0.1 · 2026-04-18 · first generation, expect refinement</div>
+  </div>
+
+  <!-- ========== SOFLE ========== -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Sofle v2</h2>
+      <span class="section-meta">6×4 + 5 thumb · 58 keys</span>
+    </div>
+    <p class="section-desc">Column-staggered with 5-key thumb cluster per side (2 inner keys extending from bottom row + 3 angled outer keys). Leftmost outer thumb key typically houses the rotary encoder.</p>
+    
+    <div class="kb-preview">
+      <svg id="sofle-svg" viewBox="0 0 780 260" xmlns="http://www.w3.org/2000/svg">
+        <!-- Sofle keyboard
+             Col offsets (y) from row baseline: [0]=+6, [1]=-6, [2]=-2, [3]=+4, [4]=+4, [5]=+10
+             These reflect column stagger: ring tallest, pinky drops, middle between, index drops
+        -->
+        
+        <!-- ====== LEFT HALF ====== -->
+        <g transform="translate(20, 30)">
+          <!-- Row 0: 1 2 3 4 5 6 -->
+          <g>
+            <rect class="key" x="0"   y="6"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="9" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="22">1</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="-6" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="-3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="10">2</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="-2" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="1" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="14">3</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="20">4</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="20">5</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="10" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="13" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="26">6</text>
+          </g>
+          
+          <!-- Row 1: q w e r t · -->
+          <g>
+            <rect class="key" x="0"   y="42" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="45" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="58">q</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="30" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="33" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="46">w</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="34" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="37" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="50">e</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="40" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="43" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="56">r</text>
+          </g>
+          <g>
+            <rect class="key demo-hl" x="136" y="40" width="32" height="32" rx="4"/>
+            <text class="key-label on-target" x="152" y="56" style="fill: var(--lr-bg-base); font-weight: 700;">t</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="46" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="49" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="62">tab</text>
+          </g>
+          
+          <!-- Row 2: a s d f g · (home row) -->
+          <g>
+            <rect class="key" x="0"   y="78" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="81" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="94">a</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="66" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="69" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="82">s</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="70" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="73" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="86">d</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="92">f</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="92">g</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="82" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="85" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="98">esc</text>
+          </g>
+          
+          <!-- Row 3: z x c v b · (bottom row) -->
+          <g>
+            <rect class="key" x="0"   y="114" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="117" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="130">z</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="102" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="105" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="118">x</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="106" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="109" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="122">c</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="128">v</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="128">b</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="118" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="121" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="134">mute</text>
+          </g>
+          
+          <!-- Sofle thumb cluster: 5 keys
+               - Inner 2 extending from row 3 col 4 and col 5 positions
+               - Outer 3 angled (encoder at outermost) -->
+          
+          <!-- Inner thumb key 1 (below col 4) -->
+          <g>
+            <rect class="key" x="136" y="148" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="151" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="164">lwr</text>
+          </g>
+          <!-- Inner thumb key 2 (below col 5, slightly angled position) -->
+          <g>
+            <rect class="key" x="170" y="154" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="157" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="170">rse</text>
+          </g>
+          
+          <!-- Outer thumb angled keys -->
+          <g transform="translate(206, 172) rotate(18)">
+            <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="16">spc</text>
+          </g>
+          
+          <g transform="translate(244, 182) rotate(18)">
+            <rect class="key" x="0" y="0" width="48" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="42" height="2" rx="1"/>
+            <text class="key-label" x="24" y="16">enter</text>
+          </g>
+          
+          <g transform="translate(304, 204) rotate(18)">
+            <circle class="encoder-body" cx="16" cy="16" r="14"/>
+            <circle class="encoder-inner" cx="16" cy="16" r="6"/>
+            <line class="encoder-tick" x1="16" y1="4" x2="16" y2="8"/>
+          </g>
+        </g>
+        
+        <!-- ====== RIGHT HALF ====== -->
+        <g transform="translate(440, 30)">
+          <!-- Row 0: 7 8 9 0 - = -->
+          <g>
+            <rect class="key" x="0"   y="10" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="13" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="26">7</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="20">8</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="20">9</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="-2" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="1" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="14">0</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="-6" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="-3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="10">-</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="6"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="9" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="22">=</text>
+          </g>
+          
+          <!-- Row 1: · y u i o p -->
+          <g>
+            <rect class="key" x="0"   y="46" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="49" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="62">bsp</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="40" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="43" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="56">y</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="40" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="43" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="56">u</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="34" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="37" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="50">i</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="30" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="33" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="46">o</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="42" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="45" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="58">p</text>
+          </g>
+          
+          <!-- Row 2: · h j k l ; -->
+          <g>
+            <rect class="key" x="0"   y="82" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="85" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="98">del</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="92">h</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="92">j</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="70" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="73" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="86">k</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="66" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="69" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="82">l</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="78" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="81" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="94">;</text>
+          </g>
+          
+          <!-- Row 3: · n m , . / -->
+          <g>
+            <rect class="key" x="0"   y="118" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="121" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="134">'</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="128">n</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="128">m</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="106" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="109" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="122">,</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="102" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="105" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="118">.</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="114" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="117" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="130">/</text>
+          </g>
+          
+          <!-- Right thumb cluster (mirror) -->
+          <g>
+            <rect class="key" x="0"   y="154" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="157" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="170">rse</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="148" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="151" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="164">lwr</text>
+          </g>
+          
+          <g transform="translate(-80, 204) rotate(-18)">
+            <circle class="encoder-body" cx="16" cy="16" r="14"/>
+            <circle class="encoder-inner" cx="16" cy="16" r="6"/>
+            <line class="encoder-tick" x1="16" y1="4" x2="16" y2="8"/>
+          </g>
+          
+          <g transform="translate(-40, 182) rotate(-18)">
+            <rect class="key" x="0" y="0" width="48" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="42" height="2" rx="1"/>
+            <text class="key-label" x="24" y="16">space</text>
+          </g>
+          
+          <g transform="translate(36, 172) rotate(-18)">
+            <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="16">bsp</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ========== LILY58 ========== -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Lily58</h2>
+      <span class="section-meta">6×4 + 4 thumb · 58 keys</span>
+    </div>
+    <p class="section-desc">Column-staggered with 4-key thumb cluster per side, arranged in a relatively straight line with innermost key at a slight angle. No encoder on base PCB.</p>
+    
+    <div class="kb-preview">
+      <svg id="lily58-svg" viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+        <!-- Lily58 keyboard
+             Similar column-stagger pattern to Sofle but:
+             - 4 thumb keys instead of 5 (no encoder)
+             - Thumb cluster in straight line
+             - Milder pinky stagger
+        -->
+        
+        <!-- ====== LEFT HALF ====== -->
+        <g transform="translate(20, 30)">
+          <!-- Row 0: number row (1 2 3 4 5 6) -->
+          <g>
+            <rect class="key" x="0"   y="6"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="9" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="22">1</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="-4" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="-1" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="12">2</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="-2" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="1" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="14">3</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="20">4</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="20">5</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="10" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="13" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="26">6</text>
+          </g>
+          
+          <!-- Row 1: q w e r t · -->
+          <g>
+            <rect class="key" x="0"   y="42" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="45" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="58">q</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="32" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="35" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="48">w</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="34" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="37" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="50">e</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="40" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="43" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="56">r</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="40" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="43" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="56">t</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="46" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="49" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="62">tab</text>
+          </g>
+          
+          <!-- Row 2: a s d f g · (home row) -->
+          <g>
+            <rect class="key" x="0"   y="78" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="81" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="94">a</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="68" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="71" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="84">s</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="70" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="73" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="86">d</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="92">f</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="92">g</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="82" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="85" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="98">esc</text>
+          </g>
+          
+          <!-- Row 3: z x c v b · (bottom row) -->
+          <g>
+            <rect class="key" x="0"   y="114" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="117" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="130">z</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="104" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="107" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="120">x</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="106" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="109" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="122">c</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="128">v</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="128">b</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="118" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="121" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="134">⇧</text>
+          </g>
+          
+          <!-- Lily58 thumb cluster: 4 keys in relatively straight line
+               Innermost key at slight angle for thumb reach -->
+          
+          <g>
+            <rect class="key" x="102" y="154" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="157" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="170">ctrl</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="154" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="157" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="170">lwr</text>
+          </g>
+          
+          <!-- Outer 2 thumb keys -->
+          <g transform="translate(174, 158) rotate(15)">
+            <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="16">spc</text>
+          </g>
+          <g transform="translate(214, 170) rotate(15)">
+            <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="16">rse</text>
+          </g>
+        </g>
+        
+        <!-- ====== RIGHT HALF ====== -->
+        <g transform="translate(440, 30)">
+          <!-- Row 0 right -->
+          <g>
+            <rect class="key" x="0"   y="10" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="13" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="26">7</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="20">8</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="4"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="7" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="20">9</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="-2" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="1" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="14">0</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="-4" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="-1" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="12">-</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="6"  width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="9" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="22">=</text>
+          </g>
+          
+          <!-- Row 1 right -->
+          <g>
+            <rect class="key" x="0"   y="46" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="49" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="62">bsp</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="40" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="43" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="56">y</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="40" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="43" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="56">u</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="34" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="37" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="50">i</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="32" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="35" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="48">o</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="42" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="45" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="58">p</text>
+          </g>
+          
+          <!-- Row 2 right -->
+          <g>
+            <rect class="key" x="0"   y="82" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="85" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="98">del</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="92">h</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="76" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="79" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="92">j</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="70" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="73" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="86">k</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="68" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="71" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="84">l</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="78" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="81" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="94">;</text>
+          </g>
+          
+          <!-- Row 3 right -->
+          <g>
+            <rect class="key" x="0"   y="118" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="121" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="134">'</text>
+          </g>
+          <g>
+            <rect class="key" x="34"  y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="128">n</text>
+          </g>
+          <g>
+            <rect class="key" x="68"  y="112" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="115" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="128">m</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="106" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="105" y="109" width="26" height="2" rx="1"/>
+            <text class="key-label" x="118" y="122">,</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="104" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="139" y="107" width="26" height="2" rx="1"/>
+            <text class="key-label" x="152" y="120">.</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="114" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="173" y="117" width="26" height="2" rx="1"/>
+            <text class="key-label" x="186" y="130">/</text>
+          </g>
+          
+          <!-- Right thumb cluster (mirror of left, 4 keys) -->
+          <g transform="translate(-40, 170) rotate(-15 16 16)">
+            <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="16">rse</text>
+          </g>
+          <g transform="translate(0, 158) rotate(-15 16 16)">
+            <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="3" y="3" width="26" height="2" rx="1"/>
+            <text class="key-label" x="16" y="16">spc</text>
+          </g>
+          <g>
+            <rect class="key" x="34" y="154" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="37" y="157" width="26" height="2" rx="1"/>
+            <text class="key-label" x="50" y="170">lwr</text>
+          </g>
+          <g>
+            <rect class="key" x="68" y="154" width="32" height="32" rx="4"/>
+            <rect class="key-highlight" x="71" y="157" width="26" height="2" rx="1"/>
+            <text class="key-label" x="84" y="170">ctrl</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ========== FINGER COLOR VARIANT ========== -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Finger color variant</h2>
+      <span class="section-meta">preview with left-edge finger bars</span>
+    </div>
+    <p class="section-desc">Using left-edge colored bars instead of full-key fills keeps the Mechanical Workshop vibe (keys stay dark) while providing clear finger assignment info. This is the style intended for active practice sessions.</p>
+    
+    <div class="kb-preview with-fingers">
+      <svg viewBox="0 0 780 260" xmlns="http://www.w3.org/2000/svg">
+        <!-- Same sofle layout but with colored left-edge bars per finger
+             Simplified version to show the concept -->
+        
+        <g transform="translate(20, 30)">
+          <!-- Row 1: q w e r t -->
+          <g>
+            <rect class="key" x="0" y="42" width="32" height="32" rx="4"/>
+            <rect x="0" y="42" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)"/>
+            <text class="key-label" x="18" y="58">q</text>
+          </g>
+          <g>
+            <rect class="key" x="34" y="32" width="32" height="32" rx="4"/>
+            <rect x="34" y="32" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)"/>
+            <text class="key-label" x="52" y="48">w</text>
+          </g>
+          <g>
+            <rect class="key" x="68" y="34" width="32" height="32" rx="4"/>
+            <rect x="68" y="34" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)"/>
+            <text class="key-label" x="86" y="50">e</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="40" width="32" height="32" rx="4"/>
+            <rect x="102" y="40" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
+            <text class="key-label" x="120" y="56">r</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="40" width="32" height="32" rx="4"/>
+            <rect x="136" y="40" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
+            <text class="key-label" x="154" y="56">t</text>
+          </g>
+          
+          <!-- Row 2: home row a s d f g -->
+          <g>
+            <rect class="key" x="0" y="78" width="32" height="32" rx="4"/>
+            <rect x="0" y="78" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)"/>
+            <text class="key-label" x="18" y="94">a</text>
+          </g>
+          <g>
+            <rect class="key" x="34" y="68" width="32" height="32" rx="4"/>
+            <rect x="34" y="68" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)"/>
+            <text class="key-label" x="52" y="84">s</text>
+          </g>
+          <g>
+            <rect class="key" x="68" y="70" width="32" height="32" rx="4"/>
+            <rect x="68" y="70" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)"/>
+            <text class="key-label" x="86" y="86">d</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="76" width="32" height="32" rx="4"/>
+            <rect x="102" y="76" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
+            <text class="key-label" x="120" y="92">f</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="76" width="32" height="32" rx="4"/>
+            <rect x="136" y="76" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
+            <text class="key-label" x="154" y="92">g</text>
+          </g>
+          
+          <!-- Row 3: z x c v b -->
+          <g>
+            <rect class="key" x="0" y="114" width="32" height="32" rx="4"/>
+            <rect x="0" y="114" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)"/>
+            <text class="key-label" x="18" y="130">z</text>
+          </g>
+          <g>
+            <rect class="key" x="34" y="104" width="32" height="32" rx="4"/>
+            <rect x="34" y="104" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)"/>
+            <text class="key-label" x="52" y="120">x</text>
+          </g>
+          <g>
+            <rect class="key" x="68" y="106" width="32" height="32" rx="4"/>
+            <rect x="68" y="106" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)"/>
+            <text class="key-label" x="86" y="122">c</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="112" width="32" height="32" rx="4"/>
+            <rect x="102" y="112" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
+            <text class="key-label" x="120" y="128">v</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="112" width="32" height="32" rx="4"/>
+            <rect x="136" y="112" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
+            <text class="key-label" x="154" y="128">b</text>
+          </g>
+        </g>
+        
+        <!-- Right half finger bars -->
+        <g transform="translate(440, 30)">
+          <!-- Row 1: y u i o p -->
+          <g>
+            <rect class="key" x="34" y="40" width="32" height="32" rx="4"/>
+            <rect x="34" y="40" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
+            <text class="key-label" x="52" y="56">y</text>
+          </g>
+          <g>
+            <rect class="key" x="68" y="40" width="32" height="32" rx="4"/>
+            <rect x="68" y="40" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
+            <text class="key-label" x="86" y="56">u</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="34" width="32" height="32" rx="4"/>
+            <rect x="102" y="34" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)"/>
+            <text class="key-label" x="120" y="50">i</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="32" width="32" height="32" rx="4"/>
+            <rect x="136" y="32" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)"/>
+            <text class="key-label" x="154" y="48">o</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="42" width="32" height="32" rx="4"/>
+            <rect x="170" y="42" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)"/>
+            <text class="key-label" x="188" y="58">p</text>
+          </g>
+          
+          <!-- Row 2: h j k l ; -->
+          <g>
+            <rect class="key" x="34" y="76" width="32" height="32" rx="4"/>
+            <rect x="34" y="76" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
+            <text class="key-label" x="52" y="92">h</text>
+          </g>
+          <g>
+            <rect class="key" x="68" y="76" width="32" height="32" rx="4"/>
+            <rect x="68" y="76" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
+            <text class="key-label" x="86" y="92">j</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="70" width="32" height="32" rx="4"/>
+            <rect x="102" y="70" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)"/>
+            <text class="key-label" x="120" y="86">k</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="68" width="32" height="32" rx="4"/>
+            <rect x="136" y="68" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)"/>
+            <text class="key-label" x="154" y="84">l</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="78" width="32" height="32" rx="4"/>
+            <rect x="170" y="78" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)"/>
+            <text class="key-label" x="188" y="94">;</text>
+          </g>
+          
+          <!-- Row 3: n m , . / -->
+          <g>
+            <rect class="key" x="34" y="112" width="32" height="32" rx="4"/>
+            <rect x="34" y="112" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
+            <text class="key-label" x="52" y="128">n</text>
+          </g>
+          <g>
+            <rect class="key" x="68" y="112" width="32" height="32" rx="4"/>
+            <rect x="68" y="112" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
+            <text class="key-label" x="86" y="128">m</text>
+          </g>
+          <g>
+            <rect class="key" x="102" y="106" width="32" height="32" rx="4"/>
+            <rect x="102" y="106" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)"/>
+            <text class="key-label" x="120" y="122">,</text>
+          </g>
+          <g>
+            <rect class="key" x="136" y="104" width="32" height="32" rx="4"/>
+            <rect x="136" y="104" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)"/>
+            <text class="key-label" x="154" y="120">.</text>
+          </g>
+          <g>
+            <rect class="key" x="170" y="114" width="32" height="32" rx="4"/>
+            <rect x="170" y="114" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)"/>
+            <text class="key-label" x="188" y="130">/</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="footer">
+    leftype-rightype keyboard SVG preview · v0.1 · first generation (Step 3 of wireframe revision cycle)
+  </div>
+
+</div>
+
+</body>
+</html>

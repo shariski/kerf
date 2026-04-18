@@ -427,6 +427,15 @@
     background: var(--lr-border-default);
   }
   
+  /* Keyboard SVG thumb */
+  .thumb-keyboards {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  
   /* Card body */
   .card-body {
     padding: 16px 20px;
@@ -525,8 +534,9 @@
       leftype<span class="accent">-</span>rightype
     </div>
     <h1>Design index</h1>
-    <p>All wireframes and design artifacts produced during MVP brainstorming. Click any card to open the interactive HTML wireframe. Documentation files link to markdown in the repo root.</p>
-    <div class="hero-meta">v0.1 · 2026-04-17 · expect iteration as we build</div>
+    <p>All wireframes and design artifacts produced during MVP brainstorming. Structured transition program for QWERTY-to-split keyboards — adaptive engine, accuracy first.</p>
+    <p>Click any card to open the interactive HTML wireframe. Documentation files link to markdown in the repo root.</p>
+    <div class="hero-meta">v0.2 · 2026-04-18 · transition-focused revision (Phase A MVP)</div>
   </div>
 
   <!-- FOUNDATIONS -->
@@ -589,6 +599,87 @@
         </div>
       </a>
       
+      <a href="keyboard-svg-preview.html" class="card">
+        <div class="card-thumb">
+          <div class="thumb-keyboards">
+            <svg viewBox="0 0 180 70" xmlns="http://www.w3.org/2000/svg" style="width: 85%; height: auto;">
+              <!-- Mini Sofle preview -->
+              <g transform="translate(8, 10)">
+                <!-- Left half abstracted keys -->
+                <rect x="0" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="10" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="20" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="30" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="40" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="50" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                
+                <rect x="0" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="10" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="20" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="30" y="14" width="8" height="8" rx="1.5" fill="var(--lr-amber-base)"/>
+                <rect x="40" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="50" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                
+                <rect x="0" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="10" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="20" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="30" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="40" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="50" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                
+                <!-- Thumb cluster hint -->
+                <g transform="translate(42, 38) rotate(18)">
+                  <rect x="0" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                  <rect x="10" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                  <circle cx="28" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)" stroke-width="0.7"/>
+                </g>
+              </g>
+              
+              <!-- Right half (mirror) -->
+              <g transform="translate(112, 10)">
+                <rect x="0" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="10" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="20" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="30" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="40" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="50" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                
+                <rect x="0" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="10" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="20" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="30" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="40" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="50" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                
+                <rect x="0" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="10" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="20" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="30" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="40" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                <rect x="50" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                
+                <!-- Right thumb cluster -->
+                <g transform="translate(-10, 42) rotate(-18 16 4)">
+                  <circle cx="0" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)" stroke-width="0.7"/>
+                  <rect x="6" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                  <rect x="20" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-route">keyboard-svg-preview</div>
+          <div class="card-title">Keyboard SVG specimens</div>
+          <div class="card-desc">Hand-authored SVG keyboards: Sofle (6×4+5) and Lily58 (6×4+4) with finger color bars</div>
+          <div class="card-states">
+            <span class="card-state-pill">sofle</span>
+            <span class="card-state-pill">lily58</span>
+            <span class="card-state-pill">finger-color variant</span>
+          </div>
+        </div>
+      </a>
+      
     </div>
   </div>
 
@@ -644,12 +735,13 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="card-route">/practice</div>
+          <div class="card-route">/practice · v0.3</div>
           <div class="card-title">Practice</div>
-          <div class="card-desc">Heart of the product. Three states: pre-session, active typing, post-session modal</div>
+          <div class="card-desc">Heart of the product. Four states: pre-session with transition-aware CTA, active typing with error visualization, paused settings overlay, post-session inline with error review</div>
           <div class="card-states">
             <span class="card-state-pill">pre-session</span>
             <span class="card-state-pill">active</span>
+            <span class="card-state-pill">paused</span>
             <span class="card-state-pill">post</span>
           </div>
         </div>
@@ -812,9 +904,24 @@
       <h2 class="section-title">Documentation</h2>
       <span class="section-num">§ markdown files</span>
     </div>
-    <p class="section-desc">Locked design decisions in markdown form, checked into repo.</p>
+    <p class="section-desc">Locked design decisions in markdown form, checked into repo. Revised to v0.2 during transition-focused pivot.</p>
     
     <div class="docs-grid">
+      <a href="../01-product-spec.md" class="doc-card">
+        <div class="doc-card-name">01-product-spec.md · v0.2</div>
+        <div class="doc-card-title">Product spec</div>
+        <div class="doc-card-desc">Positioning, core values, target user, Phase A MVP scope, content rules, out-of-scope, success metrics, risks</div>
+      </a>
+      <a href="../02-architecture.md" class="doc-card">
+        <div class="doc-card-name">02-architecture.md · v0.2</div>
+        <div class="doc-card-title">Technical architecture</div>
+        <div class="doc-card-desc">Data model with transition phases, phase-aware weakness score, split metrics computation, phase transition logic</div>
+      </a>
+      <a href="../03-task-breakdown.md" class="doc-card">
+        <div class="doc-card-name">03-task-breakdown.md · v0.2</div>
+        <div class="doc-card-title">Task breakdown</div>
+        <div class="doc-card-desc">Phase-by-phase implementation plan for Phase A MVP, 12-18 weeks, Claude Code scope vs your scope</div>
+      </a>
       <a href="../04-design-system.md" class="doc-card">
         <div class="doc-card-name">04-design-system.md</div>
         <div class="doc-card-title">Design system</div>
@@ -826,15 +933,15 @@
         <div class="doc-card-desc">Sitemap, page-level specs, navigation pattern, critical flows</div>
       </a>
       <a href="../06-design-summary.md" class="doc-card">
-        <div class="doc-card-name">06-design-summary.md</div>
+        <div class="doc-card-name">06-design-summary.md · v0.2</div>
         <div class="doc-card-title">Design summary</div>
-        <div class="doc-card-desc">Consolidated decisions across all pages, cross-page patterns, open iteration topics</div>
+        <div class="doc-card-desc">Consolidated decisions across all pages including v0.2 transition-focused changes, cross-page patterns, open iteration topics</div>
       </a>
     </div>
   </div>
 
   <div class="footer">
-    leftype-rightype design index · v0.1 · 2026-04-17
+    leftype-rightype design index · v0.2 · 2026-04-18 · transition-focused revision
   </div>
 
 </div>

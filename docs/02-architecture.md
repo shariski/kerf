@@ -1,6 +1,9 @@
 # Leftype-Rightype: Technical Architecture
 
-> Companion to 01-product-spec.md
+> Companion to 01-product-spec.md (v0.2 — transition-focused)
+> Status: v0.2 — transition-phase aware
+> Last updated: 2026-04-18
+> Major revision: added transition_phase to keyboard_profiles, split_metrics_snapshots table, phase-aware weakness scoring, split-specific metrics computation, phase transition auto-suggestion
 > Audience: the developer (you) building this with Claude Code
 
 ## 1. High-Level Architecture
@@ -56,21 +59,29 @@ display_name    text
 
 ### keyboard_profiles
 ```sql
-id              uuid PRIMARY KEY
-user_id         uuid REFERENCES users(id) ON DELETE CASCADE
-keyboard_type   text NOT NULL  -- 'sofle' | 'lily58'
-dominant_hand   text NOT NULL  -- 'left' | 'right'
-self_level      text NOT NULL  -- 'first_day' | 'few_weeks' | 'comfortable'
-is_active       boolean NOT NULL DEFAULT true
-created_at      timestamptz NOT NULL DEFAULT now()
+id                  uuid PRIMARY KEY
+user_id             uuid REFERENCES users(id) ON DELETE CASCADE
+keyboard_type       text NOT NULL  -- 'sofle' | 'lily58'
+dominant_hand       text NOT NULL  -- 'left' | 'right'
+initial_level       text NOT NULL  -- 'first_day' | 'few_weeks' | 'comfortable' (at onboarding)
+transition_phase    text NOT NULL DEFAULT 'transitioning'  -- 'transitioning' | 'refining'
+phase_changed_at    timestamptz                           -- when phase last changed (null = never changed)
+is_active           boolean NOT NULL DEFAULT true
+created_at          timestamptz NOT NULL DEFAULT now()
 ```
+
+**Phase semantics:**
+- `transitioning`: user still building columnar muscle memory. Engine weights columnar-specific pain points heavier, exercises are shorter, copy emphasizes "building new habits". Initial phase derived from `initial_level`: `first_day` and `few_weeks` → `transitioning`; `comfortable` → `refining`.
+- `refining`: user past the transition struggle, now polishing speed and flow. Engine uses pure weakness profile, standard exercise length, copy shifts to peer tone.
+- Phase changes triggered by: (a) user manually toggles in settings; (b) platform suggests change when stable accuracy >95% for 10+ sessions OR when user returns from 2+ weeks away (may have regressed).
 
 ### sessions
 ```sql
 id                  uuid PRIMARY KEY
 user_id             uuid REFERENCES users(id) ON DELETE CASCADE
 keyboard_profile_id uuid REFERENCES keyboard_profiles(id)
-mode                text NOT NULL  -- 'adaptive' | 'targeted_drill'
+mode                text NOT NULL  -- 'adaptive' | 'targeted_drill' | 'diagnostic'
+phase_at_session    text NOT NULL  -- 'transitioning' | 'refining' (snapshot for historical analysis)
 filter_config       jsonb          -- { hand_isolation: 'left' | 'right' | null, max_length: int }
 started_at          timestamptz NOT NULL
 ended_at            timestamptz
@@ -79,6 +90,8 @@ total_errors        integer DEFAULT 0
 wpm                 real
 accuracy            real
 ```
+
+**Note on `phase_at_session`**: this snapshots which phase the user was in when the session happened. Important because engine behavior differs by phase, and we want to compare "my transitioning-phase performance" vs "my refining-phase performance" without mutating historical data when the user switches phases.
 
 ### keystroke_events
 ```sql
@@ -131,6 +144,56 @@ UNIQUE(user_id, keyboard_profile_id, bigram)
 
 **Note:** stats tables are updated at the end of each session, not on every keystroke. Trade-off: data is slightly stale, but performance is much better.
 
+### split_metrics_snapshots (denormalized, per session)
+
+Stores the 4 split-specific metrics computed at the end of each session. Historical snapshots enable trend charts on the dashboard.
+
+```sql
+id                       bigserial PRIMARY KEY
+session_id               uuid REFERENCES sessions(id) ON DELETE CASCADE
+user_id                  uuid REFERENCES users(id) ON DELETE CASCADE
+keyboard_profile_id      uuid REFERENCES keyboard_profiles(id)
+
+-- Metric 1: Inner column error rate (B, G, H, N, T, Y)
+inner_col_attempts       integer NOT NULL DEFAULT 0
+inner_col_errors         integer NOT NULL DEFAULT 0
+inner_col_error_rate     real   -- computed: errors / attempts
+
+-- Metric 2: Thumb cluster decision time
+-- (time between finishing previous key and pressing any thumb-assigned key)
+thumb_cluster_count      integer NOT NULL DEFAULT 0
+thumb_cluster_sum_ms     bigint NOT NULL DEFAULT 0
+thumb_cluster_avg_ms     real   -- computed: sum / count
+
+-- Metric 3: Cross-hand bigram timing
+-- (bigrams spanning both hands, e.g., 'th', 'he', 'in')
+cross_hand_bigram_count  integer NOT NULL DEFAULT 0
+cross_hand_bigram_sum_ms bigint NOT NULL DEFAULT 0
+cross_hand_bigram_avg_ms real
+
+-- Metric 4: Columnar stability (inferred, see caveat below)
+-- Count of keypresses that pattern-match "likely wrong finger used" based on error type
+columnar_stable_count    integer NOT NULL DEFAULT 0
+columnar_drift_count     integer NOT NULL DEFAULT 0
+columnar_stability_pct   real
+
+created_at               timestamptz NOT NULL DEFAULT now()
+
+INDEX(user_id, keyboard_profile_id, created_at)
+```
+
+**Honest caveat on Metric 4 (columnar stability):**
+
+Metric 4 is inferred, not directly measured. The browser cannot detect which physical finger was used. What we CAN observe:
+
+- If a user targeting 'B' types 'V' → likely the left-index finger slid to the adjacent column (columnar drift)
+- If a user targeting 'B' types 'N' → likely the user used the wrong hand entirely (QWERTY muscle memory)
+- If a user targeting 'B' types a random other letter → probably not a finger-column issue
+
+We compute columnar_drift as a heuristic: errors where the typed character is in a column adjacent to the target column in the same hand. Accuracy of this inference is moderate. Treat the metric as directional, not absolute.
+
+Metrics 1-3 are directly measurable from keystroke_events without inference.
+
 ### word_corpus
 ```sql
 id              bigserial PRIMARY KEY
@@ -182,12 +245,33 @@ The full mapping for Sofle and Lily58 must be sourced from official specs or you
 
 ## 4. Adaptive Engine: Algorithm Detail
 
-### 4.1 Weakness Score Computation
+### 4.1 Weakness Score Computation (Transition-Phase Aware)
+
+The weakness score formula uses different coefficients depending on the user's transition phase. During transition, errors (the proxy for "can't find the key yet") are weighted most heavily. During refining, hesitation and slowness (the proxy for "know the key, not fluent yet") take over.
 
 ```typescript
+type TransitionPhase = 'transitioning' | 'refining';
+
+// Phase-specific coefficients
+const COEFFICIENTS = {
+  transitioning: {
+    ALPHA: 0.6, // error weight — heavy during transition
+    BETA:  0.2, // hesitation weight
+    GAMMA: 0.1, // slowness weight — less important early on
+    DELTA: 0.1, // frequency penalty
+  },
+  refining: {
+    ALPHA: 0.3, // error weight — errors less informative when user is already accurate
+    BETA:  0.35, // hesitation weight — fluency matters now
+    GAMMA: 0.25, // slowness weight — speed matters now
+    DELTA: 0.1, // frequency penalty
+  },
+};
+
 function computeWeaknessScore(
   unit: CharacterStat | BigramStat,
-  userBaseline: UserBaseline
+  userBaseline: UserBaseline,
+  phase: TransitionPhase
 ): number {
   const errorRate = unit.errors / Math.max(unit.attempts, 1);
   const meanTime = unit.sumTime / Math.max(unit.attempts, 1);
@@ -197,28 +281,34 @@ function computeWeaknessScore(
   const normalizedSlowness = meanTime / userBaseline.meanKeystrokeTime;
   const normalizedHesitation = hesitationRate / userBaseline.meanHesitationRate;
   
-  // Frequency penalty: less weight for very common characters
-  // (avoids bias toward 'e', 't', 'a', etc.)
   const frequencyPenalty = unit.frequencyInLanguage; // 0–1, normalized
   
-  const ALPHA = 0.5; // error weight
-  const BETA = 0.2;  // hesitation weight
-  const GAMMA = 0.2; // slowness weight
-  const DELTA = 0.1; // frequency penalty weight
+  const c = COEFFICIENTS[phase];
+  
+  // Transition bonus: during 'transitioning' phase, add extra weight to
+  // inner-column characters (B, G, H, N, T, Y) since these are the primary
+  // columnar pain points.
+  const INNER_COLUMN = new Set(['b', 'g', 'h', 'n', 't', 'y']);
+  const transitionBonus = (phase === 'transitioning' && INNER_COLUMN.has(unit.character?.toLowerCase()))
+    ? 0.3
+    : 0;
   
   return (
-    ALPHA * normalizedError +
-    BETA * normalizedHesitation +
-    GAMMA * normalizedSlowness -
-    DELTA * frequencyPenalty
+    c.ALPHA * normalizedError +
+    c.BETA * normalizedHesitation +
+    c.GAMMA * normalizedSlowness -
+    c.DELTA * frequencyPenalty +
+    transitionBonus
   );
 }
 ```
 
 **Edge cases to handle:**
 - Units with attempts < 5: low confidence, exclude from ranking
-- Cold start (new user): use default baseline (mean error rate 5%, mean keystroke 250ms)
+- Cold start (new user in 'transitioning' phase): use default baseline (mean error rate 8%, mean keystroke 280ms — calibrated higher than comfortable-user baseline)
+- Cold start for 'refining' user: use lower baseline (mean error rate 3%, mean keystroke 180ms)
 - Decay: discount events older than 30 days
+- Phase switching: when user switches phase, keep their stats but recompute baseline for the new phase's defaults. Do NOT reset historical stats.
 
 ### 4.2 Exercise Generation: Adaptive Mode (Word-Picker Approach)
 
@@ -323,6 +413,140 @@ function generateSessionInsight(
 Example plain-language summary output:
 > "Today you focused on the letter B. Error rate dropped from 18% to 9% (significant improvement), but speed is still at 60% of your target. The next session will keep B included with more emphasis on speed. Separately, the bigram 'er' is starting to emerge as a new weakness — it'll be added to your practice set."
 
+### 4.5 Split-Specific Metrics Computation
+
+At the end of each session, compute 4 metrics from the session's keystroke_events and persist as a row in `split_metrics_snapshots`. These feed dashboard visualizations and phase-transition suggestions.
+
+```typescript
+const INNER_COLUMN = new Set(['b', 'g', 'h', 'n', 't', 'y']);
+const THUMB_KEYS = getLayoutThumbKeys(keyboardType); // per-layout
+
+function computeSplitMetrics(
+  keystrokeEvents: KeystrokeEvent[],
+  layout: Layout
+): SplitMetricsSnapshot {
+  // Metric 1: Inner column error rate
+  const innerCol = keystrokeEvents.filter(e => INNER_COLUMN.has(e.targetChar.toLowerCase()));
+  const innerColErrors = innerCol.filter(e => e.isError).length;
+  const innerColErrorRate = innerCol.length > 0 ? innerColErrors / innerCol.length : 0;
+  
+  // Metric 2: Thumb cluster decision time
+  const thumbEvents = keystrokeEvents.filter(e => THUMB_KEYS.has(e.targetChar));
+  const thumbAvgMs = thumbEvents.length > 0
+    ? thumbEvents.reduce((sum, e) => sum + e.keystrokeMs, 0) / thumbEvents.length
+    : 0;
+  
+  // Metric 3: Cross-hand bigram timing
+  // A bigram is "cross-hand" if prev_char and target_char are assigned to different hands
+  const crossHandBigrams = keystrokeEvents.filter(e => {
+    if (!e.prevChar) return false;
+    const prevHand = layout.getHand(e.prevChar);
+    const currHand = layout.getHand(e.targetChar);
+    return prevHand !== currHand && prevHand && currHand; // exclude thumb-space cases
+  });
+  const crossHandAvgMs = crossHandBigrams.length > 0
+    ? crossHandBigrams.reduce((sum, e) => sum + e.keystrokeMs, 0) / crossHandBigrams.length
+    : 0;
+  
+  // Metric 4: Columnar stability (inferred)
+  // For each error, check if typed char is in a column adjacent to target column (same hand) — that's "drift"
+  // If typed char is on opposite hand, that's QWERTY-memory residue, not drift
+  const errors = keystrokeEvents.filter(e => e.isError);
+  let stableCount = 0;
+  let driftCount = 0;
+  for (const e of errors) {
+    const targetPos = layout.getPosition(e.targetChar);
+    const typedPos = layout.getPosition(e.actualChar);
+    if (!targetPos || !typedPos) continue;
+    
+    // Columnar drift: same hand, adjacent column, same or adjacent row
+    if (
+      targetPos.hand === typedPos.hand &&
+      Math.abs(targetPos.col - typedPos.col) === 1 &&
+      Math.abs(targetPos.row - typedPos.row) <= 1
+    ) {
+      driftCount++;
+    } else {
+      stableCount++;
+    }
+  }
+  const totalCategorized = stableCount + driftCount;
+  const columnarStabilityPct = totalCategorized > 0
+    ? stableCount / totalCategorized
+    : 1.0; // no errors categorized = assume stable
+  
+  return {
+    innerColAttempts: innerCol.length,
+    innerColErrors,
+    innerColErrorRate,
+    thumbClusterCount: thumbEvents.length,
+    thumbClusterAvgMs: thumbAvgMs,
+    crossHandBigramCount: crossHandBigrams.length,
+    crossHandBigramAvgMs: crossHandAvgMs,
+    columnarStableCount: stableCount,
+    columnarDriftCount: driftCount,
+    columnarStabilityPct,
+  };
+}
+```
+
+**Accuracy caveats** (as noted in 01-product-spec.md §5.4 and §10 risks):
+- Metrics 1-3 are directly measurable and accurate
+- Metric 4 (columnar stability) is inferred from error patterns; accuracy is moderate. UI should communicate this with soft language ("likely drift") rather than certain language ("wrong finger used")
+- All metrics compute reliably only when sample size is meaningful. For sessions < 50 keystrokes, metrics are shown as "insufficient data"
+
+### 4.6 Transition Phase Auto-Suggestion
+
+The platform suggests phase changes but does not enforce them. The user retains control in settings.
+
+```typescript
+type PhaseTransitionSignal = {
+  suggestedPhase: TransitionPhase;
+  reason: string;
+  confidence: 'low' | 'medium' | 'high';
+};
+
+function checkPhaseTransition(
+  profile: KeyboardProfile,
+  recentSessions: Session[],
+  recentSnapshots: SplitMetricsSnapshot[]
+): PhaseTransitionSignal | null {
+  if (profile.transitionPhase === 'transitioning') {
+    // Check if user should graduate to 'refining'
+    const last10 = recentSessions.slice(-10);
+    if (last10.length < 10) return null;
+    
+    const avgAccuracy = mean(last10.map(s => s.accuracy));
+    const avgInnerColError = mean(recentSnapshots.slice(-10).map(s => s.innerColErrorRate));
+    
+    if (avgAccuracy >= 0.95 && avgInnerColError < 0.08) {
+      return {
+        suggestedPhase: 'refining',
+        reason: 'Your accuracy has been above 95% for 10 sessions, and inner column error rate is below 8%. Ready to shift focus from muscle memory to speed & flow?',
+        confidence: 'high',
+      };
+    }
+  } else {
+    // Check if user may have regressed (returning from a break)
+    const daysSinceLastSession = daysBetween(profile.lastSessionAt, new Date());
+    if (daysSinceLastSession > 14) {
+      const last3 = recentSessions.slice(-3);
+      if (last3.length >= 3 && mean(last3.map(s => s.accuracy)) < 0.88) {
+        return {
+          suggestedPhase: 'transitioning',
+          reason: 'You took a break, and your accuracy has dropped a bit. Want to go back to transition-mode focus for a few sessions?',
+          confidence: 'medium',
+        };
+      }
+    }
+  }
+  
+  return null;
+}
+```
+
+The suggestion is surfaced to the user via a non-intrusive banner (not modal), dismissible, and shown at most once per session.
+
 ## 5. Module Breakdown
 
 ```
@@ -335,11 +559,13 @@ src/
 │   ├── stats/
 │   │   ├── computeStats.ts
 │   │   ├── computeBaseline.ts
+│   │   ├── computeSplitMetrics.ts  # NEW: 4 split-specific metrics per session
 │   │   └── decayStats.ts
 │   ├── adaptive/
-│   │   ├── weaknessScore.ts
-│   │   ├── exerciseGenerator.ts
-│   │   └── drillGenerator.ts
+│   │   ├── weaknessScore.ts        # Transition-phase-aware coefficients
+│   │   ├── exerciseGenerator.ts    # Transition-phase content weighting
+│   │   ├── drillGenerator.ts
+│   │   └── phaseSuggestion.ts      # NEW: detect when to suggest phase change
 │   ├── insight/
 │   │   ├── sessionInsight.ts
 │   │   └── weeklyInsight.ts
