@@ -280,14 +280,20 @@ Given this is a solo project with a niche audience, realistic success metrics:
 
 ## 9. Tech Stack
 
-- **Framework**: React + TypeScript + Vite (fullstack via Tanstack Start or Next.js 15 — finalize in tech doc)
-- **Database**: Self-hosted PostgreSQL on VPS
-- **Auth**: better-auth or lucia-auth (both support magic link + OAuth)
-- **Styling**: Tailwind CSS
-- **State**: Zustand (lightweight)
+> Finalized 2026-04-18 (v0.2.2). See 02-architecture.md §1 for architectural rationale.
+
+- **Framework**: Tanstack Start (Vite + Tanstack Router + Nitro server bundler)
+- **Language**: TypeScript (strict mode)
+- **UI**: React + Tailwind CSS
+- **State**: Zustand (lightweight, client-only stores)
 - **Charts**: Recharts
+- **ORM**: Drizzle + Drizzle Kit
+- **Database**: Self-hosted PostgreSQL 16 (Docker local, VPS production)
+- **Auth**: better-auth with Drizzle adapter (magic link + GitHub OAuth + Google OAuth)
+- **Email**: Resend (production transactional); console log (local dev)
 - **SVG**: native SVG, keyboard visuals hand-authored by design tooling (not photo-based)
-- **Deployment**: User's VPS (Docker compose recommended)
+- **Testing**: Vitest (domain logic), React Testing Library (components)
+- **Deployment**: User's VPS via Docker compose (Nitro Node preset)
 
 ## 10. Risk Acknowledgements
 

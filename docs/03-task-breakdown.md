@@ -59,7 +59,8 @@ This means Claude Code never needs SSH access or VPS credentials.
 
 - Initialize project structure per 02-architecture.md
 - Configure TypeScript with strict mode, ESLint, Prettier
-- Set up Vite + Tanstack Start (or Next.js 15 — finalize this in a quick tech decision before starting)
+- Scaffold Tanstack Start project (Vite + Tanstack Router + Nitro server bundler) using `npx create-tsrouter-app@latest` or the equivalent starter
+- Verify `createServerFn()` works with a smoke-test server function
 - Configure Tailwind with custom color tokens from 04-design-system.md (8 finger colors, amber accent, dark espresso palette)
 - Create a hello world page that proves the dev server works
 - Generate `.gitignore`, `package.json` scripts (`dev`, `build`, `lint`, `typecheck`)
@@ -97,7 +98,9 @@ This means Claude Code never needs SSH access or VPS credentials.
 
 **Claude Code scope:**
 
-- Install and configure better-auth (or lucia — finalize before starting)
+- Install and configure better-auth with the Drizzle adapter
+- Wire better-auth endpoints via Tanstack Start API routes (`src/routes/api/auth/$.ts` catch-all handler)
+- Configure the magic link plugin with a Resend driver; gate the driver behind `NODE_ENV` so local dev logs the magic link to the console instead of sending real email
 - Implement email magic link flow (with email provider stubbed for local dev — log magic link to console instead of sending real email)
 - Generate session/auth tables via Drizzle migration
 - Write protected route helper (middleware or hook depending on framework)
@@ -106,7 +109,8 @@ This means Claude Code never needs SSH access or VPS credentials.
 
 **Your scope:**
 
-- Decide email provider for production later (Resend, Postmark, AWS SES, etc.) — not needed for local dev
+- Sign up for Resend (free tier 3k emails/month) when ready to deploy — Phase 4
+- For now, verify console magic links work end-to-end locally (register → magic link logs to terminal → click → logged in)
 - For local dev, just read magic link from server console output
 
 **Phase 0 milestone**: register, login, logout works locally. Empty placeholder for authenticated home page.

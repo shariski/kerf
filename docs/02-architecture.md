@@ -27,11 +27,11 @@
 └────────────────────┬────────────────────────────────┘
                      │ HTTPS
 ┌────────────────────▼────────────────────────────────┐
-│           Server (Tanstack Start / Next.js)          │
+│           Server (Tanstack Start)                   │
 │  ┌─────────────────────────────────────────────┐   │
 │  │      API Routes (REST or tRPC-style)         │   │
 │  ├─────────────────────────────────────────────┤   │
-│  │           Auth (better-auth/lucia)           │   │
+│  │           Auth (better-auth).                │   │
 │  ├─────────────────────────────────────────────┤   │
 │  │       Repository Layer (Drizzle ORM)         │   │
 │  └─────────────────────────────────────────────┘   │
@@ -47,6 +47,18 @@
 - Domain logic stays decoupled from any framework (testable, swappable)
 - The adaptive engine is composed of pure functions that can be tested in isolation
 - The server stays thin: mostly CRUD + auth, with business logic on the client (lightens server load, fine here because each user is single-tenant)
+
+**Stack notes (locked 2026-04-18):**
+
+- **Tanstack Start** was chosen over Next.js because the app is small, logic is
+  client-heavy, and Vite's fast DX serves the tight iteration loop better. The
+  server is intentionally thin — most client-server communication happens via
+  `createServerFn()` (RPC-style), not manual REST.
+- **better-auth** was chosen because lucia was deprecated into a learning resource
+  by its author in late 2024. better-auth has a native Drizzle adapter and built-in
+  support for magic link + OAuth, which covers the auth needs in product spec §5.8.
+- **Routing**: file-based via Tanstack Router under `src/routes/`. Type-safe search
+  params and loaders are built-in. The module layout in §5 reflects this.
 
 ## 2. Data Model (PostgreSQL)
 
@@ -622,8 +634,9 @@ src/
 ├── api/                     # API client
 │   ├── client.ts
 │   └── endpoints/
-└── server/                  # Server routes (Tanstack Start / Next.js)
-    ├── routes/
+└── server/                  # Tanstack Start server functions + route loaders
+    ├── functions/           # createServerFn() definitions (RPC-style)
+    ├── routes/              # API route handlers (better-auth endpoints, webhooks)
     │   ├── auth/
     │   ├── sessions/
     │   └── stats/

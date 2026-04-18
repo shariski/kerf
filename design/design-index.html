@@ -1,953 +1,1155 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>kerf — design index</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-brand: 'Fraunces', serif;
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    padding: 64px 32px;
-    min-height: 100vh;
-  }
-  
-  .container { max-width: 1100px; margin: 0 auto; }
-  
-  /* Hero */
-  .hero {
-    margin-bottom: 64px;
-    padding-bottom: 32px;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .wordmark {
-    font-family: var(--font-brand);
-    font-weight: 700;
-    font-variation-settings: 'opsz' 144, 'SOFT' 100;
-    font-size: 36px;
-    letter-spacing: -0.02em;
-    margin-bottom: 16px;
-    line-height: 1;
-  }
-  .wordmark .accent { color: var(--lr-amber-base); }
-  .hero h1 {
-    font-size: 38px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    line-height: 1.2;
-  }
-  .hero p {
-    color: var(--lr-text-secondary);
-    max-width: 620px;
-    margin-bottom: 8px;
-    font-size: 15px;
-  }
-  .hero-meta {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--lr-text-tertiary);
-    margin-top: 16px;
-  }
-  
-  /* Section */
-  .section { margin-bottom: 56px; }
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .section-title { font-size: 20px; font-weight: 600; }
-  .section-num {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .section-desc {
-    color: var(--lr-text-secondary);
-    margin-bottom: 24px;
-    max-width: 640px;
-    font-size: 13px;
-  }
-  
-  /* Cards grid */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-  }
-  
-  /* Card */
-  .card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 200ms;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-  }
-  .card:hover {
-    border-color: var(--lr-amber-base);
-    transform: translateY(-2px);
-    background: var(--lr-bg-elevated);
-  }
-  .card.primary {
-    border-color: var(--lr-amber-base);
-    background: var(--lr-amber-faint);
-  }
-  .card.primary:hover {
-    background: var(--lr-amber-subtle);
-  }
-  
-  .card-thumb {
-    aspect-ratio: 16 / 10;
-    background: var(--lr-bg-base);
-    border-bottom: 1px solid var(--lr-border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* Thumbnails rendering */
-  .thumb-scene {
-    width: 85%;
-    height: 85%;
-    position: relative;
-  }
-  
-  /* Home thumb */
-  .thumb-home {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    justify-content: center;
-    align-items: center;
-    padding: 12px;
-  }
-  .thumb-greet { font-family: var(--font-mono); font-size: 10px; color: var(--lr-text-secondary); }
-  .thumb-cta-big {
-    background: var(--lr-amber-base);
-    width: 80%;
-    height: 18px;
-    border-radius: 3px;
-  }
-  .thumb-pills {
-    display: flex;
-    gap: 3px;
-    margin-top: 6px;
-  }
-  .thumb-pill {
-    width: 16px;
-    height: 8px;
-    background: var(--lr-amber-subtle);
-    border-radius: 2px;
-  }
-  
-  /* Practice thumb */
-  .thumb-practice {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 16px;
-  }
-  .thumb-typing {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    color: var(--lr-text-tertiary);
-  }
-  .thumb-typing .current {
-    background: var(--lr-amber-base);
-    color: var(--lr-bg-base);
-    padding: 0 2px;
-    border-radius: 2px;
-  }
-  .thumb-keyboard {
-    display: flex;
-    gap: 6px;
-    opacity: 0.6;
-  }
-  .thumb-keyboard-half {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    width: 28px;
-  }
-  .thumb-keyboard-half > div {
-    aspect-ratio: 1;
-    background: var(--lr-bg-elevated);
-    border-radius: 1px;
-  }
-  
-  /* Dashboard thumb */
-  .thumb-dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px;
-  }
-  .thumb-dashboard-row {
-    display: flex;
-    gap: 4px;
-  }
-  .thumb-dash-stat {
-    flex: 1;
-    height: 20px;
-    background: var(--lr-bg-elevated);
-    border-radius: 2px;
-  }
-  .thumb-dash-stat.featured {
-    background: var(--lr-amber-subtle);
-    height: 28px;
-  }
-  .thumb-dash-grid {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 1px;
-    margin-top: 4px;
-  }
-  .thumb-dash-grid > div {
-    aspect-ratio: 1;
-    background: var(--lr-bg-elevated);
-    border-radius: 1px;
-  }
-  .thumb-dash-grid > div:nth-child(3n) { background: rgba(245,158,11,0.3); }
-  .thumb-dash-grid > div:nth-child(5n) { background: var(--lr-amber-base); }
-  
-  /* Onboarding thumb */
-  .thumb-onboarding {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 20px;
-  }
-  .thumb-progress {
-    display: flex;
-    gap: 4px;
-    width: 70%;
-  }
-  .thumb-progress-step {
-    flex: 1;
-    height: 3px;
-    background: var(--lr-bg-elevated);
-    border-radius: 2px;
-  }
-  .thumb-progress-step.active { background: var(--lr-amber-base); }
-  .thumb-onb-cards {
-    display: flex;
-    gap: 6px;
-    width: 80%;
-  }
-  .thumb-onb-card {
-    flex: 1;
-    aspect-ratio: 3 / 2;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 3px;
-  }
-  .thumb-onb-card.selected { border-color: var(--lr-amber-base); background: var(--lr-amber-faint); }
-  
-  /* Keyboards thumb */
-  .thumb-keyboards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    padding: 14px;
-  }
-  .thumb-kb-card {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 3px;
-    aspect-ratio: 1 / 0.8;
-    position: relative;
-  }
-  .thumb-kb-card.active {
-    border-color: var(--lr-amber-base);
-  }
-  .thumb-kb-card.active::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 10px;
-    height: 4px;
-    background: var(--lr-amber-base);
-    border-radius: 1px;
-  }
-  
-  /* Settings thumb */
-  .thumb-settings {
-    display: grid;
-    grid-template-columns: 30% 70%;
-    gap: 8px;
-    padding: 12px;
-    height: 100%;
-  }
-  .thumb-set-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  .thumb-set-link {
-    height: 8px;
-    background: var(--lr-bg-elevated);
-    border-radius: 1px;
-  }
-  .thumb-set-link.active {
-    background: var(--lr-amber-base);
-    opacity: 0.6;
-  }
-  .thumb-set-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .thumb-set-field {
-    height: 12px;
-    background: var(--lr-bg-elevated);
-    border-radius: 1px;
-  }
-  
-  /* Login thumb */
-  .thumb-login {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 20px;
-  }
-  .thumb-login-input {
-    width: 70%;
-    height: 14px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 2px;
-  }
-  .thumb-login-btn {
-    width: 70%;
-    height: 14px;
-    background: var(--lr-amber-base);
-    border-radius: 2px;
-  }
-  .thumb-login-oauth {
-    width: 70%;
-    height: 10px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 2px;
-    margin-top: 2px;
-  }
-  
-  /* Specimen thumb */
-  .thumb-specimen {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    padding: 16px;
-  }
-  .thumb-swatch {
-    aspect-ratio: 1;
-    border-radius: 3px;
-    border: 1px solid var(--lr-border-subtle);
-  }
-  .thumb-swatch.c1 { background: #181410; }
-  .thumb-swatch.c2 { background: #221C17; }
-  .thumb-swatch.c3 { background: #2A2320; }
-  .thumb-swatch.c4 { background: #F59E0B; }
-  .thumb-swatch.c5 { background: #15803D; }
-  .thumb-swatch.c6 { background: #0E7490; }
-  .thumb-swatch.c7 { background: #A21CAF; }
-  .thumb-swatch.c8 { background: #EF4444; }
-  
-  /* IA thumb */
-  .thumb-ia {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 16px;
-  }
-  .thumb-ia-row {
-    display: flex;
-    gap: 4px;
-  }
-  .thumb-ia-node {
-    width: 24px;
-    height: 14px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 2px;
-  }
-  .thumb-ia-node.primary {
-    border-color: var(--lr-amber-base);
-    background: var(--lr-amber-faint);
-  }
-  .thumb-ia-connector {
-    width: 1px;
-    height: 12px;
-    background: var(--lr-border-default);
-  }
-  
-  /* Keyboard SVG thumb */
-  .thumb-keyboards {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-  }
-  
-  /* Card body */
-  .card-body {
-    padding: 16px 20px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .card-route {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-amber-base);
-    font-weight: 700;
-  }
-  .card-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin-top: 2px;
-  }
-  .card-desc {
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    line-height: 1.5;
-    margin-top: 4px;
-  }
-  .card-states {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-  }
-  .card-state-pill {
-    background: var(--lr-bg-elevated);
-    color: var(--lr-text-secondary);
-    padding: 2px 7px;
-    border-radius: 2px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    border: 1px solid var(--lr-border-subtle);
-  }
-  
-  /* Docs section */
-  .docs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 12px;
-  }
-  .doc-card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    padding: 16px 20px;
-    cursor: pointer;
-    transition: all 150ms;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .doc-card:hover { border-color: var(--lr-border-strong); background: var(--lr-bg-elevated); }
-  .doc-card-name {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--lr-amber-base);
-    font-weight: 700;
-  }
-  .doc-card-title {
-    font-size: 14px;
-    font-weight: 500;
-  }
-  .doc-card-desc {
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-  }
-  
-  /* Footer */
-  .footer {
-    margin-top: 80px;
-    padding-top: 32px;
-    border-top: 1px solid var(--lr-border-subtle);
-    color: var(--lr-text-tertiary);
-    font-size: 12px;
-    text-align: center;
-    font-family: var(--font-mono);
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>kerf — design index</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --lr-bg-base: #181410;
+      --lr-bg-surface: #221C17;
+      --lr-bg-elevated: #2A2320;
+      --lr-bg-overlay: #322A26;
+      --lr-text-primary: #F2EAE0;
+      --lr-text-secondary: #9A8E80;
+      --lr-text-tertiary: #685D52;
+      --lr-border-subtle: #2F2820;
+      --lr-border-default: #3A3128;
+      --lr-border-strong: #4A3F35;
+      --lr-amber-base: #F59E0B;
+      --lr-amber-hover: #FBBF24;
+      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--lr-bg-base);
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 64px 32px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Hero */
+    .hero {
+      margin-bottom: 64px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .wordmark {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 36px;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+
+    .wordmark .accent {
+      color: var(--lr-amber-base);
+    }
+
+    .hero h1 {
+      font-size: 38px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      color: var(--lr-text-secondary);
+      max-width: 620px;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .hero-meta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-tertiary);
+      margin-top: 16px;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .section-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .section-desc {
+      color: var(--lr-text-secondary);
+      margin-bottom: 24px;
+      max-width: 640px;
+      font-size: 13px;
+    }
+
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 200ms;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      border-color: var(--lr-amber-base);
+      transform: translateY(-2px);
+      background: var(--lr-bg-elevated);
+    }
+
+    .card.primary {
+      border-color: var(--lr-amber-base);
+      background: var(--lr-amber-faint);
+    }
+
+    .card.primary:hover {
+      background: var(--lr-amber-subtle);
+    }
+
+    .card-thumb {
+      aspect-ratio: 16 / 10;
+      background: var(--lr-bg-base);
+      border-bottom: 1px solid var(--lr-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Thumbnails rendering */
+    .thumb-scene {
+      width: 85%;
+      height: 85%;
+      position: relative;
+    }
+
+    /* Home thumb */
+    .thumb-home {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
+
+    .thumb-greet {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--lr-text-secondary);
+    }
+
+    .thumb-cta-big {
+      background: var(--lr-amber-base);
+      width: 80%;
+      height: 18px;
+      border-radius: 3px;
+    }
+
+    .thumb-pills {
+      display: flex;
+      gap: 3px;
+      margin-top: 6px;
+    }
+
+    .thumb-pill {
+      width: 16px;
+      height: 8px;
+      background: var(--lr-amber-subtle);
+      border-radius: 2px;
+    }
+
+    /* Practice thumb */
+    .thumb-practice {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .thumb-typing {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .thumb-typing .current {
+      background: var(--lr-amber-base);
+      color: var(--lr-bg-base);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .thumb-keyboard {
+      display: flex;
+      gap: 6px;
+      opacity: 0.6;
+    }
+
+    .thumb-keyboard-half {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      width: 28px;
+    }
+
+    .thumb-keyboard-half>div {
+      aspect-ratio: 1;
+      background: var(--lr-bg-elevated);
+      border-radius: 1px;
+    }
+
+    /* Dashboard thumb */
+    .thumb-dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px;
+    }
+
+    .thumb-dashboard-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .thumb-dash-stat {
+      flex: 1;
+      height: 20px;
+      background: var(--lr-bg-elevated);
+      border-radius: 2px;
+    }
+
+    .thumb-dash-stat.featured {
+      background: var(--lr-amber-subtle);
+      height: 28px;
+    }
+
+    .thumb-dash-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 1px;
+      margin-top: 4px;
+    }
+
+    .thumb-dash-grid>div {
+      aspect-ratio: 1;
+      background: var(--lr-bg-elevated);
+      border-radius: 1px;
+    }
+
+    .thumb-dash-grid>div:nth-child(3n) {
+      background: rgba(245, 158, 11, 0.3);
+    }
+
+    .thumb-dash-grid>div:nth-child(5n) {
+      background: var(--lr-amber-base);
+    }
+
+    /* Onboarding thumb */
+    .thumb-onboarding {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px;
+    }
+
+    .thumb-progress {
+      display: flex;
+      gap: 4px;
+      width: 70%;
+    }
+
+    .thumb-progress-step {
+      flex: 1;
+      height: 3px;
+      background: var(--lr-bg-elevated);
+      border-radius: 2px;
+    }
+
+    .thumb-progress-step.active {
+      background: var(--lr-amber-base);
+    }
+
+    .thumb-onb-cards {
+      display: flex;
+      gap: 6px;
+      width: 80%;
+    }
+
+    .thumb-onb-card {
+      flex: 1;
+      aspect-ratio: 3 / 2;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 3px;
+    }
+
+    .thumb-onb-card.selected {
+      border-color: var(--lr-amber-base);
+      background: var(--lr-amber-faint);
+    }
+
+    /* Keyboards thumb */
+    .thumb-keyboards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 14px;
+    }
+
+    .thumb-kb-card {
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 3px;
+      aspect-ratio: 1 / 0.8;
+      position: relative;
+    }
+
+    .thumb-kb-card.active {
+      border-color: var(--lr-amber-base);
+    }
+
+    .thumb-kb-card.active::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 10px;
+      height: 4px;
+      background: var(--lr-amber-base);
+      border-radius: 1px;
+    }
+
+    /* Settings thumb */
+    .thumb-settings {
+      display: grid;
+      grid-template-columns: 30% 70%;
+      gap: 8px;
+      padding: 12px;
+      height: 100%;
+    }
+
+    .thumb-set-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .thumb-set-link {
+      height: 8px;
+      background: var(--lr-bg-elevated);
+      border-radius: 1px;
+    }
+
+    .thumb-set-link.active {
+      background: var(--lr-amber-base);
+      opacity: 0.6;
+    }
+
+    .thumb-set-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .thumb-set-field {
+      height: 12px;
+      background: var(--lr-bg-elevated);
+      border-radius: 1px;
+    }
+
+    /* Login thumb */
+    .thumb-login {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+    }
+
+    .thumb-login-input {
+      width: 70%;
+      height: 14px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 2px;
+    }
+
+    .thumb-login-btn {
+      width: 70%;
+      height: 14px;
+      background: var(--lr-amber-base);
+      border-radius: 2px;
+    }
+
+    .thumb-login-oauth {
+      width: 70%;
+      height: 10px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 2px;
+      margin-top: 2px;
+    }
+
+    /* Specimen thumb */
+    .thumb-specimen {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      padding: 16px;
+    }
+
+    .thumb-swatch {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    .thumb-swatch.c1 {
+      background: #181410;
+    }
+
+    .thumb-swatch.c2 {
+      background: #221C17;
+    }
+
+    .thumb-swatch.c3 {
+      background: #2A2320;
+    }
+
+    .thumb-swatch.c4 {
+      background: #F59E0B;
+    }
+
+    .thumb-swatch.c5 {
+      background: #15803D;
+    }
+
+    .thumb-swatch.c6 {
+      background: #0E7490;
+    }
+
+    .thumb-swatch.c7 {
+      background: #A21CAF;
+    }
+
+    .thumb-swatch.c8 {
+      background: #EF4444;
+    }
+
+    /* IA thumb */
+    .thumb-ia {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+    }
+
+    .thumb-ia-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .thumb-ia-node {
+      width: 24px;
+      height: 14px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 2px;
+    }
+
+    .thumb-ia-node.primary {
+      border-color: var(--lr-amber-base);
+      background: var(--lr-amber-faint);
+    }
+
+    .thumb-ia-connector {
+      width: 1px;
+      height: 12px;
+      background: var(--lr-border-default);
+    }
+
+    /* Keyboard SVG thumb */
+    .thumb-keyboards {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Card body */
+    .card-body {
+      padding: 16px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-route {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-amber-base);
+      font-weight: 700;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    .card-states {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .card-state-pill {
+      background: var(--lr-bg-elevated);
+      color: var(--lr-text-secondary);
+      padding: 2px 7px;
+      border-radius: 2px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    /* Docs section */
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .doc-card {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+      padding: 16px 20px;
+      cursor: pointer;
+      transition: all 150ms;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .doc-card:hover {
+      border-color: var(--lr-border-strong);
+      background: var(--lr-bg-elevated);
+    }
+
+    .doc-card-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-amber-base);
+      font-weight: 700;
+    }
+
+    .doc-card-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .doc-card-desc {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--lr-border-subtle);
+      color: var(--lr-text-tertiary);
+      font-size: 12px;
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="wordmark">
-      kerf<span class="accent">.</span>
+    <!-- HERO -->
+    <div class="hero">
+      <div class="wordmark">
+        kerf<span class="accent">.</span>
+      </div>
+      <h1>Design index</h1>
+      <p>All wireframes and design artifacts produced during MVP brainstorming. Structured transition program for
+        QWERTY-to-split keyboards — adaptive engine, accuracy first.</p>
+      <p>Click any card to open the interactive HTML wireframe. Documentation files link to markdown in the repo root.
+      </p>
+      <div class="hero-meta">v0.2 · 2026-04-18 · transition-focused revision (Phase A MVP)</div>
     </div>
-    <h1>Design index</h1>
-    <p>All wireframes and design artifacts produced during MVP brainstorming. Structured transition program for QWERTY-to-split keyboards — adaptive engine, accuracy first.</p>
-    <p>Click any card to open the interactive HTML wireframe. Documentation files link to markdown in the repo root.</p>
-    <div class="hero-meta">v0.2 · 2026-04-18 · transition-focused revision (Phase A MVP)</div>
-  </div>
 
-  <!-- FOUNDATIONS -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Foundations</h2>
-      <span class="section-num">§ design tokens & IA</span>
-    </div>
-    <p class="section-desc">Visual identity specimen and information architecture — the building blocks every page reuses.</p>
-    
-    <div class="cards-grid">
-      
-      <a href="design-specimen.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-specimen">
-            <div class="thumb-swatch c1"></div>
-            <div class="thumb-swatch c2"></div>
-            <div class="thumb-swatch c3"></div>
-            <div class="thumb-swatch c4"></div>
-            <div class="thumb-swatch c5"></div>
-            <div class="thumb-swatch c6"></div>
-            <div class="thumb-swatch c7"></div>
-            <div class="thumb-swatch c8"></div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">design-specimen</div>
-          <div class="card-title">Design system specimen</div>
-          <div class="card-desc">Color tokens, typography ladder, spacing scale, components showcase</div>
-        </div>
-      </a>
-      
-      <a href="ia-sitemap.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-ia">
-            <div class="thumb-ia-row">
-              <div class="thumb-ia-node"></div>
-              <div class="thumb-ia-node"></div>
-            </div>
-            <div class="thumb-ia-connector"></div>
-            <div class="thumb-ia-row">
-              <div class="thumb-ia-node primary"></div>
-              <div class="thumb-ia-node primary"></div>
-              <div class="thumb-ia-node primary"></div>
-            </div>
-            <div class="thumb-ia-connector"></div>
-            <div class="thumb-ia-row">
-              <div class="thumb-ia-node"></div>
-              <div class="thumb-ia-node"></div>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">ia-sitemap</div>
-          <div class="card-title">Information architecture</div>
-          <div class="card-desc">Sitemap, user flows, navigation pattern</div>
-          <div class="card-states">
-            <span class="card-state-pill">3 tabs</span>
-          </div>
-        </div>
-      </a>
-      
-      <a href="keyboard-svg-preview.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-keyboards">
-            <svg viewBox="0 0 180 70" xmlns="http://www.w3.org/2000/svg" style="width: 85%; height: auto;">
-              <!-- Mini Sofle preview -->
-              <g transform="translate(8, 10)">
-                <!-- Left half abstracted keys -->
-                <rect x="0" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="10" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="20" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="30" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="40" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="50" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                
-                <rect x="0" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="10" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="20" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="30" y="14" width="8" height="8" rx="1.5" fill="var(--lr-amber-base)"/>
-                <rect x="40" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="50" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                
-                <rect x="0" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="10" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="20" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="30" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="40" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="50" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                
-                <!-- Thumb cluster hint -->
-                <g transform="translate(42, 38) rotate(18)">
-                  <rect x="0" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                  <rect x="10" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                  <circle cx="28" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)" stroke-width="0.7"/>
-                </g>
-              </g>
-              
-              <!-- Right half (mirror) -->
-              <g transform="translate(112, 10)">
-                <rect x="0" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="10" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="20" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="30" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="40" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="50" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                
-                <rect x="0" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="10" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="20" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="30" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="40" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="50" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                
-                <rect x="0" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="10" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="20" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="30" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="40" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                <rect x="50" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                
-                <!-- Right thumb cluster -->
-                <g transform="translate(-10, 42) rotate(-18 16 4)">
-                  <circle cx="0" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)" stroke-width="0.7"/>
-                  <rect x="6" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                  <rect x="20" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)" stroke="var(--lr-border-default)" stroke-width="0.5"/>
-                </g>
-              </g>
-            </svg>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">keyboard-svg-preview</div>
-          <div class="card-title">Keyboard SVG specimens</div>
-          <div class="card-desc">Hand-authored SVG keyboards: Sofle (6×4+5) and Lily58 (6×4+4) with finger color bars</div>
-          <div class="card-states">
-            <span class="card-state-pill">sofle</span>
-            <span class="card-state-pill">lily58</span>
-            <span class="card-state-pill">finger-color variant</span>
-          </div>
-        </div>
-      </a>
-      
-    </div>
-  </div>
+    <!-- FOUNDATIONS -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Foundations</h2>
+        <span class="section-num">§ design tokens & IA</span>
+      </div>
+      <p class="section-desc">Visual identity specimen and information architecture — the building blocks every page
+        reuses.</p>
 
-  <!-- PAGE WIREFRAMES -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Page wireframes</h2>
-      <span class="section-num">§ 7 routes</span>
-    </div>
-    <p class="section-desc">Interactive wireframes for every MVP route. Primary destinations (practice, dashboard, home) highlighted in amber.</p>
-    
-    <div class="cards-grid">
-      
-      <a href="home-wireframe.html" class="card primary">
-        <div class="card-thumb">
-          <div class="thumb-home">
-            <div class="thumb-greet">welcome back</div>
-            <div class="thumb-cta-big"></div>
-            <div class="thumb-pills">
-              <div class="thumb-pill"></div>
-              <div class="thumb-pill"></div>
-              <div class="thumb-pill"></div>
+      <div class="cards-grid">
+
+        <a href="design-specimen.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-specimen">
+              <div class="thumb-swatch c1"></div>
+              <div class="thumb-swatch c2"></div>
+              <div class="thumb-swatch c3"></div>
+              <div class="thumb-swatch c4"></div>
+              <div class="thumb-swatch c5"></div>
+              <div class="thumb-swatch c6"></div>
+              <div class="thumb-swatch c7"></div>
+              <div class="thumb-swatch c8"></div>
             </div>
           </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">/</div>
-          <div class="card-title">Home / lobby</div>
-          <div class="card-desc">Adaptive launching pad for returning users, zero-data state for new users</div>
-          <div class="card-states">
-            <span class="card-state-pill">returning</span>
-            <span class="card-state-pill">zero data</span>
+          <div class="card-body">
+            <div class="card-route">design-specimen</div>
+            <div class="card-title">Design system specimen</div>
+            <div class="card-desc">Color tokens, typography ladder, spacing scale, components showcase</div>
           </div>
-        </div>
-      </a>
-      
-      <a href="practice-page-wireframe.html" class="card primary">
-        <div class="card-thumb">
-          <div class="thumb-practice">
-            <div class="thumb-typing">the quick <span class="current">f</span>ox</div>
-            <div class="thumb-keyboard">
-              <div class="thumb-keyboard-half">
-                <div></div><div></div><div></div>
-                <div></div><div></div><div></div>
-                <div></div><div></div><div></div>
+        </a>
+
+        <a href="ia-sitemap.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-ia">
+              <div class="thumb-ia-row">
+                <div class="thumb-ia-node"></div>
+                <div class="thumb-ia-node"></div>
               </div>
-              <div class="thumb-keyboard-half">
-                <div></div><div></div><div></div>
-                <div></div><div></div><div></div>
-                <div></div><div></div><div></div>
+              <div class="thumb-ia-connector"></div>
+              <div class="thumb-ia-row">
+                <div class="thumb-ia-node primary"></div>
+                <div class="thumb-ia-node primary"></div>
+                <div class="thumb-ia-node primary"></div>
+              </div>
+              <div class="thumb-ia-connector"></div>
+              <div class="thumb-ia-row">
+                <div class="thumb-ia-node"></div>
+                <div class="thumb-ia-node"></div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">/practice · v0.4</div>
-          <div class="card-title">Practice</div>
-          <div class="card-desc">Heart of the product. Four states: pre-session with transition-aware CTA, active typing with error visualization, paused settings overlay, post-session inline with error review</div>
-          <div class="card-states">
-            <span class="card-state-pill">pre-session</span>
-            <span class="card-state-pill">active</span>
-            <span class="card-state-pill">paused</span>
-            <span class="card-state-pill">post</span>
-          </div>
-        </div>
-      </a>
-      
-      <a href="dashboard-wireframe.html" class="card primary">
-        <div class="card-thumb">
-          <div class="thumb-dashboard">
-            <div class="thumb-dashboard-row">
-              <div class="thumb-dash-stat featured"></div>
-              <div class="thumb-dash-stat"></div>
-              <div class="thumb-dash-stat"></div>
-            </div>
-            <div class="thumb-dash-grid">
-              <div></div><div></div><div></div><div></div><div></div>
-              <div></div><div></div><div></div><div></div><div></div>
-              <div></div><div></div><div></div><div></div><div></div>
-              <div></div><div></div><div></div><div></div><div></div>
+          <div class="card-body">
+            <div class="card-route">ia-sitemap</div>
+            <div class="card-title">Information architecture</div>
+            <div class="card-desc">Sitemap, user flows, navigation pattern</div>
+            <div class="card-states">
+              <span class="card-state-pill">3 tabs</span>
             </div>
           </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">/dashboard</div>
-          <div class="card-title">Dashboard</div>
-          <div class="card-desc">Deep-dive destination. 6 sections in narrative order: hero → activity → heatmap → weakness → trends → insight</div>
-          <div class="card-states">
-            <span class="card-state-pill">6 sections</span>
-          </div>
-        </div>
-      </a>
-      
-      <a href="onboarding-wireframe.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-onboarding">
-            <div class="thumb-progress">
-              <div class="thumb-progress-step active"></div>
-              <div class="thumb-progress-step active"></div>
-              <div class="thumb-progress-step"></div>
-            </div>
-            <div class="thumb-onb-cards">
-              <div class="thumb-onb-card selected"></div>
-              <div class="thumb-onb-card"></div>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">/onboarding</div>
-          <div class="card-title">Onboarding</div>
-          <div class="card-desc">3-step first-time setup: keyboard, hand, level. Landing screen before /practice</div>
-          <div class="card-states">
-            <span class="card-state-pill">step 1</span>
-            <span class="card-state-pill">step 2</span>
-            <span class="card-state-pill">step 3</span>
-            <span class="card-state-pill">landing</span>
-          </div>
-        </div>
-      </a>
-      
-      <a href="keyboards-wireframe.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-keyboards">
-            <div class="thumb-kb-card active"></div>
-            <div class="thumb-kb-card"></div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">/keyboards</div>
-          <div class="card-title">Keyboards</div>
-          <div class="card-desc">Profile management. Card grid, instant switch + undo toast, add new modal</div>
-          <div class="card-states">
-            <span class="card-state-pill">default</span>
-            <span class="card-state-pill">single</span>
-            <span class="card-state-pill">switching</span>
-            <span class="card-state-pill">adding</span>
-          </div>
-        </div>
-      </a>
-      
-      <a href="settings-wireframe.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-settings">
-            <div class="thumb-set-sidebar">
-              <div class="thumb-set-link"></div>
-              <div class="thumb-set-link active"></div>
-              <div class="thumb-set-link"></div>
-              <div class="thumb-set-link"></div>
-            </div>
-            <div class="thumb-set-content">
-              <div class="thumb-set-field"></div>
-              <div class="thumb-set-field"></div>
-              <div class="thumb-set-field"></div>
-              <div class="thumb-set-field"></div>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">/settings</div>
-          <div class="card-title">Settings</div>
-          <div class="card-desc">Account, preferences, theme, data, danger zone. Sidebar nav + inline edit</div>
-          <div class="card-states">
-            <span class="card-state-pill">default</span>
-            <span class="card-state-pill">editing</span>
-            <span class="card-state-pill">delete modal</span>
-          </div>
-        </div>
-      </a>
-      
-      <a href="login-wireframe.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-login">
-            <div class="thumb-login-input"></div>
-            <div class="thumb-login-btn"></div>
-            <div class="thumb-login-oauth"></div>
-            <div class="thumb-login-oauth"></div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">/login</div>
-          <div class="card-title">Login / register</div>
-          <div class="card-desc">Single page for both login & register. Magic link + GitHub + Google OAuth</div>
-          <div class="card-states">
-            <span class="card-state-pill">default</span>
-            <span class="card-state-pill">check email</span>
-          </div>
-        </div>
-      </a>
-      
-    </div>
-  </div>
+        </a>
 
-  <!-- HISTORICAL / REFERENCE -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Reference</h2>
-      <span class="section-num">§ historical</span>
-    </div>
-    <p class="section-desc">Supporting artifacts from design exploration. Kept for reference, not part of final spec.</p>
-    
-    <div class="cards-grid">
-      <a href="background-comparison.html" class="card">
-        <div class="card-thumb">
-          <div class="thumb-specimen" style="grid-template-columns: repeat(3, 1fr);">
-            <div class="thumb-swatch" style="background: #1C1815;"></div>
-            <div class="thumb-swatch" style="background: #181410; border-color: var(--lr-amber-base);"></div>
-            <div class="thumb-swatch" style="background: #131210;"></div>
+        <a href="keyboard-svg-preview.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-keyboards">
+              <svg viewBox="0 0 180 70" xmlns="http://www.w3.org/2000/svg" style="width: 85%; height: auto;">
+                <!-- Mini Sofle preview -->
+                <g transform="translate(8, 10)">
+                  <!-- Left half abstracted keys -->
+                  <rect x="0" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+
+                  <rect x="0" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="14" width="8" height="8" rx="1.5" fill="var(--lr-amber-base)" />
+                  <rect x="40" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+
+                  <rect x="0" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+
+                  <!-- Thumb cluster hint -->
+                  <g transform="translate(42, 38) rotate(18)">
+                    <rect x="0" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                      stroke="var(--lr-border-default)" stroke-width="0.5" />
+                    <rect x="10" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                      stroke="var(--lr-border-default)" stroke-width="0.5" />
+                    <circle cx="28" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)"
+                      stroke-width="0.7" />
+                  </g>
+                </g>
+
+                <!-- Right half (mirror) -->
+                <g transform="translate(112, 10)">
+                  <rect x="0" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+
+                  <rect x="0" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+
+                  <rect x="0" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+
+                  <!-- Right thumb cluster -->
+                  <g transform="translate(-10, 42) rotate(-18 16 4)">
+                    <circle cx="0" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)"
+                      stroke-width="0.7" />
+                    <rect x="6" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                      stroke="var(--lr-border-default)" stroke-width="0.5" />
+                    <rect x="20" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
+                      stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  </g>
+                </g>
+              </svg>
+            </div>
           </div>
-        </div>
-        <div class="card-body">
-          <div class="card-route">background-comparison</div>
-          <div class="card-title">Background warmth comparison</div>
-          <div class="card-desc">Side-by-side of 3 warm-dark variants. Dark espresso (#181410) was selected.</div>
-        </div>
-      </a>
-    </div>
-  </div>
+          <div class="card-body">
+            <div class="card-route">keyboard-svg-preview</div>
+            <div class="card-title">Keyboard SVG specimens</div>
+            <div class="card-desc">Hand-authored SVG keyboards: Sofle (6×4+5) and Lily58 (6×4+4) with finger color bars
+            </div>
+            <div class="card-states">
+              <span class="card-state-pill">sofle</span>
+              <span class="card-state-pill">lily58</span>
+              <span class="card-state-pill">finger-color variant</span>
+            </div>
+          </div>
+        </a>
 
-  <!-- DOCUMENTATION -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Documentation</h2>
-      <span class="section-num">§ markdown files</span>
+      </div>
     </div>
-    <p class="section-desc">Locked design decisions in markdown form, checked into repo. Revised to v0.2 during transition-focused pivot.</p>
-    
-    <div class="docs-grid">
-      <a href="../01-product-spec.md" class="doc-card">
-        <div class="doc-card-name">01-product-spec.md · v0.2</div>
-        <div class="doc-card-title">Product spec</div>
-        <div class="doc-card-desc">Positioning, core values, target user, Phase A MVP scope, content rules, out-of-scope, success metrics, risks</div>
-      </a>
-      <a href="../02-architecture.md" class="doc-card">
-        <div class="doc-card-name">02-architecture.md · v0.2</div>
-        <div class="doc-card-title">Technical architecture</div>
-        <div class="doc-card-desc">Data model with transition phases, phase-aware weakness score, split metrics computation, phase transition logic</div>
-      </a>
-      <a href="../03-task-breakdown.md" class="doc-card">
-        <div class="doc-card-name">03-task-breakdown.md · v0.2</div>
-        <div class="doc-card-title">Task breakdown</div>
-        <div class="doc-card-desc">Phase-by-phase implementation plan for Phase A MVP, 12-18 weeks, Claude Code scope vs your scope</div>
-      </a>
-      <a href="../04-design-system.md" class="doc-card">
-        <div class="doc-card-name">04-design-system.md</div>
-        <div class="doc-card-title">Design system</div>
-        <div class="doc-card-desc">Full token specification: colors, typography, spacing, components, anti-patterns</div>
-      </a>
-      <a href="../05-information-architecture.md" class="doc-card">
-        <div class="doc-card-name">05-information-architecture.md</div>
-        <div class="doc-card-title">Information architecture</div>
-        <div class="doc-card-desc">Sitemap, page-level specs, navigation pattern, critical flows</div>
-      </a>
-      <a href="../06-design-summary.md" class="doc-card">
-        <div class="doc-card-name">06-design-summary.md · v0.2</div>
-        <div class="doc-card-title">Design summary</div>
-        <div class="doc-card-desc">Consolidated decisions across all pages including v0.2 transition-focused changes, cross-page patterns, open iteration topics</div>
-      </a>
+
+    <!-- PAGE WIREFRAMES -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Page wireframes</h2>
+        <span class="section-num">§ 7 routes</span>
+      </div>
+      <p class="section-desc">Interactive wireframes for every MVP route. Primary destinations (practice, dashboard,
+        home) highlighted in amber.</p>
+
+      <div class="cards-grid">
+
+        <a href="home-wireframe.html" class="card primary">
+          <div class="card-thumb">
+            <div class="thumb-home">
+              <div class="thumb-greet">welcome back</div>
+              <div class="thumb-cta-big"></div>
+              <div class="thumb-pills">
+                <div class="thumb-pill"></div>
+                <div class="thumb-pill"></div>
+                <div class="thumb-pill"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">/</div>
+            <div class="card-title">Home / lobby</div>
+            <div class="card-desc">Adaptive launching pad for returning users, zero-data state for new users</div>
+            <div class="card-states">
+              <span class="card-state-pill">returning</span>
+              <span class="card-state-pill">zero data</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="practice-page-wireframe.html" class="card primary">
+          <div class="card-thumb">
+            <div class="thumb-practice">
+              <div class="thumb-typing">the quick <span class="current">f</span>ox</div>
+              <div class="thumb-keyboard">
+                <div class="thumb-keyboard-half">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+                <div class="thumb-keyboard-half">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">/practice · v0.4</div>
+            <div class="card-title">Practice</div>
+            <div class="card-desc">Heart of the product. Four states: pre-session with transition-aware CTA, active
+              typing with error visualization, paused settings overlay, post-session inline with error review</div>
+            <div class="card-states">
+              <span class="card-state-pill">pre-session</span>
+              <span class="card-state-pill">active</span>
+              <span class="card-state-pill">paused</span>
+              <span class="card-state-pill">post</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="dashboard-wireframe.html" class="card primary">
+          <div class="card-thumb">
+            <div class="thumb-dashboard">
+              <div class="thumb-dashboard-row">
+                <div class="thumb-dash-stat featured"></div>
+                <div class="thumb-dash-stat"></div>
+                <div class="thumb-dash-stat"></div>
+              </div>
+              <div class="thumb-dash-grid">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">/dashboard</div>
+            <div class="card-title">Dashboard</div>
+            <div class="card-desc">Deep-dive destination. 6 sections in narrative order: hero → activity → heatmap →
+              weakness → trends → insight</div>
+            <div class="card-states">
+              <span class="card-state-pill">6 sections</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="onboarding-wireframe.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-onboarding">
+              <div class="thumb-progress">
+                <div class="thumb-progress-step active"></div>
+                <div class="thumb-progress-step active"></div>
+                <div class="thumb-progress-step"></div>
+              </div>
+              <div class="thumb-onb-cards">
+                <div class="thumb-onb-card selected"></div>
+                <div class="thumb-onb-card"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">/onboarding</div>
+            <div class="card-title">Onboarding</div>
+            <div class="card-desc">3-step first-time setup: keyboard, hand, level. Landing screen before /practice</div>
+            <div class="card-states">
+              <span class="card-state-pill">step 1</span>
+              <span class="card-state-pill">step 2</span>
+              <span class="card-state-pill">step 3</span>
+              <span class="card-state-pill">landing</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="keyboards-wireframe.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-keyboards">
+              <div class="thumb-kb-card active"></div>
+              <div class="thumb-kb-card"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">/keyboards</div>
+            <div class="card-title">Keyboards</div>
+            <div class="card-desc">Profile management. Card grid, instant switch + undo toast, add new modal</div>
+            <div class="card-states">
+              <span class="card-state-pill">default</span>
+              <span class="card-state-pill">single</span>
+              <span class="card-state-pill">switching</span>
+              <span class="card-state-pill">adding</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="settings-wireframe.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-settings">
+              <div class="thumb-set-sidebar">
+                <div class="thumb-set-link"></div>
+                <div class="thumb-set-link active"></div>
+                <div class="thumb-set-link"></div>
+                <div class="thumb-set-link"></div>
+              </div>
+              <div class="thumb-set-content">
+                <div class="thumb-set-field"></div>
+                <div class="thumb-set-field"></div>
+                <div class="thumb-set-field"></div>
+                <div class="thumb-set-field"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">/settings</div>
+            <div class="card-title">Settings</div>
+            <div class="card-desc">Account, preferences, theme, data, danger zone. Sidebar nav + inline edit</div>
+            <div class="card-states">
+              <span class="card-state-pill">default</span>
+              <span class="card-state-pill">editing</span>
+              <span class="card-state-pill">delete modal</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="login-wireframe.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-login">
+              <div class="thumb-login-input"></div>
+              <div class="thumb-login-btn"></div>
+              <div class="thumb-login-oauth"></div>
+              <div class="thumb-login-oauth"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">/login</div>
+            <div class="card-title">Login / register</div>
+            <div class="card-desc">Single page for both login & register. Magic link + GitHub + Google OAuth</div>
+            <div class="card-states">
+              <span class="card-state-pill">default</span>
+              <span class="card-state-pill">check email</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
     </div>
-  </div>
 
-  <div class="footer">
-    kerf design index · v0.2 · 2026-04-18 · transition-focused revision
-  </div>
+    <!-- HISTORICAL / REFERENCE -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Reference</h2>
+        <span class="section-num">§ historical</span>
+      </div>
+      <p class="section-desc">Supporting artifacts from design exploration. Kept for reference, not part of final spec.
+      </p>
 
-</div>
+      <div class="cards-grid">
+        <a href="background-comparison.html" class="card">
+          <div class="card-thumb">
+            <div class="thumb-specimen" style="grid-template-columns: repeat(3, 1fr);">
+              <div class="thumb-swatch" style="background: #1C1815;"></div>
+              <div class="thumb-swatch" style="background: #181410; border-color: var(--lr-amber-base);"></div>
+              <div class="thumb-swatch" style="background: #131210;"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-route">background-comparison</div>
+            <div class="card-title">Background warmth comparison</div>
+            <div class="card-desc">Side-by-side of 3 warm-dark variants. Dark espresso (#181410) was selected.</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- DOCUMENTATION -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Documentation</h2>
+        <span class="section-num">§ markdown files</span>
+      </div>
+      <p class="section-desc">Locked design decisions in markdown form, checked into repo. Revised to v0.2 during
+        transition-focused pivot.</p>
+
+      <div class="docs-grid">
+        <a href="../01-product-spec.md" class="doc-card">
+          <div class="doc-card-name">01-product-spec.md · v0.2</div>
+          <div class="doc-card-title">Product spec</div>
+          <div class="doc-card-desc">Positioning, core values, target user, Phase A MVP scope, content rules,
+            out-of-scope, success metrics, risks</div>
+        </a>
+        <a href="../02-architecture.md" class="doc-card">
+          <div class="doc-card-name">02-architecture.md · v0.2</div>
+          <div class="doc-card-title">Technical architecture</div>
+          <div class="doc-card-desc">Data model with transition phases, phase-aware weakness score, split metrics
+            computation, phase transition logic</div>
+        </a>
+        <a href="../03-task-breakdown.md" class="doc-card">
+          <div class="doc-card-name">03-task-breakdown.md · v0.2</div>
+          <div class="doc-card-title">Task breakdown</div>
+          <div class="doc-card-desc">Phase-by-phase implementation plan for Phase A MVP, 12-18 weeks, Claude Code scope
+            vs your scope</div>
+        </a>
+        <a href="../04-design-system.md" class="doc-card">
+          <div class="doc-card-name">04-design-system.md</div>
+          <div class="doc-card-title">Design system</div>
+          <div class="doc-card-desc">Full token specification: colors, typography, spacing, components, anti-patterns
+          </div>
+        </a>
+        <a href="../05-information-architecture.md" class="doc-card">
+          <div class="doc-card-name">05-information-architecture.md</div>
+          <div class="doc-card-title">Information architecture</div>
+          <div class="doc-card-desc">Sitemap, page-level specs, navigation pattern, critical flows</div>
+        </a>
+        <a href="../06-design-summary.md" class="doc-card">
+          <div class="doc-card-name">06-design-summary.md · v0.2</div>
+          <div class="doc-card-title">Design summary</div>
+          <div class="doc-card-desc">Consolidated decisions across all pages including v0.2 transition-focused changes,
+            cross-page patterns, open iteration topics</div>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer">
+      kerf design index · v0.2.2 · 2026-04-18 · stack finalized
+    </div>
+
+  </div>
 
 </body>
+
 </html>

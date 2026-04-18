@@ -2,7 +2,7 @@
 
 > Consolidation of all design decisions made during brainstorming
 > Companion to 04-design-system.md and 05-information-architecture.md
-> Status: v0.3 (rebrand to kerf)
+> Status: v0.4 (tech stack finalized)
 > Last updated: 2026-04-18
 
 ## Purpose of This Document
@@ -363,6 +363,14 @@ All wireframes are interactive HTML in `design/` folder:
 Navigate all wireframes via `design/index.html`.
 
 ## Revision History
+
+**v0.4 (2026-04-18)** — tech stack finalized
+
+- Framework locked: **Tanstack Start** (over Next.js 15)
+- Auth locked: **better-auth** with Drizzle adapter (lucia deprecated late 2024)
+- Email provider locked: **Resend** for production, console log for local dev
+- Propagated to: `01-product-spec.md §9`, `02-architecture.md §1 + §5`, `03-task-breakdown.md Task 0.1 + 0.3`
+- No design or scope changes — build-readiness housekeeping only
 
 **v0.3 (2026-04-18)** — rebrand to kerf
 
