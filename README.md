@@ -56,7 +56,7 @@ npm run lint        # linter
 - [x] Phase 0 / Task 0.2: Local database setup (Drizzle + PostgreSQL)
 - [x] Phase 0 / Task 0.3: Auth infrastructure (better-auth)
 - [x] Phase 1: Adaptive engine domain logic
-- [ ] Phase 2 / Task 2.1: Onboarding flow
+- [x] Phase 2 / Task 2.1: Onboarding flow
 - [x] Phase 2 / Task 2.2: Visual Keyboard SVG (SofleSVG / Lily58SVG with target highlight, finger bars, imperative flash API)
 - [ ] Phase 2 / Task 2.3: Typing area component (error visualization)
 - [ ] Phase 2 / Task 2.4: Practice page integration with pause state
