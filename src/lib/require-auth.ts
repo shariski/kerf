@@ -5,6 +5,6 @@ import { auth } from "../server/auth"
 export async function requireAuth() {
   const request = getRequest()
   const session = await auth.api.getSession({ headers: request.headers })
-  if (!session) throw redirect({ to: "/login" as any })
+  if (!session) throw redirect({ to: "/login" })
   return session
 }
