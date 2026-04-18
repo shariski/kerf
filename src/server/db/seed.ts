@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { db } from "./index";
 import { wordCorpus } from "./schema";
 
 const WORDLIST_URL =
@@ -19,7 +20,6 @@ export function computeBigrams(word: string): string[] {
 }
 
 async function seed() {
-  const { db } = await import("./index");
   console.log("Fetching wordlist from GitHub...");
   const res = await fetch(WORDLIST_URL);
   if (!res.ok) {
@@ -41,7 +41,7 @@ async function seed() {
     length: word.length,
     characters: computeChars(word),
     bigrams: computeBigrams(word),
-    frequencyRank: i + 1, // position in the list = frequency rank (1 = most common)
+    frequencyRank: i + 1,
   }));
 
   const CHUNK_SIZE = 500;
@@ -55,7 +55,7 @@ async function seed() {
   process.exit(0);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === `file://${process.argv[1] ?? ""}`) {
   seed().catch((err) => {
     console.error(err);
     process.exit(1);
