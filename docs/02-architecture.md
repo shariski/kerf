@@ -1,4 +1,4 @@
-# Leftype-Rightype: Technical Architecture
+# kerf: Technical Architecture
 
 > Companion to 01-product-spec.md (v0.2 — transition-focused)
 > Status: v0.2 — transition-phase aware
@@ -43,6 +43,7 @@
 ```
 
 **Architectural principles:**
+
 - Domain logic stays decoupled from any framework (testable, swappable)
 - The adaptive engine is composed of pure functions that can be tested in isolation
 - The server stays thin: mostly CRUD + auth, with business logic on the client (lightens server load, fine here because each user is single-tenant)
@@ -50,6 +51,7 @@
 ## 2. Data Model (PostgreSQL)
 
 ### users
+
 ```sql
 id              uuid PRIMARY KEY
 email           text UNIQUE NOT NULL
@@ -58,6 +60,7 @@ display_name    text
 ```
 
 ### keyboard_profiles
+
 ```sql
 id                  uuid PRIMARY KEY
 user_id             uuid REFERENCES users(id) ON DELETE CASCADE
@@ -71,11 +74,13 @@ created_at          timestamptz NOT NULL DEFAULT now()
 ```
 
 **Phase semantics:**
+
 - `transitioning`: user still building columnar muscle memory. Engine weights columnar-specific pain points heavier, exercises are shorter, copy emphasizes "building new habits". Initial phase derived from `initial_level`: `first_day` and `few_weeks` → `transitioning`; `comfortable` → `refining`.
 - `refining`: user past the transition struggle, now polishing speed and flow. Engine uses pure weakness profile, standard exercise length, copy shifts to peer tone.
 - Phase changes triggered by: (a) user manually toggles in settings; (b) platform suggests change when stable accuracy >95% for 10+ sessions OR when user returns from 2+ weeks away (may have regressed).
 
 ### sessions
+
 ```sql
 id                  uuid PRIMARY KEY
 user_id             uuid REFERENCES users(id) ON DELETE CASCADE
@@ -94,6 +99,7 @@ accuracy            real
 **Note on `phase_at_session`**: this snapshots which phase the user was in when the session happened. Important because engine behavior differs by phase, and we want to compare "my transitioning-phase performance" vs "my refining-phase performance" without mutating historical data when the user switches phases.
 
 ### keystroke_events
+
 ```sql
 id               bigserial PRIMARY KEY
 session_id       uuid REFERENCES sessions(id) ON DELETE CASCADE
@@ -114,6 +120,7 @@ INDEX(session_id, target_char)
 **Note:** keystroke_events can grow large. For MVP, leave as-is and monitor. If it becomes an issue, archive to aggregated stats after X days.
 
 ### character_stats (denormalized, per user)
+
 ```sql
 id                  bigserial PRIMARY KEY
 user_id             uuid REFERENCES users(id) ON DELETE CASCADE
@@ -129,6 +136,7 @@ UNIQUE(user_id, keyboard_profile_id, character)
 ```
 
 ### bigram_stats (denormalized, per user)
+
 ```sql
 id                  bigserial PRIMARY KEY
 user_id             uuid REFERENCES users(id) ON DELETE CASCADE
@@ -195,6 +203,7 @@ We compute columnar_drift as a heuristic: errors where the typed character is in
 Metrics 1-3 are directly measurable from keystroke_events without inference.
 
 ### word_corpus
+
 ```sql
 id              bigserial PRIMARY KEY
 word            text NOT NULL UNIQUE
@@ -212,8 +221,8 @@ Hardcoded as constants. Each layout has a mapping `(layer, row, col) → (hand, 
 
 ```typescript
 // finger.ts
-type Hand = 'left' | 'right';
-type Finger = 'thumb' | 'index' | 'middle' | 'ring' | 'pinky';
+type Hand = "left" | "right";
+type Finger = "thumb" | "index" | "middle" | "ring" | "pinky";
 
 type KeyAssignment = {
   hand: Hand;
@@ -226,13 +235,13 @@ type KeyAssignment = {
 // Sofle layout: 6 cols per side, 5 rows (4 main + 1 thumb)
 const SOFLE_BASE_LAYER: Record<string, KeyAssignment> = {
   // Row 0 (top)
-  '1': { hand: 'left', finger: 'pinky', row: 0, col: 0 },
-  '2': { hand: 'left', finger: 'ring', row: 0, col: 1 },
+  "1": { hand: "left", finger: "pinky", row: 0, col: 0 },
+  "2": { hand: "left", finger: "ring", row: 0, col: 1 },
   // ... etc
-  
+
   // Row 2 (home row)
-  'a': { hand: 'left', finger: 'pinky', row: 2, col: 0 },
-  's': { hand: 'left', finger: 'ring', row: 2, col: 1 },
+  a: { hand: "left", finger: "pinky", row: 2, col: 0 },
+  s: { hand: "left", finger: "ring", row: 2, col: 1 },
   // ... etc
 };
 
@@ -250,19 +259,19 @@ The full mapping for Sofle and Lily58 must be sourced from official specs or you
 The weakness score formula uses different coefficients depending on the user's transition phase. During transition, errors (the proxy for "can't find the key yet") are weighted most heavily. During refining, hesitation and slowness (the proxy for "know the key, not fluent yet") take over.
 
 ```typescript
-type TransitionPhase = 'transitioning' | 'refining';
+type TransitionPhase = "transitioning" | "refining";
 
 // Phase-specific coefficients
 const COEFFICIENTS = {
   transitioning: {
     ALPHA: 0.6, // error weight — heavy during transition
-    BETA:  0.2, // hesitation weight
+    BETA: 0.2, // hesitation weight
     GAMMA: 0.1, // slowness weight — less important early on
     DELTA: 0.1, // frequency penalty
   },
   refining: {
     ALPHA: 0.3, // error weight — errors less informative when user is already accurate
-    BETA:  0.35, // hesitation weight — fluency matters now
+    BETA: 0.35, // hesitation weight — fluency matters now
     GAMMA: 0.25, // slowness weight — speed matters now
     DELTA: 0.1, // frequency penalty
   },
@@ -271,28 +280,30 @@ const COEFFICIENTS = {
 function computeWeaknessScore(
   unit: CharacterStat | BigramStat,
   userBaseline: UserBaseline,
-  phase: TransitionPhase
+  phase: TransitionPhase,
 ): number {
   const errorRate = unit.errors / Math.max(unit.attempts, 1);
   const meanTime = unit.sumTime / Math.max(unit.attempts, 1);
-  const hesitationRate = (unit.hesitationCount ?? 0) / Math.max(unit.attempts, 1);
-  
+  const hesitationRate =
+    (unit.hesitationCount ?? 0) / Math.max(unit.attempts, 1);
+
   const normalizedError = errorRate / userBaseline.meanErrorRate;
   const normalizedSlowness = meanTime / userBaseline.meanKeystrokeTime;
   const normalizedHesitation = hesitationRate / userBaseline.meanHesitationRate;
-  
+
   const frequencyPenalty = unit.frequencyInLanguage; // 0–1, normalized
-  
+
   const c = COEFFICIENTS[phase];
-  
+
   // Transition bonus: during 'transitioning' phase, add extra weight to
   // inner-column characters (B, G, H, N, T, Y) since these are the primary
   // columnar pain points.
-  const INNER_COLUMN = new Set(['b', 'g', 'h', 'n', 't', 'y']);
-  const transitionBonus = (phase === 'transitioning' && INNER_COLUMN.has(unit.character?.toLowerCase()))
-    ? 0.3
-    : 0;
-  
+  const INNER_COLUMN = new Set(["b", "g", "h", "n", "t", "y"]);
+  const transitionBonus =
+    phase === "transitioning" && INNER_COLUMN.has(unit.character?.toLowerCase())
+      ? 0.3
+      : 0;
+
   return (
     c.ALPHA * normalizedError +
     c.BETA * normalizedHesitation +
@@ -304,6 +315,7 @@ function computeWeaknessScore(
 ```
 
 **Edge cases to handle:**
+
 - Units with attempts < 5: low confidence, exclude from ranking
 - Cold start (new user in 'transitioning' phase): use default baseline (mean error rate 8%, mean keystroke 280ms — calibrated higher than comfortable-user baseline)
 - Cold start for 'refining' user: use lower baseline (mean error rate 3%, mean keystroke 180ms)
@@ -315,6 +327,7 @@ function computeWeaknessScore(
 **MVP strategy: static corpus + weighted random sampling.** The engine does NOT generate content; it selects from a pre-built English word corpus. Output is a sequence of disjoint words, not coherent prose.
 
 **Corpus:** curated list of ~10,000 common English words, precomputed with metadata:
+
 - Length (characters)
 - Constituent characters
 - Bigrams (adjacent character pairs)
@@ -339,11 +352,13 @@ Algorithm:
 ```
 
 **Performance characteristics:**
+
 - Generation time: <100ms (pure client-side computation on pre-loaded corpus)
 - Memory: corpus is ~200KB JSON, loaded once per session
 - Offline capable: no server round-trip needed for content generation
 
 **Quality characteristics (honest assessment):**
+
 - Output is functional for muscle memory training — target characters appear more frequently in the selected words than in baseline English text
 - Output does NOT read as coherent prose — words are disjoint, chosen for character distribution not narrative
 - User experience is "drill-like" rather than "reading-like"
@@ -374,6 +389,7 @@ Algorithm:
 ```
 
 Example for target 'b':
+
 ```
 "bab beb bib bob bub bba bbe bbi bbo bbu the bay big boy bub bench better"
 ```
@@ -384,23 +400,24 @@ Example for target 'b':
 function generateSessionInsight(
   session: Session,
   beforeStats: UserStats,
-  afterStats: UserStats
+  afterStats: UserStats,
 ): SessionInsight {
   const topWeaknessBefore = top3Weakness(beforeStats);
   const topWeaknessAfter = top3Weakness(afterStats);
-  
-  const improvements = topWeaknessBefore.map(unit => ({
+
+  const improvements = topWeaknessBefore.map((unit) => ({
     unit: unit.character,
     errorRateBefore: unit.errorRate,
     errorRateAfter: getStat(afterStats, unit.character).errorRate,
     speedBefore: unit.meanTime,
     speedAfter: getStat(afterStats, unit.character).meanTime,
   }));
-  
+
   const newWeaknesses = topWeaknessAfter.filter(
-    after => !topWeaknessBefore.find(before => before.character === after.character)
+    (after) =>
+      !topWeaknessBefore.find((before) => before.character === after.character),
   );
-  
+
   return {
     improvements,
     newWeaknesses,
@@ -411,6 +428,7 @@ function generateSessionInsight(
 ```
 
 Example plain-language summary output:
+
 > "Today you focused on the letter B. Error rate dropped from 18% to 9% (significant improvement), but speed is still at 60% of your target. The next session will keep B included with more emphasis on speed. Separately, the bigram 'er' is starting to emerge as a new weakness — it'll be added to your practice set."
 
 ### 4.5 Split-Specific Metrics Computation
@@ -418,47 +436,56 @@ Example plain-language summary output:
 At the end of each session, compute 4 metrics from the session's keystroke_events and persist as a row in `split_metrics_snapshots`. These feed dashboard visualizations and phase-transition suggestions.
 
 ```typescript
-const INNER_COLUMN = new Set(['b', 'g', 'h', 'n', 't', 'y']);
+const INNER_COLUMN = new Set(["b", "g", "h", "n", "t", "y"]);
 const THUMB_KEYS = getLayoutThumbKeys(keyboardType); // per-layout
 
 function computeSplitMetrics(
   keystrokeEvents: KeystrokeEvent[],
-  layout: Layout
+  layout: Layout,
 ): SplitMetricsSnapshot {
   // Metric 1: Inner column error rate
-  const innerCol = keystrokeEvents.filter(e => INNER_COLUMN.has(e.targetChar.toLowerCase()));
-  const innerColErrors = innerCol.filter(e => e.isError).length;
-  const innerColErrorRate = innerCol.length > 0 ? innerColErrors / innerCol.length : 0;
-  
+  const innerCol = keystrokeEvents.filter((e) =>
+    INNER_COLUMN.has(e.targetChar.toLowerCase()),
+  );
+  const innerColErrors = innerCol.filter((e) => e.isError).length;
+  const innerColErrorRate =
+    innerCol.length > 0 ? innerColErrors / innerCol.length : 0;
+
   // Metric 2: Thumb cluster decision time
-  const thumbEvents = keystrokeEvents.filter(e => THUMB_KEYS.has(e.targetChar));
-  const thumbAvgMs = thumbEvents.length > 0
-    ? thumbEvents.reduce((sum, e) => sum + e.keystrokeMs, 0) / thumbEvents.length
-    : 0;
-  
+  const thumbEvents = keystrokeEvents.filter((e) =>
+    THUMB_KEYS.has(e.targetChar),
+  );
+  const thumbAvgMs =
+    thumbEvents.length > 0
+      ? thumbEvents.reduce((sum, e) => sum + e.keystrokeMs, 0) /
+        thumbEvents.length
+      : 0;
+
   // Metric 3: Cross-hand bigram timing
   // A bigram is "cross-hand" if prev_char and target_char are assigned to different hands
-  const crossHandBigrams = keystrokeEvents.filter(e => {
+  const crossHandBigrams = keystrokeEvents.filter((e) => {
     if (!e.prevChar) return false;
     const prevHand = layout.getHand(e.prevChar);
     const currHand = layout.getHand(e.targetChar);
     return prevHand !== currHand && prevHand && currHand; // exclude thumb-space cases
   });
-  const crossHandAvgMs = crossHandBigrams.length > 0
-    ? crossHandBigrams.reduce((sum, e) => sum + e.keystrokeMs, 0) / crossHandBigrams.length
-    : 0;
-  
+  const crossHandAvgMs =
+    crossHandBigrams.length > 0
+      ? crossHandBigrams.reduce((sum, e) => sum + e.keystrokeMs, 0) /
+        crossHandBigrams.length
+      : 0;
+
   // Metric 4: Columnar stability (inferred)
   // For each error, check if typed char is in a column adjacent to target column (same hand) — that's "drift"
   // If typed char is on opposite hand, that's QWERTY-memory residue, not drift
-  const errors = keystrokeEvents.filter(e => e.isError);
+  const errors = keystrokeEvents.filter((e) => e.isError);
   let stableCount = 0;
   let driftCount = 0;
   for (const e of errors) {
     const targetPos = layout.getPosition(e.targetChar);
     const typedPos = layout.getPosition(e.actualChar);
     if (!targetPos || !typedPos) continue;
-    
+
     // Columnar drift: same hand, adjacent column, same or adjacent row
     if (
       targetPos.hand === typedPos.hand &&
@@ -471,10 +498,9 @@ function computeSplitMetrics(
     }
   }
   const totalCategorized = stableCount + driftCount;
-  const columnarStabilityPct = totalCategorized > 0
-    ? stableCount / totalCategorized
-    : 1.0; // no errors categorized = assume stable
-  
+  const columnarStabilityPct =
+    totalCategorized > 0 ? stableCount / totalCategorized : 1.0; // no errors categorized = assume stable
+
   return {
     innerColAttempts: innerCol.length,
     innerColErrors,
@@ -491,6 +517,7 @@ function computeSplitMetrics(
 ```
 
 **Accuracy caveats** (as noted in 01-product-spec.md §5.4 and §10 risks):
+
 - Metrics 1-3 are directly measurable and accurate
 - Metric 4 (columnar stability) is inferred from error patterns; accuracy is moderate. UI should communicate this with soft language ("likely drift") rather than certain language ("wrong finger used")
 - All metrics compute reliably only when sample size is meaningful. For sessions < 50 keystrokes, metrics are shown as "insufficient data"
@@ -503,27 +530,30 @@ The platform suggests phase changes but does not enforce them. The user retains 
 type PhaseTransitionSignal = {
   suggestedPhase: TransitionPhase;
   reason: string;
-  confidence: 'low' | 'medium' | 'high';
+  confidence: "low" | "medium" | "high";
 };
 
 function checkPhaseTransition(
   profile: KeyboardProfile,
   recentSessions: Session[],
-  recentSnapshots: SplitMetricsSnapshot[]
+  recentSnapshots: SplitMetricsSnapshot[],
 ): PhaseTransitionSignal | null {
-  if (profile.transitionPhase === 'transitioning') {
+  if (profile.transitionPhase === "transitioning") {
     // Check if user should graduate to 'refining'
     const last10 = recentSessions.slice(-10);
     if (last10.length < 10) return null;
-    
-    const avgAccuracy = mean(last10.map(s => s.accuracy));
-    const avgInnerColError = mean(recentSnapshots.slice(-10).map(s => s.innerColErrorRate));
-    
+
+    const avgAccuracy = mean(last10.map((s) => s.accuracy));
+    const avgInnerColError = mean(
+      recentSnapshots.slice(-10).map((s) => s.innerColErrorRate),
+    );
+
     if (avgAccuracy >= 0.95 && avgInnerColError < 0.08) {
       return {
-        suggestedPhase: 'refining',
-        reason: 'Your accuracy has been above 95% for 10 sessions, and inner column error rate is below 8%. Ready to shift focus from muscle memory to speed & flow?',
-        confidence: 'high',
+        suggestedPhase: "refining",
+        reason:
+          "Your accuracy has been above 95% for 10 sessions, and inner column error rate is below 8%. Ready to shift focus from muscle memory to speed & flow?",
+        confidence: "high",
       };
     }
   } else {
@@ -531,16 +561,17 @@ function checkPhaseTransition(
     const daysSinceLastSession = daysBetween(profile.lastSessionAt, new Date());
     if (daysSinceLastSession > 14) {
       const last3 = recentSessions.slice(-3);
-      if (last3.length >= 3 && mean(last3.map(s => s.accuracy)) < 0.88) {
+      if (last3.length >= 3 && mean(last3.map((s) => s.accuracy)) < 0.88) {
         return {
-          suggestedPhase: 'transitioning',
-          reason: 'You took a break, and your accuracy has dropped a bit. Want to go back to transition-mode focus for a few sessions?',
-          confidence: 'medium',
+          suggestedPhase: "transitioning",
+          reason:
+            "You took a break, and your accuracy has dropped a bit. Want to go back to transition-mode focus for a few sessions?",
+          confidence: "medium",
         };
       }
     }
   }
-  
+
   return null;
 }
 ```
@@ -613,13 +644,16 @@ src/
 ## 7. Testing Strategy
 
 **Domain logic** (highest priority):
+
 - Exhaustive unit tests for weakness score computation
 - Unit tests for exercise generator (deterministic with seeded random)
 - Unit tests for finger resolver covering every key in Sofle and Lily58
 
 **UI**:
+
 - Component tests for KeyboardSVG (snapshot + interaction)
 - Integration tests for typing flow (simulated keypress events)
 
 **E2E**:
+
 - Skip for MVP. Manually test the main flow: signup → onboarding → 1 session → dashboard.

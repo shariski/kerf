@@ -1,4 +1,4 @@
-# Leftype-Rightype: Information Architecture
+# kerf: Information Architecture
 
 > Companion to 01-product-spec.md, 02-architecture.md, 04-design-system.md
 > Status: v0.1 (initial, expect iteration)
@@ -14,6 +14,7 @@ The product surfaces four core "nouns" to users:
 4. **Insight** - interpretation derived from stats (weakness ranking, decision rationale, recommendations)
 
 **Relationships:**
+
 - A user has 1+ Keyboard Profiles (multi-keyboard support)
 - Each Keyboard Profile has its own independent stats
 - Each Session is bound to 1 Keyboard Profile and produces keystroke events that feed Stats
@@ -76,6 +77,7 @@ AUTHENTICATED ROUTES
 5. **Top 3 weaknesses preview**: Brief peek at weakness ranking. Click → navigate to `/dashboard`.
 
 **What's NOT here:**
+
 - Full charts (those live on `/dashboard`)
 - Full weakness list (those live on `/dashboard`)
 - Formula explanations or transparency panels
@@ -88,6 +90,7 @@ AUTHENTICATED ROUTES
 **Pre-session state** (when user lands fresh):
 
 Brief intermediate screen offering:
+
 - "Continue adaptive practice" (default, large CTA)
 - "Switch to drill mode"
 - "Start with warm-up" (gentle exercise before adaptive engages, honors the warm-up preference)
@@ -96,6 +99,7 @@ Brief intermediate screen offering:
 **Active session state**:
 
 Layout:
+
 - **Top bar**: Auto-hidden (Monkeytype-style). Hidden during active typing. Reveals on:
   - Mouse hover near top of viewport
   - Keyboard shortcut (Esc)
@@ -106,6 +110,7 @@ Layout:
 - **Filters**: collapsible drawer, default closed
 
 **Keyboard shortcuts** (during practice):
+
 - `Esc` - reveal nav / pause session
 - `Tab + Enter` - restart current exercise
 - `Ctrl + Enter` - end session early
@@ -114,6 +119,7 @@ Layout:
 **Post-session state**:
 
 Auto-shown summary view (modal or inline, TBD):
+
 - WPM, accuracy, time
 - Top 3 weaknesses (before vs after this session)
 - Plain-language insight
@@ -124,6 +130,7 @@ Auto-shown summary view (modal or inline, TBD):
 **Purpose**: Targeted attack on a specific weakness.
 
 **Pre-drill screen**:
+
 - Question: "What to drill?"
 - Two options:
   - **Auto-recommend** (default): engine selects top weakness
@@ -131,10 +138,12 @@ Auto-shown summary view (modal or inline, TBD):
 - Show estimated drill duration (e.g., "About 2-3 minutes")
 
 **Active drill state**: same layout as `/practice` but with:
+
 - Header label: "Drill: [target unit]" prominent
 - Progress shown as drill completion (e.g., "12 of 30 reps")
 
 **Post-drill state**: similar to practice summary but specific to the drilled target:
+
 - Error rate before vs after (this drill only)
 - Suggestion: "Run again" / "Move to adaptive practice"
 
@@ -170,6 +179,7 @@ Auto-shown summary view (modal or inline, TBD):
 **Purpose**: Manage profiles - switch between, add new, view per-keyboard summary.
 
 **Layout**: list/grid of profile cards. Each card shows:
+
 - Keyboard name (Sofle / Lily58)
 - Visual mini-render of the keyboard
 - Quick stats (sessions logged, current WPM, time on this keyboard)
@@ -216,11 +226,13 @@ After step 3: redirect to `/practice` with a curated first-session exercise (not
 ### Top Navigation Bar
 
 **Layout**:
+
 ```
 [wordmark]  Practice  Dashboard  Keyboards          [⚙ settings] [👤 user menu]
 ```
 
 **Visual specifications**:
+
 - Height: 48px
 - Background: `--lr-bg-base` with optional 1px `--lr-border-subtle` bottom border
 - Logo (left): wordmark, 18px, JetBrains Mono, click → `/`
@@ -228,6 +240,7 @@ After step 3: redirect to `/practice` with a curated first-session exercise (not
 - Right cluster: settings icon (gear, 16px) + user menu (initials avatar, 24px circle)
 
 **Behavior on `/practice`** (Monkeytype-style):
+
 - During pre-session and post-session: nav visible normally
 - During active typing: nav auto-hides after 1 second of typing activity
 - Reveals on:
@@ -252,6 +265,7 @@ After step 3: redirect to `/practice` with a curated first-session exercise (not
 ### User Menu
 
 Click on initials avatar opens dropdown:
+
 - Display name + email (read-only, top of menu)
 - Active keyboard profile (with mini icon, click → `/keyboards`)
 - Settings → `/settings`

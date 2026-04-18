@@ -1,4 +1,4 @@
-# Leftype-Rightype: MVP Product Specification
+# kerf: MVP Product Specification
 
 > Status: v0.2 — transition-focused positioning
 > Last updated: 2026-04-18
@@ -6,7 +6,7 @@
 
 ## 1. Product Positioning
 
-Leftype-Rightype is a **transition-focused typing platform** specifically designed for people migrating from row-staggered QWERTY keyboards to split columnar keyboards (Sofle and Lily58 in MVP). The platform treats split keyboard adoption as a distinct learning journey with its own pain points, not as a generic "learn to type faster" program.
+kerf is a **transition-focused typing platform** specifically designed for people migrating from row-staggered QWERTY keyboards to split columnar keyboards (Sofle and Lily58 in MVP). The platform treats split keyboard adoption as a distinct learning journey with its own pain points, not as a generic "learn to type faster" program.
 
 **Core positioning statement**: "Structured transition program for QWERTY-to-split keyboards. Adaptive engine. Accuracy first."
 
@@ -58,6 +58,7 @@ User can always see: what the engine thinks their weakness is, why it chose the 
 **Primary**: Transitioners already proficient with standard QWERTY who are adopting Sofle or Lily58. Timeline: users somewhere between day 1 and month 3 of their split keyboard journey.
 
 Not for:
+
 - Total beginners who don't yet touch type (recommend TypingClub or Keybr)
 - Standard keyboard users (many better free alternatives exist)
 - Alternative layout users (Colemak, Dvorak) — possibly V2
@@ -84,11 +85,13 @@ This section describes Phase A only. Phase B is detailed in §9.
 ### 5.1 Keyboard Profile Setup + Diagnostic
 
 Onboarding collects:
+
 - Keyboard choice (Sofle or Lily58)
 - Dominant hand (left or right)
 - Self-reported transition phase (first day / few weeks in / comfortable)
 
 Internally maps to:
+
 - Finger assignment table per layout
 - Initial transition phase (affects engine behavior — see §5.5)
 - Initial baseline assumptions (new transitioner starts with higher expected error rate than comfortable user)
@@ -100,6 +103,7 @@ Profile can be changed at any time (multi-keyboard support).
 ### 5.2 Visual Split Keyboard Display
 
 Real-time SVG render of both halves matching the user's chosen layout:
+
 - 8-color coding for 8 fingers (following standard typing pedagogy)
 - Highlighted target key (next key to press)
 - Highlighted expected finger (visual hint in the finger guide area)
@@ -112,13 +116,15 @@ The default mode covering ~80% of expected user time.
 
 **Engine behavior adapts to user's transition phase:**
 
-*Phase: Transitioning* (new user, self-reported "first day" / "few weeks in"):
+_Phase: Transitioning_ (new user, self-reported "first day" / "few weeks in"):
+
 - Content weighted toward columnar-specific pain points: inner column (B, G, H, N, T, Y), thumb cluster-adjacent keys
 - Shorter exercises (~30 words) to avoid fatigue
 - Higher accuracy baseline expected — errors weighted heavier in weakness score
 - Encouraging copy emphasizing "you're building new muscle memory"
 
-*Phase: Refining* (user self-reports "comfortable" or platform detects stable accuracy above 95% for 10+ sessions):
+_Phase: Refining_ (user self-reports "comfortable" or platform detects stable accuracy above 95% for 10+ sessions):
+
 - Content weighted toward pure weakness profile (any character/bigram that still has elevated error rate)
 - Standard exercise length (~50 words)
 - Speed starts to factor into weakness score (hesitation component weighted higher)
@@ -129,11 +135,13 @@ The default mode covering ~80% of expected user time.
 Output format: disjoint word sequences (no narrative flow). Example output when user is in Transitioning phase weak in B/N/T: "bench better beneath button bottom bond never bend bin bet bait". This is **functionally effective for muscle memory training** but does not attempt to produce coherent prose.
 
 **Known trade-off vs. competitor platforms:** Some adaptive typing platforms (notably Typerfast) generate coherent prose themed around target characters — text that reads like an article while stealth-embedding weakness-relevant letters. This produces a more engaging "smart" feel. We deliberately do not pursue this in MVP because:
+
 - Real-time content generation requires LLM integration (latency, cost, reliability burdens)
 - Word-picker approach proves the adaptive engine works before investing in content-quality upgrade
 - LLM-based content generation is queued as a V2 feature (see §8 Tier 2)
 
 **Available filters:**
+
 - Hand isolation: restrict to words using only one side
 - Difficulty cap: max word length or max difficulty score
 
@@ -151,6 +159,7 @@ These coexist with generic metrics (WPM, accuracy) but take priority in the user
 ### 5.5 Targeted Drill Submode
 
 On-demand mode for attacking specific weaknesses. The user can:
+
 - Pick a specific character/bigram to drill
 - Or let the engine auto-recommend the top weakness
 - Or pick a transition-specific drill preset (inner column, thumb cluster, cross-hand bigrams)
@@ -160,6 +169,7 @@ Output: synthetic strings heavy in the target unit (e.g., "bab beb bib bob bub b
 ### 5.6 Adaptive Engine (full detail in 02-architecture.md)
 
 Four layers:
+
 1. Data collection (per keystroke event)
 2. Weakness identification (weakness score per character & bigram, weighted by transition phase)
 3. Exercise generation (weighted word selection + synthetic drill, with transition-phase content weighting)
@@ -168,6 +178,7 @@ Four layers:
 ### 5.7 Meta-Cognition Dashboard (Power-User Style)
 
 User opted for "show everything explicitly". The dashboard displays:
+
 - Split-specific metrics (inner column error rate, thumb cluster decision time, cross-hand bigram timing) as primary hero stats
 - Current weakness ranking with score breakdown
 - The formula the engine uses (always-expanded with current calculation values)
@@ -187,6 +198,7 @@ User opted for "show everything explicitly". The dashboard displays:
 ### 6.1 Error Visualization Rules
 
 During active typing:
+
 - Wrong character is displayed in red with underline
 - **Expected character is displayed small above the typed character** (like Typerfast pattern). This gives immediate corrective context without breaking flow.
 - Cursor stays at position — user must backspace to correct
@@ -194,6 +206,7 @@ During active typing:
 - No audio feedback on errors (error sounds are punishing and discourage deliberate practice)
 
 Post-session review:
+
 - Full exercise text displayed with all error positions highlighted
 - Hover on error shows "typed X, expected Y" tooltip
 - Pattern spotting: which errors clustered (e.g., "you struggled with B→V substitution 4 times")
@@ -211,6 +224,7 @@ All copy in the product reflects accuracy-first values. Examples:
 ## 7. Out of Scope (Explicit)
 
 **Not in MVP:**
+
 - Standard keyboard support
 - Languages other than English (V2 may add Indonesian)
 - Mobile/touch support
@@ -222,6 +236,7 @@ All copy in the product reflects accuracy-first values. Examples:
 - Phantom Key Detection ("I peeked" button)
 
 **Tier 2 (V1.5 – V2):**
+
 - **Full transition curriculum (MVP Phase B)**: week-by-week structured program with explicit milestones (home row → inner column → thumb cluster → bigram flow), built after beta validates the positioning
 - LLM-based content generation (coherent prose themed around target weakness characters) — upgrade from word-picker MVP approach
 - Real Sentence Mode
@@ -231,6 +246,7 @@ All copy in the product reflects accuracy-first values. Examples:
 - Simple leaderboard
 
 **Tier 3 (Far future):**
+
 - WebHID + custom firmware
 - QMK keymap.c parser
 - Home row mod training
@@ -243,18 +259,21 @@ All copy in the product reflects accuracy-first values. Examples:
 Given this is a solo project with a niche audience, realistic success metrics:
 
 **Phase 1 (3 months post-launch):**
+
 - 50+ registered users
 - 10+ weekly active users
 - Average session length > 5 minutes
 - Average sessions per user per week > 3
 
 **Phase 2 (6 months post-launch):**
+
 - 200+ registered users
 - 30+ weekly active users
 - 5+ users reporting "this genuinely helped my transition"
 - Foundation for prioritizing V2 based on real data
 
 **Phase A → Phase B transition gate** (qualitative, not time-based):
+
 - At least 20 active beta users provide feedback
 - Clear signal whether "structured curriculum" is what users want (feedback requests it, retention drops in weeks 2-3 without it, etc.)
 - If signal is weak, Phase B may be deprioritized in favor of other roadmap items

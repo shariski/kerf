@@ -1,4 +1,4 @@
-# Leftype-Rightype: Design System
+# kerf: Design System
 
 > Companion to 01-product-spec.md and 02-architecture.md
 > Status: v0.1 (initial, expect iteration)
@@ -124,11 +124,13 @@ Note: heatmap intentionally uses amber-to-red ramp (not green-to-red) because gr
 ### 3.1 Font Stacks
 
 ```css
---lr-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
---lr-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+--lr-font-sans:
+  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+--lr-font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
 ```
 
 **Rationale**:
+
 - Inter for UI: maximally readable at small sizes, neutral, well-tested
 - JetBrains Mono for typing content & numerical data: clear character distinctions (0/O, 1/l/I), mature ligature support, free, ubiquitous in developer culture (trust signal for target audience)
 
@@ -188,6 +190,7 @@ Base unit: 4px. All spacing uses multiples of 4 to create rhythm.
 ```
 
 **Usage convention**:
+
 - Inline spacing (within components): 4-16px
 - Component padding: 12-24px
 - Section spacing: 32-64px
@@ -243,6 +246,7 @@ This section will expand significantly as we build out the design system. For v0
 ### 8.1 Button Variants
 
 **Primary** (amber, used sparingly):
+
 - Background: `--lr-amber-base`
 - Text: `--lr-text-inverse` (#181410)
 - Hover: background shifts to `--lr-amber-hover`
@@ -250,12 +254,14 @@ This section will expand significantly as we build out the design system. For v0
 - Padding: 10px 20px (default), 8px 16px (compact)
 
 **Secondary** (transparent with border):
+
 - Background: transparent
 - Border: 1px solid `--lr-border-default`
 - Text: `--lr-text-primary`
 - Hover: background `--lr-bg-elevated`, border `--lr-border-strong`
 
 **Ghost** (no border, minimal):
+
 - Background: transparent
 - Text: `--lr-text-secondary`
 - Hover: background `--lr-amber-faint`, text `--lr-text-primary`
@@ -297,6 +303,7 @@ This section will expand significantly as we build out the design system. For v0
 > Status: TBD. Naming itself is still under review (see open question in 01-product-spec.md or future discussion).
 
 For v0.1, use wordmark only:
+
 - Text: `leftype-rightype` (lowercase)
 - Font: JetBrains Mono, weight 700
 - Color: `--lr-text-primary` with "left" and "right" parts in different finger colors as a subtle visual hook (e.g., "leftype" in left-index green, "rightype" in right-index teal)
@@ -332,15 +339,15 @@ Self-host fonts (no Google Fonts CDN) for performance and privacy. Use `font-dis
 
 ```css
 @font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Variable.woff2') format('woff2-variations');
+  font-family: "Inter";
+  src: url("/fonts/Inter-Variable.woff2") format("woff2-variations");
   font-weight: 400 700;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'JetBrains Mono';
-  src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2-variations');
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Variable.woff2") format("woff2-variations");
   font-weight: 400 700;
   font-display: swap;
 }

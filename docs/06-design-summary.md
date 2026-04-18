@@ -1,4 +1,4 @@
-# Leftype-Rightype: Design Summary
+# kerf: Design Summary
 
 > Consolidation of all design decisions made during brainstorming
 > Companion to 04-design-system.md and 05-information-architecture.md
@@ -66,17 +66,20 @@ Full spec: see `05-information-architecture.md`.
 Every page that shows engine-derived content adapts behavior based on user's `transition_phase`:
 
 ### Pre-session (/practice)
+
 - Phase badge visible (transitioning / refining)
 - CTA meta references transition-relevant weaknesses (e.g., "columnar focus: B, N, T")
 - Mode cards include "Inner column" preset drill for transitioners
 
 ### Dashboard (/dashboard)
+
 - Split-specific metrics (inner column error rate, thumb cluster time, cross-hand bigram timing, columnar stability) as primary hero stats
 - Weakness ranking weighted by phase (transitioning gives inner-column bonus)
 - Formula section shows current phase coefficients with visual distinction
 - Phase transition suggestion banner when thresholds crossed (non-intrusive, dismissible)
 
 ### Post-session (/practice inline)
+
 - **Accuracy featured first** in stat hierarchy (not speed)
 - **Error review section** with hover tooltips and pattern analysis
 - Insight copy phase-aware (transitioning: "building muscle memory" framing; refining: "polishing flow" framing)
@@ -85,6 +88,7 @@ Every page that shows engine-derived content adapts behavior based on user's `tr
 ### Copy Guidelines (accuracy-first)
 
 Every copy string honors:
+
 - Lead with accuracy, not speed
 - Speed-up-with-accuracy-drop is framed as concern, not win
 - No hyped language ("amazing!", "crushing it!", etc.)
@@ -102,6 +106,7 @@ See 01-product-spec.md §6.2 for full guidelines.
 **Layout**: centered column, max-width 720px.
 
 **Returning user sections** (top to bottom):
+
 1. Greeting
 2. Active keyboard pill + phase badge
 3. Hero CTA grid: primary "Continue adaptive practice" + secondary "Drill weakness"
@@ -110,6 +115,7 @@ See 01-product-spec.md §6.2 for full guidelines.
 6. Weakness strip (3 amber pills + context line)
 
 **Zero data state**:
+
 - Welcome with split muscle memory framing
 - Keyboard pill (active profile visible)
 - Big "Start your first session" CTA with baseline capture meta
@@ -124,6 +130,7 @@ Wireframe: `design/home-wireframe.html`
 **Layout**: centered card, max-width 420px, fullscreen no-nav.
 
 **Sections**:
+
 1. Logo wordmark + tagline
 2. Login card: email + magic link + OAuth (GitHub, Google)
 3. Legal footer
@@ -155,12 +162,14 @@ Wireframe: `design/onboarding-wireframe.html`
 **Purpose**: heart of product. Three distinct states + pause overlay.
 
 **State 1 — Pre-session**:
+
 - Keyboard context + phase badge
 - Primary CTA with columnar-aware engine preview
 - 3 mode cards: Drill weakness / Inner column / Warm up
 - Collapsible filters (hand isolation, max length, visual keyboard)
 
 **State 2 — Active typing**:
+
 - Nav auto-hidden (Monkeytype-style)
 - Session progress bar at top (amber fill, 2px)
 - Typing area 36px font, line-height 2.0, dominant element
@@ -169,6 +178,7 @@ Wireframe: `design/onboarding-wireframe.html`
 - Live WPM bottom-right, shortcut hints bottom-left
 
 **State 3 — Paused (NEW)**:
+
 - Triggered by Esc
 - Semi-opaque backdrop blur overlay
 - Inline settings: typing text size (S/M/L/XL), visual keyboard visibility, expected-letter hint toggle
@@ -176,6 +186,7 @@ Wireframe: `design/onboarding-wireframe.html`
 - Copy: "Take a breath. Accuracy improves when you slow down."
 
 **State 4 — Post-session (INLINE, not modal)**:
+
 - Complete badge + title (context-aware based on accuracy/speed outcome)
 - **Stats: accuracy FIRST (featured), speed second, time third** — ordering reflects value
 - **Error review section**: full exercise text with error chars highlighted, hover tooltip, pattern analysis below
@@ -184,6 +195,7 @@ Wireframe: `design/onboarding-wireframe.html`
 - Actions: Practice again / Drill [specific weakness] / View dashboard
 
 **Key decisions**:
+
 - No modals in practice flow (inline transitions only)
 - Settings accessible during pause, NOT during active typing
 - Expected-letter hint is toggleable (default on)
@@ -193,6 +205,7 @@ Wireframe: `design/practice-page-wireframe.html` (v0.3)
 ### `/practice/drill`
 
 Derivative of `/practice`. Same layout with:
+
 - Pre-drill screen: "What to drill?" — auto-recommend, manual select, or preset mode (inner column / thumb cluster / cross-hand bigrams)
 - Same active typing and post-session patterns
 
@@ -210,6 +223,7 @@ Derivative of `/practice`. Same layout with:
 **Section 6 — Engine insight**: plain-language + decision rationale + always-expanded formula with current phase coefficients
 
 **New in v0.2**:
+
 - Split-specific metrics section with accuracy caveats for columnar stability
 - Phase transition suggestion banner (top, dismissible)
 - Phase indicator in header
@@ -253,16 +267,19 @@ Wireframe: `design/settings-wireframe.html`
 ### Keyboard Shortcuts
 
 **Global**:
+
 - `Esc` — pause session (in /practice) / close modal (elsewhere)
 - `⌘D` / `Ctrl+D` — navigate to dashboard
 
 **Practice Mode**:
+
 - `Esc` — pause + reveal settings
 - `Tab + Enter` — restart current exercise
 - `Ctrl + Enter` — end session early
 - `Ctrl + Shift + D` — toggle distraction-free mode
 
 **Post-session** (new in v0.2.1, vim-kiblat):
+
 - `j` — scroll down
 - `k` — scroll up
 - `Enter` — practice again (primary action)
@@ -282,6 +299,7 @@ Guard rules for post-session `j`/`k`: ignore when input/textarea focused, ignore
 ### Amber Accent Usage Rules
 
 Amber is used for:
+
 - Primary action buttons
 - Active states (selection, current page, target key)
 - Brand moments (logo accent)
@@ -290,6 +308,7 @@ Amber is used for:
 - Expected-character hint badges during error visualization
 
 Amber is NOT used for:
+
 - Decorative fills
 - Secondary text
 - Generic borders
@@ -299,12 +318,14 @@ Amber is NOT used for:
 ### Error Visualization Rules
 
 During active typing:
+
 - Wrong character: red fill, red underline
 - **Expected character**: small amber badge above typed character with arrow pointer
 - Cursor stays at position (user must backspace)
 - No audio feedback
 
 Post-session:
+
 - Full text with error positions highlighted red
 - Hover shows "typed X, expected Y"
 - Pattern analysis paragraph below (template-based from Task 1.5)
@@ -344,11 +365,13 @@ Navigate all wireframes via `design/index.html`.
 ## Revision History
 
 **v0.2.1 (2026-04-18)** — vim scroll shortcut increment
+
 - `j`/`k` scroll down/up shortcuts added to post-session only (practice wireframe v0.4)
 - Visible hint strip at bottom of viewport during post-session
 - Broader vim-kiblat shortcut principle logged as open iteration topic for future session
 
 **v0.2 (2026-04-18)** — transition-focused pivot
+
 - Positioning rewrite: transition program vs generic adaptive
 - Core values section added (01-product-spec.md §2)
 - Phase A / Phase B split with validation gate
@@ -362,6 +385,7 @@ Navigate all wireframes via `design/index.html`.
 - Accuracy-first copy guidelines codified
 
 **v0.1 (2026-04-17)** — initial consolidation
+
 - 7 page wireframes + design system + IA
 - Word-picker content strategy for MVP
 - Dark espresso background + amber accent locked
