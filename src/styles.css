@@ -2,8 +2,81 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ── kerf design tokens ── */
 @theme {
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  /* Background layers */
+  --color-kerf-bg-base:     #181410;
+  --color-kerf-bg-surface:  #221C17;
+  --color-kerf-bg-elevated: #2A2320;
+  --color-kerf-bg-overlay:  #322A26;
+
+  /* Text */
+  --color-kerf-text-primary:   #F2EAE0;
+  --color-kerf-text-secondary: #9A8E80;
+  --color-kerf-text-tertiary:  #685D52;
+  --color-kerf-text-inverse:   #181410;
+
+  /* Borders */
+  --color-kerf-border-subtle:  #2F2820;
+  --color-kerf-border-default: #3A3128;
+  --color-kerf-border-strong:  #4A3F35;
+
+  /* Amber accent */
+  --color-kerf-amber-base:    #F59E0B;
+  --color-kerf-amber-hover:   #FBBF24;
+  --color-kerf-amber-pressed: #D97706;
+  --color-kerf-amber-subtle:  rgba(245, 158, 11, 0.15);
+  --color-kerf-amber-faint:   rgba(245, 158, 11, 0.08);
+
+  /* Semantic: success */
+  --color-kerf-success-base:   #22C55E;
+  --color-kerf-success-subtle: rgba(34, 197, 94, 0.15);
+
+  /* Semantic: error */
+  --color-kerf-error-base:   #EF4444;
+  --color-kerf-error-subtle: rgba(239, 68, 68, 0.15);
+
+  /* Semantic: warning */
+  --color-kerf-warning-base:   #EAB308;
+  --color-kerf-warning-subtle: rgba(234, 179, 8, 0.15);
+
+  /* Semantic: info */
+  --color-kerf-info-base:   #3B82F6;
+  --color-kerf-info-subtle: rgba(59, 130, 246, 0.15);
+
+  /* Finger colors: left hand (earth tones) */
+  --color-kerf-finger-l-pinky:  #C2410C;
+  --color-kerf-finger-l-ring:   #A16207;
+  --color-kerf-finger-l-middle: #65A30D;
+  --color-kerf-finger-l-index:  #15803D;
+
+  /* Finger colors: right hand (sky tones) */
+  --color-kerf-finger-r-index:  #0E7490;
+  --color-kerf-finger-r-middle: #1D4ED8;
+  --color-kerf-finger-r-ring:   #6D28D9;
+  --color-kerf-finger-r-pinky:  #A21CAF;
+
+  /* Thumbs */
+  --color-kerf-finger-thumb: #6B7280;
+
+  /* Heatmap ramp */
+  --color-kerf-heat-0: transparent;
+  --color-kerf-heat-1: rgba(245, 158, 11, 0.15);
+  --color-kerf-heat-2: rgba(245, 158, 11, 0.35);
+  --color-kerf-heat-3: rgba(239, 68, 68, 0.45);
+  --color-kerf-heat-4: rgba(239, 68, 68, 0.75);
+
+  /* Typography */
+  --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:  "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  --font-brand: "Fraunces", Georgia, serif;
+}
+
+/* kerf base styles */
+html, body {
+  background-color: var(--color-kerf-bg-base);
+  color: var(--color-kerf-text-primary);
+  font-family: var(--font-sans);
 }
 
 :root {
