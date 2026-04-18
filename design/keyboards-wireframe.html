@@ -11,23 +11,23 @@
     rel="stylesheet">
   <style>
     :root {
-      --lr-bg-base: #181410;
-      --lr-bg-surface: #221C17;
-      --lr-bg-elevated: #2A2320;
-      --lr-bg-overlay: #322A26;
-      --lr-text-primary: #F2EAE0;
-      --lr-text-secondary: #9A8E80;
-      --lr-text-tertiary: #685D52;
-      --lr-text-inverse: #181410;
-      --lr-border-subtle: #2F2820;
-      --lr-border-default: #3A3128;
-      --lr-border-strong: #4A3F35;
-      --lr-amber-base: #F59E0B;
-      --lr-amber-hover: #FBBF24;
-      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-      --lr-amber-faint: rgba(245, 158, 11, 0.08);
-      --lr-success: #22C55E;
-      --lr-error: #EF4444;
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-text-inverse: #181410;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-success: #22C55E;
+      --kerf-error: #EF4444;
       --font-sans: 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --font-brand: 'Fraunces', serif;
@@ -40,8 +40,8 @@
     }
 
     body {
-      background: var(--lr-bg-base);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.6;
@@ -50,8 +50,8 @@
 
     /* Wireframe meta-header */
     .wireframe-header {
-      background: var(--lr-bg-surface);
-      border-bottom: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border-bottom: 1px solid var(--kerf-border-default);
       padding: 12px 32px;
       display: flex;
       align-items: center;
@@ -64,11 +64,11 @@
     .wireframe-title {
       font-family: var(--font-mono);
       font-size: 13px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .wireframe-title strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .state-switcher {
@@ -78,8 +78,8 @@
 
     .state-btn {
       background: transparent;
-      border: 1px solid var(--lr-border-default);
-      color: var(--lr-text-secondary);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-secondary);
       padding: 4px 12px;
       border-radius: 4px;
       font-family: var(--font-sans);
@@ -89,22 +89,22 @@
     }
 
     .state-btn:hover {
-      color: var(--lr-text-primary);
-      border-color: var(--lr-border-strong);
+      color: var(--kerf-text-primary);
+      border-color: var(--kerf-border-strong);
     }
 
     .state-btn.active {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
-      border-color: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
+      border-color: var(--kerf-amber-base);
       font-weight: 600;
     }
 
     /* App nav */
     .app-nav {
       height: 48px;
-      background: var(--lr-bg-base);
-      border-bottom: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-base);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       display: flex;
       align-items: center;
       padding: 0 32px;
@@ -124,7 +124,7 @@
     }
 
     .nav-logo .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .nav-links {
@@ -134,7 +134,7 @@
     }
 
     .nav-link {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
@@ -142,20 +142,20 @@
     }
 
     .nav-link.active {
-      color: var(--lr-amber-base);
-      border-bottom: 1px solid var(--lr-amber-base);
+      color: var(--kerf-amber-base);
+      border-bottom: 1px solid var(--kerf-amber-base);
     }
 
     .nav-right {
       display: flex;
       gap: 12px;
       align-items: center;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 12px;
     }
 
     .nav-avatar {
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 50%;
       width: 24px;
       height: 24px;
@@ -164,7 +164,7 @@
       justify-content: center;
       font-size: 10px;
       font-weight: 700;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     /* Page container */
@@ -178,13 +178,13 @@
     .page-header {
       margin-bottom: 32px;
       padding-bottom: 24px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .page-breadcrumb {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 8px;
@@ -204,15 +204,15 @@
     }
 
     .page-subtitle {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 14px;
       margin-top: 8px;
     }
 
     /* Add new button */
     .btn-add {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
       padding: 10px 18px;
       border-radius: 6px;
       font-weight: 600;
@@ -226,7 +226,7 @@
     }
 
     .btn-add:hover {
-      background: var(--lr-amber-hover);
+      background: var(--kerf-amber-hover);
     }
 
     .btn-add-icon {
@@ -243,8 +243,8 @@
     }
 
     .keyboard-card {
-      background: var(--lr-bg-surface);
-      border: 2px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 2px solid var(--kerf-border-subtle);
       border-radius: 10px;
       overflow: hidden;
       cursor: pointer;
@@ -253,22 +253,22 @@
     }
 
     .keyboard-card:hover {
-      border-color: var(--lr-border-strong);
+      border-color: var(--kerf-border-strong);
       transform: translateY(-2px);
     }
 
     .keyboard-card.active {
-      border-color: var(--lr-amber-base);
+      border-color: var(--kerf-amber-base);
     }
 
     .card-image-area {
       aspect-ratio: 16 / 10;
-      background: var(--lr-bg-base);
+      background: var(--kerf-bg-base);
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       overflow: hidden;
     }
 
@@ -277,8 +277,8 @@
       position: absolute;
       top: 12px;
       right: 12px;
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
       font-family: var(--font-mono);
       font-size: 10px;
       font-weight: 700;
@@ -295,7 +295,7 @@
       content: '';
       width: 6px;
       height: 6px;
-      background: var(--lr-text-inverse);
+      background: var(--kerf-text-inverse);
       border-radius: 50%;
     }
 
@@ -311,8 +311,8 @@
     .photo-half {
       flex: 1;
       aspect-ratio: 5 / 3;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 4px;
       display: flex;
       flex-direction: column;
@@ -328,7 +328,7 @@
 
     .photo-key {
       aspect-ratio: 1;
-      background: var(--lr-bg-overlay);
+      background: var(--kerf-bg-overlay);
       border-radius: 1px;
     }
 
@@ -342,7 +342,7 @@
     .photo-thumb {
       width: 12px;
       height: 8px;
-      background: var(--lr-bg-overlay);
+      background: var(--kerf-bg-overlay);
       border-radius: 1px;
     }
 
@@ -356,7 +356,7 @@
       left: 6px;
       font-family: var(--font-mono);
       font-size: 8px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       background: rgba(0, 0, 0, 0.5);
       padding: 1px 5px;
       border-radius: 2px;
@@ -380,7 +380,7 @@
     .card-meta {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -391,8 +391,8 @@
       top: 12px;
       right: 12px;
       background: rgba(0, 0, 0, 0.5);
-      border: 1px solid var(--lr-border-default);
-      color: var(--lr-text-secondary);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-secondary);
       width: 28px;
       height: 28px;
       border-radius: 4px;
@@ -411,8 +411,8 @@
     }
 
     .card-menu:hover {
-      color: var(--lr-text-primary);
-      border-color: var(--lr-border-strong);
+      color: var(--kerf-text-primary);
+      border-color: var(--kerf-border-strong);
     }
 
     .keyboard-card.active .card-menu {
@@ -424,7 +424,7 @@
     /* === ADD NEW CARD (placeholder card) === */
     .add-card {
       background: transparent;
-      border: 2px dashed var(--lr-border-default);
+      border: 2px dashed var(--kerf-border-default);
       border-radius: 10px;
       aspect-ratio: 4 / 3;
       cursor: pointer;
@@ -434,13 +434,13 @@
       justify-content: center;
       gap: 12px;
       transition: all 200ms;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .add-card:hover {
-      border-color: var(--lr-amber-base);
-      color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      border-color: var(--kerf-amber-base);
+      color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
     }
 
     .add-card-icon {
@@ -457,20 +457,20 @@
 
     /* === EMPTY STATE (kalau cuma 1 keyboard) === */
     .empty-message {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 24px 28px;
       margin-top: 32px;
       display: flex;
       align-items: center;
       gap: 16px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 13px;
     }
 
     .empty-message-icon {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       font-family: var(--font-mono);
       font-size: 18px;
     }
@@ -481,7 +481,7 @@
     }
 
     .empty-message-text strong {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 500;
     }
 
@@ -491,8 +491,8 @@
       bottom: 80px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--lr-bg-overlay);
-      border: 1px solid var(--lr-amber-base);
+      background: var(--kerf-bg-overlay);
+      border: 1px solid var(--kerf-amber-base);
       border-radius: 8px;
       padding: 14px 20px;
       display: none;
@@ -521,7 +521,7 @@
     }
 
     .toast-icon {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       font-family: var(--font-mono);
       font-size: 16px;
     }
@@ -529,18 +529,18 @@
     .toast-text {
       flex: 1;
       font-size: 13px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .toast-text strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       font-family: var(--font-mono);
     }
 
     .toast-undo {
       background: transparent;
-      border: 1px solid var(--lr-border-default);
-      color: var(--lr-text-primary);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-primary);
       padding: 6px 12px;
       border-radius: 4px;
       font-size: 12px;
@@ -549,7 +549,7 @@
     }
 
     .toast-undo:hover {
-      background: var(--lr-bg-surface);
+      background: var(--kerf-bg-surface);
     }
 
     .toast-progress {
@@ -557,7 +557,7 @@
       bottom: 0;
       left: 0;
       height: 2px;
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
       border-radius: 0 0 8px 8px;
       width: 100%;
       transform-origin: left;
@@ -592,8 +592,8 @@
     }
 
     .add-modal {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 12px;
       width: 100%;
       max-width: 720px;
@@ -603,7 +603,7 @@
 
     .add-modal-header {
       padding: 20px 28px 16px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -617,18 +617,18 @@
     .add-modal-prefilled-hint {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-top: 4px;
     }
 
     .add-modal-prefilled-hint strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .add-modal-close {
       background: transparent;
       border: none;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       cursor: pointer;
       font-size: 18px;
       padding: 4px 8px;
@@ -636,7 +636,7 @@
     }
 
     .add-modal-close:hover {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .add-modal-body {
@@ -650,7 +650,7 @@
     .add-modal-step-label {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 12px;
@@ -661,8 +661,8 @@
     }
 
     .add-modal-step-label .prefilled-tag {
-      background: var(--lr-success);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-success);
+      color: var(--kerf-text-inverse);
       padding: 2px 8px;
       border-radius: 3px;
       font-size: 9px;
@@ -678,8 +678,8 @@
     }
 
     .mini-keyboard-card {
-      background: var(--lr-bg-elevated);
-      border: 2px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 2px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 16px;
       cursor: pointer;
@@ -690,12 +690,12 @@
     }
 
     .mini-keyboard-card:hover {
-      border-color: var(--lr-border-strong);
+      border-color: var(--kerf-border-strong);
     }
 
     .mini-keyboard-card.selected {
-      border-color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
     }
 
     .mini-keyboard-card.disabled {
@@ -704,21 +704,21 @@
     }
 
     .mini-keyboard-card.disabled:hover {
-      border-color: var(--lr-border-subtle);
+      border-color: var(--kerf-border-subtle);
     }
 
     .mini-keyboard-thumb {
       width: 60px;
       height: 36px;
-      background: var(--lr-bg-base);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-base);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       flex-shrink: 0;
     }
 
@@ -734,19 +734,19 @@
 
     .mini-keyboard-meta {
       font-size: 11px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .mini-keyboard-status {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
     .mini-keyboard-status.added {
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     /* Prefilled level cards (smaller) */
@@ -757,8 +757,8 @@
     }
 
     .level-card-mini {
-      background: var(--lr-bg-elevated);
-      border: 2px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 2px solid var(--kerf-border-subtle);
       border-radius: 6px;
       padding: 12px;
       cursor: pointer;
@@ -767,25 +767,25 @@
     }
 
     .level-card-mini:hover {
-      border-color: var(--lr-border-strong);
+      border-color: var(--kerf-border-strong);
     }
 
     .level-card-mini.selected {
-      border-color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
     }
 
     .level-card-mini-label {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 4px;
     }
 
     .level-card-mini.selected .level-card-mini-label {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .level-card-mini-name {
@@ -795,7 +795,7 @@
 
     .add-modal-footer {
       padding: 16px 28px;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
       display: flex;
       gap: 12px;
       justify-content: flex-end;
@@ -803,8 +803,8 @@
 
     .modal-btn-cancel {
       background: transparent;
-      color: var(--lr-text-secondary);
-      border: 1px solid var(--lr-border-default);
+      color: var(--kerf-text-secondary);
+      border: 1px solid var(--kerf-border-default);
       padding: 10px 20px;
       border-radius: 4px;
       font-size: 13px;
@@ -813,12 +813,12 @@
     }
 
     .modal-btn-cancel:hover {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .modal-btn-add {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
       border: none;
       padding: 10px 20px;
       border-radius: 4px;
@@ -833,12 +833,12 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--lr-bg-overlay);
-      border: 1px solid var(--lr-border-strong);
+      background: var(--kerf-bg-overlay);
+      border: 1px solid var(--kerf-border-strong);
       border-radius: 6px;
       padding: 10px 18px;
       font-size: 11px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-family: var(--font-mono);
       z-index: 90;
       max-width: 80vw;
@@ -847,7 +847,7 @@
     }
 
     .annotation strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
   </style>
 </head>
@@ -1222,13 +1222,13 @@
             <span class="prefilled-tag">prefilled</span>
           </div>
           <div
-            style="background: var(--lr-bg-elevated); border: 1px solid var(--lr-border-subtle); border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 13px; color: var(--lr-text-primary);">
+            style="background: var(--kerf-bg-elevated); border: 1px solid var(--kerf-border-subtle); border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 13px; color: var(--kerf-text-primary);">
               <span
-                style="font-family: var(--font-mono); color: var(--lr-amber-base); font-weight: 700; margin-right: 8px;">R</span>
+                style="font-family: var(--font-mono); color: var(--kerf-amber-base); font-weight: 700; margin-right: 8px;">R</span>
               Right-handed
             </span>
-            <span style="font-size: 11px; color: var(--lr-text-tertiary); cursor: pointer;">change</span>
+            <span style="font-size: 11px; color: var(--kerf-text-tertiary); cursor: pointer;">change</span>
           </div>
         </div>
 

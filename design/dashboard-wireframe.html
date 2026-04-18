@@ -11,24 +11,24 @@
     rel="stylesheet">
   <style>
     :root {
-      --lr-bg-base: #181410;
-      --lr-bg-surface: #221C17;
-      --lr-bg-elevated: #2A2320;
-      --lr-bg-overlay: #322A26;
-      --lr-text-primary: #F2EAE0;
-      --lr-text-secondary: #9A8E80;
-      --lr-text-tertiary: #685D52;
-      --lr-text-inverse: #181410;
-      --lr-border-subtle: #2F2820;
-      --lr-border-default: #3A3128;
-      --lr-border-strong: #4A3F35;
-      --lr-amber-base: #F59E0B;
-      --lr-amber-hover: #FBBF24;
-      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-      --lr-amber-faint: rgba(245, 158, 11, 0.08);
-      --lr-success: #22C55E;
-      --lr-error: #EF4444;
-      --lr-warning: #EAB308;
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-text-inverse: #181410;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-success: #22C55E;
+      --kerf-error: #EF4444;
+      --kerf-warning: #EAB308;
       --font-sans: 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --font-brand: 'Fraunces', serif;
@@ -59,8 +59,8 @@
     }
 
     body {
-      background: var(--lr-bg-base);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.6;
@@ -69,8 +69,8 @@
 
     /* Wireframe shell */
     .wireframe-header {
-      background: var(--lr-bg-surface);
-      border-bottom: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border-bottom: 1px solid var(--kerf-border-default);
       padding: 16px 32px;
       display: flex;
       align-items: center;
@@ -83,24 +83,24 @@
     .wireframe-title {
       font-family: var(--font-mono);
       font-size: 13px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .wireframe-title strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .wireframe-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     /* App nav */
     .app-nav {
       height: 48px;
-      background: var(--lr-bg-base);
-      border-bottom: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-base);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       display: flex;
       align-items: center;
       padding: 0 32px;
@@ -120,7 +120,7 @@
     }
 
     .nav-logo .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .nav-links {
@@ -130,7 +130,7 @@
     }
 
     .nav-link {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
@@ -138,20 +138,20 @@
     }
 
     .nav-link.active {
-      color: var(--lr-amber-base);
-      border-bottom: 1px solid var(--lr-amber-base);
+      color: var(--kerf-amber-base);
+      border-bottom: 1px solid var(--kerf-amber-base);
     }
 
     .nav-right {
       display: flex;
       gap: 12px;
       align-items: center;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 12px;
     }
 
     .nav-avatar {
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 50%;
       width: 24px;
       height: 24px;
@@ -160,7 +160,7 @@
       justify-content: center;
       font-size: 10px;
       font-weight: 700;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     /* Page container */
@@ -174,13 +174,13 @@
     .page-header {
       margin-bottom: 32px;
       padding-bottom: 24px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .page-breadcrumb {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 8px;
@@ -204,21 +204,21 @@
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 6px;
       font-size: 13px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       cursor: pointer;
     }
 
     .keyboard-toggle:hover {
-      border-color: var(--lr-border-strong);
+      border-color: var(--kerf-border-strong);
     }
 
     .keyboard-toggle-name {
       font-family: var(--font-mono);
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 500;
     }
 
@@ -233,7 +233,7 @@
       justify-content: space-between;
       margin-bottom: 20px;
       padding-bottom: 12px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .section-title {
@@ -244,12 +244,12 @@
     .section-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .section-action {
       font-size: 12px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       cursor: pointer;
     }
 
@@ -262,20 +262,20 @@
     }
 
     .hero-stat {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 24px;
     }
 
     .hero-stat.featured {
-      background: linear-gradient(135deg, var(--lr-bg-surface) 0%, var(--lr-bg-elevated) 100%);
-      border-color: var(--lr-border-default);
+      background: linear-gradient(135deg, var(--kerf-bg-surface) 0%, var(--kerf-bg-elevated) 100%);
+      border-color: var(--kerf-border-default);
     }
 
     .hero-stat-label {
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-weight: 600;
@@ -286,19 +286,19 @@
       font-family: var(--font-mono);
       font-size: 42px;
       font-weight: 700;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       line-height: 1;
       margin-bottom: 8px;
     }
 
     .hero-stat.secondary .hero-stat-value {
       font-size: 32px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .hero-stat-context {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -310,18 +310,18 @@
     }
 
     .hero-stat-trend.up {
-      color: var(--lr-success);
+      color: var(--kerf-success);
     }
 
     .hero-stat-trend.down {
-      color: var(--lr-error);
+      color: var(--kerf-error);
     }
 
     /* Mini sparkline area */
     .hero-sparkline {
       margin-top: 16px;
       height: 40px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 4px;
       position: relative;
       overflow: hidden;
@@ -329,8 +329,8 @@
 
     /* === ACTIVITY LOG === */
     .activity-log {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 20px 24px;
     }
@@ -345,8 +345,8 @@
     .activity-cell {
       aspect-ratio: 1;
       border-radius: 2px;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-subtle);
     }
 
     .activity-cell.lvl-1 {
@@ -365,8 +365,8 @@
     }
 
     .activity-cell.lvl-4 {
-      background: var(--lr-amber-base);
-      border-color: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
+      border-color: var(--kerf-amber-base);
     }
 
     .activity-cell:hover {
@@ -380,7 +380,7 @@
       justify-content: space-between;
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .activity-legend-scale {
@@ -393,20 +393,20 @@
       width: 12px;
       height: 12px;
       border-radius: 2px;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-subtle);
     }
 
     /* Latest sessions list */
     .latest-sessions {
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
     }
 
     .latest-sessions-title {
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-weight: 600;
@@ -419,7 +419,7 @@
       gap: 16px;
       align-items: center;
       padding: 8px 0;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       font-size: 13px;
     }
 
@@ -430,16 +430,16 @@
     .session-time {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .session-mode {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .session-mode-badge {
-      background: var(--lr-amber-subtle);
-      color: var(--lr-amber-base);
+      background: var(--kerf-amber-subtle);
+      color: var(--kerf-amber-base);
       padding: 1px 6px;
       border-radius: 3px;
       font-family: var(--font-mono);
@@ -449,7 +449,7 @@
 
     .session-stat {
       font-family: var(--font-mono);
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 600;
       text-align: right;
       font-size: 12px;
@@ -457,15 +457,15 @@
 
     .session-duration {
       font-family: var(--font-mono);
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-align: right;
       font-size: 11px;
     }
 
     /* === HEATMAP === */
     .heatmap-container {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 32px;
     }
@@ -480,7 +480,7 @@
     .keyboard-half-label {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 8px;
@@ -495,15 +495,15 @@
     }
 
     .key-grid .key {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       width: 44px;
       cursor: pointer;
       position: relative;
@@ -517,25 +517,25 @@
 
     .key-grid .key.heat-1 {
       background: var(--heat-1);
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .key-grid .key.heat-2 {
       background: var(--heat-2);
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       border-color: rgba(245, 158, 11, 0.5);
     }
 
     .key-grid .key.heat-3 {
       background: var(--heat-3);
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       border-color: rgba(239, 68, 68, 0.6);
     }
 
     .key-grid .key.heat-4 {
       background: var(--heat-4);
-      color: var(--lr-text-primary);
-      border-color: var(--lr-error);
+      color: var(--kerf-text-primary);
+      border-color: var(--kerf-error);
       font-weight: 700;
     }
 
@@ -545,10 +545,10 @@
       justify-content: center;
       gap: 16px;
       padding-top: 24px;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .heat-legend-scale {
@@ -561,13 +561,13 @@
       width: 24px;
       height: 16px;
       border-radius: 2px;
-      border: 1px solid var(--lr-border-subtle);
+      border: 1px solid var(--kerf-border-subtle);
     }
 
     /* === WEAKNESS RANKING === */
     .weakness-list {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       overflow: hidden;
     }
@@ -579,12 +579,12 @@
       padding: 12px 24px;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-weight: 600;
-      background: var(--lr-bg-elevated);
-      border-bottom: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .weakness-row {
@@ -593,14 +593,14 @@
       gap: 16px;
       align-items: center;
       padding: 14px 24px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       font-size: 13px;
       cursor: pointer;
       transition: background 100ms;
     }
 
     .weakness-row:hover {
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
     }
 
     .weakness-row:last-child {
@@ -609,13 +609,13 @@
 
     .weakness-rank {
       font-family: var(--font-mono);
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-weight: 700;
     }
 
     .weakness-key {
-      background: var(--lr-amber-subtle);
-      color: var(--lr-amber-base);
+      background: var(--kerf-amber-subtle);
+      color: var(--kerf-amber-base);
       padding: 4px 10px;
       border-radius: 4px;
       font-family: var(--font-mono);
@@ -627,7 +627,7 @@
 
     .weakness-bar-container {
       height: 6px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 3px;
       overflow: hidden;
       position: relative;
@@ -635,13 +635,13 @@
 
     .weakness-bar-fill {
       height: 100%;
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
       border-radius: 3px;
     }
 
     .weakness-stat {
       font-family: var(--font-mono);
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       text-align: right;
       font-size: 12px;
     }
@@ -649,7 +649,7 @@
     .weakness-score {
       font-family: var(--font-mono);
       font-weight: 700;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       text-align: right;
     }
 
@@ -661,8 +661,8 @@
     }
 
     .trend-card {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 24px;
     }
@@ -677,25 +677,25 @@
     .trend-title {
       font-size: 13px;
       font-weight: 600;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .trend-current {
       font-family: var(--font-mono);
       font-size: 24px;
       font-weight: 700;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .trend-current-label {
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-left: 4px;
     }
 
     .trend-chart {
       height: 120px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 4px;
       margin-bottom: 12px;
       position: relative;
@@ -707,13 +707,13 @@
       justify-content: space-between;
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     /* === INSIGHT & RATIONALE === */
     .insight-card {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 28px;
     }
@@ -721,18 +721,18 @@
     .insight-text {
       font-size: 15px;
       line-height: 1.7;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       margin-bottom: 24px;
     }
 
     .insight-text strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       font-weight: 600;
     }
 
     .rationale-card {
-      background: var(--lr-amber-faint);
-      border-left: 3px solid var(--lr-amber-base);
+      background: var(--kerf-amber-faint);
+      border-left: 3px solid var(--kerf-amber-base);
       border-radius: 0 6px 6px 0;
       padding: 20px 24px;
       margin-bottom: 24px;
@@ -741,7 +741,7 @@
     .rationale-label {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-weight: 700;
@@ -751,18 +751,18 @@
     .rationale-text {
       font-size: 14px;
       line-height: 1.6;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .rationale-text strong {
       font-family: var(--font-mono);
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     /* Formula visible */
     .formula-section {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 6px;
       padding: 20px 24px;
       margin-top: 16px;
@@ -771,7 +771,7 @@
     .formula-title {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-weight: 600;
@@ -785,20 +785,20 @@
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.8;
-      background: var(--lr-bg-base);
+      background: var(--kerf-bg-base);
       padding: 16px 20px;
       border-radius: 4px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       margin-bottom: 16px;
       overflow-x: auto;
     }
 
     .formula-equation .var {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .formula-equation .coef {
-      color: var(--lr-success);
+      color: var(--kerf-success);
       font-weight: 700;
     }
 
@@ -814,26 +814,26 @@
       justify-content: space-between;
       align-items: center;
       padding: 8px 12px;
-      background: var(--lr-bg-base);
+      background: var(--kerf-bg-base);
       border-radius: 4px;
       font-size: 12px;
     }
 
     .formula-row-label {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-family: var(--font-mono);
     }
 
     .formula-row-value {
       font-family: var(--font-mono);
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       font-weight: 700;
     }
 
     /* CTA at bottom */
     .dashboard-cta {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-amber-base);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-amber-base);
       border-radius: 8px;
       padding: 24px 28px;
       display: flex;
@@ -849,13 +849,13 @@
     }
 
     .dashboard-cta-text p {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 13px;
     }
 
     .dashboard-cta-button {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
       padding: 12px 24px;
       border-radius: 4px;
       font-weight: 600;
@@ -870,12 +870,12 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--lr-bg-overlay);
-      border: 1px solid var(--lr-border-strong);
+      background: var(--kerf-bg-overlay);
+      border: 1px solid var(--kerf-border-strong);
       border-radius: 6px;
       padding: 12px 20px;
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-family: var(--font-mono);
       z-index: 200;
       max-width: 80vw;
@@ -884,7 +884,7 @@
     }
 
     .annotation strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
   </style>
 </head>
@@ -924,7 +924,7 @@
           <span>⊞</span>
           viewing
           <span class="keyboard-toggle-name">sofle v2</span>
-          <span style="color: var(--lr-text-tertiary);">▾</span>
+          <span style="color: var(--kerf-text-tertiary);">▾</span>
         </div>
       </div>
     </div>
@@ -962,18 +962,19 @@
 
         <div class="hero-stat secondary">
           <div class="hero-stat-label">mastered</div>
-          <div class="hero-stat-value">22<span style="font-size: 18px; color: var(--lr-text-tertiary);">/26</span></div>
+          <div class="hero-stat-value">22<span style="font-size: 18px; color: var(--kerf-text-tertiary);">/26</span>
+          </div>
           <div class="hero-stat-context">
-            <span style="color: var(--lr-text-secondary);">letters at &lt; 5% error</span>
+            <span style="color: var(--kerf-text-secondary);">letters at &lt; 5% error</span>
           </div>
         </div>
 
         <div class="hero-stat secondary">
           <div class="hero-stat-label">streak</div>
-          <div class="hero-stat-value">12<span style="font-size: 18px; color: var(--lr-text-tertiary);"> days</span>
+          <div class="hero-stat-value">12<span style="font-size: 18px; color: var(--kerf-text-tertiary);"> days</span>
           </div>
           <div class="hero-stat-context">
-            <span style="color: var(--lr-text-secondary);">🔥 longest: 18 days</span>
+            <span style="color: var(--kerf-text-secondary);">🔥 longest: 18 days</span>
           </div>
         </div>
       </div>
@@ -998,7 +999,7 @@
             <div class="activity-scale-cell" style="background: rgba(245,158,11,0.2);"></div>
             <div class="activity-scale-cell" style="background: rgba(245,158,11,0.4);"></div>
             <div class="activity-scale-cell" style="background: rgba(245,158,11,0.6);"></div>
-            <div class="activity-scale-cell" style="background: var(--lr-amber-base);"></div>
+            <div class="activity-scale-cell" style="background: var(--kerf-amber-base);"></div>
             <span>more</span>
           </div>
           <span>today</span>
@@ -1257,7 +1258,7 @@
           </div>
           <div class="trend-meta">
             <span>30 sessions ago: 48 wpm</span>
-            <span style="color: var(--lr-success);">+14 wpm trend</span>
+            <span style="color: var(--kerf-success);">+14 wpm trend</span>
           </div>
         </div>
 
@@ -1275,7 +1276,7 @@
           </div>
           <div class="trend-meta">
             <span>30 sessions ago: 60%</span>
-            <span style="color: var(--lr-success);">+25% trend</span>
+            <span style="color: var(--kerf-success);">+25% trend</span>
           </div>
         </div>
       </div>
@@ -1307,7 +1308,7 @@
 
         <div class="formula-section">
           <div class="formula-title">
-            <span style="color: var(--lr-amber-base);">⚙</span>
+            <span style="color: var(--kerf-amber-base);">⚙</span>
             how the score is calculated
           </div>
           <div class="formula-equation">
@@ -1317,8 +1318,9 @@
               class="var">frequency_penalty</span>
           </div>
 
-          <div style="font-size: 12px; color: var(--lr-text-secondary); line-height: 1.6; margin-bottom: 12px;">
-            For letter <strong style="color: var(--lr-amber-base); font-family: var(--font-mono);">B</strong> currently:
+          <div style="font-size: 12px; color: var(--kerf-text-secondary); line-height: 1.6; margin-bottom: 12px;">
+            For letter <strong style="color: var(--kerf-amber-base); font-family: var(--font-mono);">B</strong>
+            currently:
           </div>
 
           <div class="formula-breakdown">
@@ -1341,9 +1343,9 @@
           </div>
 
           <div
-            style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--lr-border-subtle); font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-secondary);">
+            style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--kerf-border-subtle); font-family: var(--font-mono); font-size: 12px; color: var(--kerf-text-secondary);">
             = 0.5 × 3.6 + 0.2 × 2.1 + 0.2 × 1.4 − 0.1 × 0.3 = <span
-              style="color: var(--lr-amber-base); font-weight: 700;">2.8</span>
+              style="color: var(--kerf-amber-base); font-weight: 700;">2.8</span>
           </div>
         </div>
       </div>

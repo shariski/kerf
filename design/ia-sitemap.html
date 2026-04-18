@@ -11,23 +11,23 @@
     rel="stylesheet">
   <style>
     :root {
-      --lr-bg-base: #181410;
-      --lr-bg-surface: #221C17;
-      --lr-bg-elevated: #2A2320;
-      --lr-bg-overlay: #322A26;
-      --lr-text-primary: #F2EAE0;
-      --lr-text-secondary: #9A8E80;
-      --lr-text-tertiary: #685D52;
-      --lr-text-inverse: #181410;
-      --lr-border-subtle: #2F2820;
-      --lr-border-default: #3A3128;
-      --lr-border-strong: #4A3F35;
-      --lr-amber-base: #F59E0B;
-      --lr-amber-hover: #FBBF24;
-      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-      --lr-amber-faint: rgba(245, 158, 11, 0.08);
-      --lr-success: #22C55E;
-      --lr-error: #EF4444;
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-text-inverse: #181410;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-success: #22C55E;
+      --kerf-error: #EF4444;
       --font-sans: 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --font-brand: 'Fraunces', serif;
@@ -40,8 +40,8 @@
     }
 
     body {
-      background: var(--lr-bg-base);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.6;
@@ -58,7 +58,7 @@
     .hero {
       margin-bottom: 48px;
       padding-bottom: 24px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .wordmark {
@@ -72,7 +72,7 @@
     }
 
     .wordmark .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .hero h1 {
@@ -85,11 +85,11 @@
     .hero .meta {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .hero p {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       margin-top: 12px;
       max-width: 700px;
     }
@@ -99,13 +99,13 @@
       display: flex;
       gap: 4px;
       margin-bottom: 32px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .tab {
       background: transparent;
       border: none;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-family: var(--font-sans);
       font-size: 14px;
       font-weight: 500;
@@ -117,12 +117,12 @@
     }
 
     .tab:hover {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .tab.active {
-      color: var(--lr-amber-base);
-      border-bottom-color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
+      border-bottom-color: var(--kerf-amber-base);
     }
 
     /* Tab content */
@@ -142,15 +142,15 @@
     }
 
     .section-desc {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       margin-bottom: 32px;
       max-width: 700px;
     }
 
     /* Sitemap visualization */
     .sitemap-canvas {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 12px;
       padding: 32px;
       overflow-x: auto;
@@ -177,7 +177,7 @@
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-bottom: 12px;
       text-align: center;
       font-weight: 600;
@@ -185,8 +185,8 @@
 
     /* Page node */
     .page-node {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 6px;
       padding: 16px 20px;
       min-width: 180px;
@@ -195,8 +195,8 @@
     }
 
     .page-node:hover {
-      border-color: var(--lr-amber-base);
-      background: var(--lr-bg-overlay);
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-bg-overlay);
     }
 
     .page-node.public {
@@ -205,14 +205,14 @@
     }
 
     .page-node.primary {
-      border-color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
     }
 
     .page-node-route {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       margin-bottom: 6px;
       font-weight: 700;
     }
@@ -225,7 +225,7 @@
 
     .page-node-desc {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       line-height: 1.4;
     }
 
@@ -239,25 +239,25 @@
     .page-node-child {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-secondary);
-      background: var(--lr-bg-base);
+      color: var(--kerf-text-secondary);
+      background: var(--kerf-bg-base);
       padding: 2px 8px;
       border-radius: 3px;
-      border: 1px solid var(--lr-border-subtle);
+      border: 1px solid var(--kerf-border-subtle);
     }
 
     /* Tier connectors */
     .connector {
       width: 1px;
       height: 24px;
-      background: var(--lr-border-default);
+      background: var(--kerf-border-default);
       margin: 0 auto;
     }
 
     /* Flow visualization */
     .flow-card {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 24px;
       margin-bottom: 20px;
@@ -269,7 +269,7 @@
       align-items: center;
       margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .flow-title {
@@ -280,9 +280,9 @@
     .flow-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       padding: 4px 10px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 3px;
     }
 
@@ -294,8 +294,8 @@
     }
 
     .flow-step {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 6px;
       padding: 12px 14px;
       min-width: 140px;
@@ -306,7 +306,7 @@
     .flow-step-route {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       margin-bottom: 4px;
       font-weight: 700;
       word-break: break-all;
@@ -314,24 +314,24 @@
 
     .flow-step-action {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       line-height: 1.4;
     }
 
     .flow-step.endpoint {
-      background: var(--lr-amber-faint);
-      border-color: var(--lr-amber-base);
+      background: var(--kerf-amber-faint);
+      border-color: var(--kerf-amber-base);
     }
 
     .flow-step.endpoint .flow-step-action {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 500;
     }
 
     .flow-arrow {
       display: flex;
       align-items: center;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-family: var(--font-mono);
       font-weight: 700;
       padding: 0 4px;
@@ -341,7 +341,7 @@
     .flow-target {
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -349,7 +349,7 @@
     }
 
     .flow-target-label {
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-family: var(--font-mono);
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -357,15 +357,15 @@
     }
 
     .flow-target-value {
-      color: var(--lr-success);
+      color: var(--kerf-success);
       font-family: var(--font-mono);
       font-weight: 700;
     }
 
     /* Nav diagram */
     .nav-mockup {
-      background: var(--lr-bg-base);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-base);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 8px;
       margin-bottom: 16px;
       overflow: hidden;
@@ -373,8 +373,8 @@
 
     .nav-bar {
       height: 48px;
-      background: var(--lr-bg-base);
-      border-bottom: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-base);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       display: flex;
       align-items: center;
       padding: 0 24px;
@@ -391,7 +391,7 @@
     }
 
     .nav-bar-logo .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .nav-bar-links {
@@ -401,7 +401,7 @@
     }
 
     .nav-link {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 13px;
       font-weight: 500;
       padding: 6px 0;
@@ -409,21 +409,21 @@
     }
 
     .nav-link.active {
-      color: var(--lr-amber-base);
-      border-bottom: 1px solid var(--lr-amber-base);
+      color: var(--kerf-amber-base);
+      border-bottom: 1px solid var(--kerf-amber-base);
     }
 
     .nav-bar-right {
       display: flex;
       gap: 12px;
       align-items: center;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 12px;
     }
 
     .nav-content {
       padding: 32px 24px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-size: 12px;
       text-align: center;
       font-family: var(--font-mono);
@@ -432,7 +432,7 @@
     .nav-label {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 8px;
@@ -441,8 +441,8 @@
 
     /* Shortcut grid */
     .shortcuts {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 20px 24px;
       margin-top: 16px;
@@ -453,7 +453,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 8px 0;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .shortcut-row:last-child {
@@ -466,20 +466,20 @@
     }
 
     .key {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-bottom-width: 2px;
       border-radius: 3px;
       padding: 2px 8px;
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 600;
     }
 
     .shortcut-desc {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     /* Legend */
@@ -488,8 +488,8 @@
       gap: 24px;
       margin-top: 24px;
       padding: 16px;
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 6px;
     }
 
@@ -498,7 +498,7 @@
       align-items: center;
       gap: 8px;
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .legend-dot {
@@ -510,10 +510,10 @@
     .footer {
       margin-top: 64px;
       padding-top: 24px;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
       text-align: center;
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
   </style>
 </head>
@@ -634,17 +634,18 @@
 
       <div class="legend">
         <div class="legend-item">
-          <div class="legend-dot" style="background: var(--lr-amber-faint); border: 1px solid var(--lr-amber-base);">
+          <div class="legend-dot"
+            style="background: var(--kerf-amber-faint); border: 1px solid var(--kerf-amber-base);">
           </div>Primary destination (top nav)
         </div>
         <div class="legend-item">
           <div class="legend-dot"
-            style="background: var(--lr-bg-elevated); border: 1px solid var(--lr-border-default);"></div>Secondary
+            style="background: var(--kerf-bg-elevated); border: 1px solid var(--kerf-border-default);"></div>Secondary
           destination
         </div>
         <div class="legend-item">
           <div class="legend-dot"
-            style="background: var(--lr-bg-elevated); border: 1px dashed var(--lr-border-default);"></div>Public (no
+            style="background: var(--kerf-bg-elevated); border: 1px dashed var(--kerf-border-default);"></div>Public (no
           auth)
         </div>
       </div>
@@ -822,7 +823,7 @@
           <div class="nav-bar-right">
             <span>⚙</span>
             <span
-              style="background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">U</span>
+              style="background: var(--kerf-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">U</span>
           </div>
         </div>
         <div class="nav-content">[ page content ]</div>
@@ -830,16 +831,16 @@
 
       <div class="nav-label">During active typing (/practice)</div>
       <div class="nav-mockup">
-        <div class="nav-bar" style="height: 4px; background: var(--lr-amber-base); padding: 0;">
+        <div class="nav-bar" style="height: 4px; background: var(--kerf-amber-base); padding: 0;">
           <!-- Hidden, just thin amber strip indicating it can be revealed -->
         </div>
         <div class="nav-content" style="padding: 48px 24px;">
           <div
-            style="font-family: var(--font-mono); font-size: 24px; color: var(--lr-text-primary); margin-bottom: 16px;">
+            style="font-family: var(--font-mono); font-size: 24px; color: var(--kerf-text-primary); margin-bottom: 16px;">
             the quick brown <span
-              style="background: var(--lr-amber-base); color: var(--lr-text-inverse); padding: 0 4px; border-radius: 3px;">f</span>ox
+              style="background: var(--kerf-amber-base); color: var(--kerf-text-inverse); padding: 0 4px; border-radius: 3px;">f</span>ox
           </div>
-          <div style="font-size: 11px; color: var(--lr-text-tertiary);">nav hidden · hover top or press Esc to reveal
+          <div style="font-size: 11px; color: var(--kerf-text-tertiary);">nav hidden · hover top or press Esc to reveal
           </div>
         </div>
       </div>
@@ -868,15 +869,15 @@
       <h3 style="font-size: 16px; font-weight: 600; margin: 32px 0 16px;">Auto-hide behavior</h3>
       <div class="shortcuts">
         <div class="shortcut-row">
-          <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Trigger to hide</strong></span>
+          <span class="shortcut-desc"><strong style="color: var(--kerf-text-primary);">Trigger to hide</strong></span>
           <span class="shortcut-desc">User starts typing · hide after 1s of activity</span>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Trigger to reveal</strong></span>
+          <span class="shortcut-desc"><strong style="color: var(--kerf-text-primary);">Trigger to reveal</strong></span>
           <span class="shortcut-desc">Mouse near top 60px · Esc key · session pause (3s no input)</span>
         </div>
         <div class="shortcut-row">
-          <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Animation</strong></span>
+          <span class="shortcut-desc"><strong style="color: var(--kerf-text-primary);">Animation</strong></span>
           <span class="shortcut-desc">Fade in/out, 150ms, ease-default</span>
         </div>
       </div>

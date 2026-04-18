@@ -364,6 +364,13 @@ Navigate all wireframes via `design/index.html`.
 
 ## Revision History
 
+**v0.4.1 (2026-04-18)** — design token rename
+
+- All `--lr-*` CSS variables renamed to `--kerf-*` across `design/**` and `docs/**`
+- Brand hygiene debt from v0.3 (kerf rebrand) resolved
+- Pure find-and-replace, no semantic changes
+- Verified visual fidelity on all wireframes post-rename
+
 **v0.4 (2026-04-18)** — tech stack finalized
 
 - Framework locked: **Tanstack Start** (over Next.js 15)
@@ -377,7 +384,7 @@ Navigate all wireframes via `design/index.html`.
 - Product renamed from `leftype-rightype` to `kerf.`
 - Wordmark redesigned: Fraunces (weight 700, opsz 144, SOFT 100) with amber trailing period as sole accent moment
 - All HTML wireframes updated to display new wordmark
-- Design token prefix `--lr-*` retained for MVP (rename to `--kerf-*` deferred; brand hygiene debt logged)
+- Design token prefix `--kerf-*` retained for MVP (rename to `--kerf-*` deferred; brand hygiene debt logged)
 - 04-design-system.md §10 rewritten with new wordmark spec + font loading directive
 - Naming rationale: "kerf" = the slit a saw blade leaves, evoking the precision-tool aesthetic the product aims for
 

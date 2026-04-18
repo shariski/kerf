@@ -11,24 +11,24 @@
     rel="stylesheet">
   <style>
     :root {
-      --lr-bg-base: #181410;
-      --lr-bg-surface: #221C17;
-      --lr-bg-elevated: #2A2320;
-      --lr-bg-overlay: #322A26;
-      --lr-text-primary: #F2EAE0;
-      --lr-text-secondary: #9A8E80;
-      --lr-text-tertiary: #685D52;
-      --lr-text-inverse: #181410;
-      --lr-border-subtle: #2F2820;
-      --lr-border-default: #3A3128;
-      --lr-border-strong: #4A3F35;
-      --lr-amber-base: #F59E0B;
-      --lr-amber-hover: #FBBF24;
-      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-      --lr-amber-faint: rgba(245, 158, 11, 0.08);
-      --lr-success: #22C55E;
-      --lr-error: #EF4444;
-      --lr-warning: #EAB308;
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-text-inverse: #181410;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-success: #22C55E;
+      --kerf-error: #EF4444;
+      --kerf-warning: #EAB308;
       --font-sans: 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --font-brand: 'Fraunces', serif;
@@ -41,8 +41,8 @@
     }
 
     body {
-      background: var(--lr-bg-base);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.6;
@@ -51,8 +51,8 @@
 
     /* Wireframe meta-header */
     .wireframe-header {
-      background: var(--lr-bg-surface);
-      border-bottom: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border-bottom: 1px solid var(--kerf-border-default);
       padding: 12px 32px;
       display: flex;
       align-items: center;
@@ -65,11 +65,11 @@
     .wireframe-title {
       font-family: var(--font-mono);
       font-size: 13px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .wireframe-title strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .state-switcher {
@@ -79,8 +79,8 @@
 
     .state-btn {
       background: transparent;
-      border: 1px solid var(--lr-border-default);
-      color: var(--lr-text-secondary);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-secondary);
       padding: 4px 12px;
       border-radius: 4px;
       font-family: var(--font-sans);
@@ -90,22 +90,22 @@
     }
 
     .state-btn:hover {
-      color: var(--lr-text-primary);
-      border-color: var(--lr-border-strong);
+      color: var(--kerf-text-primary);
+      border-color: var(--kerf-border-strong);
     }
 
     .state-btn.active {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
-      border-color: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
+      border-color: var(--kerf-amber-base);
       font-weight: 600;
     }
 
     /* App nav */
     .app-nav {
       height: 48px;
-      background: var(--lr-bg-base);
-      border-bottom: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-base);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       display: flex;
       align-items: center;
       padding: 0 32px;
@@ -125,7 +125,7 @@
     }
 
     .nav-logo .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .nav-links {
@@ -135,7 +135,7 @@
     }
 
     .nav-link {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
@@ -143,20 +143,20 @@
     }
 
     .nav-link.active {
-      color: var(--lr-amber-base);
-      border-bottom: 1px solid var(--lr-amber-base);
+      color: var(--kerf-amber-base);
+      border-bottom: 1px solid var(--kerf-amber-base);
     }
 
     .nav-right {
       display: flex;
       gap: 12px;
       align-items: center;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-size: 12px;
     }
 
     .nav-avatar {
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 50%;
       width: 24px;
       height: 24px;
@@ -165,7 +165,7 @@
       justify-content: center;
       font-size: 10px;
       font-weight: 700;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     /* === PAGE LAYOUT === */
@@ -194,7 +194,7 @@
     .sidebar-subtitle {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 24px;
@@ -210,21 +210,21 @@
       padding: 8px 12px;
       border-radius: 4px;
       font-size: 13px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       cursor: pointer;
       transition: all 150ms;
       border-left: 2px solid transparent;
     }
 
     .sidebar-link:hover {
-      color: var(--lr-text-primary);
-      background: var(--lr-bg-surface);
+      color: var(--kerf-text-primary);
+      background: var(--kerf-bg-surface);
     }
 
     .sidebar-link.active {
-      color: var(--lr-amber-base);
-      border-left-color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      color: var(--kerf-amber-base);
+      border-left-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
       font-weight: 500;
     }
 
@@ -236,7 +236,7 @@
     /* Section */
     .section {
       padding: 32px 0;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .section:first-child {
@@ -259,7 +259,7 @@
 
     .section-desc {
       font-size: 13px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     /* Field row */
@@ -268,7 +268,7 @@
       grid-template-columns: 200px 1fr;
       gap: 24px;
       padding: 16px 0;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       align-items: center;
     }
 
@@ -285,12 +285,12 @@
     .field-label-name {
       font-size: 13px;
       font-weight: 500;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .field-label-hint {
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-family: var(--font-mono);
     }
 
@@ -315,25 +315,25 @@
     }
 
     .inline-edit:hover {
-      background: var(--lr-bg-surface);
-      border-color: var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border-color: var(--kerf-border-subtle);
     }
 
     .inline-edit.editing {
-      background: var(--lr-bg-elevated);
-      border-color: var(--lr-amber-base);
+      background: var(--kerf-bg-elevated);
+      border-color: var(--kerf-amber-base);
       cursor: default;
       padding: 0;
     }
 
     .inline-edit-value {
       font-size: 14px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       flex: 1;
     }
 
     .inline-edit-value.muted {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .inline-edit.editing .inline-edit-value {
@@ -341,10 +341,10 @@
     }
 
     .inline-edit-input {
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border: none;
       padding: 8px 12px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       flex: 1;
@@ -358,7 +358,7 @@
     }
 
     .inline-edit-icon {
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-family: var(--font-mono);
       font-size: 12px;
       opacity: 0;
@@ -390,25 +390,25 @@
     }
 
     .inline-btn.save {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
     }
 
     .inline-btn.cancel {
       background: transparent;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .inline-btn.cancel:hover {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     /* Toggle / Select pill */
     .pill-group {
       display: flex;
       gap: 4px;
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 6px;
       padding: 2px;
     }
@@ -417,18 +417,18 @@
       padding: 6px 12px;
       border-radius: 4px;
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       cursor: pointer;
       transition: all 100ms;
     }
 
     .pill:hover {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .pill.active {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
       font-weight: 600;
     }
 
@@ -437,8 +437,8 @@
       position: relative;
       width: 36px;
       height: 20px;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 10px;
       cursor: pointer;
       transition: all 150ms;
@@ -451,26 +451,26 @@
       left: 2px;
       width: 14px;
       height: 14px;
-      background: var(--lr-text-secondary);
+      background: var(--kerf-text-secondary);
       border-radius: 50%;
       transition: all 150ms;
     }
 
     .switch.on {
-      background: var(--lr-amber-base);
-      border-color: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
+      border-color: var(--kerf-amber-base);
     }
 
     .switch.on::after {
       left: 18px;
-      background: var(--lr-text-inverse);
+      background: var(--kerf-text-inverse);
     }
 
     /* Action button */
     .btn-action {
       background: transparent;
-      border: 1px solid var(--lr-border-default);
-      color: var(--lr-text-primary);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-primary);
       padding: 8px 16px;
       border-radius: 4px;
       font-size: 13px;
@@ -481,18 +481,18 @@
     }
 
     .btn-action:hover {
-      background: var(--lr-bg-elevated);
-      border-color: var(--lr-border-strong);
+      background: var(--kerf-bg-elevated);
+      border-color: var(--kerf-border-strong);
     }
 
     .btn-action.danger {
       border-color: rgba(239, 68, 68, 0.3);
-      color: var(--lr-error);
+      color: var(--kerf-error);
     }
 
     .btn-action.danger:hover {
       background: rgba(239, 68, 68, 0.1);
-      border-color: var(--lr-error);
+      border-color: var(--kerf-error);
     }
 
     /* Profile reset list */
@@ -508,8 +508,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 6px;
     }
 
@@ -522,27 +522,27 @@
     .profile-reset-icon {
       width: 32px;
       height: 20px;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .profile-reset-name {
       font-family: var(--font-mono);
       font-size: 13px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 500;
     }
 
     .profile-reset-meta {
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-left: 8px;
     }
 
@@ -554,7 +554,7 @@
     }
 
     .theme-card {
-      border: 2px solid var(--lr-border-subtle);
+      border: 2px solid var(--kerf-border-subtle);
       border-radius: 8px;
       overflow: hidden;
       cursor: pointer;
@@ -562,11 +562,11 @@
     }
 
     .theme-card:hover:not(.disabled) {
-      border-color: var(--lr-border-strong);
+      border-color: var(--kerf-border-strong);
     }
 
     .theme-card.active {
-      border-color: var(--lr-amber-base);
+      border-color: var(--kerf-amber-base);
     }
 
     .theme-card.disabled {
@@ -583,17 +583,17 @@
     }
 
     .theme-dark {
-      background: var(--lr-bg-base);
+      background: var(--kerf-bg-base);
     }
 
     .theme-dark .theme-bar {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 2px;
     }
 
     .theme-dark .theme-accent {
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
     }
 
     .theme-light {
@@ -607,7 +607,7 @@
     }
 
     .theme-light .theme-accent {
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
     }
 
     .theme-bar {
@@ -628,11 +628,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
     }
 
     .theme-card.disabled .theme-card-label {
-      background: var(--lr-bg-surface);
+      background: var(--kerf-bg-surface);
     }
 
     .theme-badge {
@@ -646,13 +646,13 @@
     }
 
     .theme-badge.coming {
-      background: var(--lr-bg-elevated);
-      color: var(--lr-text-tertiary);
+      background: var(--kerf-bg-elevated);
+      color: var(--kerf-text-tertiary);
     }
 
     .theme-badge.active {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
     }
 
     /* Danger zone */
@@ -684,13 +684,13 @@
     .danger-info-name {
       font-size: 13px;
       font-weight: 500;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       margin-bottom: 2px;
     }
 
     .danger-info-desc {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       line-height: 1.5;
     }
 
@@ -712,8 +712,8 @@
     }
 
     .modal {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-error);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-error);
       border-radius: 12px;
       width: 100%;
       max-width: 520px;
@@ -727,13 +727,13 @@
     .modal-title {
       font-size: 18px;
       font-weight: 600;
-      color: var(--lr-error);
+      color: var(--kerf-error);
       margin-bottom: 4px;
     }
 
     .modal-subtitle {
       font-size: 13px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .modal-body {
@@ -742,7 +742,7 @@
 
     .modal-warning-list {
       background: rgba(239, 68, 68, 0.08);
-      border-left: 2px solid var(--lr-error);
+      border-left: 2px solid var(--kerf-error);
       padding: 14px 18px;
       border-radius: 0 4px 4px 0;
       margin-bottom: 20px;
@@ -751,38 +751,38 @@
     .modal-warning-list ul {
       list-style: none;
       font-size: 12px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       line-height: 1.8;
     }
 
     .modal-warning-list li::before {
       content: '×';
-      color: var(--lr-error);
+      color: var(--kerf-error);
       margin-right: 8px;
       font-weight: 700;
     }
 
     .modal-confirm-label {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       margin-bottom: 8px;
       font-family: var(--font-mono);
     }
 
     .modal-confirm-label code {
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       padding: 2px 8px;
       border-radius: 3px;
-      color: var(--lr-error);
+      color: var(--kerf-error);
       font-weight: 700;
       letter-spacing: 0.05em;
     }
 
     .modal-confirm-input {
       width: 100%;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-primary);
       padding: 10px 14px;
       border-radius: 4px;
       font-family: var(--font-mono);
@@ -792,12 +792,12 @@
 
     .modal-confirm-input:focus {
       outline: none;
-      border-color: var(--lr-error);
+      border-color: var(--kerf-error);
     }
 
     .modal-confirm-note {
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-top: 8px;
       font-family: var(--font-mono);
       line-height: 1.5;
@@ -805,7 +805,7 @@
 
     .modal-footer {
       padding: 16px 28px;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
       display: flex;
       gap: 12px;
       justify-content: flex-end;
@@ -813,8 +813,8 @@
 
     .modal-btn-cancel {
       background: transparent;
-      border: 1px solid var(--lr-border-default);
-      color: var(--lr-text-secondary);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-secondary);
       padding: 10px 20px;
       border-radius: 4px;
       font-size: 13px;
@@ -823,11 +823,11 @@
     }
 
     .modal-btn-cancel:hover {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .modal-btn-delete {
-      background: var(--lr-error);
+      background: var(--kerf-error);
       color: white;
       border: none;
       padding: 10px 20px;
@@ -848,12 +848,12 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--lr-bg-overlay);
-      border: 1px solid var(--lr-border-strong);
+      background: var(--kerf-bg-overlay);
+      border: 1px solid var(--kerf-border-strong);
       border-radius: 6px;
       padding: 10px 18px;
       font-size: 11px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-family: var(--font-mono);
       z-index: 90;
       max-width: 80vw;
@@ -862,7 +862,7 @@
     }
 
     .annotation strong {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
   </style>
 </head>
@@ -907,7 +907,7 @@
         <a href="#preferences" class="sidebar-link">Preferences</a>
         <a href="#theme" class="sidebar-link">Theme</a>
         <a href="#data" class="sidebar-link">Data</a>
-        <a href="#danger" class="sidebar-link" style="color: var(--lr-error);">Danger zone</a>
+        <a href="#danger" class="sidebar-link" style="color: var(--kerf-error);">Danger zone</a>
       </nav>
     </aside>
 
@@ -963,7 +963,7 @@
             <span class="field-label-hint">read-only</span>
           </div>
           <div class="field-control">
-            <span style="color: var(--lr-text-secondary); font-family: var(--font-mono); font-size: 13px;">March 12,
+            <span style="color: var(--kerf-text-secondary); font-family: var(--font-mono); font-size: 13px;">March 12,
               2026 · 47 sessions logged</span>
           </div>
         </div>
@@ -1010,7 +1010,7 @@
           </div>
           <div class="field-control">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 12px; color: var(--lr-text-tertiary); font-family: var(--font-mono);">off</span>
+              <span style="font-size: 12px; color: var(--kerf-text-tertiary); font-family: var(--font-mono);">off</span>
               <div class="switch"></div>
             </div>
           </div>
@@ -1024,7 +1024,7 @@
           <div class="field-control">
             <div style="display: flex; align-items: center; gap: 12px;">
               <span
-                style="font-size: 11px; color: var(--lr-text-tertiary); font-family: var(--font-mono); font-style: italic;">coming
+                style="font-size: 11px; color: var(--kerf-text-tertiary); font-family: var(--font-mono); font-style: italic;">coming
                 in v2</span>
               <div class="switch" style="opacity: 0.4; cursor: not-allowed;"></div>
             </div>
@@ -1114,7 +1114,7 @@
       <!-- DANGER ZONE -->
       <section class="section" id="danger">
         <div class="section-header">
-          <h2 class="section-title" style="color: var(--lr-error);">Danger zone</h2>
+          <h2 class="section-title" style="color: var(--kerf-error);">Danger zone</h2>
           <p class="section-desc">Permanent actions. Proceed with care.</p>
         </div>
 

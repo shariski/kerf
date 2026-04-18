@@ -16,34 +16,34 @@
 
 ## 2. Color Tokens
 
-All colors expressed as hex. CSS variable names follow a `--lr-{category}-{role}` convention.
+All colors expressed as hex. CSS variable names follow a `--kerf-{category}-{role}` convention.
 
 ### 2.1 Background Layers
 
 The background system uses 4 elevation levels. Higher elevation = lighter, used to create depth without shadows.
 
 ```
---lr-bg-base:       #181410  /* Page background (dark espresso) */
---lr-bg-surface:    #221C17  /* Cards, panels, elevated containers */
---lr-bg-elevated:   #2A2320  /* Modals, popovers, hover states */
---lr-bg-overlay:    #322A26  /* Tooltips, dropdowns, deep elevation */
+--kerf-bg-base:       #181410  /* Page background (dark espresso) */
+--kerf-bg-surface:    #221C17  /* Cards, panels, elevated containers */
+--kerf-bg-elevated:   #2A2320  /* Modals, popovers, hover states */
+--kerf-bg-overlay:    #322A26  /* Tooltips, dropdowns, deep elevation */
 ```
 
 ### 2.2 Foreground / Text
 
 ```
---lr-text-primary:    #F2EAE0  /* Default text — high contrast on bg-base */
---lr-text-secondary:  #9A8E80  /* Subtitles, labels, muted descriptions */
---lr-text-tertiary:   #685D52  /* Hints, placeholders, disabled state */
---lr-text-inverse:    #181410  /* Text on amber/light surfaces */
+--kerf-text-primary:    #F2EAE0  /* Default text — high contrast on bg-base */
+--kerf-text-secondary:  #9A8E80  /* Subtitles, labels, muted descriptions */
+--kerf-text-tertiary:   #685D52  /* Hints, placeholders, disabled state */
+--kerf-text-inverse:    #181410  /* Text on amber/light surfaces */
 ```
 
 ### 2.3 Borders
 
 ```
---lr-border-subtle:   #2F2820  /* Default borders, low emphasis */
---lr-border-default:  #3A3128  /* Standard borders for cards/inputs */
---lr-border-strong:   #4A3F35  /* Hover borders, emphasized boundaries */
+--kerf-border-subtle:   #2F2820  /* Default borders, low emphasis */
+--kerf-border-default:  #3A3128  /* Standard borders for cards/inputs */
+--kerf-border-strong:   #4A3F35  /* Hover borders, emphasized boundaries */
 ```
 
 ### 2.4 Accent: Amber
@@ -51,11 +51,11 @@ The background system uses 4 elevation levels. Higher elevation = lighter, used 
 The brand accent. Used sparingly for: primary actions, target key highlight, current value emphasis, brand moments. **Do not over-use** — amber should feel earned, not decorative.
 
 ```
---lr-amber-base:    #F59E0B  /* Primary accent (Tailwind amber-500) */
---lr-amber-hover:   #FBBF24  /* Hover/lighter state */
---lr-amber-pressed: #D97706  /* Active/pressed state */
---lr-amber-subtle:  rgba(245, 158, 11, 0.15)  /* Background tint, badges */
---lr-amber-faint:   rgba(245, 158, 11, 0.08)  /* Very subtle highlights */
+--kerf-amber-base:    #F59E0B  /* Primary accent (Tailwind amber-500) */
+--kerf-amber-hover:   #FBBF24  /* Hover/lighter state */
+--kerf-amber-pressed: #D97706  /* Active/pressed state */
+--kerf-amber-subtle:  rgba(245, 158, 11, 0.15)  /* Background tint, badges */
+--kerf-amber-faint:   rgba(245, 158, 11, 0.08)  /* Very subtle highlights */
 ```
 
 ### 2.5 Semantic Colors
@@ -64,20 +64,20 @@ For feedback states. Tuned to be readable on dark espresso background, slightly 
 
 ```
 /* Success (correct keypress, achievement) */
---lr-success-base:    #22C55E
---lr-success-subtle:  rgba(34, 197, 94, 0.15)
+--kerf-success-base:    #22C55E
+--kerf-success-subtle:  rgba(34, 197, 94, 0.15)
 
 /* Error (incorrect keypress, validation error) */
---lr-error-base:      #EF4444
---lr-error-subtle:    rgba(239, 68, 68, 0.15)
+--kerf-error-base:      #EF4444
+--kerf-error-subtle:    rgba(239, 68, 68, 0.15)
 
 /* Warning (hesitation, attention needed) */
---lr-warning-base:    #EAB308
---lr-warning-subtle:  rgba(234, 179, 8, 0.15)
+--kerf-warning-base:    #EAB308
+--kerf-warning-subtle:  rgba(234, 179, 8, 0.15)
 
 /* Info (system messages, neutral feedback) */
---lr-info-base:       #3B82F6
---lr-info-subtle:     rgba(59, 130, 246, 0.15)
+--kerf-info-base:       #3B82F6
+--kerf-info-subtle:     rgba(59, 130, 246, 0.15)
 ```
 
 ### 2.6 Eight Finger Colors
@@ -88,19 +88,19 @@ Mapping convention: left hand = "earth tones" (warmer), right hand = "sky tones"
 
 ```
 /* Left hand */
---lr-finger-l-pinky:   #C2410C  /* Burnt orange */
---lr-finger-l-ring:    #A16207  /* Amber bronze */
---lr-finger-l-middle:  #65A30D  /* Olive green */
---lr-finger-l-index:   #15803D  /* Forest green */
+--kerf-finger-l-pinky:   #C2410C  /* Burnt orange */
+--kerf-finger-l-ring:    #A16207  /* Amber bronze */
+--kerf-finger-l-middle:  #65A30D  /* Olive green */
+--kerf-finger-l-index:   #15803D  /* Forest green */
 
 /* Right hand */
---lr-finger-r-index:   #0E7490  /* Teal */
---lr-finger-r-middle:  #1D4ED8  /* Deep blue */
---lr-finger-r-ring:    #6D28D9  /* Indigo violet */
---lr-finger-r-pinky:   #A21CAF  /* Plum magenta */
+--kerf-finger-r-index:   #0E7490  /* Teal */
+--kerf-finger-r-middle:  #1D4ED8  /* Deep blue */
+--kerf-finger-r-ring:    #6D28D9  /* Indigo violet */
+--kerf-finger-r-pinky:   #A21CAF  /* Plum magenta */
 
 /* Thumbs (both hands, shared) */
---lr-finger-thumb:     #6B7280  /* Neutral gray */
+--kerf-finger-thumb:     #6B7280  /* Neutral gray */
 ```
 
 **Tinted variants**: each finger color also has a `-subtle` variant at 15% opacity for use as background fills (e.g., per-key heatmap backgrounds).
@@ -110,11 +110,11 @@ Mapping convention: left hand = "earth tones" (warmer), right hand = "sky tones"
 For visualizing per-key error rate. 5-step ramp from neutral to high-error.
 
 ```
---lr-heat-0: transparent           /* No data / mastered */
---lr-heat-1: rgba(245,158,11,0.15) /* Mild concern */
---lr-heat-2: rgba(245,158,11,0.35) /* Notable weakness */
---lr-heat-3: rgba(239,68,68,0.45)  /* Significant weakness */
---lr-heat-4: rgba(239,68,68,0.75)  /* Critical — top weakness */
+--kerf-heat-0: transparent           /* No data / mastered */
+--kerf-heat-1: rgba(245,158,11,0.15) /* Mild concern */
+--kerf-heat-2: rgba(245,158,11,0.35) /* Notable weakness */
+--kerf-heat-3: rgba(239,68,68,0.45)  /* Significant weakness */
+--kerf-heat-4: rgba(239,68,68,0.75)  /* Critical — top weakness */
 ```
 
 Note: heatmap intentionally uses amber-to-red ramp (not green-to-red) because green is reserved for "correct keypress" semantic — using it for "low error rate" creates conflicting meaning.
@@ -124,9 +124,9 @@ Note: heatmap intentionally uses amber-to-red ramp (not green-to-red) because gr
 ### 3.1 Font Stacks
 
 ```css
---lr-font-sans:
+--kerf-font-sans:
   "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
---lr-font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+--kerf-font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
 ```
 
 **Rationale**:
@@ -138,28 +138,28 @@ Note: heatmap intentionally uses amber-to-red ramp (not green-to-red) because gr
 
 ```
 /* Display (rare, hero moments only) */
---lr-text-display:   42px / 1.1   / weight 700
---lr-text-h1:        32px / 1.2   / weight 700
---lr-text-h2:        24px / 1.25  / weight 600
---lr-text-h3:        18px / 1.3   / weight 600
+--kerf-text-display:   42px / 1.1   / weight 700
+--kerf-text-h1:        32px / 1.2   / weight 700
+--kerf-text-h2:        24px / 1.25  / weight 600
+--kerf-text-h3:        18px / 1.3   / weight 600
 
 /* Body */
---lr-text-body-lg:   16px / 1.6   / weight 400
---lr-text-body:      14px / 1.6   / weight 400
---lr-text-body-sm:   13px / 1.5   / weight 400
+--kerf-text-body-lg:   16px / 1.6   / weight 400
+--kerf-text-body:      14px / 1.6   / weight 400
+--kerf-text-body-sm:   13px / 1.5   / weight 400
 
 /* Functional */
---lr-text-label:     12px / 1.4   / weight 500 / letter-spacing 0.02em
---lr-text-caption:   11px / 1.4   / weight 400
---lr-text-overline:  10px / 1.2   / weight 600 / letter-spacing 0.1em / uppercase
+--kerf-text-label:     12px / 1.4   / weight 500 / letter-spacing 0.02em
+--kerf-text-caption:   11px / 1.4   / weight 400
+--kerf-text-overline:  10px / 1.2   / weight 600 / letter-spacing 0.1em / uppercase
 
 /* Typing content (always mono) */
---lr-text-typing:    24px / 1.6   / weight 400 / letter-spacing 0.02em
---lr-text-typing-lg: 32px / 1.5   / weight 400 / letter-spacing 0.02em
+--kerf-text-typing:    24px / 1.6   / weight 400 / letter-spacing 0.02em
+--kerf-text-typing-lg: 32px / 1.5   / weight 400 / letter-spacing 0.02em
 
 /* Numerical display (always mono) */
---lr-text-stat:      28px / 1.0   / weight 700 (for big WPM, accuracy)
---lr-text-stat-sm:   16px / 1.0   / weight 500 (for inline stats)
+--kerf-text-stat:      28px / 1.0   / weight 700 (for big WPM, accuracy)
+--kerf-text-stat-sm:   16px / 1.0   / weight 500 (for inline stats)
 ```
 
 ### 3.3 Font Pairing Rules
@@ -175,18 +175,18 @@ Note: heatmap intentionally uses amber-to-red ramp (not green-to-red) because gr
 Base unit: 4px. All spacing uses multiples of 4 to create rhythm.
 
 ```
---lr-space-1:  4px
---lr-space-2:  8px
---lr-space-3:  12px
---lr-space-4:  16px
---lr-space-5:  20px
---lr-space-6:  24px
---lr-space-8:  32px
---lr-space-10: 40px
---lr-space-12: 48px
---lr-space-16: 64px
---lr-space-20: 80px
---lr-space-24: 96px
+--kerf-space-1:  4px
+--kerf-space-2:  8px
+--kerf-space-3:  12px
+--kerf-space-4:  16px
+--kerf-space-5:  20px
+--kerf-space-6:  24px
+--kerf-space-8:  32px
+--kerf-space-10: 40px
+--kerf-space-12: 48px
+--kerf-space-16: 64px
+--kerf-space-20: 80px
+--kerf-space-24: 96px
 ```
 
 **Usage convention**:
@@ -201,11 +201,11 @@ Base unit: 4px. All spacing uses multiples of 4 to create rhythm.
 Subtle rounding. Sharp enough to feel precise, soft enough to feel modern.
 
 ```
---lr-radius-none: 0px        /* Inputs in tight grids, technical contexts */
---lr-radius-sm:   4px        /* Default — buttons, inputs, badges */
---lr-radius-md:   6px        /* Cards, panels */
---lr-radius-lg:   12px       /* Modals, large surfaces */
---lr-radius-full: 9999px     /* Pills, avatars (sparingly) */
+--kerf-radius-none: 0px        /* Inputs in tight grids, technical contexts */
+--kerf-radius-sm:   4px        /* Default — buttons, inputs, badges */
+--kerf-radius-md:   6px        /* Cards, panels */
+--kerf-radius-lg:   12px       /* Modals, large surfaces */
+--kerf-radius-full: 9999px     /* Pills, avatars (sparingly) */
 ```
 
 **Rule**: use the smallest radius that feels right. Heavy rounding contradicts the "precise tool" aesthetic.
@@ -215,14 +215,14 @@ Subtle rounding. Sharp enough to feel precise, soft enough to feel modern.
 Fast and crisp. No bouncy springs or long fades — those feel toy-like.
 
 ```
---lr-duration-instant: 100ms   /* Visual feedback (keypress flash) */
---lr-duration-fast:    150ms   /* Hover states, simple transitions */
---lr-duration-medium:  200ms   /* Modal open, panel slide */
---lr-duration-slow:    300ms   /* Page transitions, complex sequences */
+--kerf-duration-instant: 100ms   /* Visual feedback (keypress flash) */
+--kerf-duration-fast:    150ms   /* Hover states, simple transitions */
+--kerf-duration-medium:  200ms   /* Modal open, panel slide */
+--kerf-duration-slow:    300ms   /* Page transitions, complex sequences */
 
---lr-ease-default: cubic-bezier(0.4, 0, 0.2, 1)    /* Material-style standard */
---lr-ease-out:     cubic-bezier(0.0, 0, 0.2, 1)    /* Decelerate (entries) */
---lr-ease-in:      cubic-bezier(0.4, 0, 1, 1)      /* Accelerate (exits) */
+--kerf-ease-default: cubic-bezier(0.4, 0, 0.2, 1)    /* Material-style standard */
+--kerf-ease-out:     cubic-bezier(0.0, 0, 0.2, 1)    /* Decelerate (entries) */
+--kerf-ease-in:      cubic-bezier(0.4, 0, 1, 1)      /* Accelerate (exits) */
 ```
 
 **Critical**: keypress visual feedback must complete within 100ms. Anything slower than that breaks the perception of responsiveness.
@@ -247,47 +247,47 @@ This section will expand significantly as we build out the design system. For v0
 
 **Primary** (amber, used sparingly):
 
-- Background: `--lr-amber-base`
-- Text: `--lr-text-inverse` (#181410)
-- Hover: background shifts to `--lr-amber-hover`
-- Pressed: background shifts to `--lr-amber-pressed`, scale 0.98
+- Background: `--kerf-amber-base`
+- Text: `--kerf-text-inverse` (#181410)
+- Hover: background shifts to `--kerf-amber-hover`
+- Pressed: background shifts to `--kerf-amber-pressed`, scale 0.98
 - Padding: 10px 20px (default), 8px 16px (compact)
 
 **Secondary** (transparent with border):
 
 - Background: transparent
-- Border: 1px solid `--lr-border-default`
-- Text: `--lr-text-primary`
-- Hover: background `--lr-bg-elevated`, border `--lr-border-strong`
+- Border: 1px solid `--kerf-border-default`
+- Text: `--kerf-text-primary`
+- Hover: background `--kerf-bg-elevated`, border `--kerf-border-strong`
 
 **Ghost** (no border, minimal):
 
 - Background: transparent
-- Text: `--lr-text-secondary`
-- Hover: background `--lr-amber-faint`, text `--lr-text-primary`
+- Text: `--kerf-text-secondary`
+- Hover: background `--kerf-amber-faint`, text `--kerf-text-primary`
 
 ### 8.2 Card
 
-- Background: `--lr-bg-surface`
-- Border: 1px solid `--lr-border-subtle`
-- Border-radius: `--lr-radius-md`
+- Background: `--kerf-bg-surface`
+- Border: 1px solid `--kerf-border-subtle`
+- Border-radius: `--kerf-radius-md`
 - Padding: 16px 20px (default), 24px 28px (large)
 
 ### 8.3 Input
 
-- Background: `--lr-bg-elevated`
-- Border: 1px solid `--lr-border-default`
-- Border-radius: `--lr-radius-sm`
+- Background: `--kerf-bg-elevated`
+- Border: 1px solid `--kerf-border-default`
+- Border-radius: `--kerf-radius-sm`
 - Padding: 10px 14px
-- Focus: border `--lr-amber-base`, no glow/shadow
+- Focus: border `--kerf-amber-base`, no glow/shadow
 - Font: Inter for general text, JetBrains Mono for code/numerical input
 
 ### 8.4 Badge / Pill
 
-- Background: `--lr-amber-subtle` (or other `-subtle` semantic)
-- Text: `--lr-amber-base` (or matching semantic base)
+- Background: `--kerf-amber-subtle` (or other `-subtle` semantic)
+- Text: `--kerf-amber-base` (or matching semantic base)
 - Padding: 2px 8px
-- Border-radius: `--lr-radius-sm`
+- Border-radius: `--kerf-radius-sm`
 - Font: JetBrains Mono, 12px, weight 700
 
 ## 9. Iconography
@@ -311,8 +311,8 @@ This section will expand significantly as we build out the design system. For v0
 
 **Color**:
 
-- `kerf` — `--lr-text-primary` (#F2EAE0)
-- `.` (trailing period) — `--lr-amber-base` (#F59E0B)
+- `kerf` — `--kerf-text-primary` (#F2EAE0)
+- `.` (trailing period) — `--kerf-amber-base` (#F59E0B)
 
 **Rationale**: "kerf" is the narrow slit left by a saw blade — precise, deliberate, the mark of a tool doing its work. Fraunces' soft-but-sharp display cut mirrors that duality (serif = craft, soft axis = warmth). The amber period is the single brand accent moment — small, earned, unmistakable.
 

@@ -1,883 +1,1096 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>kerf — onboarding wireframe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-text-inverse: #181410;
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    --lr-success: #22C55E;
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-brand: 'Fraunces', serif;
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  
-  /* Wireframe meta-header */
-  .wireframe-header {
-    background: var(--lr-bg-surface);
-    border-bottom: 1px solid var(--lr-border-default);
-    padding: 12px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-  }
-  .wireframe-title {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-  }
-  .wireframe-title strong { color: var(--lr-amber-base); }
-  .state-switcher { display: flex; gap: 4px; }
-  .state-btn {
-    background: transparent;
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-secondary);
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-family: var(--font-sans);
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
-  .state-btn.active { 
-    background: var(--lr-amber-base); 
-    color: var(--lr-text-inverse); 
-    border-color: var(--lr-amber-base);
-    font-weight: 600;
-  }
-  
-  /* Onboarding layout - fullscreen, no nav */
-  .onboarding {
-    min-height: 100vh;
-    padding-top: 50px; /* offset for wireframe header */
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Top bar - minimal: just logo + progress + skip-back */
-  .onb-topbar {
-    padding: 24px 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
-  }
-  .onb-logo {
-    font-family: var(--font-brand);
-    font-weight: 700;
-    font-variation-settings: 'opsz' 144, 'SOFT' 100;
-    font-size: 20px;
-    line-height: 1;
-    color: var(--lr-text-primary);
-    letter-spacing: -0.01em;
-  }
-  .onb-logo .accent { color: var(--lr-amber-base); }
-  
-  /* Progress indicator */
-  .progress {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-  .progress-step {
-    flex: 1;
-    height: 4px;
-    background: var(--lr-bg-elevated);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-  }
-  .progress-step.complete { background: var(--lr-amber-base); }
-  .progress-step.active { 
-    background: var(--lr-bg-elevated);
-  }
-  .progress-step.active::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--lr-amber-base);
-    width: 100%;
-    transform-origin: left;
-    animation: progress-fill 600ms ease-out forwards;
-  }
-  @keyframes progress-fill {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
-  }
-  
-  .step-counter {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--lr-text-tertiary);
-    min-width: 40px;
-    text-align: right;
-  }
-  
-  /* Content area */
-  .onb-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 32px;
-    max-width: 1100px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  
-  .step-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-amber-base);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 12px;
-    font-weight: 600;
-  }
-  .step-question {
-    font-size: 36px;
-    font-weight: 700;
-    line-height: 1.2;
-    text-align: center;
-    margin-bottom: 12px;
-    max-width: 700px;
-  }
-  .step-helper {
-    font-size: 15px;
-    color: var(--lr-text-secondary);
-    text-align: center;
-    max-width: 560px;
-    margin-bottom: 48px;
-    line-height: 1.6;
-  }
-  
-  /* Bottom nav */
-  .onb-actions {
-    padding: 24px 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    border-top: 1px solid var(--lr-border-subtle);
-  }
-  .onb-actions.no-back .btn-back { visibility: hidden; }
-  .btn-back, .btn-next {
-    padding: 12px 24px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    font-family: var(--font-sans);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 150ms;
-  }
-  .btn-back {
-    background: transparent;
-    color: var(--lr-text-secondary);
-    border: 1px solid var(--lr-border-default);
-  }
-  .btn-back:hover { background: var(--lr-bg-elevated); color: var(--lr-text-primary); }
-  .btn-next {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-  }
-  .btn-next:hover { background: var(--lr-amber-hover); }
-  .btn-next:disabled {
-    background: var(--lr-bg-elevated);
-    color: var(--lr-text-tertiary);
-    cursor: not-allowed;
-  }
-  .btn-next .kbd-hint {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    background: rgba(0,0,0,0.2);
-    padding: 2px 6px;
-    border-radius: 3px;
-    margin-left: 4px;
-  }
-  
-  /* === STEP 1: KEYBOARD CARDS === */
-  .keyboard-cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    width: 100%;
-    max-width: 800px;
-  }
-  .keyboard-card {
-    background: var(--lr-bg-surface);
-    border: 2px solid var(--lr-border-subtle);
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 200ms;
-  }
-  .keyboard-card:hover { border-color: var(--lr-border-strong); transform: translateY(-2px); }
-  .keyboard-card.selected { border-color: var(--lr-amber-base); background: var(--lr-amber-faint); }
-  
-  .keyboard-image-area {
-    background: var(--lr-bg-base);
-    aspect-ratio: 16 / 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid var(--lr-border-subtle);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* Schematic illustration as photo placeholder */
-  .keyboard-photo-placeholder {
-    width: 80%;
-    display: flex;
-    justify-content: space-between;
-    gap: 32px;
-    opacity: 0.7;
-  }
-  .photo-half {
-    flex: 1;
-    aspect-ratio: 5 / 3;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 12px;
-  }
-  .photo-key-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 3px;
-  }
-  .photo-key {
-    aspect-ratio: 1;
-    background: var(--lr-bg-overlay);
-    border-radius: 2px;
-  }
-  .photo-thumbs {
-    display: flex;
-    gap: 4px;
-    justify-content: center;
-    margin-top: 8px;
-  }
-  .photo-thumb {
-    width: 16px;
-    height: 12px;
-    background: var(--lr-bg-overlay);
-    border-radius: 2px;
-  }
-  .photo-thumb.large { width: 24px; }
-  
-  .photo-placeholder-label {
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--lr-text-tertiary);
-    background: rgba(0,0,0,0.5);
-    padding: 2px 6px;
-    border-radius: 2px;
-    letter-spacing: 0.05em;
-  }
-  
-  .keyboard-info {
-    padding: 20px 24px;
-  }
-  .keyboard-name {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .keyboard-meta {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .keyboard-desc {
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-    margin-top: 12px;
-    line-height: 1.6;
-  }
-  .keyboard-card.selected .keyboard-name::after {
-    content: '✓';
-    color: var(--lr-amber-base);
-    margin-left: auto;
-    font-size: 18px;
-  }
-  
-  /* === STEP 2: HAND CARDS === */
-  .hand-cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    max-width: 600px;
-    width: 100%;
-  }
-  .hand-card {
-    background: var(--lr-bg-surface);
-    border: 2px solid var(--lr-border-subtle);
-    border-radius: 12px;
-    padding: 40px 32px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 200ms;
-  }
-  .hand-card:hover { border-color: var(--lr-border-strong); transform: translateY(-2px); }
-  .hand-card.selected { border-color: var(--lr-amber-base); background: var(--lr-amber-faint); }
-  .hand-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    color: var(--lr-text-secondary);
-    font-family: var(--font-mono);
-    font-weight: 700;
-  }
-  .hand-card.selected .hand-icon { color: var(--lr-amber-base); }
-  .hand-name {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .hand-meta {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  /* === STEP 3: LEVEL CARDS === */
-  .level-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    max-width: 900px;
-    width: 100%;
-  }
-  .level-card {
-    background: var(--lr-bg-surface);
-    border: 2px solid var(--lr-border-subtle);
-    border-radius: 12px;
-    padding: 28px 24px;
-    cursor: pointer;
-    transition: all 200ms;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .level-card:hover { border-color: var(--lr-border-strong); transform: translateY(-2px); }
-  .level-card.selected { border-color: var(--lr-amber-base); background: var(--lr-amber-faint); }
-  .level-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-  }
-  .level-card.selected .level-eyebrow { color: var(--lr-amber-base); }
-  .level-name {
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 1.3;
-  }
-  .level-desc {
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-    line-height: 1.6;
-    flex: 1;
-  }
-  .level-effect {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    padding-top: 12px;
-    border-top: 1px solid var(--lr-border-subtle);
-    line-height: 1.5;
-  }
-  .level-card.selected .level-effect {
-    color: var(--lr-amber-base);
-  }
-  
-  /* === LANDING (Step 4 / Post-onboarding) === */
-  .landing-content { 
-    text-align: center; 
-    max-width: 640px;
-    width: 100%;
-  }
-  .landing-icon {
-    font-size: 56px;
-    margin-bottom: 24px;
-    display: inline-block;
-    color: var(--lr-amber-base);
-    font-family: var(--font-mono);
-    font-weight: 700;
-  }
-  .landing-summary {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 20px 24px;
-    margin: 32px 0;
-    text-align: left;
-  }
-  .landing-summary-title {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .landing-summary-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--lr-border-subtle);
-    font-size: 13px;
-  }
-  .landing-summary-row:last-child { border-bottom: none; }
-  .landing-summary-label { color: var(--lr-text-secondary); }
-  .landing-summary-value { 
-    font-family: var(--font-mono); 
-    color: var(--lr-text-primary); 
-    font-weight: 500; 
-  }
-  .landing-message {
-    font-size: 15px;
-    color: var(--lr-text-secondary);
-    line-height: 1.7;
-    margin-bottom: 24px;
-  }
-  .landing-message strong { color: var(--lr-text-primary); }
-  .landing-cta {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    padding: 14px 32px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 15px;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .landing-cta-shortcut {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    background: rgba(0,0,0,0.2);
-    padding: 3px 8px;
-    border-radius: 3px;
-  }
-  .landing-redirect-hint {
-    margin-top: 16px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-  }
-  
-  /* State visibility */
-  .step-content { display: none; }
-  .step-content.active { display: flex; flex-direction: column; align-items: center; width: 100%; }
-  
-  /* Annotation */
-  .annotation {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--lr-bg-overlay);
-    border: 1px solid var(--lr-border-strong);
-    border-radius: 6px;
-    padding: 10px 18px;
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    font-family: var(--font-mono);
-    z-index: 200;
-    max-width: 80vw;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  }
-  .annotation strong { color: var(--lr-amber-base); }
-</style>
+  <meta charset="UTF-8">
+  <title>kerf — onboarding wireframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-text-inverse: #181410;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-success: #22C55E;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Wireframe meta-header */
+    .wireframe-header {
+      background: var(--kerf-bg-surface);
+      border-bottom: 1px solid var(--kerf-border-default);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .wireframe-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--kerf-text-secondary);
+    }
+
+    .wireframe-title strong {
+      color: var(--kerf-amber-base);
+    }
+
+    .state-switcher {
+      display: flex;
+      gap: 4px;
+    }
+
+    .state-btn {
+      background: transparent;
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-secondary);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+
+    .state-btn:hover {
+      color: var(--kerf-text-primary);
+      border-color: var(--kerf-border-strong);
+    }
+
+    .state-btn.active {
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
+      border-color: var(--kerf-amber-base);
+      font-weight: 600;
+    }
+
+    /* Onboarding layout - fullscreen, no nav */
+    .onboarding {
+      min-height: 100vh;
+      padding-top: 50px;
+      /* offset for wireframe header */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top bar - minimal: just logo + progress + skip-back */
+    .onb-topbar {
+      padding: 24px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .onb-logo {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--kerf-text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .onb-logo .accent {
+      color: var(--kerf-amber-base);
+    }
+
+    /* Progress indicator */
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .progress-step {
+      flex: 1;
+      height: 4px;
+      background: var(--kerf-bg-elevated);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-step.complete {
+      background: var(--kerf-amber-base);
+    }
+
+    .progress-step.active {
+      background: var(--kerf-bg-elevated);
+    }
+
+    .progress-step.active::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--kerf-amber-base);
+      width: 100%;
+      transform-origin: left;
+      animation: progress-fill 600ms ease-out forwards;
+    }
+
+    @keyframes progress-fill {
+      from {
+        transform: scaleX(0);
+      }
+
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+    .step-counter {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--kerf-text-tertiary);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* Content area */
+    .onb-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .step-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--kerf-amber-base);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .step-question {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      margin-bottom: 12px;
+      max-width: 700px;
+    }
+
+    .step-helper {
+      font-size: 15px;
+      color: var(--kerf-text-secondary);
+      text-align: center;
+      max-width: 560px;
+      margin-bottom: 48px;
+      line-height: 1.6;
+    }
+
+    /* Bottom nav */
+    .onb-actions {
+      padding: 24px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid var(--kerf-border-subtle);
+    }
+
+    .onb-actions.no-back .btn-back {
+      visibility: hidden;
+    }
+
+    .btn-back,
+    .btn-next {
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-sans);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 150ms;
+    }
+
+    .btn-back {
+      background: transparent;
+      color: var(--kerf-text-secondary);
+      border: 1px solid var(--kerf-border-default);
+    }
+
+    .btn-back:hover {
+      background: var(--kerf-bg-elevated);
+      color: var(--kerf-text-primary);
+    }
+
+    .btn-next {
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
+    }
+
+    .btn-next:hover {
+      background: var(--kerf-amber-hover);
+    }
+
+    .btn-next:disabled {
+      background: var(--kerf-bg-elevated);
+      color: var(--kerf-text-tertiary);
+      cursor: not-allowed;
+    }
+
+    .btn-next .kbd-hint {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+
+    /* === STEP 1: KEYBOARD CARDS === */
+    .keyboard-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .keyboard-card {
+      background: var(--kerf-bg-surface);
+      border: 2px solid var(--kerf-border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 200ms;
+    }
+
+    .keyboard-card:hover {
+      border-color: var(--kerf-border-strong);
+      transform: translateY(-2px);
+    }
+
+    .keyboard-card.selected {
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
+    }
+
+    .keyboard-image-area {
+      background: var(--kerf-bg-base);
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--kerf-border-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Schematic illustration as photo placeholder */
+    .keyboard-photo-placeholder {
+      width: 80%;
+      display: flex;
+      justify-content: space-between;
+      gap: 32px;
+      opacity: 0.7;
+    }
+
+    .photo-half {
+      flex: 1;
+      aspect-ratio: 5 / 3;
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px;
+    }
+
+    .photo-key-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 3px;
+    }
+
+    .photo-key {
+      aspect-ratio: 1;
+      background: var(--kerf-bg-overlay);
+      border-radius: 2px;
+    }
+
+    .photo-thumbs {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .photo-thumb {
+      width: 16px;
+      height: 12px;
+      background: var(--kerf-bg-overlay);
+      border-radius: 2px;
+    }
+
+    .photo-thumb.large {
+      width: 24px;
+    }
+
+    .photo-placeholder-label {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--kerf-text-tertiary);
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 6px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+    }
+
+    .keyboard-info {
+      padding: 20px 24px;
+    }
+
+    .keyboard-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .keyboard-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .keyboard-desc {
+      font-size: 13px;
+      color: var(--kerf-text-secondary);
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    .keyboard-card.selected .keyboard-name::after {
+      content: '✓';
+      color: var(--kerf-amber-base);
+      margin-left: auto;
+      font-size: 18px;
+    }
+
+    /* === STEP 2: HAND CARDS === */
+    .hand-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .hand-card {
+      background: var(--kerf-bg-surface);
+      border: 2px solid var(--kerf-border-subtle);
+      border-radius: 12px;
+      padding: 40px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 200ms;
+    }
+
+    .hand-card:hover {
+      border-color: var(--kerf-border-strong);
+      transform: translateY(-2px);
+    }
+
+    .hand-card.selected {
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
+    }
+
+    .hand-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: var(--kerf-text-secondary);
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .hand-card.selected .hand-icon {
+      color: var(--kerf-amber-base);
+    }
+
+    .hand-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .hand-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* === STEP 3: LEVEL CARDS === */
+    .level-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .level-card {
+      background: var(--kerf-bg-surface);
+      border: 2px solid var(--kerf-border-subtle);
+      border-radius: 12px;
+      padding: 28px 24px;
+      cursor: pointer;
+      transition: all 200ms;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .level-card:hover {
+      border-color: var(--kerf-border-strong);
+      transform: translateY(-2px);
+    }
+
+    .level-card.selected {
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
+    }
+
+    .level-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--kerf-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .level-card.selected .level-eyebrow {
+      color: var(--kerf-amber-base);
+    }
+
+    .level-name {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .level-desc {
+      font-size: 13px;
+      color: var(--kerf-text-secondary);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .level-effect {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+      padding-top: 12px;
+      border-top: 1px solid var(--kerf-border-subtle);
+      line-height: 1.5;
+    }
+
+    .level-card.selected .level-effect {
+      color: var(--kerf-amber-base);
+    }
+
+    /* === LANDING (Step 4 / Post-onboarding) === */
+    .landing-content {
+      text-align: center;
+      max-width: 640px;
+      width: 100%;
+    }
+
+    .landing-icon {
+      font-size: 56px;
+      margin-bottom: 24px;
+      display: inline-block;
+      color: var(--kerf-amber-base);
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .landing-summary {
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 32px 0;
+      text-align: left;
+    }
+
+    .landing-summary-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .landing-summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--kerf-border-subtle);
+      font-size: 13px;
+    }
+
+    .landing-summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .landing-summary-label {
+      color: var(--kerf-text-secondary);
+    }
+
+    .landing-summary-value {
+      font-family: var(--font-mono);
+      color: var(--kerf-text-primary);
+      font-weight: 500;
+    }
+
+    .landing-message {
+      font-size: 15px;
+      color: var(--kerf-text-secondary);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .landing-message strong {
+      color: var(--kerf-text-primary);
+    }
+
+    .landing-cta {
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
+      padding: 14px 32px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .landing-cta-shortcut {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+
+    .landing-redirect-hint {
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+    }
+
+    /* State visibility */
+    .step-content {
+      display: none;
+    }
+
+    .step-content.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Annotation */
+    .annotation {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--kerf-bg-overlay);
+      border: 1px solid var(--kerf-border-strong);
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-size: 11px;
+      color: var(--kerf-text-secondary);
+      font-family: var(--font-mono);
+      z-index: 200;
+      max-width: 80vw;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .annotation strong {
+      color: var(--kerf-amber-base);
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Wireframe meta-header -->
-<div class="wireframe-header">
-  <div class="wireframe-title">
-    Onboarding wireframe v0.1 · <strong>/onboarding</strong>
-  </div>
-  <div class="state-switcher">
-    <button class="state-btn active" data-state="step1">step 1</button>
-    <button class="state-btn" data-state="step2">step 2</button>
-    <button class="state-btn" data-state="step3">step 3</button>
-    <button class="state-btn" data-state="landing">landing</button>
-  </div>
-</div>
-
-<div class="onboarding">
-  
-  <!-- Top bar -->
-  <div class="onb-topbar">
-    <div class="onb-logo">kerf<span class="accent">.</span></div>
-    <div class="progress">
-      <div class="progress-step" id="prog1"></div>
-      <div class="progress-step" id="prog2"></div>
-      <div class="progress-step" id="prog3"></div>
+  <!-- Wireframe meta-header -->
+  <div class="wireframe-header">
+    <div class="wireframe-title">
+      Onboarding wireframe v0.1 · <strong>/onboarding</strong>
     </div>
-    <div class="step-counter" id="stepCounter">step 1 of 3</div>
+    <div class="state-switcher">
+      <button class="state-btn active" data-state="step1">step 1</button>
+      <button class="state-btn" data-state="step2">step 2</button>
+      <button class="state-btn" data-state="step3">step 3</button>
+      <button class="state-btn" data-state="landing">landing</button>
+    </div>
   </div>
-  
-  <!-- Content -->
-  <div class="onb-content" id="content">
-    
-    <!-- STEP 1: Keyboard -->
-    <div class="step-content active" id="step1">
-      <div class="step-eyebrow">first, your keyboard</div>
-      <h1 class="step-question">Which split keyboard are you using?</h1>
-      <p class="step-helper">Pick the keyboard you'll be practicing on. We'll tailor the visual layout and finger assignments to match. You can add more keyboards later.</p>
-      
-      <div class="keyboard-cards">
-        <div class="keyboard-card selected" onclick="selectKeyboard(this)">
-          <div class="keyboard-image-area">
-            <div class="keyboard-photo-placeholder">
-              <div class="photo-half">
-                <div class="photo-key-grid">
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
+
+  <div class="onboarding">
+
+    <!-- Top bar -->
+    <div class="onb-topbar">
+      <div class="onb-logo">kerf<span class="accent">.</span></div>
+      <div class="progress">
+        <div class="progress-step" id="prog1"></div>
+        <div class="progress-step" id="prog2"></div>
+        <div class="progress-step" id="prog3"></div>
+      </div>
+      <div class="step-counter" id="stepCounter">step 1 of 3</div>
+    </div>
+
+    <!-- Content -->
+    <div class="onb-content" id="content">
+
+      <!-- STEP 1: Keyboard -->
+      <div class="step-content active" id="step1">
+        <div class="step-eyebrow">first, your keyboard</div>
+        <h1 class="step-question">Which split keyboard are you using?</h1>
+        <p class="step-helper">Pick the keyboard you'll be practicing on. We'll tailor the visual layout and finger
+          assignments to match. You can add more keyboards later.</p>
+
+        <div class="keyboard-cards">
+          <div class="keyboard-card selected" onclick="selectKeyboard(this)">
+            <div class="keyboard-image-area">
+              <div class="keyboard-photo-placeholder">
+                <div class="photo-half">
+                  <div class="photo-key-grid">
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                  </div>
+                  <div class="photo-thumbs">
+                    <div class="photo-thumb"></div>
+                    <div class="photo-thumb large"></div>
+                  </div>
                 </div>
-                <div class="photo-thumbs">
-                  <div class="photo-thumb"></div>
-                  <div class="photo-thumb large"></div>
+                <div class="photo-half">
+                  <div class="photo-key-grid">
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                  </div>
+                  <div class="photo-thumbs">
+                    <div class="photo-thumb large"></div>
+                    <div class="photo-thumb"></div>
+                  </div>
                 </div>
               </div>
-              <div class="photo-half">
-                <div class="photo-key-grid">
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                </div>
-                <div class="photo-thumbs">
-                  <div class="photo-thumb large"></div>
-                  <div class="photo-thumb"></div>
-                </div>
-              </div>
+              <div class="photo-placeholder-label">PHOTO PLACEHOLDER</div>
             </div>
-            <div class="photo-placeholder-label">PHOTO PLACEHOLDER</div>
-          </div>
-          <div class="keyboard-info">
-            <div class="keyboard-name">Sofle</div>
-            <div class="keyboard-meta">58 keys · 6×4+5 thumbs · split columnar</div>
-            <p class="keyboard-desc">Popular split with rotary encoder and OLED. 5 thumb keys per side. The classic transitioner pick.</p>
-          </div>
-        </div>
-        
-        <div class="keyboard-card" onclick="selectKeyboard(this)">
-          <div class="keyboard-image-area">
-            <div class="keyboard-photo-placeholder">
-              <div class="photo-half">
-                <div class="photo-key-grid">
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                </div>
-                <div class="photo-thumbs">
-                  <div class="photo-thumb"></div>
-                  <div class="photo-thumb"></div>
-                </div>
-              </div>
-              <div class="photo-half">
-                <div class="photo-key-grid">
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                  <div class="photo-key"></div><div class="photo-key"></div><div class="photo-key"></div>
-                </div>
-                <div class="photo-thumbs">
-                  <div class="photo-thumb"></div>
-                  <div class="photo-thumb"></div>
-                </div>
-              </div>
+            <div class="keyboard-info">
+              <div class="keyboard-name">Sofle</div>
+              <div class="keyboard-meta">58 keys · 6×4+5 thumbs · split columnar</div>
+              <p class="keyboard-desc">Popular split with rotary encoder and OLED. 5 thumb keys per side. The classic
+                transitioner pick.</p>
             </div>
-            <div class="photo-placeholder-label">PHOTO PLACEHOLDER</div>
           </div>
-          <div class="keyboard-info">
-            <div class="keyboard-name">Lily58</div>
-            <div class="keyboard-meta">58 keys · 6×4+4 thumbs · split columnar</div>
-            <p class="keyboard-desc">Compact split with thumb cluster. 4 thumb keys per side, no number row. Lighter, more focused layout.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- STEP 2: Hand -->
-    <div class="step-content" id="step2">
-      <div class="step-eyebrow">your dominant hand</div>
-      <h1 class="step-question">Which hand do you write with?</h1>
-      <p class="step-helper">This helps us calibrate exercises that emphasize building both-hand balance, especially in the early sessions.</p>
-      
-      <div class="hand-cards">
-        <div class="hand-card" onclick="selectHand(this)">
-          <div class="hand-icon">L</div>
-          <div class="hand-name">Left-handed</div>
-          <div class="hand-meta">10% of population</div>
-        </div>
-        <div class="hand-card selected" onclick="selectHand(this)">
-          <div class="hand-icon">R</div>
-          <div class="hand-name">Right-handed</div>
-          <div class="hand-meta">90% of population</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- STEP 3: Level -->
-    <div class="step-content" id="step3">
-      <div class="step-eyebrow">where you're at</div>
-      <h1 class="step-question">How comfortable are you on split already?</h1>
-      <p class="step-helper">Pick honestly — this calibrates how the engine starts. You can change this anytime in settings if it doesn't feel right.</p>
-      
-      <div class="level-cards">
-        <div class="level-card selected" onclick="selectLevel(this)">
-          <div class="level-eyebrow">level 1</div>
-          <div class="level-name">First day on split</div>
-          <div class="level-desc">Just unboxed it, or barely touched it. Your fingers don't know where keys are yet.</div>
-          <div class="level-effect">→ engine starts with single-letter drills, expects high error rate baseline</div>
-        </div>
-        
-        <div class="level-card" onclick="selectLevel(this)">
-          <div class="level-eyebrow">level 2</div>
-          <div class="level-name">Few weeks in</div>
-          <div class="level-desc">Getting accustomed. Most letters work, but some columns still feel awkward (esp. inner B/G/T/Y).</div>
-          <div class="level-effect">→ engine focuses on common transitioner pain points, mixed difficulty</div>
-        </div>
-        
-        <div class="level-card" onclick="selectLevel(this)">
-          <div class="level-eyebrow">level 3</div>
-          <div class="level-name">Comfortable, refining</div>
-          <div class="level-desc">Already proficient. Looking to push WPM, smooth out bigrams, eliminate residual quirks.</div>
-          <div class="level-effect">→ engine pushes speed-focused exercises, narrow-focus drills</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- LANDING (post-step 3) -->
-    <div class="step-content" id="landing">
-      <div class="landing-content">
-        <div class="landing-icon">⏎</div>
-        <h1 class="step-question" style="font-size: 28px; margin-bottom: 16px;">You're ready</h1>
-        <p class="landing-message">
-          We'll start you with a curated warm-up exercise — words you'll likely find familiar, just to capture an honest baseline. After that, the adaptive engine takes over.
-        </p>
-        
-        <div class="landing-summary">
-          <div class="landing-summary-title">Your setup</div>
-          <div class="landing-summary-row">
-            <span class="landing-summary-label">keyboard</span>
-            <span class="landing-summary-value">sofle</span>
-          </div>
-          <div class="landing-summary-row">
-            <span class="landing-summary-label">dominant hand</span>
-            <span class="landing-summary-value">right</span>
-          </div>
-          <div class="landing-summary-row">
-            <span class="landing-summary-label">starting level</span>
-            <span class="landing-summary-value">first day on split</span>
-          </div>
-        </div>
-        
-        <button class="landing-cta">
-          Start first session
-          <span class="landing-cta-shortcut">⏎ enter</span>
-        </button>
-        <div class="landing-redirect-hint">
-          auto-redirecting in 3s · or press enter to start now
-        </div>
-      </div>
-    </div>
-    
-  </div>
-  
-  <!-- Bottom actions -->
-  <div class="onb-actions no-back" id="actions">
-    <button class="btn-back" id="btnBack">
-      ← Back
-    </button>
-    <button class="btn-next" id="btnNext">
-      Continue
-      <span class="kbd-hint">⏎ enter</span>
-    </button>
-  </div>
-  
-</div>
 
-<div class="annotation" id="annotation">
-  <strong>Step 1: pick keyboard</strong> · photo placeholder shown — replace with actual product photos when ready
-</div>
+          <div class="keyboard-card" onclick="selectKeyboard(this)">
+            <div class="keyboard-image-area">
+              <div class="keyboard-photo-placeholder">
+                <div class="photo-half">
+                  <div class="photo-key-grid">
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                  </div>
+                  <div class="photo-thumbs">
+                    <div class="photo-thumb"></div>
+                    <div class="photo-thumb"></div>
+                  </div>
+                </div>
+                <div class="photo-half">
+                  <div class="photo-key-grid">
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                    <div class="photo-key"></div>
+                  </div>
+                  <div class="photo-thumbs">
+                    <div class="photo-thumb"></div>
+                    <div class="photo-thumb"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="photo-placeholder-label">PHOTO PLACEHOLDER</div>
+            </div>
+            <div class="keyboard-info">
+              <div class="keyboard-name">Lily58</div>
+              <div class="keyboard-meta">58 keys · 6×4+4 thumbs · split columnar</div>
+              <p class="keyboard-desc">Compact split with thumb cluster. 4 thumb keys per side, no number row. Lighter,
+                more focused layout.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<script>
-  let currentStep = 1;
-  
-  function setStep(stepName) {
-    // Hide all step contents
-    document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
-    document.getElementById(stepName).classList.add('active');
-    
-    // Update state buttons
-    document.querySelectorAll('.state-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.state === stepName);
-    });
-    
-    // Update progress and step counter
-    const prog1 = document.getElementById('prog1');
-    const prog2 = document.getElementById('prog2');
-    const prog3 = document.getElementById('prog3');
-    const counter = document.getElementById('stepCounter');
-    const actions = document.getElementById('actions');
-    const btnBack = document.getElementById('btnBack');
-    const btnNext = document.getElementById('btnNext');
-    const annotation = document.getElementById('annotation');
-    
-    [prog1, prog2, prog3].forEach(p => p.classList.remove('complete', 'active'));
-    
-    if (stepName === 'step1') {
-      prog1.classList.add('active');
-      counter.textContent = 'step 1 of 3';
-      actions.classList.add('no-back');
-      actions.style.display = 'flex';
-      btnNext.innerHTML = 'Continue <span class="kbd-hint">⏎ enter</span>';
-      annotation.innerHTML = '<strong>Step 1: pick keyboard</strong> · photo placeholder shown — replace with actual product photos when ready';
-    } else if (stepName === 'step2') {
-      prog1.classList.add('complete');
-      prog2.classList.add('active');
-      counter.textContent = 'step 2 of 3';
-      actions.classList.remove('no-back');
-      actions.style.display = 'flex';
-      btnNext.innerHTML = 'Continue <span class="kbd-hint">⏎ enter</span>';
-      annotation.innerHTML = '<strong>Step 2: dominant hand</strong> · simple binary choice, default selected (right) since 90% population';
-    } else if (stepName === 'step3') {
-      prog1.classList.add('complete');
-      prog2.classList.add('complete');
-      prog3.classList.add('active');
-      counter.textContent = 'step 3 of 3';
-      actions.classList.remove('no-back');
-      actions.style.display = 'flex';
-      btnNext.innerHTML = 'Finish setup <span class="kbd-hint">⏎ enter</span>';
-      annotation.innerHTML = '<strong>Step 3: self-report level</strong> · equal hierarchy, eyebrow shows engine effect for transparency';
-    } else if (stepName === 'landing') {
-      prog1.classList.add('complete');
-      prog2.classList.add('complete');
-      prog3.classList.add('complete');
-      counter.textContent = 'all set';
-      actions.style.display = 'none';
-      annotation.innerHTML = '<strong>Landing</strong> · 3s auto-redirect to /practice with curated first session, or press enter to start immediately';
+      <!-- STEP 2: Hand -->
+      <div class="step-content" id="step2">
+        <div class="step-eyebrow">your dominant hand</div>
+        <h1 class="step-question">Which hand do you write with?</h1>
+        <p class="step-helper">This helps us calibrate exercises that emphasize building both-hand balance, especially
+          in the early sessions.</p>
+
+        <div class="hand-cards">
+          <div class="hand-card" onclick="selectHand(this)">
+            <div class="hand-icon">L</div>
+            <div class="hand-name">Left-handed</div>
+            <div class="hand-meta">10% of population</div>
+          </div>
+          <div class="hand-card selected" onclick="selectHand(this)">
+            <div class="hand-icon">R</div>
+            <div class="hand-name">Right-handed</div>
+            <div class="hand-meta">90% of population</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Level -->
+      <div class="step-content" id="step3">
+        <div class="step-eyebrow">where you're at</div>
+        <h1 class="step-question">How comfortable are you on split already?</h1>
+        <p class="step-helper">Pick honestly — this calibrates how the engine starts. You can change this anytime in
+          settings if it doesn't feel right.</p>
+
+        <div class="level-cards">
+          <div class="level-card selected" onclick="selectLevel(this)">
+            <div class="level-eyebrow">level 1</div>
+            <div class="level-name">First day on split</div>
+            <div class="level-desc">Just unboxed it, or barely touched it. Your fingers don't know where keys are yet.
+            </div>
+            <div class="level-effect">→ engine starts with single-letter drills, expects high error rate baseline</div>
+          </div>
+
+          <div class="level-card" onclick="selectLevel(this)">
+            <div class="level-eyebrow">level 2</div>
+            <div class="level-name">Few weeks in</div>
+            <div class="level-desc">Getting accustomed. Most letters work, but some columns still feel awkward (esp.
+              inner B/G/T/Y).</div>
+            <div class="level-effect">→ engine focuses on common transitioner pain points, mixed difficulty</div>
+          </div>
+
+          <div class="level-card" onclick="selectLevel(this)">
+            <div class="level-eyebrow">level 3</div>
+            <div class="level-name">Comfortable, refining</div>
+            <div class="level-desc">Already proficient. Looking to push WPM, smooth out bigrams, eliminate residual
+              quirks.</div>
+            <div class="level-effect">→ engine pushes speed-focused exercises, narrow-focus drills</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LANDING (post-step 3) -->
+      <div class="step-content" id="landing">
+        <div class="landing-content">
+          <div class="landing-icon">⏎</div>
+          <h1 class="step-question" style="font-size: 28px; margin-bottom: 16px;">You're ready</h1>
+          <p class="landing-message">
+            We'll start you with a curated warm-up exercise — words you'll likely find familiar, just to capture an
+            honest baseline. After that, the adaptive engine takes over.
+          </p>
+
+          <div class="landing-summary">
+            <div class="landing-summary-title">Your setup</div>
+            <div class="landing-summary-row">
+              <span class="landing-summary-label">keyboard</span>
+              <span class="landing-summary-value">sofle</span>
+            </div>
+            <div class="landing-summary-row">
+              <span class="landing-summary-label">dominant hand</span>
+              <span class="landing-summary-value">right</span>
+            </div>
+            <div class="landing-summary-row">
+              <span class="landing-summary-label">starting level</span>
+              <span class="landing-summary-value">first day on split</span>
+            </div>
+          </div>
+
+          <button class="landing-cta">
+            Start first session
+            <span class="landing-cta-shortcut">⏎ enter</span>
+          </button>
+          <div class="landing-redirect-hint">
+            auto-redirecting in 3s · or press enter to start now
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom actions -->
+    <div class="onb-actions no-back" id="actions">
+      <button class="btn-back" id="btnBack">
+        ← Back
+      </button>
+      <button class="btn-next" id="btnNext">
+        Continue
+        <span class="kbd-hint">⏎ enter</span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="annotation" id="annotation">
+    <strong>Step 1: pick keyboard</strong> · photo placeholder shown — replace with actual product photos when ready
+  </div>
+
+  <script>
+    let currentStep = 1;
+
+    function setStep(stepName) {
+      // Hide all step contents
+      document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+      document.getElementById(stepName).classList.add('active');
+
+      // Update state buttons
+      document.querySelectorAll('.state-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.state === stepName);
+      });
+
+      // Update progress and step counter
+      const prog1 = document.getElementById('prog1');
+      const prog2 = document.getElementById('prog2');
+      const prog3 = document.getElementById('prog3');
+      const counter = document.getElementById('stepCounter');
+      const actions = document.getElementById('actions');
+      const btnBack = document.getElementById('btnBack');
+      const btnNext = document.getElementById('btnNext');
+      const annotation = document.getElementById('annotation');
+
+      [prog1, prog2, prog3].forEach(p => p.classList.remove('complete', 'active'));
+
+      if (stepName === 'step1') {
+        prog1.classList.add('active');
+        counter.textContent = 'step 1 of 3';
+        actions.classList.add('no-back');
+        actions.style.display = 'flex';
+        btnNext.innerHTML = 'Continue <span class="kbd-hint">⏎ enter</span>';
+        annotation.innerHTML = '<strong>Step 1: pick keyboard</strong> · photo placeholder shown — replace with actual product photos when ready';
+      } else if (stepName === 'step2') {
+        prog1.classList.add('complete');
+        prog2.classList.add('active');
+        counter.textContent = 'step 2 of 3';
+        actions.classList.remove('no-back');
+        actions.style.display = 'flex';
+        btnNext.innerHTML = 'Continue <span class="kbd-hint">⏎ enter</span>';
+        annotation.innerHTML = '<strong>Step 2: dominant hand</strong> · simple binary choice, default selected (right) since 90% population';
+      } else if (stepName === 'step3') {
+        prog1.classList.add('complete');
+        prog2.classList.add('complete');
+        prog3.classList.add('active');
+        counter.textContent = 'step 3 of 3';
+        actions.classList.remove('no-back');
+        actions.style.display = 'flex';
+        btnNext.innerHTML = 'Finish setup <span class="kbd-hint">⏎ enter</span>';
+        annotation.innerHTML = '<strong>Step 3: self-report level</strong> · equal hierarchy, eyebrow shows engine effect for transparency';
+      } else if (stepName === 'landing') {
+        prog1.classList.add('complete');
+        prog2.classList.add('complete');
+        prog3.classList.add('complete');
+        counter.textContent = 'all set';
+        actions.style.display = 'none';
+        annotation.innerHTML = '<strong>Landing</strong> · 3s auto-redirect to /practice with curated first session, or press enter to start immediately';
+      }
     }
-  }
-  
-  // Wire up state switcher
-  document.querySelectorAll('.state-btn').forEach(btn => {
-    btn.addEventListener('click', () => setStep(btn.dataset.state));
-  });
-  
-  // Selection handlers
-  function selectKeyboard(card) {
-    document.querySelectorAll('.keyboard-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-  }
-  function selectHand(card) {
-    document.querySelectorAll('.hand-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-  }
-  function selectLevel(card) {
-    document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-  }
-  
-  // Next button advances
-  document.getElementById('btnNext').addEventListener('click', () => {
-    const states = ['step1', 'step2', 'step3', 'landing'];
-    const current = document.querySelector('.step-content.active').id;
-    const idx = states.indexOf(current);
-    if (idx < states.length - 1) setStep(states[idx + 1]);
-  });
-  document.getElementById('btnBack').addEventListener('click', () => {
-    const states = ['step1', 'step2', 'step3', 'landing'];
-    const current = document.querySelector('.step-content.active').id;
-    const idx = states.indexOf(current);
-    if (idx > 0) setStep(states[idx - 1]);
-  });
-</script>
+
+    // Wire up state switcher
+    document.querySelectorAll('.state-btn').forEach(btn => {
+      btn.addEventListener('click', () => setStep(btn.dataset.state));
+    });
+
+    // Selection handlers
+    function selectKeyboard(card) {
+      document.querySelectorAll('.keyboard-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+    }
+    function selectHand(card) {
+      document.querySelectorAll('.hand-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+    }
+    function selectLevel(card) {
+      document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+    }
+
+    // Next button advances
+    document.getElementById('btnNext').addEventListener('click', () => {
+      const states = ['step1', 'step2', 'step3', 'landing'];
+      const current = document.querySelector('.step-content.active').id;
+      const idx = states.indexOf(current);
+      if (idx < states.length - 1) setStep(states[idx + 1]);
+    });
+    document.getElementById('btnBack').addEventListener('click', () => {
+      const states = ['step1', 'step2', 'step3', 'landing'];
+      const current = document.querySelector('.step-content.active').id;
+      const idx = states.indexOf(current);
+      if (idx > 0) setStep(states[idx - 1]);
+    });
+  </script>
 
 </body>
+
 </html>

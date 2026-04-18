@@ -11,18 +11,18 @@
     rel="stylesheet">
   <style>
     :root {
-      --lr-bg-base: #181410;
-      --lr-bg-surface: #221C17;
-      --lr-bg-elevated: #2A2320;
-      --lr-bg-overlay: #322A26;
-      --lr-text-primary: #F2EAE0;
-      --lr-text-secondary: #9A8E80;
-      --lr-text-tertiary: #685D52;
-      --lr-border-subtle: #2F2820;
-      --lr-border-default: #3A3128;
-      --lr-amber-base: #F59E0B;
-      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
 
       --finger-l-pinky: #C2410C;
       --finger-l-ring: #A16207;
@@ -46,8 +46,8 @@
     }
 
     body {
-      background: var(--lr-bg-base);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.6;
@@ -63,7 +63,7 @@
     .hero {
       margin-bottom: 48px;
       padding-bottom: 24px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .wordmark {
@@ -77,7 +77,7 @@
     }
 
     .wordmark .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .hero h1 {
@@ -88,14 +88,14 @@
     }
 
     .hero p {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       max-width: 640px;
     }
 
     .hero-meta {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-top: 12px;
     }
 
@@ -109,7 +109,7 @@
       justify-content: space-between;
       margin-bottom: 20px;
       padding-bottom: 12px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .section-title {
@@ -120,20 +120,20 @@
     .section-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
 
     .section-desc {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       margin-bottom: 24px;
       font-size: 13px;
     }
 
     .kb-preview {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 12px;
       padding: 32px;
       display: flex;
@@ -142,7 +142,7 @@
     }
 
     .kb-preview.with-fingers {
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
     }
 
     .kb-preview svg {
@@ -190,26 +190,26 @@
 
     /* Target key highlight */
     svg .key.target {
-      fill: var(--lr-amber-base);
+      fill: var(--kerf-amber-base);
       stroke: #FBBF24;
       stroke-width: 1.5;
     }
 
     svg .key.target~.key-label,
     svg .key-label.on-target {
-      fill: var(--lr-bg-base);
+      fill: var(--kerf-bg-base);
     }
 
     /* Active / highlighted state for demo */
     svg .key.demo-hl {
-      fill: var(--lr-amber-base);
+      fill: var(--kerf-amber-base);
       stroke: #FBBF24;
     }
 
     /* Encoder */
     svg .encoder-body {
       fill: var(--key-face);
-      stroke: var(--lr-amber-base);
+      stroke: var(--kerf-amber-base);
       stroke-width: 1.5;
     }
 
@@ -220,7 +220,7 @@
     }
 
     svg .encoder-tick {
-      stroke: var(--lr-amber-base);
+      stroke: var(--kerf-amber-base);
       stroke-width: 1.5;
       stroke-linecap: round;
     }
@@ -234,8 +234,8 @@
     }
 
     .variant {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       padding: 20px;
     }
@@ -243,7 +243,7 @@
     .variant-label {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-weight: 700;
@@ -252,7 +252,7 @@
 
     .variant-desc {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       margin-bottom: 16px;
     }
 
@@ -264,10 +264,10 @@
     .footer {
       margin-top: 64px;
       padding-top: 24px;
-      border-top: 1px solid var(--lr-border-subtle);
+      border-top: 1px solid var(--kerf-border-subtle);
       text-align: center;
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-family: var(--font-mono);
     }
   </style>
@@ -359,7 +359,7 @@
             <g>
               <rect class="key demo-hl" x="136" y="40" width="32" height="32" rx="4" />
               <text class="key-label on-target" x="152" y="56"
-                style="fill: var(--lr-bg-base); font-weight: 700;">t</text>
+                style="fill: var(--kerf-bg-base); font-weight: 700;">t</text>
             </g>
             <g>
               <rect class="key" x="170" y="46" width="32" height="32" rx="4" />

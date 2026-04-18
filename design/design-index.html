@@ -11,20 +11,20 @@
     rel="stylesheet">
   <style>
     :root {
-      --lr-bg-base: #181410;
-      --lr-bg-surface: #221C17;
-      --lr-bg-elevated: #2A2320;
-      --lr-bg-overlay: #322A26;
-      --lr-text-primary: #F2EAE0;
-      --lr-text-secondary: #9A8E80;
-      --lr-text-tertiary: #685D52;
-      --lr-border-subtle: #2F2820;
-      --lr-border-default: #3A3128;
-      --lr-border-strong: #4A3F35;
-      --lr-amber-base: #F59E0B;
-      --lr-amber-hover: #FBBF24;
-      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
       --font-sans: 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --font-brand: 'Fraunces', serif;
@@ -37,8 +37,8 @@
     }
 
     body {
-      background: var(--lr-bg-base);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.6;
@@ -55,7 +55,7 @@
     .hero {
       margin-bottom: 64px;
       padding-bottom: 32px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .wordmark {
@@ -69,7 +69,7 @@
     }
 
     .wordmark .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .hero h1 {
@@ -80,7 +80,7 @@
     }
 
     .hero p {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       max-width: 620px;
       margin-bottom: 8px;
       font-size: 15px;
@@ -89,7 +89,7 @@
     .hero-meta {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-top: 16px;
     }
 
@@ -104,7 +104,7 @@
       justify-content: space-between;
       margin-bottom: 24px;
       padding-bottom: 12px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .section-title {
@@ -115,13 +115,13 @@
     .section-num {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
 
     .section-desc {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       margin-bottom: 24px;
       max-width: 640px;
       font-size: 13px;
@@ -136,8 +136,8 @@
 
     /* Card */
     .card {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 8px;
       overflow: hidden;
       cursor: pointer;
@@ -149,24 +149,24 @@
     }
 
     .card:hover {
-      border-color: var(--lr-amber-base);
+      border-color: var(--kerf-amber-base);
       transform: translateY(-2px);
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
     }
 
     .card.primary {
-      border-color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
     }
 
     .card.primary:hover {
-      background: var(--lr-amber-subtle);
+      background: var(--kerf-amber-subtle);
     }
 
     .card-thumb {
       aspect-ratio: 16 / 10;
-      background: var(--lr-bg-base);
-      border-bottom: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-base);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -194,11 +194,11 @@
     .thumb-greet {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .thumb-cta-big {
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
       width: 80%;
       height: 18px;
       border-radius: 3px;
@@ -213,7 +213,7 @@
     .thumb-pill {
       width: 16px;
       height: 8px;
-      background: var(--lr-amber-subtle);
+      background: var(--kerf-amber-subtle);
       border-radius: 2px;
     }
 
@@ -230,12 +230,12 @@
     .thumb-typing {
       font-family: var(--font-mono);
       font-size: 14px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .thumb-typing .current {
-      background: var(--lr-amber-base);
-      color: var(--lr-bg-base);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-bg-base);
       padding: 0 2px;
       border-radius: 2px;
     }
@@ -255,7 +255,7 @@
 
     .thumb-keyboard-half>div {
       aspect-ratio: 1;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 1px;
     }
 
@@ -275,12 +275,12 @@
     .thumb-dash-stat {
       flex: 1;
       height: 20px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 2px;
     }
 
     .thumb-dash-stat.featured {
-      background: var(--lr-amber-subtle);
+      background: var(--kerf-amber-subtle);
       height: 28px;
     }
 
@@ -293,7 +293,7 @@
 
     .thumb-dash-grid>div {
       aspect-ratio: 1;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 1px;
     }
 
@@ -302,7 +302,7 @@
     }
 
     .thumb-dash-grid>div:nth-child(5n) {
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
     }
 
     /* Onboarding thumb */
@@ -324,12 +324,12 @@
     .thumb-progress-step {
       flex: 1;
       height: 3px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 2px;
     }
 
     .thumb-progress-step.active {
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
     }
 
     .thumb-onb-cards {
@@ -341,14 +341,14 @@
     .thumb-onb-card {
       flex: 1;
       aspect-ratio: 3 / 2;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 3px;
     }
 
     .thumb-onb-card.selected {
-      border-color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
     }
 
     /* Keyboards thumb */
@@ -360,15 +360,15 @@
     }
 
     .thumb-kb-card {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 3px;
       aspect-ratio: 1 / 0.8;
       position: relative;
     }
 
     .thumb-kb-card.active {
-      border-color: var(--lr-amber-base);
+      border-color: var(--kerf-amber-base);
     }
 
     .thumb-kb-card.active::after {
@@ -378,7 +378,7 @@
       right: 4px;
       width: 10px;
       height: 4px;
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
       border-radius: 1px;
     }
 
@@ -399,12 +399,12 @@
 
     .thumb-set-link {
       height: 8px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 1px;
     }
 
     .thumb-set-link.active {
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
       opacity: 0.6;
     }
 
@@ -416,7 +416,7 @@
 
     .thumb-set-field {
       height: 12px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 1px;
     }
 
@@ -433,23 +433,23 @@
     .thumb-login-input {
       width: 70%;
       height: 14px;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 2px;
     }
 
     .thumb-login-btn {
       width: 70%;
       height: 14px;
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
       border-radius: 2px;
     }
 
     .thumb-login-oauth {
       width: 70%;
       height: 10px;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 2px;
       margin-top: 2px;
     }
@@ -465,7 +465,7 @@
     .thumb-swatch {
       aspect-ratio: 1;
       border-radius: 3px;
-      border: 1px solid var(--lr-border-subtle);
+      border: 1px solid var(--kerf-border-subtle);
     }
 
     .thumb-swatch.c1 {
@@ -518,20 +518,20 @@
     .thumb-ia-node {
       width: 24px;
       height: 14px;
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 2px;
     }
 
     .thumb-ia-node.primary {
-      border-color: var(--lr-amber-base);
-      background: var(--lr-amber-faint);
+      border-color: var(--kerf-amber-base);
+      background: var(--kerf-amber-faint);
     }
 
     .thumb-ia-connector {
       width: 1px;
       height: 12px;
-      background: var(--lr-border-default);
+      background: var(--kerf-border-default);
     }
 
     /* Keyboard SVG thumb */
@@ -555,7 +555,7 @@
     .card-route {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       font-weight: 700;
     }
 
@@ -567,7 +567,7 @@
 
     .card-desc {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       line-height: 1.5;
       margin-top: 4px;
     }
@@ -580,13 +580,13 @@
     }
 
     .card-state-pill {
-      background: var(--lr-bg-elevated);
-      color: var(--lr-text-secondary);
+      background: var(--kerf-bg-elevated);
+      color: var(--kerf-text-secondary);
       padding: 2px 7px;
       border-radius: 2px;
       font-family: var(--font-mono);
       font-size: 10px;
-      border: 1px solid var(--lr-border-subtle);
+      border: 1px solid var(--kerf-border-subtle);
     }
 
     /* Docs section */
@@ -597,8 +597,8 @@
     }
 
     .doc-card {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 6px;
       padding: 16px 20px;
       cursor: pointer;
@@ -611,14 +611,14 @@
     }
 
     .doc-card:hover {
-      border-color: var(--lr-border-strong);
-      background: var(--lr-bg-elevated);
+      border-color: var(--kerf-border-strong);
+      background: var(--kerf-bg-elevated);
     }
 
     .doc-card-name {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       font-weight: 700;
     }
 
@@ -629,15 +629,15 @@
 
     .doc-card-desc {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     /* Footer */
     .footer {
       margin-top: 80px;
       padding-top: 32px;
-      border-top: 1px solid var(--lr-border-subtle);
-      color: var(--lr-text-tertiary);
+      border-top: 1px solid var(--kerf-border-subtle);
+      color: var(--kerf-text-tertiary);
       font-size: 12px;
       text-align: center;
       font-family: var(--font-mono);
@@ -730,104 +730,104 @@
                 <!-- Mini Sofle preview -->
                 <g transform="translate(8, 10)">
                   <!-- Left half abstracted keys -->
-                  <rect x="0" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="10" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="20" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="30" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="40" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="50" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="0" y="4" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="0" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="2" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="4" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="4" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="6" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
 
-                  <rect x="0" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="10" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="20" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="30" y="14" width="8" height="8" rx="1.5" fill="var(--lr-amber-base)" />
-                  <rect x="40" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="50" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="0" y="14" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="10" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="12" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="14" width="8" height="8" rx="1.5" fill="var(--kerf-amber-base)" />
+                  <rect x="40" y="14" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="16" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
 
-                  <rect x="0" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="10" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="20" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="30" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="40" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="50" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="0" y="24" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="20" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="22" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="24" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="24" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="26" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
 
                   <!-- Thumb cluster hint -->
                   <g transform="translate(42, 38) rotate(18)">
-                    <rect x="0" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                      stroke="var(--lr-border-default)" stroke-width="0.5" />
-                    <rect x="10" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                      stroke="var(--lr-border-default)" stroke-width="0.5" />
-                    <circle cx="28" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)"
+                    <rect x="0" y="0" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                      stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                    <rect x="10" y="0" width="12" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                      stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                    <circle cx="28" cy="4" r="4" fill="var(--kerf-bg-elevated)" stroke="var(--kerf-amber-base)"
                       stroke-width="0.7" />
                   </g>
                 </g>
 
                 <!-- Right half (mirror) -->
                 <g transform="translate(112, 10)">
-                  <rect x="0" y="6" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="10" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="20" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="30" y="2" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="40" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="50" y="4" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="0" y="6" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="4" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="4" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="2" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="0" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="4" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
 
-                  <rect x="0" y="16" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="10" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="20" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="30" y="12" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="40" y="10" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="50" y="14" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="0" y="16" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="14" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="14" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="12" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="10" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="14" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
 
-                  <rect x="0" y="26" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="10" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="20" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="30" y="22" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="40" y="20" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
-                  <rect x="50" y="24" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                    stroke="var(--lr-border-default)" stroke-width="0.5" />
+                  <rect x="0" y="26" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="10" y="24" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="20" y="24" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="30" y="22" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="40" y="20" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                  <rect x="50" y="24" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                    stroke="var(--kerf-border-default)" stroke-width="0.5" />
 
                   <!-- Right thumb cluster -->
                   <g transform="translate(-10, 42) rotate(-18 16 4)">
-                    <circle cx="0" cy="4" r="4" fill="var(--lr-bg-elevated)" stroke="var(--lr-amber-base)"
+                    <circle cx="0" cy="4" r="4" fill="var(--kerf-bg-elevated)" stroke="var(--kerf-amber-base)"
                       stroke-width="0.7" />
-                    <rect x="6" y="0" width="12" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                      stroke="var(--lr-border-default)" stroke-width="0.5" />
-                    <rect x="20" y="0" width="8" height="8" rx="1.5" fill="var(--lr-bg-elevated)"
-                      stroke="var(--lr-border-default)" stroke-width="0.5" />
+                    <rect x="6" y="0" width="12" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                      stroke="var(--kerf-border-default)" stroke-width="0.5" />
+                    <rect x="20" y="0" width="8" height="8" rx="1.5" fill="var(--kerf-bg-elevated)"
+                      stroke="var(--kerf-border-default)" stroke-width="0.5" />
                   </g>
                 </g>
               </svg>
@@ -1083,7 +1083,7 @@
           <div class="card-thumb">
             <div class="thumb-specimen" style="grid-template-columns: repeat(3, 1fr);">
               <div class="thumb-swatch" style="background: #1C1815;"></div>
-              <div class="thumb-swatch" style="background: #181410; border-color: var(--lr-amber-base);"></div>
+              <div class="thumb-swatch" style="background: #181410; border-color: var(--kerf-amber-base);"></div>
               <div class="thumb-swatch" style="background: #131210;"></div>
             </div>
           </div>

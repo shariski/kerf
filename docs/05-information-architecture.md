@@ -159,7 +159,7 @@ Auto-shown summary view (modal or inline, TBD):
 
 1. **Hero stats panel**: All-time WPM, current WPM trend (sparkline), accuracy, total sessions. Big numbers, hero treatment.
 
-2. **Visual keyboard heatmap**: SVG of the active keyboard with per-key error rate as color overlay (using the `--lr-heat-*` ramp from design system). Powerful for visual learners.
+2. **Visual keyboard heatmap**: SVG of the active keyboard with per-key error rate as color overlay (using the `--kerf-heat-*` ramp from design system). Powerful for visual learners.
 
 3. **Top weaknesses ranking**: Full top 10 list with score breakdown. Each row shows:
    - Rank, key/bigram, error rate, mean time, weakness score
@@ -234,9 +234,9 @@ After step 3: redirect to `/practice` with a curated first-session exercise (not
 **Visual specifications**:
 
 - Height: 48px
-- Background: `--lr-bg-base` with optional 1px `--lr-border-subtle` bottom border
+- Background: `--kerf-bg-base` with optional 1px `--kerf-border-subtle` bottom border
 - Logo (left): wordmark, 18px, JetBrains Mono, click → `/`
-- Primary nav (center-left): Practice, Dashboard, Keyboards. Active page indicated by amber underline (1px, `--lr-amber-base`).
+- Primary nav (center-left): Practice, Dashboard, Keyboards. Active page indicated by amber underline (1px, `--kerf-amber-base`).
 - Right cluster: settings icon (gear, 16px) + user menu (initials avatar, 24px circle)
 
 **Behavior on `/practice`** (Monkeytype-style):
@@ -247,7 +247,7 @@ After step 3: redirect to `/practice` with a curated first-session exercise (not
   - Mouse moves to top 60px of viewport
   - Esc key pressed
   - Session pause (e.g., user stops typing for 3+ seconds)
-- Smooth fade-in/out (150ms, `--lr-ease-default`)
+- Smooth fade-in/out (150ms, `--kerf-ease-default`)
 
 **Behavior on other pages**: always visible, sticky to top.
 

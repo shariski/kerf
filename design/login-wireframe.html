@@ -1,484 +1,565 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>kerf — login wireframe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-text-inverse: #181410;
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    --lr-success: #22C55E;
-    --lr-error: #EF4444;
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-brand: 'Fraunces', serif;
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  
-  /* Wireframe meta-header */
-  .wireframe-header {
-    background: var(--lr-bg-surface);
-    border-bottom: 1px solid var(--lr-border-default);
-    padding: 12px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-  }
-  .wireframe-title { font-family: var(--font-mono); font-size: 13px; color: var(--lr-text-secondary); }
-  .wireframe-title strong { color: var(--lr-amber-base); }
-  .state-switcher { display: flex; gap: 4px; }
-  .state-btn {
-    background: transparent;
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-secondary);
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-family: var(--font-sans);
-    font-size: 11px;
-    cursor: pointer;
-  }
-  .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
-  .state-btn.active {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    border-color: var(--lr-amber-base);
-    font-weight: 600;
-  }
-  
-  /* Login page layout - fullscreen, no nav */
-  .login-page {
-    min-height: 100vh;
-    padding-top: 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 50px 24px 24px;
-  }
-  
-  .login-container {
-    max-width: 420px;
-    width: 100%;
-  }
-  
-  /* Logo area — hero-like treatment (login is a first-impression page) */
-  .login-logo {
-    text-align: center;
-    margin-bottom: 48px;
-  }
-  .login-logo-mark {
-    font-family: var(--font-brand);
-    font-weight: 700;
-    font-variation-settings: 'opsz' 144, 'SOFT' 100;
-    font-size: 36px;
-    line-height: 1;
-    color: var(--lr-text-primary);
-    letter-spacing: -0.02em;
-    margin-bottom: 10px;
-  }
-  .login-logo-mark .accent { color: var(--lr-amber-base); }
-  .login-logo-tagline {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    letter-spacing: 0.05em;
-  }
-  
-  /* Login card */
-  .login-card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 12px;
-    padding: 32px;
-  }
-  
-  .login-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-  .login-subtitle {
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-    text-align: center;
-    margin-bottom: 28px;
-    line-height: 1.6;
-  }
-  
-  /* Email input */
-  .email-input-wrapper {
-    margin-bottom: 12px;
-  }
-  .email-input-label {
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 6px;
-    font-weight: 600;
-  }
-  .email-input {
-    width: 100%;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-primary);
-    padding: 12px 14px;
-    border-radius: 6px;
-    font-family: var(--font-sans);
-    font-size: 14px;
-    transition: all 150ms;
-  }
-  .email-input:focus {
-    outline: none;
-    border-color: var(--lr-amber-base);
-  }
-  .email-input::placeholder {
-    color: var(--lr-text-tertiary);
-  }
-  
-  /* Primary button */
-  .btn-primary {
-    width: 100%;
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    border: none;
-    padding: 12px 20px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 150ms;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .btn-primary:hover { background: var(--lr-amber-hover); }
-  .btn-primary:disabled {
-    background: var(--lr-bg-elevated);
-    color: var(--lr-text-tertiary);
-    cursor: not-allowed;
-  }
-  .btn-primary-shortcut {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    background: rgba(0,0,0,0.2);
-    padding: 2px 6px;
-    border-radius: 3px;
-  }
-  
-  /* Divider */
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0;
-  }
-  .divider-line {
-    flex: 1;
-    height: 1px;
-    background: var(--lr-border-subtle);
-  }
-  .divider-text {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 600;
-  }
-  
-  /* OAuth buttons */
-  .oauth-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .btn-oauth {
-    width: 100%;
-    background: var(--lr-bg-elevated);
-    color: var(--lr-text-primary);
-    border: 1px solid var(--lr-border-default);
-    padding: 11px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 150ms;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .btn-oauth:hover {
-    background: var(--lr-bg-overlay);
-    border-color: var(--lr-border-strong);
-  }
-  .oauth-icon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  /* Legal footer */
-  .login-legal {
-    margin-top: 24px;
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-align: center;
-    line-height: 1.6;
-  }
-  .login-legal a {
-    color: var(--lr-text-secondary);
-    text-decoration: underline;
-    text-decoration-color: var(--lr-border-default);
-  }
-  .login-legal a:hover { color: var(--lr-text-primary); }
-  
-  /* === CHECK EMAIL STATE === */
-  .check-email-icon {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .check-email-mark {
-    display: inline-block;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--lr-amber-subtle);
-    color: var(--lr-amber-base);
-    font-family: var(--font-mono);
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 56px;
-    text-align: center;
-  }
-  .check-email-text {
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-    text-align: center;
-    line-height: 1.7;
-    margin-bottom: 20px;
-  }
-  .check-email-text strong {
-    color: var(--lr-text-primary);
-    font-family: var(--font-mono);
-    font-weight: 600;
-  }
-  .resend-section {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--lr-text-tertiary);
-  }
-  .resend-link {
-    color: var(--lr-amber-base);
-    cursor: pointer;
-    font-weight: 600;
-  }
-  .resend-link:hover { text-decoration: underline; }
-  .resend-link.disabled {
-    color: var(--lr-text-tertiary);
-    cursor: not-allowed;
-  }
-  .resend-link.disabled:hover { text-decoration: none; }
-  
-  .back-link {
-    display: block;
-    text-align: center;
-    margin-top: 16px;
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    cursor: pointer;
-    font-family: var(--font-mono);
-  }
-  .back-link:hover { color: var(--lr-text-primary); }
-  
-  /* Annotation */
-  .annotation {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--lr-bg-overlay);
-    border: 1px solid var(--lr-border-strong);
-    border-radius: 6px;
-    padding: 10px 18px;
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    font-family: var(--font-mono);
-    z-index: 90;
-    max-width: 80vw;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  }
-  .annotation strong { color: var(--lr-amber-base); }
-  
-  /* State visibility */
-  .state-content { display: none; }
-  .state-content.active { display: block; }
-</style>
+  <meta charset="UTF-8">
+  <title>kerf — login wireframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-text-inverse: #181410;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-success: #22C55E;
+      --kerf-error: #EF4444;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Wireframe meta-header */
+    .wireframe-header {
+      background: var(--kerf-bg-surface);
+      border-bottom: 1px solid var(--kerf-border-default);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .wireframe-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--kerf-text-secondary);
+    }
+
+    .wireframe-title strong {
+      color: var(--kerf-amber-base);
+    }
+
+    .state-switcher {
+      display: flex;
+      gap: 4px;
+    }
+
+    .state-btn {
+      background: transparent;
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-secondary);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .state-btn:hover {
+      color: var(--kerf-text-primary);
+      border-color: var(--kerf-border-strong);
+    }
+
+    .state-btn.active {
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
+      border-color: var(--kerf-amber-base);
+      font-weight: 600;
+    }
+
+    /* Login page layout - fullscreen, no nav */
+    .login-page {
+      min-height: 100vh;
+      padding-top: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 24px 24px;
+    }
+
+    .login-container {
+      max-width: 420px;
+      width: 100%;
+    }
+
+    /* Logo area — hero-like treatment (login is a first-impression page) */
+    .login-logo {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .login-logo-mark {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 36px;
+      line-height: 1;
+      color: var(--kerf-text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .login-logo-mark .accent {
+      color: var(--kerf-amber-base);
+    }
+
+    .login-logo-tagline {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+      letter-spacing: 0.05em;
+    }
+
+    /* Login card */
+    .login-card {
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
+      border-radius: 12px;
+      padding: 32px;
+    }
+
+    .login-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      color: var(--kerf-text-secondary);
+      text-align: center;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* Email input */
+    .email-input-wrapper {
+      margin-bottom: 12px;
+    }
+
+    .email-input-label {
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .email-input {
+      width: 100%;
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
+      color: var(--kerf-text-primary);
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      transition: all 150ms;
+    }
+
+    .email-input:focus {
+      outline: none;
+      border-color: var(--kerf-amber-base);
+    }
+
+    .email-input::placeholder {
+      color: var(--kerf-text-tertiary);
+    }
+
+    /* Primary button */
+    .btn-primary {
+      width: 100%;
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: var(--kerf-amber-hover);
+    }
+
+    .btn-primary:disabled {
+      background: var(--kerf-bg-elevated);
+      color: var(--kerf-text-tertiary);
+      cursor: not-allowed;
+    }
+
+    .btn-primary-shortcut {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--kerf-border-subtle);
+    }
+
+    .divider-text {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--kerf-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    /* OAuth buttons */
+    .oauth-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-oauth {
+      width: 100%;
+      background: var(--kerf-bg-elevated);
+      color: var(--kerf-text-primary);
+      border: 1px solid var(--kerf-border-default);
+      padding: 11px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-oauth:hover {
+      background: var(--kerf-bg-overlay);
+      border-color: var(--kerf-border-strong);
+    }
+
+    .oauth-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Legal footer */
+    .login-legal {
+      margin-top: 24px;
+      font-size: 11px;
+      color: var(--kerf-text-tertiary);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .login-legal a {
+      color: var(--kerf-text-secondary);
+      text-decoration: underline;
+      text-decoration-color: var(--kerf-border-default);
+    }
+
+    .login-legal a:hover {
+      color: var(--kerf-text-primary);
+    }
+
+    /* === CHECK EMAIL STATE === */
+    .check-email-icon {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .check-email-mark {
+      display: inline-block;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--kerf-amber-subtle);
+      color: var(--kerf-amber-base);
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 56px;
+      text-align: center;
+    }
+
+    .check-email-text {
+      font-size: 13px;
+      color: var(--kerf-text-secondary);
+      text-align: center;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .check-email-text strong {
+      color: var(--kerf-text-primary);
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .resend-section {
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-subtle);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--kerf-text-tertiary);
+    }
+
+    .resend-link {
+      color: var(--kerf-amber-base);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .resend-link:hover {
+      text-decoration: underline;
+    }
+
+    .resend-link.disabled {
+      color: var(--kerf-text-tertiary);
+      cursor: not-allowed;
+    }
+
+    .resend-link.disabled:hover {
+      text-decoration: none;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--kerf-text-secondary);
+      cursor: pointer;
+      font-family: var(--font-mono);
+    }
+
+    .back-link:hover {
+      color: var(--kerf-text-primary);
+    }
+
+    /* Annotation */
+    .annotation {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--kerf-bg-overlay);
+      border: 1px solid var(--kerf-border-strong);
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-size: 11px;
+      color: var(--kerf-text-secondary);
+      font-family: var(--font-mono);
+      z-index: 90;
+      max-width: 80vw;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .annotation strong {
+      color: var(--kerf-amber-base);
+    }
+
+    /* State visibility */
+    .state-content {
+      display: none;
+    }
+
+    .state-content.active {
+      display: block;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Wireframe meta-header -->
-<div class="wireframe-header">
-  <div class="wireframe-title">
-    Login wireframe v0.1 · <strong>/login</strong>
-  </div>
-  <div class="state-switcher">
-    <button class="state-btn active" data-state="default">default</button>
-    <button class="state-btn" data-state="check-email">check email</button>
-  </div>
-</div>
-
-<div class="login-page">
-  <div class="login-container">
-    
-    <!-- Logo -->
-    <div class="login-logo">
-      <div class="login-logo-mark">kerf<span class="accent">.</span></div>
-      <div class="login-logo-tagline">a typing coach for split keyboards</div>
+  <!-- Wireframe meta-header -->
+  <div class="wireframe-header">
+    <div class="wireframe-title">
+      Login wireframe v0.1 · <strong>/login</strong>
     </div>
-    
-    <!-- DEFAULT STATE -->
-    <div class="state-content active" id="state-default">
-      <div class="login-card">
-        <h1 class="login-title">Sign in or create account</h1>
-        <p class="login-subtitle">Enter your email — we'll send a magic link to sign in. Same link works for new accounts.</p>
-        
-        <div class="email-input-wrapper">
-          <div class="email-input-label">email</div>
-          <input type="email" class="email-input" placeholder="you@example.com">
-        </div>
-        
-        <button class="btn-primary">
-          Send magic link
-          <span class="btn-primary-shortcut">⏎</span>
-        </button>
-        
-        <div class="divider">
-          <div class="divider-line"></div>
-          <span class="divider-text">or continue with</span>
-          <div class="divider-line"></div>
-        </div>
-        
-        <div class="oauth-buttons">
-          <button class="btn-oauth">
-            <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-            </svg>
-            Continue with GitHub
+    <div class="state-switcher">
+      <button class="state-btn active" data-state="default">default</button>
+      <button class="state-btn" data-state="check-email">check email</button>
+    </div>
+  </div>
+
+  <div class="login-page">
+    <div class="login-container">
+
+      <!-- Logo -->
+      <div class="login-logo">
+        <div class="login-logo-mark">kerf<span class="accent">.</span></div>
+        <div class="login-logo-tagline">a typing coach for split keyboards</div>
+      </div>
+
+      <!-- DEFAULT STATE -->
+      <div class="state-content active" id="state-default">
+        <div class="login-card">
+          <h1 class="login-title">Sign in or create account</h1>
+          <p class="login-subtitle">Enter your email — we'll send a magic link to sign in. Same link works for new
+            accounts.</p>
+
+          <div class="email-input-wrapper">
+            <div class="email-input-label">email</div>
+            <input type="email" class="email-input" placeholder="you@example.com">
+          </div>
+
+          <button class="btn-primary">
+            Send magic link
+            <span class="btn-primary-shortcut">⏎</span>
           </button>
-          <button class="btn-oauth">
-            <svg class="oauth-icon" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Continue with Google
-          </button>
+
+          <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">or continue with</span>
+            <div class="divider-line"></div>
+          </div>
+
+          <div class="oauth-buttons">
+            <button class="btn-oauth">
+              <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+              </svg>
+              Continue with GitHub
+            </button>
+            <button class="btn-oauth">
+              <svg class="oauth-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              Continue with Google
+            </button>
+          </div>
+
+          <div class="login-legal">
+            By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+          </div>
         </div>
-        
+      </div>
+
+      <!-- CHECK EMAIL STATE -->
+      <div class="state-content" id="state-check-email">
+        <div class="login-card">
+          <div class="check-email-icon">
+            <div class="check-email-mark">✉</div>
+          </div>
+          <h1 class="login-title" style="margin-bottom: 12px;">Check your email</h1>
+          <p class="check-email-text">
+            We sent a magic link to <strong>you@example.com</strong>.<br>
+            Click it to sign in. Link expires in 10 minutes.
+          </p>
+
+          <div class="resend-section">
+            <span>Didn't get it?</span>
+            <span class="resend-link disabled">Resend in 58s</span>
+          </div>
+
+          <div class="back-link">← Use a different email</div>
+        </div>
+
         <div class="login-legal">
-          By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+          Can't find the email? Check your spam folder, or <a href="#">contact support</a>.
         </div>
       </div>
+
     </div>
-    
-    <!-- CHECK EMAIL STATE -->
-    <div class="state-content" id="state-check-email">
-      <div class="login-card">
-        <div class="check-email-icon">
-          <div class="check-email-mark">✉</div>
-        </div>
-        <h1 class="login-title" style="margin-bottom: 12px;">Check your email</h1>
-        <p class="check-email-text">
-          We sent a magic link to <strong>you@example.com</strong>.<br>
-          Click it to sign in. Link expires in 10 minutes.
-        </p>
-        
-        <div class="resend-section">
-          <span>Didn't get it?</span>
-          <span class="resend-link disabled">Resend in 58s</span>
-        </div>
-        
-        <div class="back-link">← Use a different email</div>
-      </div>
-      
-      <div class="login-legal">
-        Can't find the email? Check your spam folder, or <a href="#">contact support</a>.
-      </div>
-    </div>
-    
   </div>
-</div>
 
-<div class="annotation" id="annotation">
-  <strong>Default state</strong> · magic link primary, GitHub + Google OAuth below divider · single page handles both login and register
-</div>
+  <div class="annotation" id="annotation">
+    <strong>Default state</strong> · magic link primary, GitHub + Google OAuth below divider · single page handles both
+    login and register
+  </div>
 
-<script>
-  function setState(state) {
-    document.querySelectorAll('.state-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.state === state);
-    });
-    document.querySelectorAll('.state-content').forEach(s => s.classList.remove('active'));
-    document.getElementById('state-' + state).classList.add('active');
-    
-    const annotation = document.getElementById('annotation');
-    if (state === 'default') {
-      annotation.innerHTML = '<strong>Default state</strong> · magic link primary, GitHub + Google OAuth below divider · single page handles both login and register';
-    } else if (state === 'check-email') {
-      annotation.innerHTML = '<strong>Check email state</strong> · confirmation after magic link sent · 60s resend cooldown · back link to change email';
+  <script>
+    function setState(state) {
+      document.querySelectorAll('.state-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.state === state);
+      });
+      document.querySelectorAll('.state-content').forEach(s => s.classList.remove('active'));
+      document.getElementById('state-' + state).classList.add('active');
+
+      const annotation = document.getElementById('annotation');
+      if (state === 'default') {
+        annotation.innerHTML = '<strong>Default state</strong> · magic link primary, GitHub + Google OAuth below divider · single page handles both login and register';
+      } else if (state === 'check-email') {
+        annotation.innerHTML = '<strong>Check email state</strong> · confirmation after magic link sent · 60s resend cooldown · back link to change email';
+      }
     }
-  }
-  
-  document.querySelectorAll('.state-btn').forEach(btn => {
-    btn.addEventListener('click', () => setState(btn.dataset.state));
-  });
-</script>
+
+    document.querySelectorAll('.state-btn').forEach(btn => {
+      btn.addEventListener('click', () => setState(btn.dataset.state));
+    });
+  </script>
 
 </body>
+
 </html>

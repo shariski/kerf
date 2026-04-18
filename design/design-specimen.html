@@ -12,34 +12,34 @@
   <style>
     :root {
       /* Backgrounds */
-      --lr-bg-base: #181410;
-      --lr-bg-surface: #221C17;
-      --lr-bg-elevated: #2A2320;
-      --lr-bg-overlay: #322A26;
+      --kerf-bg-base: #181410;
+      --kerf-bg-surface: #221C17;
+      --kerf-bg-elevated: #2A2320;
+      --kerf-bg-overlay: #322A26;
 
       /* Text */
-      --lr-text-primary: #F2EAE0;
-      --lr-text-secondary: #9A8E80;
-      --lr-text-tertiary: #685D52;
-      --lr-text-inverse: #181410;
+      --kerf-text-primary: #F2EAE0;
+      --kerf-text-secondary: #9A8E80;
+      --kerf-text-tertiary: #685D52;
+      --kerf-text-inverse: #181410;
 
       /* Borders */
-      --lr-border-subtle: #2F2820;
-      --lr-border-default: #3A3128;
-      --lr-border-strong: #4A3F35;
+      --kerf-border-subtle: #2F2820;
+      --kerf-border-default: #3A3128;
+      --kerf-border-strong: #4A3F35;
 
       /* Amber */
-      --lr-amber-base: #F59E0B;
-      --lr-amber-hover: #FBBF24;
-      --lr-amber-pressed: #D97706;
-      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --kerf-amber-base: #F59E0B;
+      --kerf-amber-hover: #FBBF24;
+      --kerf-amber-pressed: #D97706;
+      --kerf-amber-subtle: rgba(245, 158, 11, 0.15);
+      --kerf-amber-faint: rgba(245, 158, 11, 0.08);
 
       /* Semantic */
-      --lr-success: #22C55E;
-      --lr-error: #EF4444;
-      --lr-warning: #EAB308;
-      --lr-info: #3B82F6;
+      --kerf-success: #22C55E;
+      --kerf-error: #EF4444;
+      --kerf-warning: #EAB308;
+      --kerf-info: #3B82F6;
 
       /* Finger colors */
       --finger-l-pinky: #C2410C;
@@ -65,8 +65,8 @@
     }
 
     body {
-      background: var(--lr-bg-base);
-      color: var(--lr-text-primary);
+      background: var(--kerf-bg-base);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.6;
@@ -83,7 +83,7 @@
     .hero {
       margin-bottom: 64px;
       padding-bottom: 32px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .wordmark {
@@ -97,11 +97,11 @@
     }
 
     .wordmark .accent {
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     .hero p {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       max-width: 600px;
     }
 
@@ -109,7 +109,7 @@
       margin-top: 12px;
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     /* Section */
@@ -123,7 +123,7 @@
       justify-content: space-between;
       margin-bottom: 24px;
       padding-bottom: 12px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .section-title {
@@ -134,11 +134,11 @@
     .section-num {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .section-desc {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       margin-bottom: 24px;
       max-width: 700px;
     }
@@ -151,8 +151,8 @@
     }
 
     .swatch {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 6px;
       overflow: hidden;
     }
@@ -174,12 +174,12 @@
     .swatch-hex {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     /* Background swatches need special treatment */
     .swatch.bg-only {
-      border: 1px solid var(--lr-border-default);
+      border: 1px solid var(--kerf-border-default);
     }
 
     /* Typography ladder */
@@ -194,19 +194,19 @@
       grid-template-columns: 200px 1fr;
       gap: 32px;
       padding: 16px 0;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
       align-items: baseline;
     }
 
     .type-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       line-height: 1.4;
     }
 
     .type-meta .name {
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 500;
       display: block;
       margin-bottom: 4px;
@@ -252,7 +252,7 @@
       font-size: 13px;
       line-height: 1.5;
       font-weight: 400;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .t-label {
@@ -268,7 +268,7 @@
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .t-typing {
@@ -283,7 +283,7 @@
       font-size: 28px;
       line-height: 1;
       font-weight: 700;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
     }
 
     /* Components showcase */
@@ -294,8 +294,8 @@
     }
 
     .component-card {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-subtle);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-subtle);
       border-radius: 6px;
       padding: 24px;
     }
@@ -304,7 +304,7 @@
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       margin-bottom: 16px;
       font-weight: 600;
     }
@@ -330,44 +330,44 @@
     }
 
     .btn-primary {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
     }
 
     .btn-primary:hover {
-      background: var(--lr-amber-hover);
+      background: var(--kerf-amber-hover);
     }
 
     .btn-secondary {
       background: transparent;
-      color: var(--lr-text-primary);
-      border: 1px solid var(--lr-border-default);
+      color: var(--kerf-text-primary);
+      border: 1px solid var(--kerf-border-default);
     }
 
     .btn-secondary:hover {
-      background: var(--lr-bg-elevated);
-      border-color: var(--lr-border-strong);
+      background: var(--kerf-bg-elevated);
+      border-color: var(--kerf-border-strong);
     }
 
     .btn-ghost {
       background: transparent;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       border: none;
       padding: 8px 12px;
     }
 
     .btn-ghost:hover {
-      background: var(--lr-amber-faint);
-      color: var(--lr-text-primary);
+      background: var(--kerf-amber-faint);
+      color: var(--kerf-text-primary);
     }
 
     /* Input */
     .input {
-      background: var(--lr-bg-elevated);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-elevated);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 4px;
       padding: 10px 14px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-family: var(--font-sans);
       font-size: 14px;
       width: 100%;
@@ -375,7 +375,7 @@
 
     .input:focus {
       outline: none;
-      border-color: var(--lr-amber-base);
+      border-color: var(--kerf-amber-base);
     }
 
     /* Badges */
@@ -390,23 +390,23 @@
     }
 
     .badge-amber {
-      background: var(--lr-amber-subtle);
-      color: var(--lr-amber-base);
+      background: var(--kerf-amber-subtle);
+      color: var(--kerf-amber-base);
     }
 
     .badge-success {
       background: rgba(34, 197, 94, 0.15);
-      color: var(--lr-success);
+      color: var(--kerf-success);
     }
 
     .badge-error {
       background: rgba(239, 68, 68, 0.15);
-      color: var(--lr-error);
+      color: var(--kerf-error);
     }
 
     .badge-warning {
       background: rgba(234, 179, 8, 0.15);
-      color: var(--lr-warning);
+      color: var(--kerf-warning);
     }
 
     /* Finger colors */
@@ -444,8 +444,8 @@
 
     /* Mockup: Typing area */
     .mockup-typing {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 12px;
       padding: 48px 64px;
       text-align: center;
@@ -468,7 +468,7 @@
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       font-weight: 600;
     }
 
@@ -476,7 +476,7 @@
       font-family: var(--font-mono);
       font-size: 36px;
       font-weight: 700;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       line-height: 1;
     }
 
@@ -486,37 +486,37 @@
       line-height: 1.6;
       letter-spacing: 0.02em;
       margin-bottom: 24px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
     }
 
     .typing-text .typed {
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
     }
 
     .typing-text .current {
-      background: var(--lr-amber-base);
-      color: var(--lr-text-inverse);
+      background: var(--kerf-amber-base);
+      color: var(--kerf-text-inverse);
       padding: 0 4px;
       border-radius: 3px;
     }
 
     .typing-text .upcoming {
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .typing-text .error {
       background: rgba(239, 68, 68, 0.3);
-      color: var(--lr-error);
+      color: var(--kerf-error);
       padding: 0 4px;
       border-radius: 3px;
       text-decoration: line-through;
-      text-decoration-color: var(--lr-error);
+      text-decoration-color: var(--kerf-error);
     }
 
     /* Mockup: Weakness panel */
     .mockup-weakness {
-      background: var(--lr-bg-surface);
-      border: 1px solid var(--lr-border-default);
+      background: var(--kerf-bg-surface);
+      border: 1px solid var(--kerf-border-default);
       border-radius: 6px;
       padding: 20px 24px;
     }
@@ -527,20 +527,20 @@
       align-items: center;
       margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .weakness-title {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-weight: 600;
     }
 
     .weakness-action {
       font-size: 12px;
-      color: var(--lr-amber-base);
+      color: var(--kerf-amber-base);
       cursor: pointer;
     }
 
@@ -549,7 +549,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 12px 0;
-      border-bottom: 1px solid var(--lr-border-subtle);
+      border-bottom: 1px solid var(--kerf-border-subtle);
     }
 
     .weakness-row:last-child {
@@ -565,13 +565,13 @@
     .weakness-rank {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       width: 24px;
     }
 
     .weakness-key {
-      background: var(--lr-amber-subtle);
-      color: var(--lr-amber-base);
+      background: var(--kerf-amber-subtle);
+      color: var(--kerf-amber-base);
       padding: 4px 10px;
       border-radius: 4px;
       font-family: var(--font-mono);
@@ -581,27 +581,27 @@
 
     .weakness-meta {
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .weakness-score {
       font-family: var(--font-mono);
       font-size: 14px;
-      color: var(--lr-text-primary);
+      color: var(--kerf-text-primary);
       font-weight: 700;
     }
 
     .weakness-bar {
       width: 100px;
       height: 4px;
-      background: var(--lr-bg-elevated);
+      background: var(--kerf-bg-elevated);
       border-radius: 2px;
       overflow: hidden;
     }
 
     .weakness-fill {
       height: 100%;
-      background: var(--lr-amber-base);
+      background: var(--kerf-amber-base);
     }
 
     /* Heatmap legend */
@@ -616,7 +616,7 @@
       width: 32px;
       height: 24px;
       border-radius: 4px;
-      border: 1px solid var(--lr-border-subtle);
+      border: 1px solid var(--kerf-border-subtle);
     }
 
     .heat-0 {
@@ -641,7 +641,7 @@
 
     .heat-label {
       font-size: 11px;
-      color: var(--lr-text-tertiary);
+      color: var(--kerf-text-tertiary);
       font-family: var(--font-mono);
     }
 
@@ -662,11 +662,11 @@
     .spacing-name {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
     }
 
     .spacing-bar {
-      background: var(--lr-amber-subtle);
+      background: var(--kerf-amber-subtle);
       height: 24px;
       border-radius: 2px;
     }
@@ -674,7 +674,7 @@
     .spacing-px {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--lr-text-secondary);
+      color: var(--kerf-text-secondary);
       text-align: right;
     }
 
@@ -682,8 +682,8 @@
     .footer {
       margin-top: 80px;
       padding-top: 32px;
-      border-top: 1px solid var(--lr-border-subtle);
-      color: var(--lr-text-tertiary);
+      border-top: 1px solid var(--kerf-border-subtle);
+      color: var(--kerf-text-tertiary);
       font-size: 12px;
       text-align: center;
     }
@@ -698,7 +698,7 @@
     <div class="hero">
       <div class="wordmark">kerf<span class="accent">.</span></div>
       <p>Design system specimen v0.1 — visual reference for all design tokens defined in <code
-          style="font-family: var(--font-mono); color: var(--lr-amber-base); font-size: 13px;">04-design-system.md</code>.
+          style="font-family: var(--font-mono); color: var(--kerf-amber-base); font-size: 13px;">04-design-system.md</code>.
         Open in browser to see how tokens render in context.</p>
       <div class="meta">vibe: mechanical workshop · dark espresso #181410 · amber accent #F59E0B</div>
     </div>
@@ -750,21 +750,21 @@
         <span class="section-num">§ 2.2 – 2.3</span>
       </div>
       <div class="component-card">
-        <p style="color: var(--lr-text-primary); margin-bottom: 12px;">Primary text — high contrast, default for body
+        <p style="color: var(--kerf-text-primary); margin-bottom: 12px;">Primary text — high contrast, default for body
           content.</p>
-        <p style="color: var(--lr-text-secondary); margin-bottom: 12px;">Secondary text — labels, subtitles, muted
+        <p style="color: var(--kerf-text-secondary); margin-bottom: 12px;">Secondary text — labels, subtitles, muted
           descriptions.</p>
-        <p style="color: var(--lr-text-tertiary); margin-bottom: 24px;">Tertiary text — hints, placeholders, disabled
+        <p style="color: var(--kerf-text-tertiary); margin-bottom: 24px;">Tertiary text — hints, placeholders, disabled
           states.</p>
         <div style="display: flex; gap: 16px;">
           <div
-            style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-subtle); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">
+            style="flex: 1; padding: 12px; border: 1px solid var(--kerf-border-subtle); border-radius: 4px; font-size: 12px; color: var(--kerf-text-secondary); text-align: center;">
             border-subtle</div>
           <div
-            style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-default); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">
+            style="flex: 1; padding: 12px; border: 1px solid var(--kerf-border-default); border-radius: 4px; font-size: 12px; color: var(--kerf-text-secondary); text-align: center;">
             border-default</div>
           <div
-            style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-strong); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">
+            style="flex: 1; padding: 12px; border: 1px solid var(--kerf-border-strong); border-radius: 4px; font-size: 12px; color: var(--kerf-text-secondary); text-align: center;">
             border-strong</div>
         </div>
       </div>
