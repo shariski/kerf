@@ -55,4 +55,4 @@ npm run lint        # linter
 - [x] Phase 0 / Task 0.1: Tanstack Start scaffold + design tokens + hello world page
 - [x] Phase 0 / Task 0.2: Local database setup (Drizzle + PostgreSQL)
 - [x] Phase 0 / Task 0.3: Auth infrastructure (better-auth)
-- [ ] Phase 1: Adaptive engine domain logic
+- [x] Phase 1: Adaptive engine domain logic
