@@ -1,11 +1,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* ── Font loading ──
-   TODO: Place actual .woff2 files in public/fonts/ before deploying.
-   Until then, fonts fall back to the system stacks declared in @theme.
-   See public/fonts/README.md for download sources.
-   ────────────────────────────────────────────────── */
+/* Self-hosted variable fonts — see public/fonts/README.md for sources. */
 
 @font-face {
   font-family: "Inter";
@@ -358,5 +354,116 @@ a {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ── keyboard SVG (Sofle / Lily58) ── */
+
+.kb-svg {
+  max-width: 100%;
+  height: auto;
+  --kb-key-face: var(--color-kerf-bg-elevated);
+  --kb-key-edge: var(--color-kerf-border-default);
+  --kb-key-label: var(--color-kerf-text-secondary);
+}
+
+.kb-key-face {
+  fill: var(--kb-key-face);
+  stroke: var(--kb-key-edge);
+  stroke-width: 1;
+  transition: fill 100ms ease-out;
+}
+
+.kb-key-highlight {
+  fill: var(--kb-key-edge);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.kb-key-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--kb-key-label);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  user-select: none;
+}
+
+.kb-finger-bar {
+  pointer-events: none;
+}
+
+.kb-key-target > .kb-key-face {
+  fill: var(--color-kerf-amber-base);
+  stroke: var(--color-kerf-amber-hover);
+  stroke-width: 1.5;
+}
+
+.kb-key-target > .kb-key-label {
+  fill: var(--color-kerf-bg-base);
+}
+
+.kb-key-clickable {
+  cursor: pointer;
+}
+
+.kb-key-clickable:focus {
+  outline: none;
+}
+
+.kb-key-clickable:focus-visible > .kb-key-face {
+  stroke: var(--color-kerf-amber-base);
+  stroke-width: 2;
+}
+
+/* Encoder (Sofle) */
+.kb-encoder-body {
+  fill: var(--kb-key-face);
+  stroke: var(--color-kerf-amber-base);
+  stroke-width: 1.5;
+}
+
+.kb-encoder-inner {
+  fill: none;
+  stroke: var(--kb-key-edge);
+  stroke-width: 0.8;
+}
+
+.kb-encoder-tick {
+  stroke: var(--color-kerf-amber-base);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* Flash pulses — applied via imperative ref (bypass React state) so the
+   keypress feedback loop stays under 16ms. */
+@keyframes kb-flash-correct {
+  0%   { fill: var(--color-kerf-success-base); }
+  100% { fill: var(--kb-key-face); }
+}
+
+@keyframes kb-flash-error {
+  0%   { fill: var(--color-kerf-error-base); }
+  100% { fill: var(--kb-key-face); }
+}
+
+@keyframes kb-flash-hesitation {
+  0%   { fill: var(--color-kerf-warning-base); }
+  100% { fill: var(--kb-key-face); }
+}
+
+.kb-flash-correct    > .kb-key-face { animation: kb-flash-correct    200ms ease-out; }
+.kb-flash-error      > .kb-key-face { animation: kb-flash-error      200ms ease-out; }
+.kb-flash-hesitation > .kb-key-face { animation: kb-flash-hesitation 200ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-key-face { transition: none; }
+
+  .kb-flash-correct    > .kb-key-face,
+  .kb-flash-error      > .kb-key-face,
+  .kb-flash-hesitation > .kb-key-face {
+    animation-duration: 1ms;
   }
 }
