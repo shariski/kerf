@@ -1,11 +1,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* ── Font loading ──
-   TODO: Place actual .woff2 files in public/fonts/ before deploying.
-   Until then, fonts fall back to the system stacks declared in @theme.
-   See public/fonts/README.md for download sources.
-   ────────────────────────────────────────────────── */
+/* Self-hosted variable fonts — see public/fonts/README.md for sources. */
 
 @font-face {
   font-family: "Inter";
