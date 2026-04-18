@@ -16,3 +16,7 @@ dist-ssr
 .idea/
 __unconfig*
 todos.json
+
+# Local tooling artifacts (Serena MCP cache, Superpowers skill docs)
+.serena/
+docs/superpowers/
