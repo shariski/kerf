@@ -205,6 +205,20 @@ The developer (solo, part-time) has already pushed back against multiple over-en
 - If a previous doc (`01-*.md`, `02-*.md`, etc.) says one thing and the current request implies another, ask which is authoritative.
 - Prefer asking one clarifying question over generating speculative code.
 
+## B11. Checkpoint Task Status on Completion
+
+The `## Status` checklist in `README.md` is the single fastest way for a new Claude Code session (or a returning developer) to orient. Keep it synchronized with reality.
+
+**Rules:**
+
+- When a task tracked in `README.md` `## Status` is merged to `main`, flip its `[ ]` to `[x]`. If the merge completes an entire phase (e.g. all Phase 0 tasks done), flip the phase-level line too.
+- Include the checklist update **in the PR that completes the task**, not in a follow-up commit. The checkpoint must land with the work so git history stays coherent.
+- The checklist tracks **tasks**, not commits. Incidental chores (tooling, `.gitignore`, lockfile commits, unrelated bugfixes) do not get their own entry and must not be added.
+- If you complete a task explicitly numbered in `docs/03-task-breakdown.md`, bump its `Last updated: YYYY-MM-DD` header to today's date (use `currentDate` from session context).
+- If unsure whether the current work fully completes a tracked task (e.g. a multi-PR task where this is PR 1 of 3), **ask** — do not pre-tick.
+
+**Why this exists:** a stale checklist is worse than no checklist — it silently lies about state. Without this rule, every future session pays the cost of re-inferring what's done from `git log`, branch names, and commit messages, and risks redoing completed work.
+
 ---
 
 ## Working Pattern Per Task
@@ -214,7 +228,8 @@ The developer (solo, part-time) has already pushed back against multiple over-en
 3. Write tests first where applicable.
 4. Implement the minimum to pass tests.
 5. Report diff, test results, and any assumptions you made.
-6. Wait for developer review before moving to next task.
+6. If the task is tracked in `README.md` `## Status`, flip its checkbox as part of the PR — see §B11.
+7. Wait for developer review before moving to next task.
 
 ---
 
