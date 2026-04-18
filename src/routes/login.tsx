@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, isRedirect, redirect } from "@tanstack/react-router"
 import { useState } from "react"
 import { authClient } from "../lib/auth-client"
 import { requireAuth } from "../lib/require-auth"
@@ -8,8 +8,8 @@ export const Route = createFileRoute("/login")({
     try {
       await requireAuth()
       throw redirect({ to: "/" })
-    } catch (err: any) {
-      if (err?.to === "/") throw err
+    } catch (err) {
+      if (isRedirect(err)) throw err
     }
   },
   component: LoginPage,
@@ -21,7 +21,7 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -100,7 +100,7 @@ function LoginPage() {
 
           {error && (
             <p
-              className="text-red-400"
+              className="text-kerf-error-base"
               style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}
             >
               {error}
