@@ -27,6 +27,7 @@
     "@tanstack/react-start": "latest",
     "@tanstack/router-core": "^1.168.15",
     "@tanstack/router-plugin": "^1.132.0",
+    "better-auth": "^1.6.5",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^0.545.0",
