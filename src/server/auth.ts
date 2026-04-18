@@ -26,6 +26,14 @@ export const auth = betterAuth({
       verification: authVerifications,
     },
   }),
+  advanced: {
+    // users.id is a Postgres uuid column, so better-auth's default nanoid
+    // generator produces values Postgres rejects. Force UUIDs everywhere —
+    // the other auth_* tables use text ids, and UUID strings fit fine there.
+    database: {
+      generateId: () => crypto.randomUUID(),
+    },
+  },
   emailAndPassword: { enabled: false },
   plugins: [
     magicLink({
