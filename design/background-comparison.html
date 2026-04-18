@@ -1,169 +1,404 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Leftype-Rightype — Background Comparison</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { font-family: 'Inter', -apple-system, sans-serif; }
-  body { background: #1a1a1a; color: #fff; padding: 32px; min-height: 100vh; }
-  .header { max-width: 1400px; margin: 0 auto 32px; }
-  .header h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-  .header p { color: #999; font-size: 14px; line-height: 1.6; max-width: 640px; }
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1400px; margin: 0 auto; }
-  
-  .swatch { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
-  .swatch-header { padding: 16px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .swatch-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .swatch-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #999; }
-  .swatch-desc { font-size: 12px; color: #aaa; margin-top: 8px; line-height: 1.5; }
-  
-  .preview { padding: 32px 24px; min-height: 480px; display: flex; flex-direction: column; gap: 24px; }
-  
-  /* Variants */
-  .v1 { background: #1C1815; color: #F5EFE6; }
-  .v1 .text-secondary { color: #9C9489; }
-  .v1 .text-tertiary { color: #6B655D; }
-  .v1 .surface { background: #25201C; border: 1px solid #332C25; }
-  .v1 .surface-elevated { background: #2D2823; border: 1px solid #3D362E; }
-  
-  .v2 { background: #181410; color: #F2EAE0; }
-  .v2 .text-secondary { color: #9A8E80; }
-  .v2 .text-tertiary { color: #685D52; }
-  .v2 .surface { background: #221C17; border: 1px solid #2F2820; }
-  .v2 .surface-elevated { background: #2A2320; border: 1px solid #3A3128; }
-  
-  .v3 { background: #131210; color: #EFEDE8; }
-  .v3 .text-secondary { color: #918C82; }
-  .v3 .text-tertiary { color: #5E5A52; }
-  .v3 .surface { background: #1B1A17; border: 1px solid #26241F; }
-  .v3 .surface-elevated { background: #22201C; border: 1px solid #2F2C26; }
-  
-  /* Typing area mockup */
-  .typing-block { font-family: 'JetBrains Mono', monospace; font-size: 22px; line-height: 1.6; letter-spacing: 0.02em; }
-  .typing-block .typed { opacity: 0.3; }
-  .typing-block .current { background: #F59E0B; color: #1C1815; padding: 0 2px; border-radius: 3px; }
-  .typing-block .upcoming { color: inherit; opacity: 0.6; }
-  
-  /* Stats */
-  .stats { display: flex; gap: 24px; font-family: 'JetBrains Mono', monospace; }
-  .stat { display: flex; flex-direction: column; gap: 4px; }
-  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
-  .stat-value { font-size: 28px; font-weight: 700; color: #F59E0B; }
-  
-  /* Card */
-  .card { padding: 16px 20px; border-radius: 8px; }
-  .card-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
-  .weakness-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-  .weakness-row .key { background: rgba(245,158,11,0.15); color: #F59E0B; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-  .weakness-row .score { font-size: 12px; }
-  
-  /* Button */
-  .btn { background: #F59E0B; color: #1C1815; border: none; padding: 10px 20px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; align-self: flex-start; }
-  
-  .footer { max-width: 1400px; margin: 32px auto 0; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 13px; color: #aaa; line-height: 1.7; }
-  .footer strong { color: #F59E0B; }
-  
-  @media (max-width: 1100px) {
-    .grid { grid-template-columns: 1fr; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>kerf — background comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    body {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .header {
+      max-width: 1400px;
+      margin: 0 auto 32px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #999;
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 640px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .swatch {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .swatch-header {
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .swatch-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .swatch-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #999;
+    }
+
+    .swatch-desc {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .preview {
+      padding: 32px 24px;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Variants */
+    .v1 {
+      background: #1C1815;
+      color: #F5EFE6;
+    }
+
+    .v1 .text-secondary {
+      color: #9C9489;
+    }
+
+    .v1 .text-tertiary {
+      color: #6B655D;
+    }
+
+    .v1 .surface {
+      background: #25201C;
+      border: 1px solid #332C25;
+    }
+
+    .v1 .surface-elevated {
+      background: #2D2823;
+      border: 1px solid #3D362E;
+    }
+
+    .v2 {
+      background: #181410;
+      color: #F2EAE0;
+    }
+
+    .v2 .text-secondary {
+      color: #9A8E80;
+    }
+
+    .v2 .text-tertiary {
+      color: #685D52;
+    }
+
+    .v2 .surface {
+      background: #221C17;
+      border: 1px solid #2F2820;
+    }
+
+    .v2 .surface-elevated {
+      background: #2A2320;
+      border: 1px solid #3A3128;
+    }
+
+    .v3 {
+      background: #131210;
+      color: #EFEDE8;
+    }
+
+    .v3 .text-secondary {
+      color: #918C82;
+    }
+
+    .v3 .text-tertiary {
+      color: #5E5A52;
+    }
+
+    .v3 .surface {
+      background: #1B1A17;
+      border: 1px solid #26241F;
+    }
+
+    .v3 .surface-elevated {
+      background: #22201C;
+      border: 1px solid #2F2C26;
+    }
+
+    /* Typing area mockup */
+    .typing-block {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+    }
+
+    .typing-block .typed {
+      opacity: 0.3;
+    }
+
+    .typing-block .current {
+      background: #F59E0B;
+      color: #1C1815;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    .typing-block .upcoming {
+      color: inherit;
+      opacity: 0.6;
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 24px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #F59E0B;
+    }
+
+    /* Card */
+    .card {
+      padding: 16px 20px;
+      border-radius: 8px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .weakness-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .weakness-row .key {
+      background: rgba(245, 158, 11, 0.15);
+      color: #F59E0B;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .weakness-row .score {
+      font-size: 12px;
+    }
+
+    /* Button */
+    .btn {
+      background: #F59E0B;
+      color: #1C1815;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      align-self: flex-start;
+    }
+
+    .footer {
+      max-width: 1400px;
+      margin: 32px auto 0;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.7;
+    }
+
+    .footer strong {
+      color: #F59E0B;
+    }
+
+    @media (max-width: 1100px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="header">
-  <h1>Leftype-Rightype — Background Warmth Comparison</h1>
-  <p>Three warm dark variants, each rendered with the same content (typing area, stats, weakness card, action button) so you can compare side-by-side. The amber accent (#F59E0B) is locked. Pick the background that feels right for long sessions.</p>
-</div>
-
-<div class="grid">
-
-  <!-- Variant 1: Warm Asphalt -->
-  <div class="swatch">
-    <div class="swatch-header">
-      <div class="swatch-name">Variant 1 — Warm Asphalt</div>
-      <div class="swatch-meta">bg: #1C1815 · slight brown undertone</div>
-      <div class="swatch-desc">Hangat dan deep, ada hint coklat halus. Mood: workshop nyata, lampu pijar di malam hari.</div>
-    </div>
-    <div class="preview v1">
-      <div class="typing-block">
-        <span class="typed">the quick brown </span><span class="current">f</span><span class="upcoming">ox jumps over</span>
-      </div>
-      <div class="stats">
-        <div class="stat"><span class="stat-label text-secondary">wpm</span><span class="stat-value">62</span></div>
-        <div class="stat"><span class="stat-label text-secondary">acc</span><span class="stat-value">94%</span></div>
-        <div class="stat"><span class="stat-label text-secondary">time</span><span class="stat-value">02:14</span></div>
-      </div>
-      <div class="card surface">
-        <div class="card-title text-secondary">top weaknesses</div>
-        <div class="weakness-row"><span><span class="key">B</span> letter</span><span class="score text-secondary">2.8</span></div>
-        <div class="weakness-row"><span><span class="key">er</span> bigram</span><span class="score text-secondary">2.1</span></div>
-        <div class="weakness-row"><span><span class="key">T</span> letter</span><span class="score text-secondary">1.7</span></div>
-      </div>
-      <button class="btn">Continue practice →</button>
-    </div>
+  <div class="header">
+    <h1>kerf — background warmth comparison</h1>
+    <p>Three warm dark variants, each rendered with the same content (typing area, stats, weakness card, action button)
+      so you can compare side-by-side. The amber accent (#F59E0B) is locked. Pick the background that feels right for
+      long sessions.</p>
   </div>
 
-  <!-- Variant 2: Dark Espresso -->
-  <div class="swatch">
-    <div class="swatch-header">
-      <div class="swatch-name">Variant 2 — Dark Espresso</div>
-      <div class="swatch-meta">bg: #181410 · cleaner warm</div>
-      <div class="swatch-desc">Hangat tapi lebih clean. Mood: studio kerja minimalis, kamera DSLR vibes. Sweet spot menurut aku.</div>
+  <div class="grid">
+
+    <!-- Variant 1: Warm Asphalt -->
+    <div class="swatch">
+      <div class="swatch-header">
+        <div class="swatch-name">Variant 1 — Warm Asphalt</div>
+        <div class="swatch-meta">bg: #1C1815 · slight brown undertone</div>
+        <div class="swatch-desc">Hangat dan deep, ada hint coklat halus. Mood: workshop nyata, lampu pijar di malam
+          hari.</div>
+      </div>
+      <div class="preview v1">
+        <div class="typing-block">
+          <span class="typed">the quick brown </span><span class="current">f</span><span class="upcoming">ox jumps
+            over</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="stat-label text-secondary">wpm</span><span class="stat-value">62</span></div>
+          <div class="stat"><span class="stat-label text-secondary">acc</span><span class="stat-value">94%</span></div>
+          <div class="stat"><span class="stat-label text-secondary">time</span><span class="stat-value">02:14</span>
+          </div>
+        </div>
+        <div class="card surface">
+          <div class="card-title text-secondary">top weaknesses</div>
+          <div class="weakness-row"><span><span class="key">B</span> letter</span><span
+              class="score text-secondary">2.8</span></div>
+          <div class="weakness-row"><span><span class="key">er</span> bigram</span><span
+              class="score text-secondary">2.1</span></div>
+          <div class="weakness-row"><span><span class="key">T</span> letter</span><span
+              class="score text-secondary">1.7</span></div>
+        </div>
+        <button class="btn">Continue practice →</button>
+      </div>
     </div>
-    <div class="preview v2">
-      <div class="typing-block">
-        <span class="typed">the quick brown </span><span class="current">f</span><span class="upcoming">ox jumps over</span>
+
+    <!-- Variant 2: Dark Espresso -->
+    <div class="swatch">
+      <div class="swatch-header">
+        <div class="swatch-name">Variant 2 — Dark Espresso</div>
+        <div class="swatch-meta">bg: #181410 · cleaner warm</div>
+        <div class="swatch-desc">Hangat tapi lebih clean. Mood: studio kerja minimalis, kamera DSLR vibes. Sweet spot
+          menurut aku.</div>
       </div>
-      <div class="stats">
-        <div class="stat"><span class="stat-label text-secondary">wpm</span><span class="stat-value">62</span></div>
-        <div class="stat"><span class="stat-label text-secondary">acc</span><span class="stat-value">94%</span></div>
-        <div class="stat"><span class="stat-label text-secondary">time</span><span class="stat-value">02:14</span></div>
+      <div class="preview v2">
+        <div class="typing-block">
+          <span class="typed">the quick brown </span><span class="current">f</span><span class="upcoming">ox jumps
+            over</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="stat-label text-secondary">wpm</span><span class="stat-value">62</span></div>
+          <div class="stat"><span class="stat-label text-secondary">acc</span><span class="stat-value">94%</span></div>
+          <div class="stat"><span class="stat-label text-secondary">time</span><span class="stat-value">02:14</span>
+          </div>
+        </div>
+        <div class="card surface">
+          <div class="card-title text-secondary">top weaknesses</div>
+          <div class="weakness-row"><span><span class="key">B</span> letter</span><span
+              class="score text-secondary">2.8</span></div>
+          <div class="weakness-row"><span><span class="key">er</span> bigram</span><span
+              class="score text-secondary">2.1</span></div>
+          <div class="weakness-row"><span><span class="key">T</span> letter</span><span
+              class="score text-secondary">1.7</span></div>
+        </div>
+        <button class="btn">Continue practice →</button>
       </div>
-      <div class="card surface">
-        <div class="card-title text-secondary">top weaknesses</div>
-        <div class="weakness-row"><span><span class="key">B</span> letter</span><span class="score text-secondary">2.8</span></div>
-        <div class="weakness-row"><span><span class="key">er</span> bigram</span><span class="score text-secondary">2.1</span></div>
-        <div class="weakness-row"><span><span class="key">T</span> letter</span><span class="score text-secondary">1.7</span></div>
-      </div>
-      <button class="btn">Continue practice →</button>
     </div>
+
+    <!-- Variant 3: Subtle Amber Hint -->
+    <div class="swatch">
+      <div class="swatch-header">
+        <div class="swatch-name">Variant 3 — Subtle Amber Hint</div>
+        <div class="swatch-meta">bg: #131210 · paling subtle</div>
+        <div class="swatch-desc">Hampir neutral, hint amber sangat halus. Mood: terminal serius, mendekati pure dark
+          tapi tidak sterile.</div>
+      </div>
+      <div class="preview v3">
+        <div class="typing-block">
+          <span class="typed">the quick brown </span><span class="current">f</span><span class="upcoming">ox jumps
+            over</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="stat-label text-secondary">wpm</span><span class="stat-value">62</span></div>
+          <div class="stat"><span class="stat-label text-secondary">acc</span><span class="stat-value">94%</span></div>
+          <div class="stat"><span class="stat-label text-secondary">time</span><span class="stat-value">02:14</span>
+          </div>
+        </div>
+        <div class="card surface">
+          <div class="card-title text-secondary">top weaknesses</div>
+          <div class="weakness-row"><span><span class="key">B</span> letter</span><span
+              class="score text-secondary">2.8</span></div>
+          <div class="weakness-row"><span><span class="key">er</span> bigram</span><span
+              class="score text-secondary">2.1</span></div>
+          <div class="weakness-row"><span><span class="key">T</span> letter</span><span
+              class="score text-secondary">1.7</span></div>
+        </div>
+        <button class="btn">Continue practice →</button>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Variant 3: Subtle Amber Hint -->
-  <div class="swatch">
-    <div class="swatch-header">
-      <div class="swatch-name">Variant 3 — Subtle Amber Hint</div>
-      <div class="swatch-meta">bg: #131210 · paling subtle</div>
-      <div class="swatch-desc">Hampir neutral, hint amber sangat halus. Mood: terminal serius, mendekati pure dark tapi tidak sterile.</div>
-    </div>
-    <div class="preview v3">
-      <div class="typing-block">
-        <span class="typed">the quick brown </span><span class="current">f</span><span class="upcoming">ox jumps over</span>
-      </div>
-      <div class="stats">
-        <div class="stat"><span class="stat-label text-secondary">wpm</span><span class="stat-value">62</span></div>
-        <div class="stat"><span class="stat-label text-secondary">acc</span><span class="stat-value">94%</span></div>
-        <div class="stat"><span class="stat-label text-secondary">time</span><span class="stat-value">02:14</span></div>
-      </div>
-      <div class="card surface">
-        <div class="card-title text-secondary">top weaknesses</div>
-        <div class="weakness-row"><span><span class="key">B</span> letter</span><span class="score text-secondary">2.8</span></div>
-        <div class="weakness-row"><span><span class="key">er</span> bigram</span><span class="score text-secondary">2.1</span></div>
-        <div class="weakness-row"><span><span class="key">T</span> letter</span><span class="score text-secondary">1.7</span></div>
-      </div>
-      <button class="btn">Continue practice →</button>
-    </div>
+  <div class="footer">
+    <strong>How to evaluate:</strong> Look at this preview for at least 30 seconds per variant. Imagine staring at it
+    for a 20-minute typing session. Things to notice — does the background feel calm or jarring? Does the amber accent
+    pop appropriately or look harsh? Does the typed text contrast feel comfortable? Trust your instinct as the actual
+    user. There is no objectively "correct" answer here.
   </div>
-
-</div>
-
-<div class="footer">
-  <strong>How to evaluate:</strong> Look at this preview for at least 30 seconds per variant. Imagine staring at it for a 20-minute typing session. Things to notice — does the background feel calm or jarring? Does the amber accent pop appropriately or look harsh? Does the typed text contrast feel comfortable? Trust your instinct as the actual user. There is no objectively "correct" answer here.
-</div>
 
 </body>
+
 </html>

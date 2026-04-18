@@ -1,1004 +1,1253 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Leftype-Rightype — Settings Wireframe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-text-inverse: #181410;
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    --lr-success: #22C55E;
-    --lr-error: #EF4444;
-    --lr-warning: #EAB308;
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  
-  /* Wireframe meta-header */
-  .wireframe-header {
-    background: var(--lr-bg-surface);
-    border-bottom: 1px solid var(--lr-border-default);
-    padding: 12px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .wireframe-title { font-family: var(--font-mono); font-size: 13px; color: var(--lr-text-secondary); }
-  .wireframe-title strong { color: var(--lr-amber-base); }
-  .state-switcher { display: flex; gap: 4px; }
-  .state-btn {
-    background: transparent;
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-secondary);
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-family: var(--font-sans);
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
-  .state-btn.active {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    border-color: var(--lr-amber-base);
-    font-weight: 600;
-  }
-  
-  /* App nav */
-  .app-nav {
-    height: 48px;
-    background: var(--lr-bg-base);
-    border-bottom: 1px solid var(--lr-border-subtle);
-    display: flex;
-    align-items: center;
-    padding: 0 32px;
-    gap: 32px;
-    position: sticky;
-    top: 47px;
-    z-index: 90;
-  }
-  .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
-  .nav-links { display: flex; gap: 24px; flex: 1; }
-  .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
-  .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
-  .nav-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
-  .nav-avatar { background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--lr-text-primary); }
-  
-  /* === PAGE LAYOUT === */
-  .layout {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 32px;
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 48px;
-  }
-  
-  /* Anchored sidebar */
-  .sidebar {
-    position: sticky;
-    top: 128px;
-    align-self: start;
-  }
-  .sidebar-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .sidebar-subtitle {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 24px;
-  }
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .sidebar-link {
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-    cursor: pointer;
-    transition: all 150ms;
-    border-left: 2px solid transparent;
-  }
-  .sidebar-link:hover { color: var(--lr-text-primary); background: var(--lr-bg-surface); }
-  .sidebar-link.active {
-    color: var(--lr-amber-base);
-    border-left-color: var(--lr-amber-base);
-    background: var(--lr-amber-faint);
-    font-weight: 500;
-  }
-  
-  /* Content area */
-  .content {
-    min-width: 0;
-  }
-  
-  /* Section */
-  .section {
-    padding: 32px 0;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .section:first-child { padding-top: 0; }
-  .section:last-of-type { border-bottom: none; }
-  
-  .section-header {
-    margin-bottom: 20px;
-  }
-  .section-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .section-desc {
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-  }
-  
-  /* Field row */
-  .field-row {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 24px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--lr-border-subtle);
-    align-items: center;
-  }
-  .field-row:last-child { border-bottom: none; }
-  
-  .field-label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .field-label-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--lr-text-primary);
-  }
-  .field-label-hint {
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    font-family: var(--font-mono);
-  }
-  
-  .field-control {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    justify-content: space-between;
-  }
-  
-  /* Inline edit field */
-  .inline-edit {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 100ms;
-  }
-  .inline-edit:hover {
-    background: var(--lr-bg-surface);
-    border-color: var(--lr-border-subtle);
-  }
-  .inline-edit.editing {
-    background: var(--lr-bg-elevated);
-    border-color: var(--lr-amber-base);
-    cursor: default;
-    padding: 0;
-  }
-  .inline-edit-value {
-    font-size: 14px;
-    color: var(--lr-text-primary);
-    flex: 1;
-  }
-  .inline-edit-value.muted { color: var(--lr-text-secondary); }
-  .inline-edit.editing .inline-edit-value { display: none; }
-  
-  .inline-edit-input {
-    background: var(--lr-bg-elevated);
-    border: none;
-    padding: 8px 12px;
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    flex: 1;
-    outline: none;
-    border-radius: 4px;
-    display: none;
-  }
-  .inline-edit.editing .inline-edit-input { display: block; }
-  
-  .inline-edit-icon {
-    color: var(--lr-text-tertiary);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    opacity: 0;
-    transition: opacity 100ms;
-  }
-  .inline-edit:hover .inline-edit-icon { opacity: 1; }
-  
-  .inline-edit-actions {
-    display: none;
-    gap: 4px;
-    padding: 4px;
-  }
-  .inline-edit.editing .inline-edit-actions { display: flex; }
-  .inline-btn {
-    padding: 6px 10px;
-    border-radius: 3px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    font-family: var(--font-sans);
-  }
-  .inline-btn.save {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-  }
-  .inline-btn.cancel {
-    background: transparent;
-    color: var(--lr-text-secondary);
-  }
-  .inline-btn.cancel:hover { color: var(--lr-text-primary); }
-  
-  /* Toggle / Select pill */
-  .pill-group { display: flex; gap: 4px; background: var(--lr-bg-surface); border: 1px solid var(--lr-border-subtle); border-radius: 6px; padding: 2px; }
-  .pill {
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    cursor: pointer;
-    transition: all 100ms;
-  }
-  .pill:hover { color: var(--lr-text-primary); }
-  .pill.active {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    font-weight: 600;
-  }
-  
-  /* Toggle switch */
-  .switch {
-    position: relative;
-    width: 36px;
-    height: 20px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .switch::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-    background: var(--lr-text-secondary);
-    border-radius: 50%;
-    transition: all 150ms;
-  }
-  .switch.on { background: var(--lr-amber-base); border-color: var(--lr-amber-base); }
-  .switch.on::after { left: 18px; background: var(--lr-text-inverse); }
-  
-  /* Action button */
-  .btn-action {
-    background: transparent;
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-primary);
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 100ms;
-    font-family: var(--font-sans);
-  }
-  .btn-action:hover { background: var(--lr-bg-elevated); border-color: var(--lr-border-strong); }
-  .btn-action.danger {
-    border-color: rgba(239,68,68,0.3);
-    color: var(--lr-error);
-  }
-  .btn-action.danger:hover {
-    background: rgba(239,68,68,0.1);
-    border-color: var(--lr-error);
-  }
-  
-  /* Profile reset list */
-  .profile-reset-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-  .profile-reset-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-  }
-  .profile-reset-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .profile-reset-icon {
-    width: 32px;
-    height: 20px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--lr-text-tertiary);
-  }
-  .profile-reset-name {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--lr-text-primary);
-    font-weight: 500;
-  }
-  .profile-reset-meta {
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    margin-left: 8px;
-  }
-  
-  /* Theme section */
-  .theme-preview {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .theme-card {
-    border: 2px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .theme-card:hover:not(.disabled) { border-color: var(--lr-border-strong); }
-  .theme-card.active { border-color: var(--lr-amber-base); }
-  .theme-card.disabled { opacity: 0.4; cursor: not-allowed; }
-  .theme-preview-area {
-    aspect-ratio: 16 / 9;
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-    gap: 8px;
-  }
-  .theme-dark {
-    background: var(--lr-bg-base);
-  }
-  .theme-dark .theme-bar { background: var(--lr-bg-surface); border: 1px solid var(--lr-border-subtle); border-radius: 2px; }
-  .theme-dark .theme-accent { background: var(--lr-amber-base); }
-  .theme-light {
-    background: #F5F2ED;
-  }
-  .theme-light .theme-bar { background: #E5E0D5; border: 1px solid #CBC5B9; border-radius: 2px; }
-  .theme-light .theme-accent { background: var(--lr-amber-base); }
-  .theme-bar { height: 6px; width: 60%; }
-  .theme-accent { height: 16px; width: 40%; border-radius: 2px; }
-  .theme-card-label {
-    padding: 10px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid var(--lr-border-subtle);
-  }
-  .theme-card.disabled .theme-card-label { background: var(--lr-bg-surface); }
-  .theme-badge {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-  }
-  .theme-badge.coming { background: var(--lr-bg-elevated); color: var(--lr-text-tertiary); }
-  .theme-badge.active { background: var(--lr-amber-base); color: var(--lr-text-inverse); }
-  
-  /* Danger zone */
-  .danger-zone {
-    border: 1px solid rgba(239,68,68,0.25);
-    border-radius: 8px;
-    padding: 24px;
-    background: rgba(239,68,68,0.03);
-  }
-  .danger-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 16px;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(239,68,68,0.15);
-  }
-  .danger-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .danger-row:first-child { padding-top: 0; }
-  .danger-info-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--lr-text-primary);
-    margin-bottom: 2px;
-  }
-  .danger-info-desc {
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    line-height: 1.5;
-  }
-  
-  /* Delete modal */
-  .modal-bg {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 200;
-    backdrop-filter: blur(4px);
-  }
-  .modal-bg.visible { display: flex; }
-  
-  .modal {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-error);
-    border-radius: 12px;
-    width: 100%;
-    max-width: 520px;
-  }
-  .modal-header {
-    padding: 24px 28px 16px;
-    border-bottom: 1px solid rgba(239,68,68,0.2);
-  }
-  .modal-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--lr-error);
-    margin-bottom: 4px;
-  }
-  .modal-subtitle {
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-  }
-  .modal-body {
-    padding: 24px 28px;
-  }
-  .modal-warning-list {
-    background: rgba(239,68,68,0.08);
-    border-left: 2px solid var(--lr-error);
-    padding: 14px 18px;
-    border-radius: 0 4px 4px 0;
-    margin-bottom: 20px;
-  }
-  .modal-warning-list ul {
-    list-style: none;
-    font-size: 12px;
-    color: var(--lr-text-primary);
-    line-height: 1.8;
-  }
-  .modal-warning-list li::before {
-    content: '×';
-    color: var(--lr-error);
-    margin-right: 8px;
-    font-weight: 700;
-  }
-  .modal-confirm-label {
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    margin-bottom: 8px;
-    font-family: var(--font-mono);
-  }
-  .modal-confirm-label code {
-    background: var(--lr-bg-elevated);
-    padding: 2px 8px;
-    border-radius: 3px;
-    color: var(--lr-error);
-    font-weight: 700;
-    letter-spacing: 0.05em;
-  }
-  .modal-confirm-input {
-    width: 100%;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-primary);
-    padding: 10px 14px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    letter-spacing: 0.05em;
-  }
-  .modal-confirm-input:focus { outline: none; border-color: var(--lr-error); }
-  .modal-confirm-note {
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    margin-top: 8px;
-    font-family: var(--font-mono);
-    line-height: 1.5;
-  }
-  .modal-footer {
-    padding: 16px 28px;
-    border-top: 1px solid var(--lr-border-subtle);
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-  }
-  .modal-btn-cancel {
-    background: transparent;
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-secondary);
-    padding: 10px 20px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .modal-btn-cancel:hover { color: var(--lr-text-primary); }
-  .modal-btn-delete {
-    background: var(--lr-error);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .modal-btn-delete:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  
-  /* Annotation */
-  .annotation {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--lr-bg-overlay);
-    border: 1px solid var(--lr-border-strong);
-    border-radius: 6px;
-    padding: 10px 18px;
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    font-family: var(--font-mono);
-    z-index: 90;
-    max-width: 80vw;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  }
-  .annotation strong { color: var(--lr-amber-base); }
-</style>
+  <meta charset="UTF-8">
+  <title>kerf — settings wireframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --lr-bg-base: #181410;
+      --lr-bg-surface: #221C17;
+      --lr-bg-elevated: #2A2320;
+      --lr-bg-overlay: #322A26;
+      --lr-text-primary: #F2EAE0;
+      --lr-text-secondary: #9A8E80;
+      --lr-text-tertiary: #685D52;
+      --lr-text-inverse: #181410;
+      --lr-border-subtle: #2F2820;
+      --lr-border-default: #3A3128;
+      --lr-border-strong: #4A3F35;
+      --lr-amber-base: #F59E0B;
+      --lr-amber-hover: #FBBF24;
+      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --lr-success: #22C55E;
+      --lr-error: #EF4444;
+      --lr-warning: #EAB308;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--lr-bg-base);
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Wireframe meta-header */
+    .wireframe-header {
+      background: var(--lr-bg-surface);
+      border-bottom: 1px solid var(--lr-border-default);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .wireframe-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+    }
+
+    .wireframe-title strong {
+      color: var(--lr-amber-base);
+    }
+
+    .state-switcher {
+      display: flex;
+      gap: 4px;
+    }
+
+    .state-btn {
+      background: transparent;
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-secondary);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+
+    .state-btn:hover {
+      color: var(--lr-text-primary);
+      border-color: var(--lr-border-strong);
+    }
+
+    .state-btn.active {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+      border-color: var(--lr-amber-base);
+      font-weight: 600;
+    }
+
+    /* App nav */
+    .app-nav {
+      height: 48px;
+      background: var(--lr-bg-base);
+      border-bottom: 1px solid var(--lr-border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 32px;
+      position: sticky;
+      top: 47px;
+      z-index: 90;
+    }
+
+    .nav-logo {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-logo .accent {
+      color: var(--lr-amber-base);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .nav-link {
+      color: var(--lr-text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+
+    .nav-link.active {
+      color: var(--lr-amber-base);
+      border-bottom: 1px solid var(--lr-amber-base);
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: var(--lr-text-secondary);
+      font-size: 12px;
+    }
+
+    .nav-avatar {
+      background: var(--lr-bg-elevated);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--lr-text-primary);
+    }
+
+    /* === PAGE LAYOUT === */
+    .layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 48px;
+    }
+
+    /* Anchored sidebar */
+    .sidebar {
+      position: sticky;
+      top: 128px;
+      align-self: start;
+    }
+
+    .sidebar-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-subtitle {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sidebar-link {
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+      cursor: pointer;
+      transition: all 150ms;
+      border-left: 2px solid transparent;
+    }
+
+    .sidebar-link:hover {
+      color: var(--lr-text-primary);
+      background: var(--lr-bg-surface);
+    }
+
+    .sidebar-link.active {
+      color: var(--lr-amber-base);
+      border-left-color: var(--lr-amber-base);
+      background: var(--lr-amber-faint);
+      font-weight: 500;
+    }
+
+    /* Content area */
+    .content {
+      min-width: 0;
+    }
+
+    /* Section */
+    .section {
+      padding: 32px 0;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .section:first-child {
+      padding-top: 0;
+    }
+
+    .section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-header {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+    }
+
+    /* Field row */
+    .field-row {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 24px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--lr-border-subtle);
+      align-items: center;
+    }
+
+    .field-row:last-child {
+      border-bottom: none;
+    }
+
+    .field-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .field-label-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--lr-text-primary);
+    }
+
+    .field-label-hint {
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      font-family: var(--font-mono);
+    }
+
+    .field-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    /* Inline edit field */
+    .inline-edit {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 100ms;
+    }
+
+    .inline-edit:hover {
+      background: var(--lr-bg-surface);
+      border-color: var(--lr-border-subtle);
+    }
+
+    .inline-edit.editing {
+      background: var(--lr-bg-elevated);
+      border-color: var(--lr-amber-base);
+      cursor: default;
+      padding: 0;
+    }
+
+    .inline-edit-value {
+      font-size: 14px;
+      color: var(--lr-text-primary);
+      flex: 1;
+    }
+
+    .inline-edit-value.muted {
+      color: var(--lr-text-secondary);
+    }
+
+    .inline-edit.editing .inline-edit-value {
+      display: none;
+    }
+
+    .inline-edit-input {
+      background: var(--lr-bg-elevated);
+      border: none;
+      padding: 8px 12px;
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      flex: 1;
+      outline: none;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .inline-edit.editing .inline-edit-input {
+      display: block;
+    }
+
+    .inline-edit-icon {
+      color: var(--lr-text-tertiary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 100ms;
+    }
+
+    .inline-edit:hover .inline-edit-icon {
+      opacity: 1;
+    }
+
+    .inline-edit-actions {
+      display: none;
+      gap: 4px;
+      padding: 4px;
+    }
+
+    .inline-edit.editing .inline-edit-actions {
+      display: flex;
+    }
+
+    .inline-btn {
+      padding: 6px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-sans);
+    }
+
+    .inline-btn.save {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+    }
+
+    .inline-btn.cancel {
+      background: transparent;
+      color: var(--lr-text-secondary);
+    }
+
+    .inline-btn.cancel:hover {
+      color: var(--lr-text-primary);
+    }
+
+    /* Toggle / Select pill */
+    .pill-group {
+      display: flex;
+      gap: 4px;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      cursor: pointer;
+      transition: all 100ms;
+    }
+
+    .pill:hover {
+      color: var(--lr-text-primary);
+    }
+
+    .pill.active {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+      font-weight: 600;
+    }
+
+    /* Toggle switch */
+    .switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+
+    .switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      background: var(--lr-text-secondary);
+      border-radius: 50%;
+      transition: all 150ms;
+    }
+
+    .switch.on {
+      background: var(--lr-amber-base);
+      border-color: var(--lr-amber-base);
+    }
+
+    .switch.on::after {
+      left: 18px;
+      background: var(--lr-text-inverse);
+    }
+
+    /* Action button */
+    .btn-action {
+      background: transparent;
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-primary);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 100ms;
+      font-family: var(--font-sans);
+    }
+
+    .btn-action:hover {
+      background: var(--lr-bg-elevated);
+      border-color: var(--lr-border-strong);
+    }
+
+    .btn-action.danger {
+      border-color: rgba(239, 68, 68, 0.3);
+      color: var(--lr-error);
+    }
+
+    .btn-action.danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--lr-error);
+    }
+
+    /* Profile reset list */
+    .profile-reset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .profile-reset-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+    }
+
+    .profile-reset-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-reset-icon {
+      width: 32px;
+      height: 20px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .profile-reset-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--lr-text-primary);
+      font-weight: 500;
+    }
+
+    .profile-reset-meta {
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      margin-left: 8px;
+    }
+
+    /* Theme section */
+    .theme-preview {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .theme-card {
+      border: 2px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+
+    .theme-card:hover:not(.disabled) {
+      border-color: var(--lr-border-strong);
+    }
+
+    .theme-card.active {
+      border-color: var(--lr-amber-base);
+    }
+
+    .theme-card.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .theme-preview-area {
+      aspect-ratio: 16 / 9;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 8px;
+    }
+
+    .theme-dark {
+      background: var(--lr-bg-base);
+    }
+
+    .theme-dark .theme-bar {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 2px;
+    }
+
+    .theme-dark .theme-accent {
+      background: var(--lr-amber-base);
+    }
+
+    .theme-light {
+      background: #F5F2ED;
+    }
+
+    .theme-light .theme-bar {
+      background: #E5E0D5;
+      border: 1px solid #CBC5B9;
+      border-radius: 2px;
+    }
+
+    .theme-light .theme-accent {
+      background: var(--lr-amber-base);
+    }
+
+    .theme-bar {
+      height: 6px;
+      width: 60%;
+    }
+
+    .theme-accent {
+      height: 16px;
+      width: 40%;
+      border-radius: 2px;
+    }
+
+    .theme-card-label {
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--lr-border-subtle);
+    }
+
+    .theme-card.disabled .theme-card-label {
+      background: var(--lr-bg-surface);
+    }
+
+    .theme-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+    }
+
+    .theme-badge.coming {
+      background: var(--lr-bg-elevated);
+      color: var(--lr-text-tertiary);
+    }
+
+    .theme-badge.active {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+    }
+
+    /* Danger zone */
+    .danger-zone {
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 8px;
+      padding: 24px;
+      background: rgba(239, 68, 68, 0.03);
+    }
+
+    .danger-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(239, 68, 68, 0.15);
+    }
+
+    .danger-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .danger-row:first-child {
+      padding-top: 0;
+    }
+
+    .danger-info-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--lr-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .danger-info-desc {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Delete modal */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 200;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-bg.visible {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-error);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .modal-header {
+      padding: 24px 28px 16px;
+      border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--lr-error);
+      margin-bottom: 4px;
+    }
+
+    .modal-subtitle {
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+    }
+
+    .modal-body {
+      padding: 24px 28px;
+    }
+
+    .modal-warning-list {
+      background: rgba(239, 68, 68, 0.08);
+      border-left: 2px solid var(--lr-error);
+      padding: 14px 18px;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 20px;
+    }
+
+    .modal-warning-list ul {
+      list-style: none;
+      font-size: 12px;
+      color: var(--lr-text-primary);
+      line-height: 1.8;
+    }
+
+    .modal-warning-list li::before {
+      content: '×';
+      color: var(--lr-error);
+      margin-right: 8px;
+      font-weight: 700;
+    }
+
+    .modal-confirm-label {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+    }
+
+    .modal-confirm-label code {
+      background: var(--lr-bg-elevated);
+      padding: 2px 8px;
+      border-radius: 3px;
+      color: var(--lr-error);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .modal-confirm-input {
+      width: 100%;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-primary);
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.05em;
+    }
+
+    .modal-confirm-input:focus {
+      outline: none;
+      border-color: var(--lr-error);
+    }
+
+    .modal-confirm-note {
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      line-height: 1.5;
+    }
+
+    .modal-footer {
+      padding: 16px 28px;
+      border-top: 1px solid var(--lr-border-subtle);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn-cancel {
+      background: transparent;
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-secondary);
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .modal-btn-cancel:hover {
+      color: var(--lr-text-primary);
+    }
+
+    .modal-btn-delete {
+      background: var(--lr-error);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .modal-btn-delete:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Annotation */
+    .annotation {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--lr-bg-overlay);
+      border: 1px solid var(--lr-border-strong);
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-size: 11px;
+      color: var(--lr-text-secondary);
+      font-family: var(--font-mono);
+      z-index: 90;
+      max-width: 80vw;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .annotation strong {
+      color: var(--lr-amber-base);
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Wireframe meta-header -->
-<div class="wireframe-header">
-  <div class="wireframe-title">
-    Settings wireframe v0.1 · <strong>/settings</strong>
-  </div>
-  <div class="state-switcher">
-    <button class="state-btn active" data-state="default">default view</button>
-    <button class="state-btn" data-state="editing">editing field</button>
-    <button class="state-btn" data-state="delete-modal">delete confirm</button>
-  </div>
-</div>
-
-<!-- App nav -->
-<div class="app-nav">
-  <div class="nav-logo">leftype-rightype</div>
-  <div class="nav-links">
-    <span class="nav-link">Practice</span>
-    <span class="nav-link">Dashboard</span>
-    <span class="nav-link">Keyboards</span>
-  </div>
-  <div class="nav-right">
-    <span>⚙</span>
-    <span class="nav-avatar">U</span>
-  </div>
-</div>
-
-<!-- PAGE -->
-<div class="layout">
-  
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-title">Settings</div>
-    <div class="sidebar-subtitle">preferences & account</div>
-    <nav class="sidebar-nav">
-      <a href="#account" class="sidebar-link active">Account</a>
-      <a href="#preferences" class="sidebar-link">Preferences</a>
-      <a href="#theme" class="sidebar-link">Theme</a>
-      <a href="#data" class="sidebar-link">Data</a>
-      <a href="#danger" class="sidebar-link" style="color: var(--lr-error);">Danger zone</a>
-    </nav>
-  </aside>
-  
-  <!-- Content -->
-  <div class="content">
-    
-    <!-- ACCOUNT SECTION -->
-    <section class="section" id="account">
-      <div class="section-header">
-        <h2 class="section-title">Account</h2>
-        <p class="section-desc">Your identity and how we reach you. Click any field to edit.</p>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Email address</span>
-          <span class="field-label-hint">used for sign-in</span>
-        </div>
-        <div class="field-control">
-          <div class="inline-edit" id="emailEdit">
-            <span class="inline-edit-value">user@example.com</span>
-            <input type="email" class="inline-edit-input" value="user@example.com">
-            <div class="inline-edit-actions">
-              <button class="inline-btn save">Save</button>
-              <button class="inline-btn cancel">Cancel</button>
-            </div>
-            <span class="inline-edit-icon">✎ click to edit</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Display name</span>
-          <span class="field-label-hint">optional · shown in greetings</span>
-        </div>
-        <div class="field-control">
-          <div class="inline-edit">
-            <span class="inline-edit-value muted">— not set</span>
-            <input type="text" class="inline-edit-input" placeholder="Your name">
-            <div class="inline-edit-actions">
-              <button class="inline-btn save">Save</button>
-              <button class="inline-btn cancel">Cancel</button>
-            </div>
-            <span class="inline-edit-icon">✎ click to edit</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Account created</span>
-          <span class="field-label-hint">read-only</span>
-        </div>
-        <div class="field-control">
-          <span style="color: var(--lr-text-secondary); font-family: var(--font-mono); font-size: 13px;">March 12, 2026 · 47 sessions logged</span>
-        </div>
-      </div>
-    </section>
-    
-    <!-- PREFERENCES SECTION -->
-    <section class="section" id="preferences">
-      <div class="section-header">
-        <h2 class="section-title">Preferences</h2>
-        <p class="section-desc">How practice sessions behave by default.</p>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Default practice mode</span>
-          <span class="field-label-hint">what loads when opening /practice</span>
-        </div>
-        <div class="field-control">
-          <div class="pill-group">
-            <div class="pill active">Adaptive</div>
-            <div class="pill">Drill</div>
-            <div class="pill">Ask each time</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Visual keyboard default</span>
-          <span class="field-label-hint">per-session override via Ctrl+K</span>
-        </div>
-        <div class="field-control">
-          <div class="pill-group">
-            <div class="pill active">Visible</div>
-            <div class="pill">Hidden</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Reduce motion</span>
-          <span class="field-label-hint">disable animations & flashing feedback</span>
-        </div>
-        <div class="field-control">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 12px; color: var(--lr-text-tertiary); font-family: var(--font-mono);">off</span>
-            <div class="switch"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Sound effects</span>
-          <span class="field-label-hint">subtle click on keypress</span>
-        </div>
-        <div class="field-control">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 11px; color: var(--lr-text-tertiary); font-family: var(--font-mono); font-style: italic;">coming in v2</span>
-            <div class="switch" style="opacity: 0.4; cursor: not-allowed;"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- THEME SECTION -->
-    <section class="section" id="theme">
-      <div class="section-header">
-        <h2 class="section-title">Theme</h2>
-        <p class="section-desc">Dark mode is the primary experience. Light mode is planned for v2.</p>
-      </div>
-      
-      <div class="theme-preview">
-        <div class="theme-card active">
-          <div class="theme-preview-area theme-dark">
-            <div class="theme-bar"></div>
-            <div class="theme-bar" style="width: 80%;"></div>
-            <div class="theme-accent"></div>
-            <div class="theme-bar" style="width: 45%;"></div>
-          </div>
-          <div class="theme-card-label">
-            Dark (default)
-            <span class="theme-badge active">active</span>
-          </div>
-        </div>
-        
-        <div class="theme-card disabled">
-          <div class="theme-preview-area theme-light">
-            <div class="theme-bar"></div>
-            <div class="theme-bar" style="width: 80%;"></div>
-            <div class="theme-accent"></div>
-            <div class="theme-bar" style="width: 45%;"></div>
-          </div>
-          <div class="theme-card-label">
-            Light
-            <span class="theme-badge coming">v2</span>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- DATA SECTION -->
-    <section class="section" id="data">
-      <div class="section-header">
-        <h2 class="section-title">Data</h2>
-        <p class="section-desc">Export your data, or reset stats for a specific keyboard profile.</p>
-      </div>
-      
-      <div class="field-row">
-        <div class="field-label">
-          <span class="field-label-name">Export all data</span>
-          <span class="field-label-hint">JSON · all keyboards, all sessions</span>
-        </div>
-        <div class="field-control">
-          <button class="btn-action">Download JSON</button>
-        </div>
-      </div>
-      
-      <div class="field-row" style="grid-template-columns: 1fr; align-items: start; gap: 12px;">
-        <div class="field-label">
-          <span class="field-label-name">Reset stats by keyboard</span>
-          <span class="field-label-hint">clears sessions & weakness data · does not delete keyboard profile</span>
-        </div>
-        <div class="profile-reset-list">
-          <div class="profile-reset-row">
-            <div class="profile-reset-info">
-              <div class="profile-reset-icon">⊞⊞</div>
-              <span class="profile-reset-name">lily58</span>
-              <span class="profile-reset-meta">28 sessions · active</span>
-            </div>
-            <button class="btn-action danger">Reset stats</button>
-          </div>
-          <div class="profile-reset-row">
-            <div class="profile-reset-info">
-              <div class="profile-reset-icon">⊞⊞</div>
-              <span class="profile-reset-name">sofle</span>
-              <span class="profile-reset-meta">19 sessions</span>
-            </div>
-            <button class="btn-action danger">Reset stats</button>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- DANGER ZONE -->
-    <section class="section" id="danger">
-      <div class="section-header">
-        <h2 class="section-title" style="color: var(--lr-error);">Danger zone</h2>
-        <p class="section-desc">Permanent actions. Proceed with care.</p>
-      </div>
-      
-      <div class="danger-zone">
-        <div class="danger-row">
-          <div>
-            <div class="danger-info-name">Delete account</div>
-            <div class="danger-info-desc">Permanently deletes your account, all keyboard profiles, stats, and session history. This cannot be undone.</div>
-          </div>
-          <button class="btn-action danger" onclick="setState('delete-modal')">Delete account</button>
-        </div>
-      </div>
-    </section>
-    
-  </div>
-</div>
-
-<!-- DELETE ACCOUNT MODAL -->
-<div class="modal-bg" id="deleteModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Delete account</div>
-      <div class="modal-subtitle">This action is permanent and cannot be undone.</div>
+  <!-- Wireframe meta-header -->
+  <div class="wireframe-header">
+    <div class="wireframe-title">
+      Settings wireframe v0.1 · <strong>/settings</strong>
     </div>
-    <div class="modal-body">
-      <div class="modal-warning-list">
-        <ul>
-          <li>Your account (user@example.com)</li>
-          <li>2 keyboard profiles (lily58, sofle)</li>
-          <li>47 sessions · 2,314 keystrokes tracked</li>
-          <li>All weakness data and insights</li>
-        </ul>
-      </div>
-      
-      <div class="modal-confirm-label">Type <code>DELETE</code> to confirm:</div>
-      <input type="text" class="modal-confirm-input" placeholder="DELETE" id="confirmInput">
-      <div class="modal-confirm-note">After confirming, we'll send a verification link to your email. Account is removed only after you click that link. You have 24 hours to cancel.</div>
-    </div>
-    <div class="modal-footer">
-      <button class="modal-btn-cancel" onclick="setState('default')">Cancel</button>
-      <button class="modal-btn-delete" disabled>Send verification email</button>
+    <div class="state-switcher">
+      <button class="state-btn active" data-state="default">default view</button>
+      <button class="state-btn" data-state="editing">editing field</button>
+      <button class="state-btn" data-state="delete-modal">delete confirm</button>
     </div>
   </div>
-</div>
 
-<div class="annotation" id="annotation">
-  <strong>Default view</strong> · single scrollable page with anchored sidebar · 5 sections: account, preferences, theme, data, danger zone
-</div>
+  <!-- App nav -->
+  <div class="app-nav">
+    <div class="nav-logo">kerf<span class="accent">.</span></div>
+    <div class="nav-links">
+      <span class="nav-link">Practice</span>
+      <span class="nav-link">Dashboard</span>
+      <span class="nav-link">Keyboards</span>
+    </div>
+    <div class="nav-right">
+      <span>⚙</span>
+      <span class="nav-avatar">U</span>
+    </div>
+  </div>
 
-<script>
-  function setState(state) {
-    document.querySelectorAll('.state-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.state === state);
-    });
-    
-    const emailEdit = document.getElementById('emailEdit');
-    const deleteModal = document.getElementById('deleteModal');
-    const annotation = document.getElementById('annotation');
-    
-    emailEdit.classList.remove('editing');
-    deleteModal.classList.remove('visible');
-    
-    if (state === 'default') {
-      annotation.innerHTML = '<strong>Default view</strong> · single scrollable page with anchored sidebar · 5 sections: account, preferences, theme, data, danger zone';
-    } else if (state === 'editing') {
-      emailEdit.classList.add('editing');
-      // Scroll to account section
-      document.getElementById('account').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      annotation.innerHTML = '<strong>Editing field</strong> · inline edit activated on click · save/cancel buttons appear · other fields stay read-only';
-    } else if (state === 'delete-modal') {
-      deleteModal.classList.add('visible');
-      annotation.innerHTML = '<strong>Delete modal</strong> · shows data summary · requires typing DELETE · then sends email verification · 24h grace period mentioned';
+  <!-- PAGE -->
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-title">Settings</div>
+      <div class="sidebar-subtitle">preferences & account</div>
+      <nav class="sidebar-nav">
+        <a href="#account" class="sidebar-link active">Account</a>
+        <a href="#preferences" class="sidebar-link">Preferences</a>
+        <a href="#theme" class="sidebar-link">Theme</a>
+        <a href="#data" class="sidebar-link">Data</a>
+        <a href="#danger" class="sidebar-link" style="color: var(--lr-error);">Danger zone</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ACCOUNT SECTION -->
+      <section class="section" id="account">
+        <div class="section-header">
+          <h2 class="section-title">Account</h2>
+          <p class="section-desc">Your identity and how we reach you. Click any field to edit.</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Email address</span>
+            <span class="field-label-hint">used for sign-in</span>
+          </div>
+          <div class="field-control">
+            <div class="inline-edit" id="emailEdit">
+              <span class="inline-edit-value">user@example.com</span>
+              <input type="email" class="inline-edit-input" value="user@example.com">
+              <div class="inline-edit-actions">
+                <button class="inline-btn save">Save</button>
+                <button class="inline-btn cancel">Cancel</button>
+              </div>
+              <span class="inline-edit-icon">✎ click to edit</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Display name</span>
+            <span class="field-label-hint">optional · shown in greetings</span>
+          </div>
+          <div class="field-control">
+            <div class="inline-edit">
+              <span class="inline-edit-value muted">— not set</span>
+              <input type="text" class="inline-edit-input" placeholder="Your name">
+              <div class="inline-edit-actions">
+                <button class="inline-btn save">Save</button>
+                <button class="inline-btn cancel">Cancel</button>
+              </div>
+              <span class="inline-edit-icon">✎ click to edit</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Account created</span>
+            <span class="field-label-hint">read-only</span>
+          </div>
+          <div class="field-control">
+            <span style="color: var(--lr-text-secondary); font-family: var(--font-mono); font-size: 13px;">March 12,
+              2026 · 47 sessions logged</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- PREFERENCES SECTION -->
+      <section class="section" id="preferences">
+        <div class="section-header">
+          <h2 class="section-title">Preferences</h2>
+          <p class="section-desc">How practice sessions behave by default.</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Default practice mode</span>
+            <span class="field-label-hint">what loads when opening /practice</span>
+          </div>
+          <div class="field-control">
+            <div class="pill-group">
+              <div class="pill active">Adaptive</div>
+              <div class="pill">Drill</div>
+              <div class="pill">Ask each time</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Visual keyboard default</span>
+            <span class="field-label-hint">per-session override via Ctrl+K</span>
+          </div>
+          <div class="field-control">
+            <div class="pill-group">
+              <div class="pill active">Visible</div>
+              <div class="pill">Hidden</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Reduce motion</span>
+            <span class="field-label-hint">disable animations & flashing feedback</span>
+          </div>
+          <div class="field-control">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 12px; color: var(--lr-text-tertiary); font-family: var(--font-mono);">off</span>
+              <div class="switch"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Sound effects</span>
+            <span class="field-label-hint">subtle click on keypress</span>
+          </div>
+          <div class="field-control">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span
+                style="font-size: 11px; color: var(--lr-text-tertiary); font-family: var(--font-mono); font-style: italic;">coming
+                in v2</span>
+              <div class="switch" style="opacity: 0.4; cursor: not-allowed;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- THEME SECTION -->
+      <section class="section" id="theme">
+        <div class="section-header">
+          <h2 class="section-title">Theme</h2>
+          <p class="section-desc">Dark mode is the primary experience. Light mode is planned for v2.</p>
+        </div>
+
+        <div class="theme-preview">
+          <div class="theme-card active">
+            <div class="theme-preview-area theme-dark">
+              <div class="theme-bar"></div>
+              <div class="theme-bar" style="width: 80%;"></div>
+              <div class="theme-accent"></div>
+              <div class="theme-bar" style="width: 45%;"></div>
+            </div>
+            <div class="theme-card-label">
+              Dark (default)
+              <span class="theme-badge active">active</span>
+            </div>
+          </div>
+
+          <div class="theme-card disabled">
+            <div class="theme-preview-area theme-light">
+              <div class="theme-bar"></div>
+              <div class="theme-bar" style="width: 80%;"></div>
+              <div class="theme-accent"></div>
+              <div class="theme-bar" style="width: 45%;"></div>
+            </div>
+            <div class="theme-card-label">
+              Light
+              <span class="theme-badge coming">v2</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATA SECTION -->
+      <section class="section" id="data">
+        <div class="section-header">
+          <h2 class="section-title">Data</h2>
+          <p class="section-desc">Export your data, or reset stats for a specific keyboard profile.</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-label-name">Export all data</span>
+            <span class="field-label-hint">JSON · all keyboards, all sessions</span>
+          </div>
+          <div class="field-control">
+            <button class="btn-action">Download JSON</button>
+          </div>
+        </div>
+
+        <div class="field-row" style="grid-template-columns: 1fr; align-items: start; gap: 12px;">
+          <div class="field-label">
+            <span class="field-label-name">Reset stats by keyboard</span>
+            <span class="field-label-hint">clears sessions & weakness data · does not delete keyboard profile</span>
+          </div>
+          <div class="profile-reset-list">
+            <div class="profile-reset-row">
+              <div class="profile-reset-info">
+                <div class="profile-reset-icon">⊞⊞</div>
+                <span class="profile-reset-name">lily58</span>
+                <span class="profile-reset-meta">28 sessions · active</span>
+              </div>
+              <button class="btn-action danger">Reset stats</button>
+            </div>
+            <div class="profile-reset-row">
+              <div class="profile-reset-info">
+                <div class="profile-reset-icon">⊞⊞</div>
+                <span class="profile-reset-name">sofle</span>
+                <span class="profile-reset-meta">19 sessions</span>
+              </div>
+              <button class="btn-action danger">Reset stats</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DANGER ZONE -->
+      <section class="section" id="danger">
+        <div class="section-header">
+          <h2 class="section-title" style="color: var(--lr-error);">Danger zone</h2>
+          <p class="section-desc">Permanent actions. Proceed with care.</p>
+        </div>
+
+        <div class="danger-zone">
+          <div class="danger-row">
+            <div>
+              <div class="danger-info-name">Delete account</div>
+              <div class="danger-info-desc">Permanently deletes your account, all keyboard profiles, stats, and session
+                history. This cannot be undone.</div>
+            </div>
+            <button class="btn-action danger" onclick="setState('delete-modal')">Delete account</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- DELETE ACCOUNT MODAL -->
+  <div class="modal-bg" id="deleteModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Delete account</div>
+        <div class="modal-subtitle">This action is permanent and cannot be undone.</div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-warning-list">
+          <ul>
+            <li>Your account (user@example.com)</li>
+            <li>2 keyboard profiles (lily58, sofle)</li>
+            <li>47 sessions · 2,314 keystrokes tracked</li>
+            <li>All weakness data and insights</li>
+          </ul>
+        </div>
+
+        <div class="modal-confirm-label">Type <code>DELETE</code> to confirm:</div>
+        <input type="text" class="modal-confirm-input" placeholder="DELETE" id="confirmInput">
+        <div class="modal-confirm-note">After confirming, we'll send a verification link to your email. Account is
+          removed only after you click that link. You have 24 hours to cancel.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-cancel" onclick="setState('default')">Cancel</button>
+        <button class="modal-btn-delete" disabled>Send verification email</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation" id="annotation">
+    <strong>Default view</strong> · single scrollable page with anchored sidebar · 5 sections: account, preferences,
+    theme, data, danger zone
+  </div>
+
+  <script>
+    function setState(state) {
+      document.querySelectorAll('.state-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.state === state);
+      });
+
+      const emailEdit = document.getElementById('emailEdit');
+      const deleteModal = document.getElementById('deleteModal');
+      const annotation = document.getElementById('annotation');
+
+      emailEdit.classList.remove('editing');
+      deleteModal.classList.remove('visible');
+
+      if (state === 'default') {
+        annotation.innerHTML = '<strong>Default view</strong> · single scrollable page with anchored sidebar · 5 sections: account, preferences, theme, data, danger zone';
+      } else if (state === 'editing') {
+        emailEdit.classList.add('editing');
+        // Scroll to account section
+        document.getElementById('account').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        annotation.innerHTML = '<strong>Editing field</strong> · inline edit activated on click · save/cancel buttons appear · other fields stay read-only';
+      } else if (state === 'delete-modal') {
+        deleteModal.classList.add('visible');
+        annotation.innerHTML = '<strong>Delete modal</strong> · shows data summary · requires typing DELETE · then sends email verification · 24h grace period mentioned';
+      }
     }
-  }
-  
-  document.querySelectorAll('.state-btn').forEach(btn => {
-    btn.addEventListener('click', () => setState(btn.dataset.state));
-  });
-  
-  // Toggle switch handler
-  document.querySelectorAll('.switch:not([style*="opacity"])').forEach(sw => {
-    sw.addEventListener('click', () => sw.classList.toggle('on'));
-  });
-  
-  // Inline edit trigger
-  document.querySelectorAll('.inline-edit').forEach(edit => {
-    edit.addEventListener('click', (e) => {
-      if (!edit.classList.contains('editing') && !e.target.classList.contains('inline-btn')) {
-        edit.classList.add('editing');
-        const input = edit.querySelector('.inline-edit-input');
-        if (input) input.focus();
+
+    document.querySelectorAll('.state-btn').forEach(btn => {
+      btn.addEventListener('click', () => setState(btn.dataset.state));
+    });
+
+    // Toggle switch handler
+    document.querySelectorAll('.switch:not([style*="opacity"])').forEach(sw => {
+      sw.addEventListener('click', () => sw.classList.toggle('on'));
+    });
+
+    // Inline edit trigger
+    document.querySelectorAll('.inline-edit').forEach(edit => {
+      edit.addEventListener('click', (e) => {
+        if (!edit.classList.contains('editing') && !e.target.classList.contains('inline-btn')) {
+          edit.classList.add('editing');
+          const input = edit.querySelector('.inline-edit-input');
+          if (input) input.focus();
+        }
+      });
+
+      edit.querySelectorAll('.inline-btn.cancel').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          edit.classList.remove('editing');
+        });
+      });
+      edit.querySelectorAll('.inline-btn.save').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          edit.classList.remove('editing');
+        });
+      });
+    });
+
+    // Confirm input enables delete button
+    document.getElementById('confirmInput').addEventListener('input', (e) => {
+      const btn = document.querySelector('.modal-btn-delete');
+      if (e.target.value === 'DELETE') {
+        btn.disabled = false;
+      } else {
+        btn.disabled = true;
       }
     });
-    
-    edit.querySelectorAll('.inline-btn.cancel').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        edit.classList.remove('editing');
+
+    // Sidebar smooth scroll
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        const target = document.getElementById(link.getAttribute('href').substring(1));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
-    edit.querySelectorAll('.inline-btn.save').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        edit.classList.remove('editing');
-      });
-    });
-  });
-  
-  // Confirm input enables delete button
-  document.getElementById('confirmInput').addEventListener('input', (e) => {
-    const btn = document.querySelector('.modal-btn-delete');
-    if (e.target.value === 'DELETE') {
-      btn.disabled = false;
-    } else {
-      btn.disabled = true;
-    }
-  });
-  
-  // Sidebar smooth scroll
-  document.querySelectorAll('.sidebar-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-      const target = document.getElementById(link.getAttribute('href').substring(1));
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-</script>
+  </script>
 
 </body>
+
 </html>

@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leftype-Rightype — Login Wireframe</title>
+<title>kerf — login wireframe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --lr-bg-base: #181410;
@@ -27,6 +27,7 @@
     --lr-error: #EF4444;
     --font-sans: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-brand: 'Fraunces', serif;
   }
   
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,18 +92,20 @@
     width: 100%;
   }
   
-  /* Logo area */
+  /* Logo area — hero-like treatment (login is a first-impression page) */
   .login-logo {
     text-align: center;
     margin-bottom: 48px;
   }
   .login-logo-mark {
-    font-family: var(--font-mono);
-    font-size: 18px;
+    font-family: var(--font-brand);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    font-size: 36px;
+    line-height: 1;
     color: var(--lr-text-primary);
-    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
   }
   .login-logo-mark .accent { color: var(--lr-amber-base); }
   .login-logo-tagline {
@@ -374,8 +377,8 @@
     
     <!-- Logo -->
     <div class="login-logo">
-      <div class="login-logo-mark">leftype<span class="accent">-</span>rightype</div>
-      <div class="login-logo-tagline">adaptive typing for split keyboards</div>
+      <div class="login-logo-mark">kerf<span class="accent">.</span></div>
+      <div class="login-logo-tagline">a typing coach for split keyboards</div>
     </div>
     
     <!-- DEFAULT STATE -->

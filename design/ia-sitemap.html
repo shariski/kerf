@@ -1,600 +1,899 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Leftype-Rightype — Information Architecture</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-text-inverse: #181410;
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    --lr-success: #22C55E;
-    --lr-error: #EF4444;
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    padding: 48px 32px;
-    min-height: 100vh;
-  }
-  .container { max-width: 1200px; margin: 0 auto; }
-  
-  /* Header */
-  .hero { margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid var(--lr-border-subtle); }
-  .wordmark { font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--lr-text-secondary); margin-bottom: 16px; letter-spacing: -0.02em; }
-  .wordmark .accent { color: var(--lr-amber-base); }
-  .hero h1 { font-size: 32px; font-weight: 700; margin-bottom: 12px; line-height: 1.2; }
-  .hero .meta { font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-tertiary); }
-  .hero p { color: var(--lr-text-secondary); margin-top: 12px; max-width: 700px; }
-  
-  /* Tabs */
-  .tabs { display: flex; gap: 4px; margin-bottom: 32px; border-bottom: 1px solid var(--lr-border-subtle); }
-  .tab {
-    background: transparent;
-    border: none;
-    color: var(--lr-text-secondary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px 20px;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    transition: all 150ms;
-  }
-  .tab:hover { color: var(--lr-text-primary); }
-  .tab.active { color: var(--lr-amber-base); border-bottom-color: var(--lr-amber-base); }
-  
-  /* Tab content */
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-  
-  /* Section title */
-  .section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
-  .section-desc { color: var(--lr-text-secondary); margin-bottom: 32px; max-width: 700px; }
-  
-  /* Sitemap visualization */
-  .sitemap-canvas {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 12px;
-    padding: 32px;
-    overflow-x: auto;
-  }
-  .sitemap-tier { display: flex; flex-direction: column; gap: 32px; align-items: center; }
-  .tier-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: stretch; position: relative; }
-  .tier-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--lr-text-tertiary);
-    margin-bottom: 12px;
-    text-align: center;
-    font-weight: 600;
-  }
-  
-  /* Page node */
-  .page-node {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 6px;
-    padding: 16px 20px;
-    min-width: 180px;
-    cursor: pointer;
-    transition: all 150ms;
-  }
-  .page-node:hover {
-    border-color: var(--lr-amber-base);
-    background: var(--lr-bg-overlay);
-  }
-  .page-node.public { border-style: dashed; opacity: 0.85; }
-  .page-node.primary { border-color: var(--lr-amber-base); background: var(--lr-amber-faint); }
-  .page-node-route {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--lr-amber-base);
-    margin-bottom: 6px;
-    font-weight: 700;
-  }
-  .page-node-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .page-node-desc { font-size: 12px; color: var(--lr-text-secondary); line-height: 1.4; }
-  .page-node-children { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .page-node-child {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    background: var(--lr-bg-base);
-    padding: 2px 8px;
-    border-radius: 3px;
-    border: 1px solid var(--lr-border-subtle);
-  }
-  
-  /* Tier connectors */
-  .connector { width: 1px; height: 24px; background: var(--lr-border-default); margin: 0 auto; }
-  
-  /* Flow visualization */
-  .flow-card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  .flow-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--lr-border-subtle); }
-  .flow-title { font-size: 16px; font-weight: 600; }
-  .flow-meta { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-tertiary); padding: 4px 10px; background: var(--lr-bg-elevated); border-radius: 3px; }
-  
-  .flow-steps { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
-  .flow-step {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 6px;
-    padding: 12px 14px;
-    min-width: 140px;
-    flex: 0 0 auto;
-    max-width: 200px;
-  }
-  .flow-step-route {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-amber-base);
-    margin-bottom: 4px;
-    font-weight: 700;
-    word-break: break-all;
-  }
-  .flow-step-action {
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    line-height: 1.4;
-  }
-  .flow-step.endpoint {
-    background: var(--lr-amber-faint);
-    border-color: var(--lr-amber-base);
-  }
-  .flow-step.endpoint .flow-step-action {
-    color: var(--lr-text-primary);
-    font-weight: 500;
-  }
-  .flow-arrow {
-    display: flex;
-    align-items: center;
-    color: var(--lr-text-tertiary);
-    font-family: var(--font-mono);
-    font-weight: 700;
-    padding: 0 4px;
-    font-size: 16px;
-  }
-  
-  .flow-target {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--lr-border-subtle);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-  }
-  .flow-target-label { color: var(--lr-text-tertiary); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-  .flow-target-value { color: var(--lr-success); font-family: var(--font-mono); font-weight: 700; }
-  
-  /* Nav diagram */
-  .nav-mockup {
-    background: var(--lr-bg-base);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .nav-bar {
-    height: 48px;
-    background: var(--lr-bg-base);
-    border-bottom: 1px solid var(--lr-border-subtle);
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-    gap: 32px;
-  }
-  .nav-bar-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--lr-text-primary); }
-  .nav-bar-links { display: flex; gap: 24px; flex: 1; }
-  .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; padding: 6px 0; cursor: pointer; }
-  .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
-  .nav-bar-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
-  .nav-content {
-    padding: 32px 24px;
-    color: var(--lr-text-tertiary);
-    font-size: 12px;
-    text-align: center;
-    font-family: var(--font-mono);
-  }
-  .nav-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-    font-weight: 600;
-  }
-  
-  /* Shortcut grid */
-  .shortcuts {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 20px 24px;
-    margin-top: 16px;
-  }
-  .shortcut-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .shortcut-row:last-child { border-bottom: none; }
-  .shortcut-keys { display: flex; gap: 4px; }
-  .key {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-bottom-width: 2px;
-    border-radius: 3px;
-    padding: 2px 8px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-primary);
-    font-weight: 600;
-  }
-  .shortcut-desc { font-size: 12px; color: var(--lr-text-secondary); }
-  
-  /* Legend */
-  .legend {
-    display: flex;
-    gap: 24px;
-    margin-top: 24px;
-    padding: 16px;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-  }
-  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--lr-text-secondary); }
-  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
-  
-  .footer {
-    margin-top: 64px;
-    padding-top: 24px;
-    border-top: 1px solid var(--lr-border-subtle);
-    text-align: center;
-    font-size: 12px;
-    color: var(--lr-text-tertiary);
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>kerf — information architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --lr-bg-base: #181410;
+      --lr-bg-surface: #221C17;
+      --lr-bg-elevated: #2A2320;
+      --lr-bg-overlay: #322A26;
+      --lr-text-primary: #F2EAE0;
+      --lr-text-secondary: #9A8E80;
+      --lr-text-tertiary: #685D52;
+      --lr-text-inverse: #181410;
+      --lr-border-subtle: #2F2820;
+      --lr-border-default: #3A3128;
+      --lr-border-strong: #4A3F35;
+      --lr-amber-base: #F59E0B;
+      --lr-amber-hover: #FBBF24;
+      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --lr-success: #22C55E;
+      --lr-error: #EF4444;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--lr-bg-base);
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 48px 32px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .hero {
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .wordmark {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 36px;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .wordmark .accent {
+      color: var(--lr-amber-base);
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .hero .meta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .hero p {
+      color: var(--lr-text-secondary);
+      margin-top: 12px;
+      max-width: 700px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .tab {
+      background: transparent;
+      border: none;
+      color: var(--lr-text-secondary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 150ms;
+    }
+
+    .tab:hover {
+      color: var(--lr-text-primary);
+    }
+
+    .tab.active {
+      color: var(--lr-amber-base);
+      border-bottom-color: var(--lr-amber-base);
+    }
+
+    /* Tab content */
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Section title */
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .section-desc {
+      color: var(--lr-text-secondary);
+      margin-bottom: 32px;
+      max-width: 700px;
+    }
+
+    /* Sitemap visualization */
+    .sitemap-canvas {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 12px;
+      padding: 32px;
+      overflow-x: auto;
+    }
+
+    .sitemap-tier {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .tier-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      position: relative;
+    }
+
+    .tier-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--lr-text-tertiary);
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Page node */
+    .page-node {
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 6px;
+      padding: 16px 20px;
+      min-width: 180px;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+
+    .page-node:hover {
+      border-color: var(--lr-amber-base);
+      background: var(--lr-bg-overlay);
+    }
+
+    .page-node.public {
+      border-style: dashed;
+      opacity: 0.85;
+    }
+
+    .page-node.primary {
+      border-color: var(--lr-amber-base);
+      background: var(--lr-amber-faint);
+    }
+
+    .page-node-route {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-amber-base);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .page-node-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .page-node-desc {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      line-height: 1.4;
+    }
+
+    .page-node-children {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-node-child {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-secondary);
+      background: var(--lr-bg-base);
+      padding: 2px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    /* Tier connectors */
+    .connector {
+      width: 1px;
+      height: 24px;
+      background: var(--lr-border-default);
+      margin: 0 auto;
+    }
+
+    /* Flow visualization */
+    .flow-card {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .flow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .flow-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .flow-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      padding: 4px 10px;
+      background: var(--lr-bg-elevated);
+      border-radius: 3px;
+    }
+
+    .flow-steps {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .flow-step {
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 6px;
+      padding: 12px 14px;
+      min-width: 140px;
+      flex: 0 0 auto;
+      max-width: 200px;
+    }
+
+    .flow-step-route {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-amber-base);
+      margin-bottom: 4px;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    .flow-step-action {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      line-height: 1.4;
+    }
+
+    .flow-step.endpoint {
+      background: var(--lr-amber-faint);
+      border-color: var(--lr-amber-base);
+    }
+
+    .flow-step.endpoint .flow-step-action {
+      color: var(--lr-text-primary);
+      font-weight: 500;
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--lr-text-tertiary);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 0 4px;
+      font-size: 16px;
+    }
+
+    .flow-target {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--lr-border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .flow-target-label {
+      color: var(--lr-text-tertiary);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .flow-target-value {
+      color: var(--lr-success);
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    /* Nav diagram */
+    .nav-mockup {
+      background: var(--lr-bg-base);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .nav-bar {
+      height: 48px;
+      background: var(--lr-bg-base);
+      border-bottom: 1px solid var(--lr-border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 32px;
+    }
+
+    .nav-bar-logo {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--lr-text-primary);
+    }
+
+    .nav-bar-links {
+      display: flex;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .nav-link {
+      color: var(--lr-text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 0;
+      cursor: pointer;
+    }
+
+    .nav-link.active {
+      color: var(--lr-amber-base);
+      border-bottom: 1px solid var(--lr-amber-base);
+    }
+
+    .nav-bar-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: var(--lr-text-secondary);
+      font-size: 12px;
+    }
+
+    .nav-content {
+      padding: 32px 24px;
+      color: var(--lr-text-tertiary);
+      font-size: 12px;
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+
+    .nav-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    /* Shortcut grid */
+    .shortcuts {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-top: 16px;
+    }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .shortcut-row:last-child {
+      border-bottom: none;
+    }
+
+    .shortcut-keys {
+      display: flex;
+      gap: 4px;
+    }
+
+    .key {
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-bottom-width: 2px;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-primary);
+      font-weight: 600;
+    }
+
+    .shortcut-desc {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+      padding: 16px;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--lr-border-subtle);
+      text-align: center;
+      font-size: 12px;
+      color: var(--lr-text-tertiary);
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <!-- Header -->
-  <div class="hero">
-    <div class="wordmark">leftype<span class="accent">-</span>rightype</div>
-    <h1>Information architecture</h1>
-    <div class="meta">v0.1 · 2026-04-17 · companion to 05-information-architecture.md</div>
-    <p>Visual reference for sitemap, navigation pattern, critical user flows, and keyboard shortcuts. Click tabs to switch views.</p>
-  </div>
+    <!-- Header -->
+    <div class="hero">
+      <div class="wordmark">kerf<span class="accent">.</span></div>
+      <h1>Information architecture</h1>
+      <div class="meta">v0.1 · 2026-04-17 · companion to 05-information-architecture.md</div>
+      <p>Visual reference for sitemap, navigation pattern, critical user flows, and keyboard shortcuts. Click tabs to
+        switch views.</p>
+    </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" data-tab="sitemap">Sitemap</button>
-    <button class="tab" data-tab="flows">User flows</button>
-    <button class="tab" data-tab="navigation">Navigation pattern</button>
-  </div>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="sitemap">Sitemap</button>
+      <button class="tab" data-tab="flows">User flows</button>
+      <button class="tab" data-tab="navigation">Navigation pattern</button>
+    </div>
 
-  <!-- SITEMAP TAB -->
-  <div class="tab-panel active" id="sitemap">
-    <h2 class="section-title">Site structure</h2>
-    <p class="section-desc">7 top-level routes, intentionally minimal for MVP. Public routes shown with dashed borders. Primary/recommended path highlighted in amber.</p>
-    
-    <div class="sitemap-canvas">
-      <div class="sitemap-tier">
-        
-        <!-- Public tier -->
-        <div>
-          <div class="tier-label">Public (visitor)</div>
-          <div class="tier-row">
-            <div class="page-node public">
-              <div class="page-node-route">/</div>
-              <div class="page-node-name">Landing</div>
-              <div class="page-node-desc">Marketing page for visitors not logged in</div>
-            </div>
-            <div class="page-node public">
-              <div class="page-node-route">/login</div>
-              <div class="page-node-name">Login / register</div>
-              <div class="page-node-desc">Email magic link or OAuth</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="connector"></div>
-        
-        <!-- Onboarding -->
-        <div>
-          <div class="tier-label">First-time setup</div>
-          <div class="tier-row">
-            <div class="page-node">
-              <div class="page-node-route">/onboarding</div>
-              <div class="page-node-name">First-time setup</div>
-              <div class="page-node-desc">3-step linear flow, no skip</div>
-              <div class="page-node-children">
-                <div class="page-node-child">step 1: keyboard</div>
-                <div class="page-node-child">step 2: hand</div>
-                <div class="page-node-child">step 3: level</div>
+    <!-- SITEMAP TAB -->
+    <div class="tab-panel active" id="sitemap">
+      <h2 class="section-title">Site structure</h2>
+      <p class="section-desc">7 top-level routes, intentionally minimal for MVP. Public routes shown with dashed
+        borders. Primary/recommended path highlighted in amber.</p>
+
+      <div class="sitemap-canvas">
+        <div class="sitemap-tier">
+
+          <!-- Public tier -->
+          <div>
+            <div class="tier-label">Public (visitor)</div>
+            <div class="tier-row">
+              <div class="page-node public">
+                <div class="page-node-route">/</div>
+                <div class="page-node-name">Landing</div>
+                <div class="page-node-desc">Marketing page for visitors not logged in</div>
+              </div>
+              <div class="page-node public">
+                <div class="page-node-route">/login</div>
+                <div class="page-node-name">Login / register</div>
+                <div class="page-node-desc">Email magic link or OAuth</div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div class="connector"></div>
-        
-        <!-- Authenticated primary -->
-        <div>
-          <div class="tier-label">Authenticated · Primary destinations</div>
-          <div class="tier-row">
-            <div class="page-node primary">
-              <div class="page-node-route">/</div>
-              <div class="page-node-name">Home (lobby)</div>
-              <div class="page-node-desc">Quick start CTA, last session, streak, weakness preview</div>
-            </div>
-            <div class="page-node primary">
-              <div class="page-node-route">/practice</div>
-              <div class="page-node-name">Practice</div>
-              <div class="page-node-desc">Heart of the product. Adaptive mode default.</div>
-              <div class="page-node-children">
-                <div class="page-node-child">/practice/drill</div>
+
+          <div class="connector"></div>
+
+          <!-- Onboarding -->
+          <div>
+            <div class="tier-label">First-time setup</div>
+            <div class="tier-row">
+              <div class="page-node">
+                <div class="page-node-route">/onboarding</div>
+                <div class="page-node-name">First-time setup</div>
+                <div class="page-node-desc">3-step linear flow, no skip</div>
+                <div class="page-node-children">
+                  <div class="page-node-child">step 1: keyboard</div>
+                  <div class="page-node-child">step 2: hand</div>
+                  <div class="page-node-child">step 3: level</div>
+                </div>
               </div>
             </div>
-            <div class="page-node primary">
-              <div class="page-node-route">/dashboard</div>
-              <div class="page-node-name">Dashboard</div>
-              <div class="page-node-desc">Stats, heatmap, weakness ranking, insights</div>
+          </div>
+
+          <div class="connector"></div>
+
+          <!-- Authenticated primary -->
+          <div>
+            <div class="tier-label">Authenticated · Primary destinations</div>
+            <div class="tier-row">
+              <div class="page-node primary">
+                <div class="page-node-route">/</div>
+                <div class="page-node-name">Home (lobby)</div>
+                <div class="page-node-desc">Quick start CTA, last session, streak, weakness preview</div>
+              </div>
+              <div class="page-node primary">
+                <div class="page-node-route">/practice</div>
+                <div class="page-node-name">Practice</div>
+                <div class="page-node-desc">Heart of the product. Adaptive mode default.</div>
+                <div class="page-node-children">
+                  <div class="page-node-child">/practice/drill</div>
+                </div>
+              </div>
+              <div class="page-node primary">
+                <div class="page-node-route">/dashboard</div>
+                <div class="page-node-name">Dashboard</div>
+                <div class="page-node-desc">Stats, heatmap, weakness ranking, insights</div>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div class="connector"></div>
-        
-        <!-- Authenticated secondary -->
-        <div>
-          <div class="tier-label">Authenticated · Management</div>
-          <div class="tier-row">
-            <div class="page-node">
-              <div class="page-node-route">/keyboards</div>
-              <div class="page-node-name">Keyboard profiles</div>
-              <div class="page-node-desc">Switch active profile, add new, view per-keyboard summary</div>
-            </div>
-            <div class="page-node">
-              <div class="page-node-route">/settings</div>
-              <div class="page-node-name">Settings</div>
-              <div class="page-node-desc">Account, preferences, theme, data, danger zone</div>
+
+          <div class="connector"></div>
+
+          <!-- Authenticated secondary -->
+          <div>
+            <div class="tier-label">Authenticated · Management</div>
+            <div class="tier-row">
+              <div class="page-node">
+                <div class="page-node-route">/keyboards</div>
+                <div class="page-node-name">Keyboard profiles</div>
+                <div class="page-node-desc">Switch active profile, add new, view per-keyboard summary</div>
+              </div>
+              <div class="page-node">
+                <div class="page-node-route">/settings</div>
+                <div class="page-node-name">Settings</div>
+                <div class="page-node-desc">Account, preferences, theme, data, danger zone</div>
+              </div>
             </div>
           </div>
-        </div>
-        
-      </div>
-    </div>
-    
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background: var(--lr-amber-faint); border: 1px solid var(--lr-amber-base);"></div>Primary destination (top nav)</div>
-      <div class="legend-item"><div class="legend-dot" style="background: var(--lr-bg-elevated); border: 1px solid var(--lr-border-default);"></div>Secondary destination</div>
-      <div class="legend-item"><div class="legend-dot" style="background: var(--lr-bg-elevated); border: 1px dashed var(--lr-border-default);"></div>Public (no auth)</div>
-    </div>
-  </div>
 
-  <!-- FLOWS TAB -->
-  <div class="tab-panel" id="flows">
-    <h2 class="section-title">Critical user flows</h2>
-    <p class="section-desc">Four flows that must work seamlessly for the product to feel right. Each flow has a target time-to-completion that serves as acceptance criteria.</p>
-    
-    <!-- Flow 1 -->
-    <div class="flow-card">
-      <div class="flow-header">
-        <div class="flow-title">Flow 1 · First-time user</div>
-        <div class="flow-meta">target: typing within 60 seconds</div>
-      </div>
-      <div class="flow-steps">
-        <div class="flow-step"><div class="flow-step-route">/</div><div class="flow-step-action">Visit landing as new user</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/login</div><div class="flow-step-action">Register, request magic link</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">email</div><div class="flow-step-action">Click link in email</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/onboarding</div><div class="flow-step-action">3-step setup (keyboard, hand, level)</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step endpoint"><div class="flow-step-route">/practice</div><div class="flow-step-action">Auto-start curated first exercise</div></div>
-      </div>
-      <div class="flow-target">
-        <span class="flow-target-label">acceptance</span>
-        <span class="flow-target-value">≤ 60s from landing to first keystroke</span>
-      </div>
-    </div>
-    
-    <!-- Flow 2 -->
-    <div class="flow-card">
-      <div class="flow-header">
-        <div class="flow-title">Flow 2 · Returning user, quick practice</div>
-        <div class="flow-meta">target: typing within 5 seconds</div>
-      </div>
-      <div class="flow-steps">
-        <div class="flow-step"><div class="flow-step-route">/</div><div class="flow-step-action">Auto-redirect to home (logged in)</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/</div><div class="flow-step-action">Click "Start practice" CTA</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/practice</div><div class="flow-step-action">Pre-session: confirm or skip</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step endpoint"><div class="flow-step-route">/practice</div><div class="flow-step-action">Active session begins</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/practice</div><div class="flow-step-action">Auto post-session summary</div></div>
-      </div>
-      <div class="flow-target">
-        <span class="flow-target-label">acceptance</span>
-        <span class="flow-target-value">≤ 5s from home to first keystroke</span>
-      </div>
-    </div>
-    
-    <!-- Flow 3 -->
-    <div class="flow-card">
-      <div class="flow-header">
-        <div class="flow-title">Flow 3 · Returning user, check progress</div>
-        <div class="flow-meta">target: weakness visible in 2 clicks</div>
-      </div>
-      <div class="flow-steps">
-        <div class="flow-step"><div class="flow-step-route">/</div><div class="flow-step-action">Land on home, see preview cards</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/</div><div class="flow-step-action">Click "View dashboard"</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step endpoint"><div class="flow-step-route">/dashboard</div><div class="flow-step-action">Scroll: hero → heatmap → weaknesses → trends → insights</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/practice</div><div class="flow-step-action">Optional: practice CTA in dashboard footer</div></div>
-      </div>
-      <div class="flow-target">
-        <span class="flow-target-label">acceptance</span>
-        <span class="flow-target-value">top weakness visible within 2 clicks</span>
-      </div>
-    </div>
-    
-    <!-- Flow 4 -->
-    <div class="flow-card">
-      <div class="flow-header">
-        <div class="flow-title">Flow 4 · Switch keyboard profile</div>
-        <div class="flow-meta">target: switch in 3 clicks max</div>
-      </div>
-      <div class="flow-steps">
-        <div class="flow-step"><div class="flow-step-route">[any]</div><div class="flow-step-action">From any authenticated page</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">[any]</div><div class="flow-step-action">Click user menu, then keyboard profile</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">/keyboards</div><div class="flow-step-action">Click target profile card</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="flow-step-route">modal</div><div class="flow-step-action">Confirm switch</div></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step endpoint"><div class="flow-step-route">[origin]</div><div class="flow-step-action">Redirect back to source page</div></div>
-      </div>
-      <div class="flow-target">
-        <span class="flow-target-label">acceptance</span>
-        <span class="flow-target-value">≤ 3 clicks from any page</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- NAVIGATION TAB -->
-  <div class="tab-panel" id="navigation">
-    <h2 class="section-title">Navigation pattern</h2>
-    <p class="section-desc">Top navigation bar, always visible except during active typing on /practice (Monkeytype-style auto-hide).</p>
-    
-    <div class="nav-label">Default state (most pages)</div>
-    <div class="nav-mockup">
-      <div class="nav-bar">
-        <div class="nav-bar-logo">leftype-rightype</div>
-        <div class="nav-bar-links">
-          <span class="nav-link">Practice</span>
-          <span class="nav-link active">Dashboard</span>
-          <span class="nav-link">Keyboards</span>
-        </div>
-        <div class="nav-bar-right">
-          <span>⚙</span>
-          <span style="background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">U</span>
         </div>
       </div>
-      <div class="nav-content">[ page content ]</div>
-    </div>
-    
-    <div class="nav-label">During active typing (/practice)</div>
-    <div class="nav-mockup">
-      <div class="nav-bar" style="height: 4px; background: var(--lr-amber-base); padding: 0;">
-        <!-- Hidden, just thin amber strip indicating it can be revealed -->
-      </div>
-      <div class="nav-content" style="padding: 48px 24px;">
-        <div style="font-family: var(--font-mono); font-size: 24px; color: var(--lr-text-primary); margin-bottom: 16px;">
-          the quick brown <span style="background: var(--lr-amber-base); color: var(--lr-text-inverse); padding: 0 4px; border-radius: 3px;">f</span>ox
+
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background: var(--lr-amber-faint); border: 1px solid var(--lr-amber-base);">
+          </div>Primary destination (top nav)
         </div>
-        <div style="font-size: 11px; color: var(--lr-text-tertiary);">nav hidden · hover top or press Esc to reveal</div>
+        <div class="legend-item">
+          <div class="legend-dot"
+            style="background: var(--lr-bg-elevated); border: 1px solid var(--lr-border-default);"></div>Secondary
+          destination
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot"
+            style="background: var(--lr-bg-elevated); border: 1px dashed var(--lr-border-default);"></div>Public (no
+          auth)
+        </div>
       </div>
     </div>
-    
-    <h3 style="font-size: 16px; font-weight: 600; margin: 32px 0 16px;">Practice mode shortcuts</h3>
-    <div class="shortcuts">
-      <div class="shortcut-row">
-        <div class="shortcut-keys"><span class="key">Esc</span></div>
-        <span class="shortcut-desc">Reveal nav · pause session</span>
+
+    <!-- FLOWS TAB -->
+    <div class="tab-panel" id="flows">
+      <h2 class="section-title">Critical user flows</h2>
+      <p class="section-desc">Four flows that must work seamlessly for the product to feel right. Each flow has a target
+        time-to-completion that serves as acceptance criteria.</p>
+
+      <!-- Flow 1 -->
+      <div class="flow-card">
+        <div class="flow-header">
+          <div class="flow-title">Flow 1 · First-time user</div>
+          <div class="flow-meta">target: typing within 60 seconds</div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-route">/</div>
+            <div class="flow-step-action">Visit landing as new user</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/login</div>
+            <div class="flow-step-action">Register, request magic link</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">email</div>
+            <div class="flow-step-action">Click link in email</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/onboarding</div>
+            <div class="flow-step-action">3-step setup (keyboard, hand, level)</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step endpoint">
+            <div class="flow-step-route">/practice</div>
+            <div class="flow-step-action">Auto-start curated first exercise</div>
+          </div>
+        </div>
+        <div class="flow-target">
+          <span class="flow-target-label">acceptance</span>
+          <span class="flow-target-value">≤ 60s from landing to first keystroke</span>
+        </div>
       </div>
-      <div class="shortcut-row">
-        <div class="shortcut-keys"><span class="key">Tab</span><span class="key">Enter</span></div>
-        <span class="shortcut-desc">Restart current exercise</span>
+
+      <!-- Flow 2 -->
+      <div class="flow-card">
+        <div class="flow-header">
+          <div class="flow-title">Flow 2 · Returning user, quick practice</div>
+          <div class="flow-meta">target: typing within 5 seconds</div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-route">/</div>
+            <div class="flow-step-action">Auto-redirect to home (logged in)</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/</div>
+            <div class="flow-step-action">Click "Start practice" CTA</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/practice</div>
+            <div class="flow-step-action">Pre-session: confirm or skip</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step endpoint">
+            <div class="flow-step-route">/practice</div>
+            <div class="flow-step-action">Active session begins</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/practice</div>
+            <div class="flow-step-action">Auto post-session summary</div>
+          </div>
+        </div>
+        <div class="flow-target">
+          <span class="flow-target-label">acceptance</span>
+          <span class="flow-target-value">≤ 5s from home to first keystroke</span>
+        </div>
       </div>
-      <div class="shortcut-row">
-        <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Enter</span></div>
-        <span class="shortcut-desc">End session early</span>
+
+      <!-- Flow 3 -->
+      <div class="flow-card">
+        <div class="flow-header">
+          <div class="flow-title">Flow 3 · Returning user, check progress</div>
+          <div class="flow-meta">target: weakness visible in 2 clicks</div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-route">/</div>
+            <div class="flow-step-action">Land on home, see preview cards</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/</div>
+            <div class="flow-step-action">Click "View dashboard"</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step endpoint">
+            <div class="flow-step-route">/dashboard</div>
+            <div class="flow-step-action">Scroll: hero → heatmap → weaknesses → trends → insights</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/practice</div>
+            <div class="flow-step-action">Optional: practice CTA in dashboard footer</div>
+          </div>
+        </div>
+        <div class="flow-target">
+          <span class="flow-target-label">acceptance</span>
+          <span class="flow-target-value">top weakness visible within 2 clicks</span>
+        </div>
       </div>
-      <div class="shortcut-row">
-        <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">D</span></div>
-        <span class="shortcut-desc">Toggle distraction-free mode (hides stats too)</span>
+
+      <!-- Flow 4 -->
+      <div class="flow-card">
+        <div class="flow-header">
+          <div class="flow-title">Flow 4 · Switch keyboard profile</div>
+          <div class="flow-meta">target: switch in 3 clicks max</div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-route">[any]</div>
+            <div class="flow-step-action">From any authenticated page</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">[any]</div>
+            <div class="flow-step-action">Click user menu, then keyboard profile</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">/keyboards</div>
+            <div class="flow-step-action">Click target profile card</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-route">modal</div>
+            <div class="flow-step-action">Confirm switch</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step endpoint">
+            <div class="flow-step-route">[origin]</div>
+            <div class="flow-step-action">Redirect back to source page</div>
+          </div>
+        </div>
+        <div class="flow-target">
+          <span class="flow-target-label">acceptance</span>
+          <span class="flow-target-value">≤ 3 clicks from any page</span>
+        </div>
       </div>
     </div>
-    
-    <h3 style="font-size: 16px; font-weight: 600; margin: 32px 0 16px;">Auto-hide behavior</h3>
-    <div class="shortcuts">
-      <div class="shortcut-row">
-        <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Trigger to hide</strong></span>
-        <span class="shortcut-desc">User starts typing · hide after 1s of activity</span>
+
+    <!-- NAVIGATION TAB -->
+    <div class="tab-panel" id="navigation">
+      <h2 class="section-title">Navigation pattern</h2>
+      <p class="section-desc">Top navigation bar, always visible except during active typing on /practice
+        (Monkeytype-style auto-hide).</p>
+
+      <div class="nav-label">Default state (most pages)</div>
+      <div class="nav-mockup">
+        <div class="nav-bar">
+          <div class="nav-bar-logo">leftype-rightype</div>
+          <div class="nav-bar-links">
+            <span class="nav-link">Practice</span>
+            <span class="nav-link active">Dashboard</span>
+            <span class="nav-link">Keyboards</span>
+          </div>
+          <div class="nav-bar-right">
+            <span>⚙</span>
+            <span
+              style="background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">U</span>
+          </div>
+        </div>
+        <div class="nav-content">[ page content ]</div>
       </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Trigger to reveal</strong></span>
-        <span class="shortcut-desc">Mouse near top 60px · Esc key · session pause (3s no input)</span>
+
+      <div class="nav-label">During active typing (/practice)</div>
+      <div class="nav-mockup">
+        <div class="nav-bar" style="height: 4px; background: var(--lr-amber-base); padding: 0;">
+          <!-- Hidden, just thin amber strip indicating it can be revealed -->
+        </div>
+        <div class="nav-content" style="padding: 48px 24px;">
+          <div
+            style="font-family: var(--font-mono); font-size: 24px; color: var(--lr-text-primary); margin-bottom: 16px;">
+            the quick brown <span
+              style="background: var(--lr-amber-base); color: var(--lr-text-inverse); padding: 0 4px; border-radius: 3px;">f</span>ox
+          </div>
+          <div style="font-size: 11px; color: var(--lr-text-tertiary);">nav hidden · hover top or press Esc to reveal
+          </div>
+        </div>
       </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Animation</strong></span>
-        <span class="shortcut-desc">Fade in/out, 150ms, ease-default</span>
+
+      <h3 style="font-size: 16px; font-weight: 600; margin: 32px 0 16px;">Practice mode shortcuts</h3>
+      <div class="shortcuts">
+        <div class="shortcut-row">
+          <div class="shortcut-keys"><span class="key">Esc</span></div>
+          <span class="shortcut-desc">Reveal nav · pause session</span>
+        </div>
+        <div class="shortcut-row">
+          <div class="shortcut-keys"><span class="key">Tab</span><span class="key">Enter</span></div>
+          <span class="shortcut-desc">Restart current exercise</span>
+        </div>
+        <div class="shortcut-row">
+          <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Enter</span></div>
+          <span class="shortcut-desc">End session early</span>
+        </div>
+        <div class="shortcut-row">
+          <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Shift</span><span
+              class="key">D</span></div>
+          <span class="shortcut-desc">Toggle distraction-free mode (hides stats too)</span>
+        </div>
+      </div>
+
+      <h3 style="font-size: 16px; font-weight: 600; margin: 32px 0 16px;">Auto-hide behavior</h3>
+      <div class="shortcuts">
+        <div class="shortcut-row">
+          <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Trigger to hide</strong></span>
+          <span class="shortcut-desc">User starts typing · hide after 1s of activity</span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Trigger to reveal</strong></span>
+          <span class="shortcut-desc">Mouse near top 60px · Esc key · session pause (3s no input)</span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc"><strong style="color: var(--lr-text-primary);">Animation</strong></span>
+          <span class="shortcut-desc">Fade in/out, 150ms, ease-default</span>
+        </div>
       </div>
     </div>
+
+    <div class="footer">
+      kerf information architecture · v0.1 · expect iteration as flows are built
+    </div>
+
   </div>
 
-  <div class="footer">
-    leftype-rightype information architecture · v0.1 · expect iteration as flows are built
-  </div>
-
-</div>
-
-<script>
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const target = tab.dataset.tab;
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById(target).classList.add('active');
+  <script>
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(target).classList.add('active');
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
+
 </html>

@@ -1,1040 +1,1381 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Leftype-Rightype — Dashboard Wireframe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-text-inverse: #181410;
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    --lr-success: #22C55E;
-    --lr-error: #EF4444;
-    --lr-warning: #EAB308;
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    
-    /* Heat scale */
-    --heat-0: transparent;
-    --heat-1: rgba(245,158,11,0.15);
-    --heat-2: rgba(245,158,11,0.35);
-    --heat-3: rgba(239,68,68,0.45);
-    --heat-4: rgba(239,68,68,0.75);
-    
-    /* Finger colors */
-    --finger-l-pinky: #C2410C;
-    --finger-l-ring: #A16207;
-    --finger-l-middle: #65A30D;
-    --finger-l-index: #15803D;
-    --finger-r-index: #0E7490;
-    --finger-r-middle: #1D4ED8;
-    --finger-r-ring: #6D28D9;
-    --finger-r-pinky: #A21CAF;
-    --finger-thumb: #6B7280;
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  
-  /* Wireframe shell */
-  .wireframe-header {
-    background: var(--lr-bg-surface);
-    border-bottom: 1px solid var(--lr-border-default);
-    padding: 16px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .wireframe-title {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-  }
-  .wireframe-title strong { color: var(--lr-amber-base); }
-  .wireframe-meta {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-  }
-  
-  /* App nav */
-  .app-nav {
-    height: 48px;
-    background: var(--lr-bg-base);
-    border-bottom: 1px solid var(--lr-border-subtle);
-    display: flex;
-    align-items: center;
-    padding: 0 32px;
-    gap: 32px;
-    position: sticky;
-    top: 49px;
-    z-index: 90;
-  }
-  .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
-  .nav-links { display: flex; gap: 24px; flex: 1; }
-  .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
-  .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
-  .nav-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
-  .nav-avatar { background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--lr-text-primary); }
-  
-  /* Page container */
-  .page { max-width: 1100px; margin: 0 auto; padding: 32px; }
-  
-  /* Page header */
-  .page-header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--lr-border-subtle); }
-  .page-breadcrumb { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .page-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
-  .page-title { font-size: 32px; font-weight: 700; line-height: 1.2; }
-  .keyboard-toggle { 
-    display: flex; 
-    align-items: center; 
-    gap: 8px;
-    padding: 6px 14px;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 6px;
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-    cursor: pointer;
-  }
-  .keyboard-toggle:hover { border-color: var(--lr-border-strong); }
-  .keyboard-toggle-name { font-family: var(--font-mono); color: var(--lr-text-primary); font-weight: 500; }
-  
-  /* Section */
-  .section { margin-bottom: 56px; }
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .section-title { font-size: 18px; font-weight: 600; }
-  .section-meta { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-tertiary); }
-  .section-action { font-size: 12px; color: var(--lr-amber-base); cursor: pointer; }
-  
-  /* === HERO SECTION === */
-  .hero-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .hero-stat {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 24px;
-  }
-  .hero-stat.featured {
-    background: linear-gradient(135deg, var(--lr-bg-surface) 0%, var(--lr-bg-elevated) 100%);
-    border-color: var(--lr-border-default);
-  }
-  .hero-stat-label { 
-    font-size: 11px; 
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .hero-stat-value {
-    font-family: var(--font-mono);
-    font-size: 42px;
-    font-weight: 700;
-    color: var(--lr-amber-base);
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-  .hero-stat.secondary .hero-stat-value { font-size: 32px; color: var(--lr-text-primary); }
-  .hero-stat-context {
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .hero-stat-trend {
-    font-family: var(--font-mono);
-    font-weight: 600;
-  }
-  .hero-stat-trend.up { color: var(--lr-success); }
-  .hero-stat-trend.down { color: var(--lr-error); }
-  
-  /* Mini sparkline area */
-  .hero-sparkline { 
-    margin-top: 16px;
-    height: 40px;
-    background: var(--lr-bg-elevated);
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* === ACTIVITY LOG === */
-  .activity-log {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 20px 24px;
-  }
-  .activity-grid {
-    display: grid;
-    grid-template-columns: repeat(30, 1fr);
-    gap: 4px;
-    margin-bottom: 16px;
-  }
-  .activity-cell {
-    aspect-ratio: 1;
-    border-radius: 2px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-subtle);
-  }
-  .activity-cell.lvl-1 { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.3); }
-  .activity-cell.lvl-2 { background: rgba(245,158,11,0.4); border-color: rgba(245,158,11,0.5); }
-  .activity-cell.lvl-3 { background: rgba(245,158,11,0.6); border-color: rgba(245,158,11,0.7); }
-  .activity-cell.lvl-4 { background: var(--lr-amber-base); border-color: var(--lr-amber-base); }
-  .activity-cell:hover { transform: scale(1.3); cursor: pointer; }
-  .activity-legend {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-  }
-  .activity-legend-scale { display: flex; align-items: center; gap: 4px; }
-  .activity-scale-cell {
-    width: 12px;
-    height: 12px;
-    border-radius: 2px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-subtle);
-  }
-  
-  /* Latest sessions list */
-  .latest-sessions {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--lr-border-subtle);
-  }
-  .latest-sessions-title { font-size: 11px; color: var(--lr-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 12px; }
-  .session-row {
-    display: grid;
-    grid-template-columns: 80px 1fr 80px 80px 100px;
-    gap: 16px;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--lr-border-subtle);
-    font-size: 13px;
-  }
-  .session-row:last-child { border-bottom: none; }
-  .session-time { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-tertiary); }
-  .session-mode { color: var(--lr-text-secondary); }
-  .session-mode-badge {
-    background: var(--lr-amber-subtle);
-    color: var(--lr-amber-base);
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 700;
-  }
-  .session-stat { font-family: var(--font-mono); color: var(--lr-text-primary); font-weight: 600; text-align: right; font-size: 12px; }
-  .session-duration { font-family: var(--font-mono); color: var(--lr-text-tertiary); text-align: right; font-size: 11px; }
-  
-  /* === HEATMAP === */
-  .heatmap-container {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 32px;
-  }
-  .keyboard-halves {
-    display: flex;
-    gap: 48px;
-    justify-content: center;
-    margin-bottom: 24px;
-  }
-  .keyboard-half-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-  .key-grid {
-    display: grid;
-    gap: 4px;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(4, 36px);
-  }
-  .key-grid .key {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    width: 44px;
-    cursor: pointer;
-    position: relative;
-    transition: transform 100ms;
-  }
-  .key-grid .key:hover { transform: scale(1.1); z-index: 10; }
-  .key-grid .key.heat-1 { background: var(--heat-1); color: var(--lr-text-primary); }
-  .key-grid .key.heat-2 { background: var(--heat-2); color: var(--lr-text-primary); border-color: rgba(245,158,11,0.5); }
-  .key-grid .key.heat-3 { background: var(--heat-3); color: var(--lr-text-primary); border-color: rgba(239,68,68,0.6); }
-  .key-grid .key.heat-4 { background: var(--heat-4); color: var(--lr-text-primary); border-color: var(--lr-error); font-weight: 700; }
-  
-  .heat-legend {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding-top: 24px;
-    border-top: 1px solid var(--lr-border-subtle);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-  }
-  .heat-legend-scale { display: flex; gap: 4px; align-items: center; }
-  .heat-step {
-    width: 24px;
-    height: 16px;
-    border-radius: 2px;
-    border: 1px solid var(--lr-border-subtle);
-  }
-  
-  /* === WEAKNESS RANKING === */
-  .weakness-list {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .weakness-header-row {
-    display: grid;
-    grid-template-columns: 40px 80px 1fr 100px 100px 80px;
-    gap: 16px;
-    padding: 12px 24px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    background: var(--lr-bg-elevated);
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .weakness-row {
-    display: grid;
-    grid-template-columns: 40px 80px 1fr 100px 100px 80px;
-    gap: 16px;
-    align-items: center;
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--lr-border-subtle);
-    font-size: 13px;
-    cursor: pointer;
-    transition: background 100ms;
-  }
-  .weakness-row:hover { background: var(--lr-bg-elevated); }
-  .weakness-row:last-child { border-bottom: none; }
-  .weakness-rank {
-    font-family: var(--font-mono);
-    color: var(--lr-text-tertiary);
-    font-weight: 700;
-  }
-  .weakness-key {
-    background: var(--lr-amber-subtle);
-    color: var(--lr-amber-base);
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 14px;
-    display: inline-block;
-    text-align: center;
-  }
-  .weakness-bar-container {
-    height: 6px;
-    background: var(--lr-bg-elevated);
-    border-radius: 3px;
-    overflow: hidden;
-    position: relative;
-  }
-  .weakness-bar-fill {
-    height: 100%;
-    background: var(--lr-amber-base);
-    border-radius: 3px;
-  }
-  .weakness-stat {
-    font-family: var(--font-mono);
-    color: var(--lr-text-secondary);
-    text-align: right;
-    font-size: 12px;
-  }
-  .weakness-score {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    color: var(--lr-text-primary);
-    text-align: right;
-  }
-  
-  /* === TRENDS === */
-  .trends-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .trend-card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 24px;
-  }
-  .trend-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .trend-title { font-size: 13px; font-weight: 600; color: var(--lr-text-primary); }
-  .trend-current {
-    font-family: var(--font-mono);
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--lr-amber-base);
-  }
-  .trend-current-label { font-size: 11px; color: var(--lr-text-tertiary); margin-left: 4px; }
-  .trend-chart {
-    height: 120px;
-    background: var(--lr-bg-elevated);
-    border-radius: 4px;
-    margin-bottom: 12px;
-    position: relative;
-    overflow: hidden;
-  }
-  .trend-meta {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-  }
-  
-  /* === INSIGHT & RATIONALE === */
-  .insight-card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 28px;
-  }
-  .insight-text {
-    font-size: 15px;
-    line-height: 1.7;
-    color: var(--lr-text-primary);
-    margin-bottom: 24px;
-  }
-  .insight-text strong {
-    color: var(--lr-amber-base);
-    font-weight: 600;
-  }
-  
-  .rationale-card {
-    background: var(--lr-amber-faint);
-    border-left: 3px solid var(--lr-amber-base);
-    border-radius: 0 6px 6px 0;
-    padding: 20px 24px;
-    margin-bottom: 24px;
-  }
-  .rationale-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-amber-base);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .rationale-text {
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--lr-text-primary);
-  }
-  .rationale-text strong { font-family: var(--font-mono); color: var(--lr-amber-base); }
-  
-  /* Formula visible */
-  .formula-section {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 6px;
-    padding: 20px 24px;
-    margin-top: 16px;
-  }
-  .formula-title {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .formula-equation {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.8;
-    background: var(--lr-bg-base);
-    padding: 16px 20px;
-    border-radius: 4px;
-    color: var(--lr-text-primary);
-    margin-bottom: 16px;
-    overflow-x: auto;
-  }
-  .formula-equation .var { color: var(--lr-amber-base); }
-  .formula-equation .coef { color: var(--lr-success); font-weight: 700; }
-  .formula-breakdown { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
-  .formula-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: var(--lr-bg-base);
-    border-radius: 4px;
-    font-size: 12px;
-  }
-  .formula-row-label { color: var(--lr-text-secondary); font-family: var(--font-mono); }
-  .formula-row-value { font-family: var(--font-mono); color: var(--lr-amber-base); font-weight: 700; }
-  
-  /* CTA at bottom */
-  .dashboard-cta {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-amber-base);
-    border-radius: 8px;
-    padding: 24px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 56px;
-  }
-  .dashboard-cta-text h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-  .dashboard-cta-text p { color: var(--lr-text-secondary); font-size: 13px; }
-  .dashboard-cta-button {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    padding: 12px 24px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-  }
-  
-  /* Annotation */
-  .annotation {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--lr-bg-overlay);
-    border: 1px solid var(--lr-border-strong);
-    border-radius: 6px;
-    padding: 12px 20px;
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    font-family: var(--font-mono);
-    z-index: 200;
-    max-width: 80vw;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  }
-  .annotation strong { color: var(--lr-amber-base); }
-</style>
+  <meta charset="UTF-8">
+  <title>kerf — dashboard wireframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --lr-bg-base: #181410;
+      --lr-bg-surface: #221C17;
+      --lr-bg-elevated: #2A2320;
+      --lr-bg-overlay: #322A26;
+      --lr-text-primary: #F2EAE0;
+      --lr-text-secondary: #9A8E80;
+      --lr-text-tertiary: #685D52;
+      --lr-text-inverse: #181410;
+      --lr-border-subtle: #2F2820;
+      --lr-border-default: #3A3128;
+      --lr-border-strong: #4A3F35;
+      --lr-amber-base: #F59E0B;
+      --lr-amber-hover: #FBBF24;
+      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --lr-success: #22C55E;
+      --lr-error: #EF4444;
+      --lr-warning: #EAB308;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+
+      /* Heat scale */
+      --heat-0: transparent;
+      --heat-1: rgba(245, 158, 11, 0.15);
+      --heat-2: rgba(245, 158, 11, 0.35);
+      --heat-3: rgba(239, 68, 68, 0.45);
+      --heat-4: rgba(239, 68, 68, 0.75);
+
+      /* Finger colors */
+      --finger-l-pinky: #C2410C;
+      --finger-l-ring: #A16207;
+      --finger-l-middle: #65A30D;
+      --finger-l-index: #15803D;
+      --finger-r-index: #0E7490;
+      --finger-r-middle: #1D4ED8;
+      --finger-r-ring: #6D28D9;
+      --finger-r-pinky: #A21CAF;
+      --finger-thumb: #6B7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--lr-bg-base);
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Wireframe shell */
+    .wireframe-header {
+      background: var(--lr-bg-surface);
+      border-bottom: 1px solid var(--lr-border-default);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .wireframe-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+    }
+
+    .wireframe-title strong {
+      color: var(--lr-amber-base);
+    }
+
+    .wireframe-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+    }
+
+    /* App nav */
+    .app-nav {
+      height: 48px;
+      background: var(--lr-bg-base);
+      border-bottom: 1px solid var(--lr-border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 32px;
+      position: sticky;
+      top: 49px;
+      z-index: 90;
+    }
+
+    .nav-logo {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-logo .accent {
+      color: var(--lr-amber-base);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .nav-link {
+      color: var(--lr-text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+
+    .nav-link.active {
+      color: var(--lr-amber-base);
+      border-bottom: 1px solid var(--lr-amber-base);
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: var(--lr-text-secondary);
+      font-size: 12px;
+    }
+
+    .nav-avatar {
+      background: var(--lr-bg-elevated);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--lr-text-primary);
+    }
+
+    /* Page container */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .page-breadcrumb {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .page-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .keyboard-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+      cursor: pointer;
+    }
+
+    .keyboard-toggle:hover {
+      border-color: var(--lr-border-strong);
+    }
+
+    .keyboard-toggle-name {
+      font-family: var(--font-mono);
+      color: var(--lr-text-primary);
+      font-weight: 500;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .section-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .section-action {
+      font-size: 12px;
+      color: var(--lr-amber-base);
+      cursor: pointer;
+    }
+
+    /* === HERO SECTION === */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .hero-stat {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .hero-stat.featured {
+      background: linear-gradient(135deg, var(--lr-bg-surface) 0%, var(--lr-bg-elevated) 100%);
+      border-color: var(--lr-border-default);
+    }
+
+    .hero-stat-label {
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .hero-stat-value {
+      font-family: var(--font-mono);
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--lr-amber-base);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .hero-stat.secondary .hero-stat-value {
+      font-size: 32px;
+      color: var(--lr-text-primary);
+    }
+
+    .hero-stat-context {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-stat-trend {
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .hero-stat-trend.up {
+      color: var(--lr-success);
+    }
+
+    .hero-stat-trend.down {
+      color: var(--lr-error);
+    }
+
+    /* Mini sparkline area */
+    .hero-sparkline {
+      margin-top: 16px;
+      height: 40px;
+      background: var(--lr-bg-elevated);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* === ACTIVITY LOG === */
+    .activity-log {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(30, 1fr);
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+
+    .activity-cell {
+      aspect-ratio: 1;
+      border-radius: 2px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    .activity-cell.lvl-1 {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .activity-cell.lvl-2 {
+      background: rgba(245, 158, 11, 0.4);
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .activity-cell.lvl-3 {
+      background: rgba(245, 158, 11, 0.6);
+      border-color: rgba(245, 158, 11, 0.7);
+    }
+
+    .activity-cell.lvl-4 {
+      background: var(--lr-amber-base);
+      border-color: var(--lr-amber-base);
+    }
+
+    .activity-cell:hover {
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+
+    .activity-legend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .activity-legend-scale {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .activity-scale-cell {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    /* Latest sessions list */
+    .latest-sessions {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--lr-border-subtle);
+    }
+
+    .latest-sessions-title {
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .session-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 80px 80px 100px;
+      gap: 16px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--lr-border-subtle);
+      font-size: 13px;
+    }
+
+    .session-row:last-child {
+      border-bottom: none;
+    }
+
+    .session-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .session-mode {
+      color: var(--lr-text-secondary);
+    }
+
+    .session-mode-badge {
+      background: var(--lr-amber-subtle);
+      color: var(--lr-amber-base);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .session-stat {
+      font-family: var(--font-mono);
+      color: var(--lr-text-primary);
+      font-weight: 600;
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .session-duration {
+      font-family: var(--font-mono);
+      color: var(--lr-text-tertiary);
+      text-align: right;
+      font-size: 11px;
+    }
+
+    /* === HEATMAP === */
+    .heatmap-container {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 32px;
+    }
+
+    .keyboard-halves {
+      display: flex;
+      gap: 48px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .keyboard-half-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .key-grid {
+      display: grid;
+      gap: 4px;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(4, 36px);
+    }
+
+    .key-grid .key {
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      width: 44px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 100ms;
+    }
+
+    .key-grid .key:hover {
+      transform: scale(1.1);
+      z-index: 10;
+    }
+
+    .key-grid .key.heat-1 {
+      background: var(--heat-1);
+      color: var(--lr-text-primary);
+    }
+
+    .key-grid .key.heat-2 {
+      background: var(--heat-2);
+      color: var(--lr-text-primary);
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .key-grid .key.heat-3 {
+      background: var(--heat-3);
+      color: var(--lr-text-primary);
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+
+    .key-grid .key.heat-4 {
+      background: var(--heat-4);
+      color: var(--lr-text-primary);
+      border-color: var(--lr-error);
+      font-weight: 700;
+    }
+
+    .heat-legend {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--lr-border-subtle);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .heat-legend-scale {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .heat-step {
+      width: 24px;
+      height: 16px;
+      border-radius: 2px;
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    /* === WEAKNESS RANKING === */
+    .weakness-list {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .weakness-header-row {
+      display: grid;
+      grid-template-columns: 40px 80px 1fr 100px 100px 80px;
+      gap: 16px;
+      padding: 12px 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      background: var(--lr-bg-elevated);
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .weakness-row {
+      display: grid;
+      grid-template-columns: 40px 80px 1fr 100px 100px 80px;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 100ms;
+    }
+
+    .weakness-row:hover {
+      background: var(--lr-bg-elevated);
+    }
+
+    .weakness-row:last-child {
+      border-bottom: none;
+    }
+
+    .weakness-rank {
+      font-family: var(--font-mono);
+      color: var(--lr-text-tertiary);
+      font-weight: 700;
+    }
+
+    .weakness-key {
+      background: var(--lr-amber-subtle);
+      color: var(--lr-amber-base);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .weakness-bar-container {
+      height: 6px;
+      background: var(--lr-bg-elevated);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .weakness-bar-fill {
+      height: 100%;
+      background: var(--lr-amber-base);
+      border-radius: 3px;
+    }
+
+    .weakness-stat {
+      font-family: var(--font-mono);
+      color: var(--lr-text-secondary);
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .weakness-score {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--lr-text-primary);
+      text-align: right;
+    }
+
+    /* === TRENDS === */
+    .trends-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .trend-card {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .trend-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .trend-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--lr-text-primary);
+    }
+
+    .trend-current {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--lr-amber-base);
+    }
+
+    .trend-current-label {
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      margin-left: 4px;
+    }
+
+    .trend-chart {
+      height: 120px;
+      background: var(--lr-bg-elevated);
+      border-radius: 4px;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .trend-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+    }
+
+    /* === INSIGHT & RATIONALE === */
+    .insight-card {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 28px;
+    }
+
+    .insight-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--lr-text-primary);
+      margin-bottom: 24px;
+    }
+
+    .insight-text strong {
+      color: var(--lr-amber-base);
+      font-weight: 600;
+    }
+
+    .rationale-card {
+      background: var(--lr-amber-faint);
+      border-left: 3px solid var(--lr-amber-base);
+      border-radius: 0 6px 6px 0;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+
+    .rationale-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--lr-amber-base);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .rationale-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--lr-text-primary);
+    }
+
+    .rationale-text strong {
+      font-family: var(--font-mono);
+      color: var(--lr-amber-base);
+    }
+
+    /* Formula visible */
+    .formula-section {
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-top: 16px;
+    }
+
+    .formula-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .formula-equation {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.8;
+      background: var(--lr-bg-base);
+      padding: 16px 20px;
+      border-radius: 4px;
+      color: var(--lr-text-primary);
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .formula-equation .var {
+      color: var(--lr-amber-base);
+    }
+
+    .formula-equation .coef {
+      color: var(--lr-success);
+      font-weight: 700;
+    }
+
+    .formula-breakdown {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .formula-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--lr-bg-base);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .formula-row-label {
+      color: var(--lr-text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .formula-row-value {
+      font-family: var(--font-mono);
+      color: var(--lr-amber-base);
+      font-weight: 700;
+    }
+
+    /* CTA at bottom */
+    .dashboard-cta {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-amber-base);
+      border-radius: 8px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 56px;
+    }
+
+    .dashboard-cta-text h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .dashboard-cta-text p {
+      color: var(--lr-text-secondary);
+      font-size: 13px;
+    }
+
+    .dashboard-cta-button {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Annotation */
+    .annotation {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--lr-bg-overlay);
+      border: 1px solid var(--lr-border-strong);
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      font-family: var(--font-mono);
+      z-index: 200;
+      max-width: 80vw;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .annotation strong {
+      color: var(--lr-amber-base);
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Wireframe meta-header -->
-<div class="wireframe-header">
-  <div class="wireframe-title">
-    Dashboard wireframe v0.1 · <strong>/dashboard</strong>
+  <!-- Wireframe meta-header -->
+  <div class="wireframe-header">
+    <div class="wireframe-title">
+      Dashboard wireframe v0.1 · <strong>/dashboard</strong>
+    </div>
+    <div class="wireframe-meta">scrollable single page · 6 sections · narrative scroll</div>
   </div>
-  <div class="wireframe-meta">scrollable single page · 6 sections · narrative scroll</div>
-</div>
 
-<!-- App nav -->
-<div class="app-nav">
-  <div class="nav-logo">leftype-rightype</div>
-  <div class="nav-links">
-    <span class="nav-link">Practice</span>
-    <span class="nav-link active">Dashboard</span>
-    <span class="nav-link">Keyboards</span>
-  </div>
-  <div class="nav-right">
-    <span>⚙</span>
-    <span class="nav-avatar">U</span>
-  </div>
-</div>
-
-<div class="page">
-
-  <!-- PAGE HEADER -->
-  <div class="page-header">
-    <div class="page-breadcrumb">Your progress</div>
-    <div class="page-title-row">
-      <h1 class="page-title">Dashboard</h1>
-      <div class="keyboard-toggle">
-        <span>⊞</span>
-        viewing
-        <span class="keyboard-toggle-name">sofle v2</span>
-        <span style="color: var(--lr-text-tertiary);">▾</span>
-      </div>
+  <!-- App nav -->
+  <div class="app-nav">
+    <div class="nav-logo">kerf<span class="accent">.</span></div>
+    <div class="nav-links">
+      <span class="nav-link">Practice</span>
+      <span class="nav-link active">Dashboard</span>
+      <span class="nav-link">Keyboards</span>
+    </div>
+    <div class="nav-right">
+      <span>⚙</span>
+      <span class="nav-avatar">U</span>
     </div>
   </div>
 
-  <!-- SECTION 1: HERO STATS -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Where you are now</h2>
-      <span class="section-meta">all-time on sofle · 47 sessions</span>
-    </div>
-    
-    <div class="hero-grid">
-      <div class="hero-stat featured">
-        <div class="hero-stat-label">average wpm</div>
-        <div class="hero-stat-value">62</div>
-        <div class="hero-stat-context">
-          <span class="hero-stat-trend up">+8 wpm</span>
-          <span>vs first 7 sessions</span>
-        </div>
-        <div class="hero-sparkline">
-          <svg width="100%" height="40" preserveAspectRatio="none" viewBox="0 0 200 40">
-            <polyline points="0,32 20,30 40,28 60,29 80,25 100,22 120,20 140,18 160,16 180,14 200,12" 
-              fill="none" stroke="#F59E0B" stroke-width="1.5"/>
-          </svg>
-        </div>
-      </div>
-      
-      <div class="hero-stat secondary">
-        <div class="hero-stat-label">accuracy</div>
-        <div class="hero-stat-value">94%</div>
-        <div class="hero-stat-context">
-          <span class="hero-stat-trend up">+3%</span>
-        </div>
-      </div>
-      
-      <div class="hero-stat secondary">
-        <div class="hero-stat-label">mastered</div>
-        <div class="hero-stat-value">22<span style="font-size: 18px; color: var(--lr-text-tertiary);">/26</span></div>
-        <div class="hero-stat-context">
-          <span style="color: var(--lr-text-secondary);">letters at &lt; 5% error</span>
-        </div>
-      </div>
-      
-      <div class="hero-stat secondary">
-        <div class="hero-stat-label">streak</div>
-        <div class="hero-stat-value">12<span style="font-size: 18px; color: var(--lr-text-tertiary);"> days</span></div>
-        <div class="hero-stat-context">
-          <span style="color: var(--lr-text-secondary);">🔥 longest: 18 days</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="page">
 
-  <!-- SECTION 2: ACTIVITY LOG -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Recent activity</h2>
-      <span class="section-meta">last 30 days</span>
-    </div>
-    
-    <div class="activity-log">
-      <div class="activity-grid" id="activityGrid">
-        <!-- Generated by JS -->
-      </div>
-      <div class="activity-legend">
-        <span>30 days ago</span>
-        <div class="activity-legend-scale">
-          <span>less</span>
-          <div class="activity-scale-cell"></div>
-          <div class="activity-scale-cell" style="background: rgba(245,158,11,0.2);"></div>
-          <div class="activity-scale-cell" style="background: rgba(245,158,11,0.4);"></div>
-          <div class="activity-scale-cell" style="background: rgba(245,158,11,0.6);"></div>
-          <div class="activity-scale-cell" style="background: var(--lr-amber-base);"></div>
-          <span>more</span>
-        </div>
-        <span>today</span>
-      </div>
-      
-      <div class="latest-sessions">
-        <div class="latest-sessions-title">Latest 5 sessions</div>
-        <div class="session-row">
-          <span class="session-time">2h ago</span>
-          <span class="session-mode"><span class="session-mode-badge">adaptive</span> 52 words · focus on B, er</span>
-          <span class="session-stat">62 wpm</span>
-          <span class="session-stat">94%</span>
-          <span class="session-duration">2:14</span>
-        </div>
-        <div class="session-row">
-          <span class="session-time">today</span>
-          <span class="session-mode"><span class="session-mode-badge">drill</span> letter B · 30 reps</span>
-          <span class="session-stat">48 wpm</span>
-          <span class="session-stat">87%</span>
-          <span class="session-duration">3:42</span>
-        </div>
-        <div class="session-row">
-          <span class="session-time">yesterday</span>
-          <span class="session-mode"><span class="session-mode-badge">adaptive</span> 50 words · left hand only</span>
-          <span class="session-stat">58 wpm</span>
-          <span class="session-stat">92%</span>
-          <span class="session-duration">2:48</span>
-        </div>
-        <div class="session-row">
-          <span class="session-time">yesterday</span>
-          <span class="session-mode"><span class="session-mode-badge">adaptive</span> 50 words</span>
-          <span class="session-stat">60 wpm</span>
-          <span class="session-stat">93%</span>
-          <span class="session-duration">2:21</span>
-        </div>
-        <div class="session-row">
-          <span class="session-time">2d ago</span>
-          <span class="session-mode"><span class="session-mode-badge">drill</span> bigram 'th'</span>
-          <span class="session-stat">55 wpm</span>
-          <span class="session-stat">90%</span>
-          <span class="session-duration">2:08</span>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-breadcrumb">Your progress</div>
+      <div class="page-title-row">
+        <h1 class="page-title">Dashboard</h1>
+        <div class="keyboard-toggle">
+          <span>⊞</span>
+          viewing
+          <span class="keyboard-toggle-name">sofle v2</span>
+          <span style="color: var(--lr-text-tertiary);">▾</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- SECTION 3: HEATMAP -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Where errors happen</h2>
-      <span class="section-meta">per-key error rate · sofle base layer</span>
-    </div>
-    
-    <div class="heatmap-container">
-      <div class="keyboard-halves">
-        <!-- Left half -->
-        <div>
-          <div class="keyboard-half-label">Left half</div>
-          <div class="key-grid">
-            <div class="key">1</div>
-            <div class="key">2</div>
-            <div class="key heat-1">3</div>
-            <div class="key">4</div>
-            <div class="key">5</div>
-            <div class="key">6</div>
-            
-            <div class="key">q</div>
-            <div class="key">w</div>
-            <div class="key heat-1">e</div>
-            <div class="key heat-2">r</div>
-            <div class="key heat-3">t</div>
-            <div class="key">·</div>
-            
-            <div class="key">a</div>
-            <div class="key">s</div>
-            <div class="key">d</div>
-            <div class="key heat-1">f</div>
-            <div class="key heat-2">g</div>
-            <div class="key">·</div>
-            
-            <div class="key">z</div>
-            <div class="key">x</div>
-            <div class="key">c</div>
-            <div class="key heat-2">v</div>
-            <div class="key heat-4">b</div>
-            <div class="key">·</div>
+    <!-- SECTION 1: HERO STATS -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Where you are now</h2>
+        <span class="section-meta">all-time on sofle · 47 sessions</span>
+      </div>
+
+      <div class="hero-grid">
+        <div class="hero-stat featured">
+          <div class="hero-stat-label">average wpm</div>
+          <div class="hero-stat-value">62</div>
+          <div class="hero-stat-context">
+            <span class="hero-stat-trend up">+8 wpm</span>
+            <span>vs first 7 sessions</span>
+          </div>
+          <div class="hero-sparkline">
+            <svg width="100%" height="40" preserveAspectRatio="none" viewBox="0 0 200 40">
+              <polyline points="0,32 20,30 40,28 60,29 80,25 100,22 120,20 140,18 160,16 180,14 200,12" fill="none"
+                stroke="#F59E0B" stroke-width="1.5" />
+            </svg>
           </div>
         </div>
-        
-        <!-- Right half -->
-        <div>
-          <div class="keyboard-half-label">Right half</div>
-          <div class="key-grid">
-            <div class="key">7</div>
-            <div class="key">8</div>
-            <div class="key">9</div>
-            <div class="key">0</div>
-            <div class="key">-</div>
-            <div class="key">=</div>
-            
-            <div class="key">·</div>
-            <div class="key heat-2">y</div>
-            <div class="key">u</div>
-            <div class="key">i</div>
-            <div class="key">o</div>
-            <div class="key heat-1">p</div>
-            
-            <div class="key">·</div>
-            <div class="key">h</div>
-            <div class="key">j</div>
-            <div class="key">k</div>
-            <div class="key">l</div>
-            <div class="key heat-3">;</div>
-            
-            <div class="key">·</div>
-            <div class="key heat-2">n</div>
-            <div class="key">m</div>
-            <div class="key">,</div>
-            <div class="key">.</div>
-            <div class="key heat-1">/</div>
+
+        <div class="hero-stat secondary">
+          <div class="hero-stat-label">accuracy</div>
+          <div class="hero-stat-value">94%</div>
+          <div class="hero-stat-context">
+            <span class="hero-stat-trend up">+3%</span>
+          </div>
+        </div>
+
+        <div class="hero-stat secondary">
+          <div class="hero-stat-label">mastered</div>
+          <div class="hero-stat-value">22<span style="font-size: 18px; color: var(--lr-text-tertiary);">/26</span></div>
+          <div class="hero-stat-context">
+            <span style="color: var(--lr-text-secondary);">letters at &lt; 5% error</span>
+          </div>
+        </div>
+
+        <div class="hero-stat secondary">
+          <div class="hero-stat-label">streak</div>
+          <div class="hero-stat-value">12<span style="font-size: 18px; color: var(--lr-text-tertiary);"> days</span>
+          </div>
+          <div class="hero-stat-context">
+            <span style="color: var(--lr-text-secondary);">🔥 longest: 18 days</span>
           </div>
         </div>
       </div>
-      
-      <div class="heat-legend">
-        <span>error rate</span>
-        <div class="heat-legend-scale">
-          <div class="heat-step"></div>
-          <div class="heat-step" style="background: var(--heat-1);"></div>
-          <div class="heat-step" style="background: var(--heat-2);"></div>
-          <div class="heat-step" style="background: var(--heat-3);"></div>
-          <div class="heat-step" style="background: var(--heat-4);"></div>
-        </div>
-        <span>0% → 25%+</span>
-      </div>
     </div>
-  </div>
 
-  <!-- SECTION 4: WEAKNESS RANKING -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Top weaknesses</h2>
-      <span class="section-action">Drill these →</span>
-    </div>
-    
-    <div class="weakness-list">
-      <div class="weakness-header-row">
-        <span>rank</span>
-        <span>unit</span>
-        <span>relative weight</span>
-        <span style="text-align: right;">error</span>
-        <span style="text-align: right;">avg time</span>
-        <span style="text-align: right;">score</span>
+    <!-- SECTION 2: ACTIVITY LOG -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Recent activity</h2>
+        <span class="section-meta">last 30 days</span>
       </div>
-      <div class="weakness-row">
-        <span class="weakness-rank">01</span>
-        <span class="weakness-key">B</span>
-        <div class="weakness-bar-container"><div class="weakness-bar-fill" style="width: 95%;"></div></div>
-        <span class="weakness-stat">18%</span>
-        <span class="weakness-stat">340ms</span>
-        <span class="weakness-score">2.8</span>
-      </div>
-      <div class="weakness-row">
-        <span class="weakness-rank">02</span>
-        <span class="weakness-key">er</span>
-        <div class="weakness-bar-container"><div class="weakness-bar-fill" style="width: 70%;"></div></div>
-        <span class="weakness-stat">14%</span>
-        <span class="weakness-stat">290ms</span>
-        <span class="weakness-score">2.1</span>
-      </div>
-      <div class="weakness-row">
-        <span class="weakness-rank">03</span>
-        <span class="weakness-key">T</span>
-        <div class="weakness-bar-container"><div class="weakness-bar-fill" style="width: 55%;"></div></div>
-        <span class="weakness-stat">11%</span>
-        <span class="weakness-stat">245ms</span>
-        <span class="weakness-score">1.7</span>
-      </div>
-      <div class="weakness-row">
-        <span class="weakness-rank">04</span>
-        <span class="weakness-key">;</span>
-        <div class="weakness-bar-container"><div class="weakness-bar-fill" style="width: 50%;"></div></div>
-        <span class="weakness-stat">10%</span>
-        <span class="weakness-stat">280ms</span>
-        <span class="weakness-score">1.5</span>
-      </div>
-      <div class="weakness-row">
-        <span class="weakness-rank">05</span>
-        <span class="weakness-key">th</span>
-        <div class="weakness-bar-container"><div class="weakness-bar-fill" style="width: 42%;"></div></div>
-        <span class="weakness-stat">9%</span>
-        <span class="weakness-stat">220ms</span>
-        <span class="weakness-score">1.3</span>
-      </div>
-      <div class="weakness-row">
-        <span class="weakness-rank">06</span>
-        <span class="weakness-key">G</span>
-        <div class="weakness-bar-container"><div class="weakness-bar-fill" style="width: 35%;"></div></div>
-        <span class="weakness-stat">8%</span>
-        <span class="weakness-stat">230ms</span>
-        <span class="weakness-score">1.1</span>
-      </div>
-      <div class="weakness-row">
-        <span class="weakness-rank">07</span>
-        <span class="weakness-key">Y</span>
-        <div class="weakness-bar-container"><div class="weakness-bar-fill" style="width: 30%;"></div></div>
-        <span class="weakness-stat">7%</span>
-        <span class="weakness-stat">215ms</span>
-        <span class="weakness-score">0.9</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- SECTION 5: TRENDS -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Skill trajectory</h2>
-      <span class="section-meta">last 30 sessions</span>
-    </div>
-    
-    <div class="trends-grid">
-      <div class="trend-card">
-        <div class="trend-header">
-          <div class="trend-title">Speed (WPM)</div>
-          <div><span class="trend-current">62</span><span class="trend-current-label">wpm</span></div>
+      <div class="activity-log">
+        <div class="activity-grid" id="activityGrid">
+          <!-- Generated by JS -->
         </div>
-        <div class="trend-chart">
-          <svg width="100%" height="120" preserveAspectRatio="none" viewBox="0 0 400 120">
-            <defs>
-              <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <polyline points="0,90 30,85 60,80 90,82 120,75 150,70 180,68 210,65 240,60 270,55 300,50 330,48 360,45 400,42" 
-              fill="none" stroke="#F59E0B" stroke-width="1.5"/>
-            <polyline points="0,90 30,85 60,80 90,82 120,75 150,70 180,68 210,65 240,60 270,55 300,50 330,48 360,45 400,42 400,120 0,120" 
-              fill="url(#grad1)"/>
-          </svg>
+        <div class="activity-legend">
+          <span>30 days ago</span>
+          <div class="activity-legend-scale">
+            <span>less</span>
+            <div class="activity-scale-cell"></div>
+            <div class="activity-scale-cell" style="background: rgba(245,158,11,0.2);"></div>
+            <div class="activity-scale-cell" style="background: rgba(245,158,11,0.4);"></div>
+            <div class="activity-scale-cell" style="background: rgba(245,158,11,0.6);"></div>
+            <div class="activity-scale-cell" style="background: var(--lr-amber-base);"></div>
+            <span>more</span>
+          </div>
+          <span>today</span>
         </div>
-        <div class="trend-meta">
-          <span>30 sessions ago: 48 wpm</span>
-          <span style="color: var(--lr-success);">+14 wpm trend</span>
-        </div>
-      </div>
-      
-      <div class="trend-card">
-        <div class="trend-header">
-          <div class="trend-title">Mastery (% letters at &lt; 5% error)</div>
-          <div><span class="trend-current">85<span class="trend-current-label">%</span></span></div>
-        </div>
-        <div class="trend-chart">
-          <svg width="100%" height="120" preserveAspectRatio="none" viewBox="0 0 400 120">
-            <polyline points="0,100 30,95 60,90 90,85 120,82 150,75 180,68 210,60 240,55 270,48 300,42 330,35 360,30 400,28" 
-              fill="none" stroke="#22C55E" stroke-width="1.5"/>
-          </svg>
-        </div>
-        <div class="trend-meta">
-          <span>30 sessions ago: 60%</span>
-          <span style="color: var(--lr-success);">+25% trend</span>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- SECTION 6: INSIGHT & RATIONALE -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Engine insight</h2>
-      <span class="section-meta">how we picked your next exercise</span>
-    </div>
-    
-    <div class="insight-card">
-      <div class="insight-text">
-        Over the past 7 days, you've moved <strong>3 letters</strong> from "weakness" to "comfortable" status (E, R, F). Letter <strong>B</strong> dropped from 26% to 18% error rate — significant improvement, but still your top friction point. The bigram <strong>'er'</strong> emerged as a new struggle — likely because you're typing more compound words now that your letter accuracy is up.
-      </div>
-      
-      <div class="rationale-card">
-        <div class="rationale-label">Next exercise will emphasize</div>
-        <div class="rationale-text">
-          <strong>B</strong> (score 2.8), <strong>er</strong> (score 2.1), <strong>T</strong> (score 1.7), with light reinforcement on <strong>;</strong> and <strong>th</strong>. Combined, these represent ~60% of your high-friction units this week.
-        </div>
-      </div>
-      
-      <div class="formula-section">
-        <div class="formula-title">
-          <span style="color: var(--lr-amber-base);">⚙</span>
-          how the score is calculated
-        </div>
-        <div class="formula-equation">
-          weakness_score = <span class="coef">0.5</span> × <span class="var">normalized_error</span> + <span class="coef">0.2</span> × <span class="var">normalized_hesitation</span> + <span class="coef">0.2</span> × <span class="var">normalized_slowness</span> − <span class="coef">0.1</span> × <span class="var">frequency_penalty</span>
-        </div>
-        
-        <div style="font-size: 12px; color: var(--lr-text-secondary); line-height: 1.6; margin-bottom: 12px;">
-          For letter <strong style="color: var(--lr-amber-base); font-family: var(--font-mono);">B</strong> currently:
-        </div>
-        
-        <div class="formula-breakdown">
-          <div class="formula-row">
-            <span class="formula-row-label">normalized_error</span>
-            <span class="formula-row-value">3.6</span>
+        <div class="latest-sessions">
+          <div class="latest-sessions-title">Latest 5 sessions</div>
+          <div class="session-row">
+            <span class="session-time">2h ago</span>
+            <span class="session-mode"><span class="session-mode-badge">adaptive</span> 52 words · focus on B, er</span>
+            <span class="session-stat">62 wpm</span>
+            <span class="session-stat">94%</span>
+            <span class="session-duration">2:14</span>
           </div>
-          <div class="formula-row">
-            <span class="formula-row-label">normalized_hesitation</span>
-            <span class="formula-row-value">2.1</span>
+          <div class="session-row">
+            <span class="session-time">today</span>
+            <span class="session-mode"><span class="session-mode-badge">drill</span> letter B · 30 reps</span>
+            <span class="session-stat">48 wpm</span>
+            <span class="session-stat">87%</span>
+            <span class="session-duration">3:42</span>
           </div>
-          <div class="formula-row">
-            <span class="formula-row-label">normalized_slowness</span>
-            <span class="formula-row-value">1.4</span>
+          <div class="session-row">
+            <span class="session-time">yesterday</span>
+            <span class="session-mode"><span class="session-mode-badge">adaptive</span> 50 words · left hand only</span>
+            <span class="session-stat">58 wpm</span>
+            <span class="session-stat">92%</span>
+            <span class="session-duration">2:48</span>
           </div>
-          <div class="formula-row">
-            <span class="formula-row-label">frequency_penalty</span>
-            <span class="formula-row-value">0.3</span>
+          <div class="session-row">
+            <span class="session-time">yesterday</span>
+            <span class="session-mode"><span class="session-mode-badge">adaptive</span> 50 words</span>
+            <span class="session-stat">60 wpm</span>
+            <span class="session-stat">93%</span>
+            <span class="session-duration">2:21</span>
+          </div>
+          <div class="session-row">
+            <span class="session-time">2d ago</span>
+            <span class="session-mode"><span class="session-mode-badge">drill</span> bigram 'th'</span>
+            <span class="session-stat">55 wpm</span>
+            <span class="session-stat">90%</span>
+            <span class="session-duration">2:08</span>
           </div>
         </div>
-        
-        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--lr-border-subtle); font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-secondary);">
-          = 0.5 × 3.6 + 0.2 × 2.1 + 0.2 × 1.4 − 0.1 × 0.3 = <span style="color: var(--lr-amber-base); font-weight: 700;">2.8</span>
+      </div>
+    </div>
+
+    <!-- SECTION 3: HEATMAP -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Where errors happen</h2>
+        <span class="section-meta">per-key error rate · sofle base layer</span>
+      </div>
+
+      <div class="heatmap-container">
+        <div class="keyboard-halves">
+          <!-- Left half -->
+          <div>
+            <div class="keyboard-half-label">Left half</div>
+            <div class="key-grid">
+              <div class="key">1</div>
+              <div class="key">2</div>
+              <div class="key heat-1">3</div>
+              <div class="key">4</div>
+              <div class="key">5</div>
+              <div class="key">6</div>
+
+              <div class="key">q</div>
+              <div class="key">w</div>
+              <div class="key heat-1">e</div>
+              <div class="key heat-2">r</div>
+              <div class="key heat-3">t</div>
+              <div class="key">·</div>
+
+              <div class="key">a</div>
+              <div class="key">s</div>
+              <div class="key">d</div>
+              <div class="key heat-1">f</div>
+              <div class="key heat-2">g</div>
+              <div class="key">·</div>
+
+              <div class="key">z</div>
+              <div class="key">x</div>
+              <div class="key">c</div>
+              <div class="key heat-2">v</div>
+              <div class="key heat-4">b</div>
+              <div class="key">·</div>
+            </div>
+          </div>
+
+          <!-- Right half -->
+          <div>
+            <div class="keyboard-half-label">Right half</div>
+            <div class="key-grid">
+              <div class="key">7</div>
+              <div class="key">8</div>
+              <div class="key">9</div>
+              <div class="key">0</div>
+              <div class="key">-</div>
+              <div class="key">=</div>
+
+              <div class="key">·</div>
+              <div class="key heat-2">y</div>
+              <div class="key">u</div>
+              <div class="key">i</div>
+              <div class="key">o</div>
+              <div class="key heat-1">p</div>
+
+              <div class="key">·</div>
+              <div class="key">h</div>
+              <div class="key">j</div>
+              <div class="key">k</div>
+              <div class="key">l</div>
+              <div class="key heat-3">;</div>
+
+              <div class="key">·</div>
+              <div class="key heat-2">n</div>
+              <div class="key">m</div>
+              <div class="key">,</div>
+              <div class="key">.</div>
+              <div class="key heat-1">/</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="heat-legend">
+          <span>error rate</span>
+          <div class="heat-legend-scale">
+            <div class="heat-step"></div>
+            <div class="heat-step" style="background: var(--heat-1);"></div>
+            <div class="heat-step" style="background: var(--heat-2);"></div>
+            <div class="heat-step" style="background: var(--heat-3);"></div>
+            <div class="heat-step" style="background: var(--heat-4);"></div>
+          </div>
+          <span>0% → 25%+</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- DASHBOARD CTA -->
-  <div class="dashboard-cta">
-    <div class="dashboard-cta-text">
-      <h3>Ready to keep going?</h3>
-      <p>Your next exercise is queued, focusing on B, er, and T</p>
+    <!-- SECTION 4: WEAKNESS RANKING -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Top weaknesses</h2>
+        <span class="section-action">Drill these →</span>
+      </div>
+
+      <div class="weakness-list">
+        <div class="weakness-header-row">
+          <span>rank</span>
+          <span>unit</span>
+          <span>relative weight</span>
+          <span style="text-align: right;">error</span>
+          <span style="text-align: right;">avg time</span>
+          <span style="text-align: right;">score</span>
+        </div>
+        <div class="weakness-row">
+          <span class="weakness-rank">01</span>
+          <span class="weakness-key">B</span>
+          <div class="weakness-bar-container">
+            <div class="weakness-bar-fill" style="width: 95%;"></div>
+          </div>
+          <span class="weakness-stat">18%</span>
+          <span class="weakness-stat">340ms</span>
+          <span class="weakness-score">2.8</span>
+        </div>
+        <div class="weakness-row">
+          <span class="weakness-rank">02</span>
+          <span class="weakness-key">er</span>
+          <div class="weakness-bar-container">
+            <div class="weakness-bar-fill" style="width: 70%;"></div>
+          </div>
+          <span class="weakness-stat">14%</span>
+          <span class="weakness-stat">290ms</span>
+          <span class="weakness-score">2.1</span>
+        </div>
+        <div class="weakness-row">
+          <span class="weakness-rank">03</span>
+          <span class="weakness-key">T</span>
+          <div class="weakness-bar-container">
+            <div class="weakness-bar-fill" style="width: 55%;"></div>
+          </div>
+          <span class="weakness-stat">11%</span>
+          <span class="weakness-stat">245ms</span>
+          <span class="weakness-score">1.7</span>
+        </div>
+        <div class="weakness-row">
+          <span class="weakness-rank">04</span>
+          <span class="weakness-key">;</span>
+          <div class="weakness-bar-container">
+            <div class="weakness-bar-fill" style="width: 50%;"></div>
+          </div>
+          <span class="weakness-stat">10%</span>
+          <span class="weakness-stat">280ms</span>
+          <span class="weakness-score">1.5</span>
+        </div>
+        <div class="weakness-row">
+          <span class="weakness-rank">05</span>
+          <span class="weakness-key">th</span>
+          <div class="weakness-bar-container">
+            <div class="weakness-bar-fill" style="width: 42%;"></div>
+          </div>
+          <span class="weakness-stat">9%</span>
+          <span class="weakness-stat">220ms</span>
+          <span class="weakness-score">1.3</span>
+        </div>
+        <div class="weakness-row">
+          <span class="weakness-rank">06</span>
+          <span class="weakness-key">G</span>
+          <div class="weakness-bar-container">
+            <div class="weakness-bar-fill" style="width: 35%;"></div>
+          </div>
+          <span class="weakness-stat">8%</span>
+          <span class="weakness-stat">230ms</span>
+          <span class="weakness-score">1.1</span>
+        </div>
+        <div class="weakness-row">
+          <span class="weakness-rank">07</span>
+          <span class="weakness-key">Y</span>
+          <div class="weakness-bar-container">
+            <div class="weakness-bar-fill" style="width: 30%;"></div>
+          </div>
+          <span class="weakness-stat">7%</span>
+          <span class="weakness-stat">215ms</span>
+          <span class="weakness-score">0.9</span>
+        </div>
+      </div>
     </div>
-    <button class="dashboard-cta-button">Start practice →</button>
+
+    <!-- SECTION 5: TRENDS -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Skill trajectory</h2>
+        <span class="section-meta">last 30 sessions</span>
+      </div>
+
+      <div class="trends-grid">
+        <div class="trend-card">
+          <div class="trend-header">
+            <div class="trend-title">Speed (WPM)</div>
+            <div><span class="trend-current">62</span><span class="trend-current-label">wpm</span></div>
+          </div>
+          <div class="trend-chart">
+            <svg width="100%" height="120" preserveAspectRatio="none" viewBox="0 0 400 120">
+              <defs>
+                <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="#F59E0B" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <polyline
+                points="0,90 30,85 60,80 90,82 120,75 150,70 180,68 210,65 240,60 270,55 300,50 330,48 360,45 400,42"
+                fill="none" stroke="#F59E0B" stroke-width="1.5" />
+              <polyline
+                points="0,90 30,85 60,80 90,82 120,75 150,70 180,68 210,65 240,60 270,55 300,50 330,48 360,45 400,42 400,120 0,120"
+                fill="url(#grad1)" />
+            </svg>
+          </div>
+          <div class="trend-meta">
+            <span>30 sessions ago: 48 wpm</span>
+            <span style="color: var(--lr-success);">+14 wpm trend</span>
+          </div>
+        </div>
+
+        <div class="trend-card">
+          <div class="trend-header">
+            <div class="trend-title">Mastery (% letters at &lt; 5% error)</div>
+            <div><span class="trend-current">85<span class="trend-current-label">%</span></span></div>
+          </div>
+          <div class="trend-chart">
+            <svg width="100%" height="120" preserveAspectRatio="none" viewBox="0 0 400 120">
+              <polyline
+                points="0,100 30,95 60,90 90,85 120,82 150,75 180,68 210,60 240,55 270,48 300,42 330,35 360,30 400,28"
+                fill="none" stroke="#22C55E" stroke-width="1.5" />
+            </svg>
+          </div>
+          <div class="trend-meta">
+            <span>30 sessions ago: 60%</span>
+            <span style="color: var(--lr-success);">+25% trend</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 6: INSIGHT & RATIONALE -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Engine insight</h2>
+        <span class="section-meta">how we picked your next exercise</span>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-text">
+          Over the past 7 days, you've moved <strong>3 letters</strong> from "weakness" to "comfortable" status (E, R,
+          F). Letter <strong>B</strong> dropped from 26% to 18% error rate — significant improvement, but still your top
+          friction point. The bigram <strong>'er'</strong> emerged as a new struggle — likely because you're typing more
+          compound words now that your letter accuracy is up.
+        </div>
+
+        <div class="rationale-card">
+          <div class="rationale-label">Next exercise will emphasize</div>
+          <div class="rationale-text">
+            <strong>B</strong> (score 2.8), <strong>er</strong> (score 2.1), <strong>T</strong> (score 1.7), with light
+            reinforcement on <strong>;</strong> and <strong>th</strong>. Combined, these represent ~60% of your
+            high-friction units this week.
+          </div>
+        </div>
+
+        <div class="formula-section">
+          <div class="formula-title">
+            <span style="color: var(--lr-amber-base);">⚙</span>
+            how the score is calculated
+          </div>
+          <div class="formula-equation">
+            weakness_score = <span class="coef">0.5</span> × <span class="var">normalized_error</span> + <span
+              class="coef">0.2</span> × <span class="var">normalized_hesitation</span> + <span class="coef">0.2</span> ×
+            <span class="var">normalized_slowness</span> − <span class="coef">0.1</span> × <span
+              class="var">frequency_penalty</span>
+          </div>
+
+          <div style="font-size: 12px; color: var(--lr-text-secondary); line-height: 1.6; margin-bottom: 12px;">
+            For letter <strong style="color: var(--lr-amber-base); font-family: var(--font-mono);">B</strong> currently:
+          </div>
+
+          <div class="formula-breakdown">
+            <div class="formula-row">
+              <span class="formula-row-label">normalized_error</span>
+              <span class="formula-row-value">3.6</span>
+            </div>
+            <div class="formula-row">
+              <span class="formula-row-label">normalized_hesitation</span>
+              <span class="formula-row-value">2.1</span>
+            </div>
+            <div class="formula-row">
+              <span class="formula-row-label">normalized_slowness</span>
+              <span class="formula-row-value">1.4</span>
+            </div>
+            <div class="formula-row">
+              <span class="formula-row-label">frequency_penalty</span>
+              <span class="formula-row-value">0.3</span>
+            </div>
+          </div>
+
+          <div
+            style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--lr-border-subtle); font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-secondary);">
+            = 0.5 × 3.6 + 0.2 × 2.1 + 0.2 × 1.4 − 0.1 × 0.3 = <span
+              style="color: var(--lr-amber-base); font-weight: 700;">2.8</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD CTA -->
+    <div class="dashboard-cta">
+      <div class="dashboard-cta-text">
+        <h3>Ready to keep going?</h3>
+        <p>Your next exercise is queued, focusing on B, er, and T</p>
+      </div>
+      <button class="dashboard-cta-button">Start practice →</button>
+    </div>
+
   </div>
 
-</div>
+  <div class="annotation">
+    <strong>Dashboard wireframe</strong> · scroll through 6 sections in narrative order: where you are → what you've
+    done → where errors happen → what to fix → trajectory → why
+  </div>
 
-<div class="annotation">
-  <strong>Dashboard wireframe</strong> · scroll through 6 sections in narrative order: where you are → what you've done → where errors happen → what to fix → trajectory → why
-</div>
-
-<script>
-  // Generate activity grid (30 days, mock data)
-  const grid = document.getElementById('activityGrid');
-  const levels = [0, 0, 1, 0, 2, 3, 0, 1, 0, 0, 2, 1, 3, 4, 0, 0, 1, 2, 0, 3, 4, 2, 0, 1, 3, 4, 2, 1, 3, 4];
-  levels.forEach(lvl => {
-    const cell = document.createElement('div');
-    cell.className = 'activity-cell' + (lvl > 0 ? ' lvl-' + lvl : '');
-    grid.appendChild(cell);
-  });
-</script>
+  <script>
+    // Generate activity grid (30 days, mock data)
+    const grid = document.getElementById('activityGrid');
+    const levels = [0, 0, 1, 0, 2, 3, 0, 1, 0, 0, 2, 1, 3, 4, 0, 0, 1, 2, 0, 3, 4, 2, 0, 1, 3, 4, 2, 1, 3, 4];
+    levels.forEach(lvl => {
+      const cell = document.createElement('div');
+      cell.className = 'activity-cell' + (lvl > 0 ? ' lvl-' + lvl : '');
+      grid.appendChild(cell);
+    });
+  </script>
 
 </body>
+
 </html>

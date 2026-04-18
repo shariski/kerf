@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leftype-Rightype — Design Index</title>
+<title>kerf — design index</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --lr-bg-base: #181410;
@@ -24,6 +24,7 @@
     --lr-amber-faint: rgba(245, 158, 11, 0.08);
     --font-sans: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-brand: 'Fraunces', serif;
   }
   
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,11 +48,13 @@
     border-bottom: 1px solid var(--lr-border-subtle);
   }
   .wordmark {
-    font-family: var(--font-mono);
-    font-size: 24px;
+    font-family: var(--font-brand);
     font-weight: 700;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    font-size: 36px;
     letter-spacing: -0.02em;
     margin-bottom: 16px;
+    line-height: 1;
   }
   .wordmark .accent { color: var(--lr-amber-base); }
   .hero h1 {
@@ -531,7 +534,7 @@
   <!-- HERO -->
   <div class="hero">
     <div class="wordmark">
-      leftype<span class="accent">-</span>rightype
+      kerf<span class="accent">.</span>
     </div>
     <h1>Design index</h1>
     <p>All wireframes and design artifacts produced during MVP brainstorming. Structured transition program for QWERTY-to-split keyboards — adaptive engine, accuracy first.</p>
@@ -735,7 +738,7 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="card-route">/practice · v0.3</div>
+          <div class="card-route">/practice · v0.4</div>
           <div class="card-title">Practice</div>
           <div class="card-desc">Heart of the product. Four states: pre-session with transition-aware CTA, active typing with error visualization, paused settings overlay, post-session inline with error review</div>
           <div class="card-states">
@@ -941,7 +944,7 @@
   </div>
 
   <div class="footer">
-    leftype-rightype design index · v0.2 · 2026-04-18 · transition-focused revision
+    kerf design index · v0.2 · 2026-04-18 · transition-focused revision
   </div>
 
 </div>

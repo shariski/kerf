@@ -1,748 +1,1136 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Leftype-Rightype — Design System Specimen v0.1</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    /* Backgrounds */
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    
-    /* Text */
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-text-inverse: #181410;
-    
-    /* Borders */
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    
-    /* Amber */
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-pressed: #D97706;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    
-    /* Semantic */
-    --lr-success: #22C55E;
-    --lr-error: #EF4444;
-    --lr-warning: #EAB308;
-    --lr-info: #3B82F6;
-    
+  <meta charset="UTF-8">
+  <title>kerf — design system specimen v0.1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      /* Backgrounds */
+      --lr-bg-base: #181410;
+      --lr-bg-surface: #221C17;
+      --lr-bg-elevated: #2A2320;
+      --lr-bg-overlay: #322A26;
+
+      /* Text */
+      --lr-text-primary: #F2EAE0;
+      --lr-text-secondary: #9A8E80;
+      --lr-text-tertiary: #685D52;
+      --lr-text-inverse: #181410;
+
+      /* Borders */
+      --lr-border-subtle: #2F2820;
+      --lr-border-default: #3A3128;
+      --lr-border-strong: #4A3F35;
+
+      /* Amber */
+      --lr-amber-base: #F59E0B;
+      --lr-amber-hover: #FBBF24;
+      --lr-amber-pressed: #D97706;
+      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+
+      /* Semantic */
+      --lr-success: #22C55E;
+      --lr-error: #EF4444;
+      --lr-warning: #EAB308;
+      --lr-info: #3B82F6;
+
+      /* Finger colors */
+      --finger-l-pinky: #C2410C;
+      --finger-l-ring: #A16207;
+      --finger-l-middle: #65A30D;
+      --finger-l-index: #15803D;
+      --finger-r-index: #0E7490;
+      --finger-r-middle: #1D4ED8;
+      --finger-r-ring: #6D28D9;
+      --finger-r-pinky: #A21CAF;
+      --finger-thumb: #6B7280;
+
+      /* Typography */
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--lr-bg-base);
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 48px 32px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Hero */
+    .hero {
+      margin-bottom: 64px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .wordmark {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 36px;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .wordmark .accent {
+      color: var(--lr-amber-base);
+    }
+
+    .hero p {
+      color: var(--lr-text-secondary);
+      max-width: 600px;
+    }
+
+    .hero .meta {
+      margin-top: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-tertiary);
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .section-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .section-desc {
+      color: var(--lr-text-secondary);
+      margin-bottom: 24px;
+      max-width: 700px;
+    }
+
+    /* Color swatches */
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .swatch {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .swatch-color {
+      height: 80px;
+    }
+
+    .swatch-info {
+      padding: 12px;
+    }
+
+    .swatch-name {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .swatch-hex {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-secondary);
+    }
+
+    /* Background swatches need special treatment */
+    .swatch.bg-only {
+      border: 1px solid var(--lr-border-default);
+    }
+
+    /* Typography ladder */
+    .type-ladder {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .type-row {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 32px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--lr-border-subtle);
+      align-items: baseline;
+    }
+
+    .type-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-secondary);
+      line-height: 1.4;
+    }
+
+    .type-meta .name {
+      color: var(--lr-text-primary);
+      font-weight: 500;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .t-display {
+      font-size: 42px;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    .t-h1 {
+      font-size: 32px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .t-h2 {
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 600;
+    }
+
+    .t-h3 {
+      font-size: 18px;
+      line-height: 1.3;
+      font-weight: 600;
+    }
+
+    .t-body-lg {
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .t-body {
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .t-body-sm {
+      font-size: 13px;
+      line-height: 1.5;
+      font-weight: 400;
+      color: var(--lr-text-secondary);
+    }
+
+    .t-label {
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .t-overline {
+      font-size: 10px;
+      line-height: 1.2;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--lr-text-secondary);
+    }
+
+    .t-typing {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+    }
+
+    .t-stat {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 700;
+      color: var(--lr-amber-base);
+    }
+
+    /* Components showcase */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .component-card {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+      padding: 24px;
+    }
+
+    .component-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--lr-text-tertiary);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .component-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-primary {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+    }
+
+    .btn-primary:hover {
+      background: var(--lr-amber-hover);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--lr-text-primary);
+      border: 1px solid var(--lr-border-default);
+    }
+
+    .btn-secondary:hover {
+      background: var(--lr-bg-elevated);
+      border-color: var(--lr-border-strong);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--lr-text-secondary);
+      border: none;
+      padding: 8px 12px;
+    }
+
+    .btn-ghost:hover {
+      background: var(--lr-amber-faint);
+      color: var(--lr-text-primary);
+    }
+
+    /* Input */
+    .input {
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 4px;
+      padding: 10px 14px;
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      width: 100%;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--lr-amber-base);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge-amber {
+      background: var(--lr-amber-subtle);
+      color: var(--lr-amber-base);
+    }
+
+    .badge-success {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--lr-success);
+    }
+
+    .badge-error {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--lr-error);
+    }
+
+    .badge-warning {
+      background: rgba(234, 179, 8, 0.15);
+      color: var(--lr-warning);
+    }
+
     /* Finger colors */
-    --finger-l-pinky: #C2410C;
-    --finger-l-ring: #A16207;
-    --finger-l-middle: #65A30D;
-    --finger-l-index: #15803D;
-    --finger-r-index: #0E7490;
-    --finger-r-middle: #1D4ED8;
-    --finger-r-ring: #6D28D9;
-    --finger-r-pinky: #A21CAF;
-    --finger-thumb: #6B7280;
-    
-    /* Typography */
-    --font-sans: 'Inter', -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    padding: 48px 32px;
-    min-height: 100vh;
-  }
-  
-  .container { max-width: 1200px; margin: 0 auto; }
-  
-  /* Hero */
-  .hero { margin-bottom: 64px; padding-bottom: 32px; border-bottom: 1px solid var(--lr-border-subtle); }
-  .wordmark { 
-    font-family: var(--font-mono); 
-    font-size: 32px; 
-    font-weight: 700; 
-    letter-spacing: -0.02em;
-    margin-bottom: 16px;
-  }
-  .wordmark .left { color: var(--finger-l-index); }
-  .wordmark .right { color: var(--finger-r-index); }
-  .hero p { color: var(--lr-text-secondary); max-width: 600px; }
-  .hero .meta { 
-    margin-top: 12px; 
-    font-family: var(--font-mono); 
-    font-size: 12px; 
-    color: var(--lr-text-tertiary); 
-  }
-  
-  /* Section */
-  .section { margin-bottom: 64px; }
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .section-title { font-size: 24px; font-weight: 600; }
-  .section-num { 
-    font-family: var(--font-mono); 
-    font-size: 12px; 
-    color: var(--lr-text-tertiary);
-  }
-  .section-desc { color: var(--lr-text-secondary); margin-bottom: 24px; max-width: 700px; }
-  
-  /* Color swatches */
-  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-  .swatch {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .swatch-color { height: 80px; }
-  .swatch-info { padding: 12px; }
-  .swatch-name { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
-  .swatch-hex { font-family: var(--font-mono); font-size: 11px; color: var(--lr-text-secondary); }
-  
-  /* Background swatches need special treatment */
-  .swatch.bg-only { border: 1px solid var(--lr-border-default); }
-  
-  /* Typography ladder */
-  .type-ladder { display: flex; flex-direction: column; gap: 24px; }
-  .type-row {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 32px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--lr-border-subtle);
-    align-items: baseline;
-  }
-  .type-meta {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    line-height: 1.4;
-  }
-  .type-meta .name { color: var(--lr-text-primary); font-weight: 500; display: block; margin-bottom: 4px; }
-  
-  .t-display { font-size: 42px; line-height: 1.1; font-weight: 700; }
-  .t-h1 { font-size: 32px; line-height: 1.2; font-weight: 700; }
-  .t-h2 { font-size: 24px; line-height: 1.25; font-weight: 600; }
-  .t-h3 { font-size: 18px; line-height: 1.3; font-weight: 600; }
-  .t-body-lg { font-size: 16px; line-height: 1.6; font-weight: 400; }
-  .t-body { font-size: 14px; line-height: 1.6; font-weight: 400; }
-  .t-body-sm { font-size: 13px; line-height: 1.5; font-weight: 400; color: var(--lr-text-secondary); }
-  .t-label { font-size: 12px; line-height: 1.4; font-weight: 500; letter-spacing: 0.02em; }
-  .t-overline { font-size: 10px; line-height: 1.2; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lr-text-secondary); }
-  .t-typing { font-family: var(--font-mono); font-size: 24px; line-height: 1.6; letter-spacing: 0.02em; }
-  .t-stat { font-family: var(--font-mono); font-size: 28px; line-height: 1; font-weight: 700; color: var(--lr-amber-base); }
-  
-  /* Components showcase */
-  .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-  .component-card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    padding: 24px;
-  }
-  .component-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--lr-text-tertiary);
-    margin-bottom: 16px;
-    font-weight: 600;
-  }
-  .component-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-  
-  /* Buttons */
-  .btn {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 600;
-    padding: 10px 20px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .btn-primary {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-  }
-  .btn-primary:hover { background: var(--lr-amber-hover); }
-  .btn-secondary {
-    background: transparent;
-    color: var(--lr-text-primary);
-    border: 1px solid var(--lr-border-default);
-  }
-  .btn-secondary:hover { background: var(--lr-bg-elevated); border-color: var(--lr-border-strong); }
-  .btn-ghost {
-    background: transparent;
-    color: var(--lr-text-secondary);
-    border: none;
-    padding: 8px 12px;
-  }
-  .btn-ghost:hover { background: var(--lr-amber-faint); color: var(--lr-text-primary); }
-  
-  /* Input */
-  .input {
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 4px;
-    padding: 10px 14px;
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    width: 100%;
-  }
-  .input:focus { outline: none; border-color: var(--lr-amber-base); }
-  
-  /* Badges */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .badge-amber { background: var(--lr-amber-subtle); color: var(--lr-amber-base); }
-  .badge-success { background: rgba(34,197,94,0.15); color: var(--lr-success); }
-  .badge-error { background: rgba(239,68,68,0.15); color: var(--lr-error); }
-  .badge-warning { background: rgba(234,179,8,0.15); color: var(--lr-warning); }
-  
-  /* Finger colors */
-  .finger-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; max-width: 720px; }
-  .finger { 
-    aspect-ratio: 1;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 8px;
-    color: white;
-    font-family: var(--font-mono);
-  }
-  .finger-name { font-size: 9px; opacity: 0.85; margin-top: 4px; text-align: center; line-height: 1.2; }
-  .finger-letter { font-size: 14px; font-weight: 700; }
-  
-  /* Mockup: Typing area */
-  .mockup-typing {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 12px;
-    padding: 48px 64px;
-    text-align: center;
-  }
-  .typing-stats {
-    display: flex;
-    justify-content: center;
-    gap: 48px;
-    margin-bottom: 32px;
-  }
-  .stat-block { display: flex; flex-direction: column; gap: 4px; }
-  .stat-label-mock { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--lr-text-secondary); font-weight: 600; }
-  .stat-value-mock { font-family: var(--font-mono); font-size: 36px; font-weight: 700; color: var(--lr-amber-base); line-height: 1; }
-  .typing-text {
-    font-family: var(--font-mono);
-    font-size: 28px;
-    line-height: 1.6;
-    letter-spacing: 0.02em;
-    margin-bottom: 24px;
-    color: var(--lr-text-primary);
-  }
-  .typing-text .typed { color: var(--lr-text-tertiary); }
-  .typing-text .current { background: var(--lr-amber-base); color: var(--lr-text-inverse); padding: 0 4px; border-radius: 3px; }
-  .typing-text .upcoming { color: var(--lr-text-secondary); }
-  .typing-text .error { background: rgba(239,68,68,0.3); color: var(--lr-error); padding: 0 4px; border-radius: 3px; text-decoration: line-through; text-decoration-color: var(--lr-error); }
-  
-  /* Mockup: Weakness panel */
-  .mockup-weakness {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 6px;
-    padding: 20px 24px;
-  }
-  .weakness-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--lr-border-subtle); }
-  .weakness-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--lr-text-tertiary); font-weight: 600; }
-  .weakness-action { font-size: 12px; color: var(--lr-amber-base); cursor: pointer; }
-  .weakness-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .weakness-row:last-child { border-bottom: none; }
-  .weakness-left { display: flex; align-items: center; gap: 12px; }
-  .weakness-rank { font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-tertiary); width: 24px; }
-  .weakness-key {
-    background: var(--lr-amber-subtle);
-    color: var(--lr-amber-base);
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 14px;
-  }
-  .weakness-meta { font-size: 12px; color: var(--lr-text-secondary); }
-  .weakness-score { font-family: var(--font-mono); font-size: 14px; color: var(--lr-text-primary); font-weight: 700; }
-  .weakness-bar {
-    width: 100px;
-    height: 4px;
-    background: var(--lr-bg-elevated);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .weakness-fill { height: 100%; background: var(--lr-amber-base); }
-  
-  /* Heatmap legend */
-  .heat-legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-  .heat-step { width: 32px; height: 24px; border-radius: 4px; border: 1px solid var(--lr-border-subtle); }
-  .heat-0 { background: transparent; }
-  .heat-1 { background: rgba(245,158,11,0.15); }
-  .heat-2 { background: rgba(245,158,11,0.35); }
-  .heat-3 { background: rgba(239,68,68,0.45); }
-  .heat-4 { background: rgba(239,68,68,0.75); }
-  .heat-label { font-size: 11px; color: var(--lr-text-tertiary); font-family: var(--font-mono); }
-  
-  /* Spacing visualizer */
-  .spacing-grid { display: flex; flex-direction: column; gap: 8px; }
-  .spacing-row { display: grid; grid-template-columns: 80px 1fr 80px; gap: 16px; align-items: center; }
-  .spacing-name { font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-secondary); }
-  .spacing-bar { background: var(--lr-amber-subtle); height: 24px; border-radius: 2px; }
-  .spacing-px { font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-secondary); text-align: right; }
-  
-  /* Footer */
-  .footer { 
-    margin-top: 80px; 
-    padding-top: 32px; 
-    border-top: 1px solid var(--lr-border-subtle); 
-    color: var(--lr-text-tertiary);
-    font-size: 12px;
-    text-align: center;
-  }
-</style>
+    .finger-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 8px;
+      max-width: 720px;
+    }
+
+    .finger {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 8px;
+      color: white;
+      font-family: var(--font-mono);
+    }
+
+    .finger-name {
+      font-size: 9px;
+      opacity: 0.85;
+      margin-top: 4px;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .finger-letter {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* Mockup: Typing area */
+    .mockup-typing {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 12px;
+      padding: 48px 64px;
+      text-align: center;
+    }
+
+    .typing-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-bottom: 32px;
+    }
+
+    .stat-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label-mock {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--lr-text-secondary);
+      font-weight: 600;
+    }
+
+    .stat-value-mock {
+      font-family: var(--font-mono);
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--lr-amber-base);
+      line-height: 1;
+    }
+
+    .typing-text {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+      margin-bottom: 24px;
+      color: var(--lr-text-primary);
+    }
+
+    .typing-text .typed {
+      color: var(--lr-text-tertiary);
+    }
+
+    .typing-text .current {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
+    .typing-text .upcoming {
+      color: var(--lr-text-secondary);
+    }
+
+    .typing-text .error {
+      background: rgba(239, 68, 68, 0.3);
+      color: var(--lr-error);
+      padding: 0 4px;
+      border-radius: 3px;
+      text-decoration: line-through;
+      text-decoration-color: var(--lr-error);
+    }
+
+    /* Mockup: Weakness panel */
+    .mockup-weakness {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 6px;
+      padding: 20px 24px;
+    }
+
+    .weakness-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .weakness-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--lr-text-tertiary);
+      font-weight: 600;
+    }
+
+    .weakness-action {
+      font-size: 12px;
+      color: var(--lr-amber-base);
+      cursor: pointer;
+    }
+
+    .weakness-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .weakness-row:last-child {
+      border-bottom: none;
+    }
+
+    .weakness-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .weakness-rank {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-tertiary);
+      width: 24px;
+    }
+
+    .weakness-key {
+      background: var(--lr-amber-subtle);
+      color: var(--lr-amber-base);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .weakness-meta {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+    }
+
+    .weakness-score {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--lr-text-primary);
+      font-weight: 700;
+    }
+
+    .weakness-bar {
+      width: 100px;
+      height: 4px;
+      background: var(--lr-bg-elevated);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .weakness-fill {
+      height: 100%;
+      background: var(--lr-amber-base);
+    }
+
+    /* Heatmap legend */
+    .heat-legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .heat-step {
+      width: 32px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    .heat-0 {
+      background: transparent;
+    }
+
+    .heat-1 {
+      background: rgba(245, 158, 11, 0.15);
+    }
+
+    .heat-2 {
+      background: rgba(245, 158, 11, 0.35);
+    }
+
+    .heat-3 {
+      background: rgba(239, 68, 68, 0.45);
+    }
+
+    .heat-4 {
+      background: rgba(239, 68, 68, 0.75);
+    }
+
+    .heat-label {
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      font-family: var(--font-mono);
+    }
+
+    /* Spacing visualizer */
+    .spacing-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .spacing-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 80px;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .spacing-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+    }
+
+    .spacing-bar {
+      background: var(--lr-amber-subtle);
+      height: 24px;
+      border-radius: 2px;
+    }
+
+    .spacing-px {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      text-align: right;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--lr-border-subtle);
+      color: var(--lr-text-tertiary);
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="wordmark">
-      <span class="left">left</span><span style="color: var(--lr-text-secondary)">type</span><span style="color: var(--lr-text-secondary)">-</span><span class="right">right</span><span style="color: var(--lr-text-secondary)">type</span>
+    <!-- HERO -->
+    <div class="hero">
+      <div class="wordmark">kerf<span class="accent">.</span></div>
+      <p>Design system specimen v0.1 — visual reference for all design tokens defined in <code
+          style="font-family: var(--font-mono); color: var(--lr-amber-base); font-size: 13px;">04-design-system.md</code>.
+        Open in browser to see how tokens render in context.</p>
+      <div class="meta">vibe: mechanical workshop · dark espresso #181410 · amber accent #F59E0B</div>
     </div>
-    <p>Design system specimen v0.1 — visual reference for all design tokens defined in <code style="font-family: var(--font-mono); color: var(--lr-amber-base); font-size: 13px;">04-design-system.md</code>. Open in browser to see how tokens render in context.</p>
-    <div class="meta">vibe: mechanical workshop · dark espresso #181410 · amber accent #F59E0B</div>
-  </div>
 
-  <!-- BACKGROUNDS -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Background layers</h2>
-      <span class="section-num">§ 2.1</span>
+    <!-- BACKGROUNDS -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Background layers</h2>
+        <span class="section-num">§ 2.1</span>
+      </div>
+      <p class="section-desc">Four elevation levels. Higher elevation = lighter background. Used to create depth without
+        shadows.</p>
+      <div class="swatch-grid">
+        <div class="swatch bg-only">
+          <div class="swatch-color" style="background: #181410;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">bg-base</div>
+            <div class="swatch-hex">#181410</div>
+          </div>
+        </div>
+        <div class="swatch bg-only">
+          <div class="swatch-color" style="background: #221C17;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">bg-surface</div>
+            <div class="swatch-hex">#221C17</div>
+          </div>
+        </div>
+        <div class="swatch bg-only">
+          <div class="swatch-color" style="background: #2A2320;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">bg-elevated</div>
+            <div class="swatch-hex">#2A2320</div>
+          </div>
+        </div>
+        <div class="swatch bg-only">
+          <div class="swatch-color" style="background: #322A26;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">bg-overlay</div>
+            <div class="swatch-hex">#322A26</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <p class="section-desc">Four elevation levels. Higher elevation = lighter background. Used to create depth without shadows.</p>
-    <div class="swatch-grid">
-      <div class="swatch bg-only">
-        <div class="swatch-color" style="background: #181410;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">bg-base</div>
-          <div class="swatch-hex">#181410</div>
-        </div>
-      </div>
-      <div class="swatch bg-only">
-        <div class="swatch-color" style="background: #221C17;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">bg-surface</div>
-          <div class="swatch-hex">#221C17</div>
-        </div>
-      </div>
-      <div class="swatch bg-only">
-        <div class="swatch-color" style="background: #2A2320;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">bg-elevated</div>
-          <div class="swatch-hex">#2A2320</div>
-        </div>
-      </div>
-      <div class="swatch bg-only">
-        <div class="swatch-color" style="background: #322A26;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">bg-overlay</div>
-          <div class="swatch-hex">#322A26</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- TEXT COLORS -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Text & borders</h2>
-      <span class="section-num">§ 2.2 – 2.3</span>
-    </div>
-    <div class="component-card">
-      <p style="color: var(--lr-text-primary); margin-bottom: 12px;">Primary text — high contrast, default for body content.</p>
-      <p style="color: var(--lr-text-secondary); margin-bottom: 12px;">Secondary text — labels, subtitles, muted descriptions.</p>
-      <p style="color: var(--lr-text-tertiary); margin-bottom: 24px;">Tertiary text — hints, placeholders, disabled states.</p>
-      <div style="display: flex; gap: 16px;">
-        <div style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-subtle); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">border-subtle</div>
-        <div style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-default); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">border-default</div>
-        <div style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-strong); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">border-strong</div>
+    <!-- TEXT COLORS -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Text & borders</h2>
+        <span class="section-num">§ 2.2 – 2.3</span>
       </div>
-    </div>
-  </div>
-
-  <!-- AMBER ACCENT -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Amber accent</h2>
-      <span class="section-num">§ 2.4</span>
-    </div>
-    <p class="section-desc">The brand accent. Used sparingly for primary actions, target keys, and brand moments. Should feel earned, not painted everywhere.</p>
-    <div class="swatch-grid">
-      <div class="swatch">
-        <div class="swatch-color" style="background: #F59E0B;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">amber-base</div>
-          <div class="swatch-hex">#F59E0B</div>
-        </div>
-      </div>
-      <div class="swatch">
-        <div class="swatch-color" style="background: #FBBF24;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">amber-hover</div>
-          <div class="swatch-hex">#FBBF24</div>
-        </div>
-      </div>
-      <div class="swatch">
-        <div class="swatch-color" style="background: #D97706;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">amber-pressed</div>
-          <div class="swatch-hex">#D97706</div>
-        </div>
-      </div>
-      <div class="swatch">
-        <div class="swatch-color" style="background: rgba(245, 158, 11, 0.15);"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">amber-subtle</div>
-          <div class="swatch-hex">rgba 0.15</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SEMANTIC -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Semantic colors</h2>
-      <span class="section-num">§ 2.5</span>
-    </div>
-    <div class="swatch-grid">
-      <div class="swatch">
-        <div class="swatch-color" style="background: #22C55E;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">success</div>
-          <div class="swatch-hex">#22C55E</div>
-        </div>
-      </div>
-      <div class="swatch">
-        <div class="swatch-color" style="background: #EF4444;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">error</div>
-          <div class="swatch-hex">#EF4444</div>
-        </div>
-      </div>
-      <div class="swatch">
-        <div class="swatch-color" style="background: #EAB308;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">warning</div>
-          <div class="swatch-hex">#EAB308</div>
-        </div>
-      </div>
-      <div class="swatch">
-        <div class="swatch-color" style="background: #3B82F6;"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">info</div>
-          <div class="swatch-hex">#3B82F6</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FINGER COLORS -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Eight finger colors</h2>
-      <span class="section-num">§ 2.6</span>
-    </div>
-    <p class="section-desc">Mapped to the 8 fingers used in touch typing. Left hand = earth tones, right hand = sky tones. Pinkies most saturated for differentiation.</p>
-    <div class="finger-grid">
-      <div class="finger" style="background: #C2410C;">
-        <span class="finger-letter">P</span>
-        <span class="finger-name">L pinky</span>
-      </div>
-      <div class="finger" style="background: #A16207;">
-        <span class="finger-letter">R</span>
-        <span class="finger-name">L ring</span>
-      </div>
-      <div class="finger" style="background: #65A30D;">
-        <span class="finger-letter">M</span>
-        <span class="finger-name">L middle</span>
-      </div>
-      <div class="finger" style="background: #15803D;">
-        <span class="finger-letter">I</span>
-        <span class="finger-name">L index</span>
-      </div>
-      <div class="finger" style="background: #6B7280;">
-        <span class="finger-letter">T</span>
-        <span class="finger-name">thumb</span>
-      </div>
-      <div class="finger" style="background: #0E7490;">
-        <span class="finger-letter">I</span>
-        <span class="finger-name">R index</span>
-      </div>
-      <div class="finger" style="background: #1D4ED8;">
-        <span class="finger-letter">M</span>
-        <span class="finger-name">R middle</span>
-      </div>
-      <div class="finger" style="background: #6D28D9;">
-        <span class="finger-letter">R</span>
-        <span class="finger-name">R ring</span>
-      </div>
-      <div class="finger" style="background: #A21CAF;">
-        <span class="finger-letter">P</span>
-        <span class="finger-name">R pinky</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- HEATMAP -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Heatmap scale</h2>
-      <span class="section-num">§ 2.7</span>
-    </div>
-    <p class="section-desc">5-step ramp for per-key error visualization. Amber-to-red ramp avoids semantic conflict with green = correct keypress.</p>
-    <div class="heat-legend">
-      <div class="heat-step heat-0"></div>
-      <div class="heat-step heat-1"></div>
-      <div class="heat-step heat-2"></div>
-      <div class="heat-step heat-3"></div>
-      <div class="heat-step heat-4"></div>
-      <span class="heat-label">no data → critical weakness</span>
-    </div>
-  </div>
-
-  <!-- TYPOGRAPHY -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Type scale</h2>
-      <span class="section-num">§ 3</span>
-    </div>
-    <p class="section-desc">Inter for UI, JetBrains Mono for typing content & numerical data.</p>
-    <div class="type-ladder">
-      <div class="type-row">
-        <div class="type-meta"><span class="name">display</span>42 / 1.1 / 700</div>
-        <div class="t-display">The mechanical keyboard</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">h1</span>32 / 1.2 / 700</div>
-        <div class="t-h1">Practice session summary</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">h2</span>24 / 1.25 / 600</div>
-        <div class="t-h2">Top weaknesses this week</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">h3</span>18 / 1.3 / 600</div>
-        <div class="t-h3">Calibration & baseline</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">body-lg</span>16 / 1.6 / 400</div>
-        <div class="t-body-lg">Today you focused on the letter B. Error rate dropped from 18% to 9%.</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">body</span>14 / 1.6 / 400</div>
-        <div class="t-body">The next session will keep B included with more emphasis on speed.</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">body-sm</span>13 / 1.5 / 400</div>
-        <div class="t-body-sm">Auxiliary text, captions, and supplementary details use this size.</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">label</span>12 / 1.4 / 500</div>
-        <div class="t-label">Keyboard profile · Sofle v2</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">overline</span>10 / 1.2 / 600</div>
-        <div class="t-overline">Adaptive engine</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">typing</span>JetBrains Mono<br>24 / 1.6 / 400</div>
-        <div class="t-typing">the quick brown fox jumps</div>
-      </div>
-      <div class="type-row">
-        <div class="type-meta"><span class="name">stat</span>JetBrains Mono<br>28 / 1.0 / 700</div>
-        <div class="t-stat">62 wpm · 94%</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SPACING -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Spacing scale</h2>
-      <span class="section-num">§ 4</span>
-    </div>
-    <p class="section-desc">Base unit 4px. All spacing uses multiples of 4 for visual rhythm.</p>
-    <div class="spacing-grid">
-      <div class="spacing-row"><span class="spacing-name">space-1</span><div class="spacing-bar" style="width: 4px;"></div><span class="spacing-px">4px</span></div>
-      <div class="spacing-row"><span class="spacing-name">space-2</span><div class="spacing-bar" style="width: 8px;"></div><span class="spacing-px">8px</span></div>
-      <div class="spacing-row"><span class="spacing-name">space-3</span><div class="spacing-bar" style="width: 12px;"></div><span class="spacing-px">12px</span></div>
-      <div class="spacing-row"><span class="spacing-name">space-4</span><div class="spacing-bar" style="width: 16px;"></div><span class="spacing-px">16px</span></div>
-      <div class="spacing-row"><span class="spacing-name">space-6</span><div class="spacing-bar" style="width: 24px;"></div><span class="spacing-px">24px</span></div>
-      <div class="spacing-row"><span class="spacing-name">space-8</span><div class="spacing-bar" style="width: 32px;"></div><span class="spacing-px">32px</span></div>
-      <div class="spacing-row"><span class="spacing-name">space-12</span><div class="spacing-bar" style="width: 48px;"></div><span class="spacing-px">48px</span></div>
-      <div class="spacing-row"><span class="spacing-name">space-16</span><div class="spacing-bar" style="width: 64px;"></div><span class="spacing-px">64px</span></div>
-    </div>
-  </div>
-
-  <!-- COMPONENTS -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Foundational components</h2>
-      <span class="section-num">§ 8</span>
-    </div>
-    
-    <div class="component-grid">
       <div class="component-card">
-        <div class="component-label">Buttons</div>
-        <div class="component-row">
-          <button class="btn btn-primary">Start session</button>
-          <button class="btn btn-secondary">View dashboard</button>
-          <button class="btn btn-ghost">Skip</button>
-        </div>
-      </div>
-      
-      <div class="component-card">
-        <div class="component-label">Input</div>
-        <div class="component-row">
-          <input type="text" class="input" placeholder="Email address" value="">
-        </div>
-      </div>
-      
-      <div class="component-card">
-        <div class="component-label">Badges</div>
-        <div class="component-row">
-          <span class="badge badge-amber">B</span>
-          <span class="badge badge-success">+12%</span>
-          <span class="badge badge-error">-3%</span>
-          <span class="badge badge-warning">slow</span>
+        <p style="color: var(--lr-text-primary); margin-bottom: 12px;">Primary text — high contrast, default for body
+          content.</p>
+        <p style="color: var(--lr-text-secondary); margin-bottom: 12px;">Secondary text — labels, subtitles, muted
+          descriptions.</p>
+        <p style="color: var(--lr-text-tertiary); margin-bottom: 24px;">Tertiary text — hints, placeholders, disabled
+          states.</p>
+        <div style="display: flex; gap: 16px;">
+          <div
+            style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-subtle); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">
+            border-subtle</div>
+          <div
+            style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-default); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">
+            border-default</div>
+          <div
+            style="flex: 1; padding: 12px; border: 1px solid var(--lr-border-strong); border-radius: 4px; font-size: 12px; color: var(--lr-text-secondary); text-align: center;">
+            border-strong</div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- TYPING MOCKUP -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Mockup: Active typing session</h2>
-      <span class="section-num">in-context</span>
-    </div>
-    <p class="section-desc">How the typing area might feel during an active session. Notice the amber target highlight, error indication, and stat hierarchy.</p>
-    <div class="mockup-typing">
-      <div class="typing-stats">
-        <div class="stat-block">
-          <span class="stat-label-mock">wpm</span>
-          <span class="stat-value-mock">62</span>
+    <!-- AMBER ACCENT -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Amber accent</h2>
+        <span class="section-num">§ 2.4</span>
+      </div>
+      <p class="section-desc">The brand accent. Used sparingly for primary actions, target keys, and brand moments.
+        Should feel earned, not painted everywhere.</p>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background: #F59E0B;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">amber-base</div>
+            <div class="swatch-hex">#F59E0B</div>
+          </div>
         </div>
-        <div class="stat-block">
-          <span class="stat-label-mock">accuracy</span>
-          <span class="stat-value-mock">94%</span>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #FBBF24;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">amber-hover</div>
+            <div class="swatch-hex">#FBBF24</div>
+          </div>
         </div>
-        <div class="stat-block">
-          <span class="stat-label-mock">time</span>
-          <span class="stat-value-mock">02:14</span>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #D97706;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">amber-pressed</div>
+            <div class="swatch-hex">#D97706</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: rgba(245, 158, 11, 0.15);"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">amber-subtle</div>
+            <div class="swatch-hex">rgba 0.15</div>
+          </div>
         </div>
       </div>
-      <div class="typing-text">
-        <span class="typed">the quick brown </span><span class="error">f</span><span class="typed">ox jumps over</span> <span class="current">t</span><span class="upcoming">he lazy dog</span>
-      </div>
     </div>
-  </div>
 
-  <!-- WEAKNESS PANEL MOCKUP -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title">Mockup: Weakness panel</h2>
-      <span class="section-num">in-context</span>
-    </div>
-    <p class="section-desc">Power-user transparency in action. Shows current ranked weaknesses with score & visual bar.</p>
-    <div class="mockup-weakness" style="max-width: 600px;">
-      <div class="weakness-header">
-        <span class="weakness-title">Top weaknesses · sofle</span>
-        <span class="weakness-action">Show formula →</span>
+    <!-- SEMANTIC -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Semantic colors</h2>
+        <span class="section-num">§ 2.5</span>
       </div>
-      <div class="weakness-row">
-        <div class="weakness-left">
-          <span class="weakness-rank">01</span>
-          <span class="weakness-key">B</span>
-          <span class="weakness-meta">letter · 18% error rate · 340ms avg</span>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background: #22C55E;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">success</div>
+            <div class="swatch-hex">#22C55E</div>
+          </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div class="weakness-bar"><div class="weakness-fill" style="width: 95%;"></div></div>
-          <span class="weakness-score">2.8</span>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #EF4444;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">error</div>
+            <div class="swatch-hex">#EF4444</div>
+          </div>
         </div>
-      </div>
-      <div class="weakness-row">
-        <div class="weakness-left">
-          <span class="weakness-rank">02</span>
-          <span class="weakness-key">er</span>
-          <span class="weakness-meta">bigram · 14% error rate · 290ms avg</span>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #EAB308;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">warning</div>
+            <div class="swatch-hex">#EAB308</div>
+          </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div class="weakness-bar"><div class="weakness-fill" style="width: 70%;"></div></div>
-          <span class="weakness-score">2.1</span>
-        </div>
-      </div>
-      <div class="weakness-row">
-        <div class="weakness-left">
-          <span class="weakness-rank">03</span>
-          <span class="weakness-key">T</span>
-          <span class="weakness-meta">letter · 11% error rate · 245ms avg</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div class="weakness-bar"><div class="weakness-fill" style="width: 55%;"></div></div>
-          <span class="weakness-score">1.7</span>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #3B82F6;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">info</div>
+            <div class="swatch-hex">#3B82F6</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="footer">
-    leftype-rightype design system · v0.1 · 2026-04-17 · expect iteration
-  </div>
+    <!-- FINGER COLORS -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Eight finger colors</h2>
+        <span class="section-num">§ 2.6</span>
+      </div>
+      <p class="section-desc">Mapped to the 8 fingers used in touch typing. Left hand = earth tones, right hand = sky
+        tones. Pinkies most saturated for differentiation.</p>
+      <div class="finger-grid">
+        <div class="finger" style="background: #C2410C;">
+          <span class="finger-letter">P</span>
+          <span class="finger-name">L pinky</span>
+        </div>
+        <div class="finger" style="background: #A16207;">
+          <span class="finger-letter">R</span>
+          <span class="finger-name">L ring</span>
+        </div>
+        <div class="finger" style="background: #65A30D;">
+          <span class="finger-letter">M</span>
+          <span class="finger-name">L middle</span>
+        </div>
+        <div class="finger" style="background: #15803D;">
+          <span class="finger-letter">I</span>
+          <span class="finger-name">L index</span>
+        </div>
+        <div class="finger" style="background: #6B7280;">
+          <span class="finger-letter">T</span>
+          <span class="finger-name">thumb</span>
+        </div>
+        <div class="finger" style="background: #0E7490;">
+          <span class="finger-letter">I</span>
+          <span class="finger-name">R index</span>
+        </div>
+        <div class="finger" style="background: #1D4ED8;">
+          <span class="finger-letter">M</span>
+          <span class="finger-name">R middle</span>
+        </div>
+        <div class="finger" style="background: #6D28D9;">
+          <span class="finger-letter">R</span>
+          <span class="finger-name">R ring</span>
+        </div>
+        <div class="finger" style="background: #A21CAF;">
+          <span class="finger-letter">P</span>
+          <span class="finger-name">R pinky</span>
+        </div>
+      </div>
+    </div>
 
-</div>
+    <!-- HEATMAP -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Heatmap scale</h2>
+        <span class="section-num">§ 2.7</span>
+      </div>
+      <p class="section-desc">5-step ramp for per-key error visualization. Amber-to-red ramp avoids semantic conflict
+        with green = correct keypress.</p>
+      <div class="heat-legend">
+        <div class="heat-step heat-0"></div>
+        <div class="heat-step heat-1"></div>
+        <div class="heat-step heat-2"></div>
+        <div class="heat-step heat-3"></div>
+        <div class="heat-step heat-4"></div>
+        <span class="heat-label">no data → critical weakness</span>
+      </div>
+    </div>
+
+    <!-- TYPOGRAPHY -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Type scale</h2>
+        <span class="section-num">§ 3</span>
+      </div>
+      <p class="section-desc">Inter for UI, JetBrains Mono for typing content & numerical data.</p>
+      <div class="type-ladder">
+        <div class="type-row">
+          <div class="type-meta"><span class="name">display</span>42 / 1.1 / 700</div>
+          <div class="t-display">The mechanical keyboard</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">h1</span>32 / 1.2 / 700</div>
+          <div class="t-h1">Practice session summary</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">h2</span>24 / 1.25 / 600</div>
+          <div class="t-h2">Top weaknesses this week</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">h3</span>18 / 1.3 / 600</div>
+          <div class="t-h3">Calibration & baseline</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">body-lg</span>16 / 1.6 / 400</div>
+          <div class="t-body-lg">Today you focused on the letter B. Error rate dropped from 18% to 9%.</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">body</span>14 / 1.6 / 400</div>
+          <div class="t-body">The next session will keep B included with more emphasis on speed.</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">body-sm</span>13 / 1.5 / 400</div>
+          <div class="t-body-sm">Auxiliary text, captions, and supplementary details use this size.</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">label</span>12 / 1.4 / 500</div>
+          <div class="t-label">Keyboard profile · Sofle v2</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">overline</span>10 / 1.2 / 600</div>
+          <div class="t-overline">Adaptive engine</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">typing</span>JetBrains Mono<br>24 / 1.6 / 400</div>
+          <div class="t-typing">the quick brown fox jumps</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><span class="name">stat</span>JetBrains Mono<br>28 / 1.0 / 700</div>
+          <div class="t-stat">62 wpm · 94%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPACING -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Spacing scale</h2>
+        <span class="section-num">§ 4</span>
+      </div>
+      <p class="section-desc">Base unit 4px. All spacing uses multiples of 4 for visual rhythm.</p>
+      <div class="spacing-grid">
+        <div class="spacing-row"><span class="spacing-name">space-1</span>
+          <div class="spacing-bar" style="width: 4px;"></div><span class="spacing-px">4px</span>
+        </div>
+        <div class="spacing-row"><span class="spacing-name">space-2</span>
+          <div class="spacing-bar" style="width: 8px;"></div><span class="spacing-px">8px</span>
+        </div>
+        <div class="spacing-row"><span class="spacing-name">space-3</span>
+          <div class="spacing-bar" style="width: 12px;"></div><span class="spacing-px">12px</span>
+        </div>
+        <div class="spacing-row"><span class="spacing-name">space-4</span>
+          <div class="spacing-bar" style="width: 16px;"></div><span class="spacing-px">16px</span>
+        </div>
+        <div class="spacing-row"><span class="spacing-name">space-6</span>
+          <div class="spacing-bar" style="width: 24px;"></div><span class="spacing-px">24px</span>
+        </div>
+        <div class="spacing-row"><span class="spacing-name">space-8</span>
+          <div class="spacing-bar" style="width: 32px;"></div><span class="spacing-px">32px</span>
+        </div>
+        <div class="spacing-row"><span class="spacing-name">space-12</span>
+          <div class="spacing-bar" style="width: 48px;"></div><span class="spacing-px">48px</span>
+        </div>
+        <div class="spacing-row"><span class="spacing-name">space-16</span>
+          <div class="spacing-bar" style="width: 64px;"></div><span class="spacing-px">64px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPONENTS -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Foundational components</h2>
+        <span class="section-num">§ 8</span>
+      </div>
+
+      <div class="component-grid">
+        <div class="component-card">
+          <div class="component-label">Buttons</div>
+          <div class="component-row">
+            <button class="btn btn-primary">Start session</button>
+            <button class="btn btn-secondary">View dashboard</button>
+            <button class="btn btn-ghost">Skip</button>
+          </div>
+        </div>
+
+        <div class="component-card">
+          <div class="component-label">Input</div>
+          <div class="component-row">
+            <input type="text" class="input" placeholder="Email address" value="">
+          </div>
+        </div>
+
+        <div class="component-card">
+          <div class="component-label">Badges</div>
+          <div class="component-row">
+            <span class="badge badge-amber">B</span>
+            <span class="badge badge-success">+12%</span>
+            <span class="badge badge-error">-3%</span>
+            <span class="badge badge-warning">slow</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TYPING MOCKUP -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Mockup: Active typing session</h2>
+        <span class="section-num">in-context</span>
+      </div>
+      <p class="section-desc">How the typing area might feel during an active session. Notice the amber target
+        highlight, error indication, and stat hierarchy.</p>
+      <div class="mockup-typing">
+        <div class="typing-stats">
+          <div class="stat-block">
+            <span class="stat-label-mock">wpm</span>
+            <span class="stat-value-mock">62</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label-mock">accuracy</span>
+            <span class="stat-value-mock">94%</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label-mock">time</span>
+            <span class="stat-value-mock">02:14</span>
+          </div>
+        </div>
+        <div class="typing-text">
+          <span class="typed">the quick brown </span><span class="error">f</span><span class="typed">ox jumps
+            over</span> <span class="current">t</span><span class="upcoming">he lazy dog</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEAKNESS PANEL MOCKUP -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Mockup: Weakness panel</h2>
+        <span class="section-num">in-context</span>
+      </div>
+      <p class="section-desc">Power-user transparency in action. Shows current ranked weaknesses with score & visual
+        bar.</p>
+      <div class="mockup-weakness" style="max-width: 600px;">
+        <div class="weakness-header">
+          <span class="weakness-title">Top weaknesses · sofle</span>
+          <span class="weakness-action">Show formula →</span>
+        </div>
+        <div class="weakness-row">
+          <div class="weakness-left">
+            <span class="weakness-rank">01</span>
+            <span class="weakness-key">B</span>
+            <span class="weakness-meta">letter · 18% error rate · 340ms avg</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="weakness-bar">
+              <div class="weakness-fill" style="width: 95%;"></div>
+            </div>
+            <span class="weakness-score">2.8</span>
+          </div>
+        </div>
+        <div class="weakness-row">
+          <div class="weakness-left">
+            <span class="weakness-rank">02</span>
+            <span class="weakness-key">er</span>
+            <span class="weakness-meta">bigram · 14% error rate · 290ms avg</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="weakness-bar">
+              <div class="weakness-fill" style="width: 70%;"></div>
+            </div>
+            <span class="weakness-score">2.1</span>
+          </div>
+        </div>
+        <div class="weakness-row">
+          <div class="weakness-left">
+            <span class="weakness-rank">03</span>
+            <span class="weakness-key">T</span>
+            <span class="weakness-meta">letter · 11% error rate · 245ms avg</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="weakness-bar">
+              <div class="weakness-fill" style="width: 55%;"></div>
+            </div>
+            <span class="weakness-score">1.7</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      kerf design system · v0.1 · 2026-04-17 · expect iteration
+    </div>
+
+  </div>
 
 </body>
+
 </html>

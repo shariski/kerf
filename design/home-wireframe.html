@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leftype-Rightype — Home Wireframe</title>
+<title>kerf — home wireframe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --lr-bg-base: #181410;
@@ -27,6 +27,7 @@
     --lr-error: #EF4444;
     --font-sans: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-brand: 'Fraunces', serif;
   }
   
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,7 +92,15 @@
     top: 47px;
     z-index: 90;
   }
-  .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+  .nav-logo {
+    font-family: var(--font-brand);
+    font-weight: 700;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .nav-logo .accent { color: var(--lr-amber-base); }
   .nav-links { display: flex; gap: 24px; flex: 1; }
   .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
   .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
@@ -490,7 +499,7 @@
 
 <!-- App nav -->
 <div class="app-nav">
-  <div class="nav-logo">leftype-rightype</div>
+  <div class="nav-logo">kerf<span class="accent">.</span></div>
   <div class="nav-links">
     <span class="nav-link">Practice</span>
     <span class="nav-link">Dashboard</span>
@@ -596,7 +605,7 @@
     <div class="zero-state">
       
       <div class="greeting">
-        <div class="greeting-line">welcome to leftype-rightype</div>
+        <div class="greeting-line">welcome to kerf</div>
         <h1 class="zero-welcome">Let's build your <span class="highlight">split muscle memory</span>.</h1>
         <p class="zero-message">
           Your adaptive engine is ready. Start your first session — we'll capture a baseline, then tailor exercises to your actual weaknesses on split layout.

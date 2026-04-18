@@ -1,1684 +1,2044 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Leftype-Rightype — Practice Wireframe v0.4</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --lr-bg-base: #181410;
-    --lr-bg-surface: #221C17;
-    --lr-bg-elevated: #2A2320;
-    --lr-bg-overlay: #322A26;
-    --lr-text-primary: #F2EAE0;
-    --lr-text-secondary: #9A8E80;
-    --lr-text-tertiary: #685D52;
-    --lr-text-inverse: #181410;
-    --lr-border-subtle: #2F2820;
-    --lr-border-default: #3A3128;
-    --lr-border-strong: #4A3F35;
-    --lr-amber-base: #F59E0B;
-    --lr-amber-hover: #FBBF24;
-    --lr-amber-subtle: rgba(245, 158, 11, 0.15);
-    --lr-amber-faint: rgba(245, 158, 11, 0.08);
-    --lr-success: #22C55E;
-    --lr-error: #EF4444;
-    --lr-warning: #EAB308;
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    
-    --finger-l-pinky: #C2410C;
-    --finger-l-ring: #A16207;
-    --finger-l-middle: #65A30D;
-    --finger-l-index: #15803D;
-    --finger-r-index: #0E7490;
-    --finger-r-middle: #1D4ED8;
-    --finger-r-ring: #6D28D9;
-    --finger-r-pinky: #A21CAF;
-    --finger-thumb: #6B7280;
-  }
-  
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    background: var(--lr-bg-base);
-    color: var(--lr-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  
-  /* Wireframe meta-header */
-  .wireframe-header {
-    background: var(--lr-bg-surface);
-    border-bottom: 1px solid var(--lr-border-default);
-    padding: 12px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .wireframe-title { font-family: var(--font-mono); font-size: 13px; color: var(--lr-text-secondary); }
-  .wireframe-title strong { color: var(--lr-amber-base); }
-  .state-switcher { display: flex; gap: 4px; flex-wrap: wrap; }
-  .state-btn {
-    background: transparent;
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-secondary);
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-family: var(--font-sans);
-    font-size: 11px;
-    cursor: pointer;
-  }
-  .state-btn:hover { color: var(--lr-text-primary); border-color: var(--lr-border-strong); }
-  .state-btn.active { 
-    background: var(--lr-amber-base); 
-    color: var(--lr-text-inverse); 
-    border-color: var(--lr-amber-base);
-    font-weight: 600;
-  }
-  
-  /* App nav */
-  .app-nav {
-    height: 48px;
-    background: var(--lr-bg-base);
-    border-bottom: 1px solid var(--lr-border-subtle);
-    display: flex;
-    align-items: center;
-    padding: 0 32px;
-    gap: 32px;
-    position: sticky;
-    top: 47px;
-    z-index: 90;
-    transition: opacity 300ms;
-  }
-  .app-nav.hidden-typing { opacity: 0; pointer-events: none; }
-  .nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
-  .nav-links { display: flex; gap: 24px; flex: 1; }
-  .nav-link { color: var(--lr-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; padding: 6px 0; }
-  .nav-link.active { color: var(--lr-amber-base); border-bottom: 1px solid var(--lr-amber-base); }
-  .nav-right { display: flex; gap: 12px; align-items: center; color: var(--lr-text-secondary); font-size: 12px; }
-  .nav-avatar { background: var(--lr-bg-elevated); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--lr-text-primary); }
-  
-  /* Session progress */
-  .session-progress {
-    height: 2px;
-    background: var(--lr-bg-surface);
-    position: sticky;
-    top: 95px;
-    z-index: 85;
-    display: none;
-  }
-  .session-progress.visible { display: block; }
-  .session-progress-fill {
-    height: 100%;
-    background: var(--lr-amber-base);
-    width: 45%;
-    transition: width 200ms;
-  }
-  
-  /* Page container */
-  .practice-page {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 48px 32px;
-    min-height: calc(100vh - 95px);
-  }
-  
-  .stage-content { display: none; }
-  .stage-content.active {
-    display: block;
-    animation: stageIn 300ms ease;
-  }
-  @keyframes stageIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  /* ============================================
+  <meta charset="UTF-8">
+  <title>kerf — practice wireframe v0.4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --lr-bg-base: #181410;
+      --lr-bg-surface: #221C17;
+      --lr-bg-elevated: #2A2320;
+      --lr-bg-overlay: #322A26;
+      --lr-text-primary: #F2EAE0;
+      --lr-text-secondary: #9A8E80;
+      --lr-text-tertiary: #685D52;
+      --lr-text-inverse: #181410;
+      --lr-border-subtle: #2F2820;
+      --lr-border-default: #3A3128;
+      --lr-border-strong: #4A3F35;
+      --lr-amber-base: #F59E0B;
+      --lr-amber-hover: #FBBF24;
+      --lr-amber-subtle: rgba(245, 158, 11, 0.15);
+      --lr-amber-faint: rgba(245, 158, 11, 0.08);
+      --lr-success: #22C55E;
+      --lr-error: #EF4444;
+      --lr-warning: #EAB308;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Fraunces', serif;
+
+      --finger-l-pinky: #C2410C;
+      --finger-l-ring: #A16207;
+      --finger-l-middle: #65A30D;
+      --finger-l-index: #15803D;
+      --finger-r-index: #0E7490;
+      --finger-r-middle: #1D4ED8;
+      --finger-r-ring: #6D28D9;
+      --finger-r-pinky: #A21CAF;
+      --finger-thumb: #6B7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--lr-bg-base);
+      color: var(--lr-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Wireframe meta-header */
+    .wireframe-header {
+      background: var(--lr-bg-surface);
+      border-bottom: 1px solid var(--lr-border-default);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .wireframe-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+    }
+
+    .wireframe-title strong {
+      color: var(--lr-amber-base);
+    }
+
+    .state-switcher {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .state-btn {
+      background: transparent;
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-secondary);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .state-btn:hover {
+      color: var(--lr-text-primary);
+      border-color: var(--lr-border-strong);
+    }
+
+    .state-btn.active {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+      border-color: var(--lr-amber-base);
+      font-weight: 600;
+    }
+
+    /* App nav */
+    .app-nav {
+      height: 48px;
+      background: var(--lr-bg-base);
+      border-bottom: 1px solid var(--lr-border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 32px;
+      position: sticky;
+      top: 47px;
+      z-index: 90;
+      transition: opacity 300ms;
+    }
+
+    .app-nav.hidden-typing {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .nav-logo {
+      font-family: var(--font-brand);
+      font-weight: 700;
+      font-variation-settings: 'opsz' 144, 'SOFT' 100;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-logo .accent {
+      color: var(--lr-amber-base);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .nav-link {
+      color: var(--lr-text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+
+    .nav-link.active {
+      color: var(--lr-amber-base);
+      border-bottom: 1px solid var(--lr-amber-base);
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: var(--lr-text-secondary);
+      font-size: 12px;
+    }
+
+    .nav-avatar {
+      background: var(--lr-bg-elevated);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--lr-text-primary);
+    }
+
+    /* Session progress */
+    .session-progress {
+      height: 2px;
+      background: var(--lr-bg-surface);
+      position: sticky;
+      top: 95px;
+      z-index: 85;
+      display: none;
+    }
+
+    .session-progress.visible {
+      display: block;
+    }
+
+    .session-progress-fill {
+      height: 100%;
+      background: var(--lr-amber-base);
+      width: 45%;
+      transition: width 200ms;
+    }
+
+    /* Page container */
+    .practice-page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 48px 32px;
+      min-height: calc(100vh - 95px);
+    }
+
+    .stage-content {
+      display: none;
+    }
+
+    .stage-content.active {
+      display: block;
+      animation: stageIn 300ms ease;
+    }
+
+    @keyframes stageIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============================================
      SHARED COMPONENTS
      ============================================ */
-  
-  /* SVG Keyboard - shared across states */
-  .svg-keyboard {
-    display: flex;
-    justify-content: center;
-    margin-top: 48px;
-  }
-  .svg-keyboard.hidden { display: none; }
-  .svg-keyboard svg {
-    max-width: 100%;
-    height: auto;
-  }
-  svg .key {
-    fill: var(--lr-bg-elevated);
-    stroke: var(--lr-border-default);
-    stroke-width: 1;
-    transition: fill 100ms, stroke 100ms;
-  }
-  svg .key-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 600;
-    fill: var(--lr-text-secondary);
-    text-anchor: middle;
-    dominant-baseline: middle;
-    pointer-events: none;
-    user-select: none;
-  }
-  svg .finger-bar { stroke: none; }
-  svg .key.target {
-    fill: var(--lr-amber-base);
-    stroke: var(--lr-amber-hover);
-    stroke-width: 1.5;
-  }
-  svg .target-label {
-    fill: var(--lr-bg-base) !important;
-    font-weight: 700;
-  }
-  svg .encoder-body {
-    fill: var(--lr-bg-elevated);
-    stroke: var(--lr-amber-base);
-    stroke-width: 1.5;
-  }
-  svg .encoder-inner {
-    fill: none;
-    stroke: var(--lr-border-default);
-    stroke-width: 0.8;
-  }
-  svg .encoder-tick {
-    stroke: var(--lr-amber-base);
-    stroke-width: 1.5;
-    stroke-linecap: round;
-  }
-  
-  /* ============================================
+
+    /* SVG Keyboard - shared across states */
+    .svg-keyboard {
+      display: flex;
+      justify-content: center;
+      margin-top: 48px;
+    }
+
+    .svg-keyboard.hidden {
+      display: none;
+    }
+
+    .svg-keyboard svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    svg .key {
+      fill: var(--lr-bg-elevated);
+      stroke: var(--lr-border-default);
+      stroke-width: 1;
+      transition: fill 100ms, stroke 100ms;
+    }
+
+    svg .key-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      fill: var(--lr-text-secondary);
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    svg .finger-bar {
+      stroke: none;
+    }
+
+    svg .key.target {
+      fill: var(--lr-amber-base);
+      stroke: var(--lr-amber-hover);
+      stroke-width: 1.5;
+    }
+
+    svg .target-label {
+      fill: var(--lr-bg-base) !important;
+      font-weight: 700;
+    }
+
+    svg .encoder-body {
+      fill: var(--lr-bg-elevated);
+      stroke: var(--lr-amber-base);
+      stroke-width: 1.5;
+    }
+
+    svg .encoder-inner {
+      fill: none;
+      stroke: var(--lr-border-default);
+      stroke-width: 0.8;
+    }
+
+    svg .encoder-tick {
+      stroke: var(--lr-amber-base);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+    }
+
+    /* ============================================
      PRE-SESSION STATE
      ============================================ */
-  .pre-session { text-align: center; padding-top: 32px; }
-  
-  .pre-keyboard-context {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 20px;
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    margin-bottom: 24px;
-  }
-  .pre-keyboard-context .pill-icon { color: var(--lr-amber-base); font-family: var(--font-mono); }
-  .pre-keyboard-context .pill-name { font-family: var(--font-mono); color: var(--lr-text-primary); font-weight: 600; }
-  .pre-keyboard-context .pill-switch { color: var(--lr-text-tertiary); cursor: pointer; }
-  .pre-keyboard-context .pill-switch:hover { color: var(--lr-text-primary); }
-  
-  .phase-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    margin-left: 8px;
-  }
-  .phase-badge-dot {
-    width: 6px;
-    height: 6px;
-    background: var(--lr-amber-base);
-    border-radius: 50%;
-  }
-  
-  .pre-title {
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 12px;
-  }
-  .pre-subtitle {
-    font-size: 14px;
-    color: var(--lr-text-secondary);
-    margin-bottom: 40px;
-  }
-  
-  .pre-cta-primary {
-    background: var(--lr-bg-surface);
-    border: 2px solid var(--lr-amber-base);
-    border-radius: 10px;
-    padding: 24px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: all 150ms;
-    margin-bottom: 32px;
-    text-align: left;
-    width: 100%;
-  }
-  .pre-cta-primary:hover { background: var(--lr-amber-faint); transform: translateY(-1px); }
-  .pre-cta-primary-text { display: flex; flex-direction: column; gap: 4px; }
-  .pre-cta-primary-label { font-size: 16px; font-weight: 700; color: var(--lr-text-primary); }
-  .pre-cta-primary-meta { font-family: var(--font-mono); font-size: 12px; color: var(--lr-text-secondary); }
-  .pre-cta-primary-meta .highlight { color: var(--lr-amber-base); font-weight: 700; }
-  .pre-cta-primary-action { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--lr-text-secondary); }
-  .pre-cta-primary-action .shortcut {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    background: var(--lr-bg-elevated);
-    padding: 3px 6px;
-    border-radius: 3px;
-    border: 1px solid var(--lr-border-default);
-  }
-  .pre-cta-primary-action .arrow { font-size: 18px; color: var(--lr-amber-base); }
-  
-  .pre-modes-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 12px;
-    font-weight: 600;
-    text-align: left;
-  }
-  .pre-modes {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 32px;
-  }
-  .mode-card {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 20px 18px;
-    cursor: pointer;
-    text-align: left;
-    transition: all 150ms;
-  }
-  .mode-card:hover { border-color: var(--lr-border-strong); background: var(--lr-bg-elevated); }
-  .mode-card-icon {
-    font-family: var(--font-mono);
-    font-size: 16px;
-    color: var(--lr-amber-base);
-    margin-bottom: 8px;
-  }
-  .mode-card-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .mode-card-desc { font-size: 12px; color: var(--lr-text-secondary); line-height: 1.5; }
-  
-  .pre-filters {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .pre-filters-header {
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-  }
-  .pre-filters-header:hover { background: var(--lr-bg-elevated); }
-  .pre-filters-caret {
-    font-family: var(--font-mono);
-    color: var(--lr-text-tertiary);
-    transition: transform 150ms;
-  }
-  .pre-filters-caret.open { transform: rotate(90deg); }
-  .pre-filters-content {
-    padding: 16px 20px;
-    border-top: 1px solid var(--lr-border-subtle);
-    display: none;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .pre-filters-content.open { display: flex; }
-  .filter-row {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: 16px;
-    align-items: center;
-    font-size: 13px;
-  }
-  .filter-label { color: var(--lr-text-secondary); text-align: left; }
-  .filter-pills {
-    display: flex;
-    gap: 4px;
-    background: var(--lr-bg-elevated);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    padding: 2px;
-    width: fit-content;
-  }
-  .filter-pill {
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    cursor: pointer;
-    transition: all 100ms;
-  }
-  .filter-pill.active {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    font-weight: 600;
-  }
-  
-  /* ============================================
+    .pre-session {
+      text-align: center;
+      padding-top: 32px;
+    }
+
+    .pre-keyboard-context {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .pre-keyboard-context .pill-icon {
+      color: var(--lr-amber-base);
+      font-family: var(--font-mono);
+    }
+
+    .pre-keyboard-context .pill-name {
+      font-family: var(--font-mono);
+      color: var(--lr-text-primary);
+      font-weight: 600;
+    }
+
+    .pre-keyboard-context .pill-switch {
+      color: var(--lr-text-tertiary);
+      cursor: pointer;
+    }
+
+    .pre-keyboard-context .pill-switch:hover {
+      color: var(--lr-text-primary);
+    }
+
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--lr-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .phase-badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--lr-amber-base);
+      border-radius: 50%;
+    }
+
+    .pre-title {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .pre-subtitle {
+      font-size: 14px;
+      color: var(--lr-text-secondary);
+      margin-bottom: 40px;
+    }
+
+    .pre-cta-primary {
+      background: var(--lr-bg-surface);
+      border: 2px solid var(--lr-amber-base);
+      border-radius: 10px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 150ms;
+      margin-bottom: 32px;
+      text-align: left;
+      width: 100%;
+    }
+
+    .pre-cta-primary:hover {
+      background: var(--lr-amber-faint);
+      transform: translateY(-1px);
+    }
+
+    .pre-cta-primary-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .pre-cta-primary-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--lr-text-primary);
+    }
+
+    .pre-cta-primary-meta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+    }
+
+    .pre-cta-primary-meta .highlight {
+      color: var(--lr-amber-base);
+      font-weight: 700;
+    }
+
+    .pre-cta-primary-action {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--lr-text-secondary);
+    }
+
+    .pre-cta-primary-action .shortcut {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--lr-bg-elevated);
+      padding: 3px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--lr-border-default);
+    }
+
+    .pre-cta-primary-action .arrow {
+      font-size: 18px;
+      color: var(--lr-amber-base);
+    }
+
+    .pre-modes-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .pre-modes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .mode-card {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 20px 18px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 150ms;
+    }
+
+    .mode-card:hover {
+      border-color: var(--lr-border-strong);
+      background: var(--lr-bg-elevated);
+    }
+
+    .mode-card-icon {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      color: var(--lr-amber-base);
+      margin-bottom: 8px;
+    }
+
+    .mode-card-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .mode-card-desc {
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      line-height: 1.5;
+    }
+
+    .pre-filters {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .pre-filters-header {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+    }
+
+    .pre-filters-header:hover {
+      background: var(--lr-bg-elevated);
+    }
+
+    .pre-filters-caret {
+      font-family: var(--font-mono);
+      color: var(--lr-text-tertiary);
+      transition: transform 150ms;
+    }
+
+    .pre-filters-caret.open {
+      transform: rotate(90deg);
+    }
+
+    .pre-filters-content {
+      padding: 16px 20px;
+      border-top: 1px solid var(--lr-border-subtle);
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pre-filters-content.open {
+      display: flex;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .filter-label {
+      color: var(--lr-text-secondary);
+      text-align: left;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 4px;
+      background: var(--lr-bg-elevated);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+      padding: 2px;
+      width: fit-content;
+    }
+
+    .filter-pill {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      cursor: pointer;
+      transition: all 100ms;
+    }
+
+    .filter-pill.active {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+      font-weight: 600;
+    }
+
+    /* ============================================
      ACTIVE TYPING STATE
      ============================================ */
-  .active-typing {
-    padding-top: 48px;
-  }
-  
-  .typing-area {
-    font-family: var(--font-mono);
-    font-size: 36px;
-    line-height: 2.0;
-    letter-spacing: 0.02em;
-    color: var(--lr-text-tertiary);
-    text-align: left;
-    padding: 24px 0;
-    min-height: 240px;
-    user-select: none;
-    position: relative;
-  }
-  .typing-area .typed { color: var(--lr-text-secondary); }
-  .typing-area .current {
-    color: var(--lr-text-primary);
-    background: var(--lr-amber-subtle);
-    border-radius: 2px;
-    padding: 2px 0;
-    position: relative;
-  }
-  .typing-area .upcoming { color: var(--lr-text-tertiary); }
-  
-  /* Error character with expected character shown above */
-  .typing-area .error {
-    color: var(--lr-error);
-    position: relative;
-    background: rgba(239, 68, 68, 0.1);
-    border-bottom: 2px solid var(--lr-error);
-    padding: 2px 0;
-  }
-  .typing-area .error-expected {
-    position: absolute;
-    top: -24px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 16px;
-    color: var(--lr-amber-base);
-    font-weight: 700;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-amber-base);
-    border-radius: 4px;
-    padding: 1px 6px;
-    line-height: 1.2;
-    white-space: nowrap;
-    pointer-events: none;
-    animation: fadeIn 150ms ease;
-  }
-  .typing-area .error-expected::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 4px solid var(--lr-amber-base);
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-  }
-  
-  /* Live WPM */
-  .live-wpm {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--lr-text-tertiary);
-    display: none;
-    z-index: 50;
-  }
-  .live-wpm.visible { display: block; }
-  .live-wpm-value {
-    font-size: 18px;
-    color: var(--lr-text-primary);
-    font-weight: 700;
-  }
-  
-  .shortcut-hints {
-    position: fixed;
-    bottom: 32px;
-    left: 32px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    z-index: 50;
-  }
-  .shortcut-hints.visible { display: flex; }
-  .shortcut-hints kbd {
-    font-family: var(--font-mono);
-    background: var(--lr-bg-elevated);
-    padding: 1px 5px;
-    border-radius: 2px;
-    border: 1px solid var(--lr-border-default);
-    color: var(--lr-text-secondary);
-  }
-  
-  /* Post-session hint strip — visible, horizontal, bottom-centered */
-  .post-hint-strip {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--lr-bg-surface);
-    border-top: 1px solid var(--lr-border-subtle);
-    padding: 10px 32px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    z-index: 40;
-  }
-  .post-hint-strip.visible { display: flex; }
-  .post-hint-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .post-hint-item kbd {
-    font-family: var(--font-mono);
-    background: var(--lr-bg-elevated);
-    padding: 2px 7px;
-    border-radius: 3px;
-    border: 1px solid var(--lr-border-default);
-    border-bottom-width: 2px;
-    color: var(--lr-text-primary);
-    font-size: 11px;
-    font-weight: 600;
-    min-width: 14px;
-    text-align: center;
-  }
-  .post-hint-item .sep {
-    color: var(--lr-text-tertiary);
-    font-size: 10px;
-  }
-  .post-hint-divider {
-    width: 1px;
-    height: 14px;
-    background: var(--lr-border-default);
-  }
-  
-  /* Add padding-bottom to post-session content so it doesn't sit behind hint strip */
-  .stage-content.active.post-padding {
-    padding-bottom: 60px;
-  }
-  
-  /* ============================================
+    .active-typing {
+      padding-top: 48px;
+    }
+
+    .typing-area {
+      font-family: var(--font-mono);
+      font-size: 36px;
+      line-height: 2.0;
+      letter-spacing: 0.02em;
+      color: var(--lr-text-tertiary);
+      text-align: left;
+      padding: 24px 0;
+      min-height: 240px;
+      user-select: none;
+      position: relative;
+    }
+
+    .typing-area .typed {
+      color: var(--lr-text-secondary);
+    }
+
+    .typing-area .current {
+      color: var(--lr-text-primary);
+      background: var(--lr-amber-subtle);
+      border-radius: 2px;
+      padding: 2px 0;
+      position: relative;
+    }
+
+    .typing-area .upcoming {
+      color: var(--lr-text-tertiary);
+    }
+
+    /* Error character with expected character shown above */
+    .typing-area .error {
+      color: var(--lr-error);
+      position: relative;
+      background: rgba(239, 68, 68, 0.1);
+      border-bottom: 2px solid var(--lr-error);
+      padding: 2px 0;
+    }
+
+    .typing-area .error-expected {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      color: var(--lr-amber-base);
+      font-weight: 700;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-amber-base);
+      border-radius: 4px;
+      padding: 1px 6px;
+      line-height: 1.2;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: fadeIn 150ms ease;
+    }
+
+    .typing-area .error-expected::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid var(--lr-amber-base);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* Live WPM */
+    .live-wpm {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--lr-text-tertiary);
+      display: none;
+      z-index: 50;
+    }
+
+    .live-wpm.visible {
+      display: block;
+    }
+
+    .live-wpm-value {
+      font-size: 18px;
+      color: var(--lr-text-primary);
+      font-weight: 700;
+    }
+
+    .shortcut-hints {
+      position: fixed;
+      bottom: 32px;
+      left: 32px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 50;
+    }
+
+    .shortcut-hints.visible {
+      display: flex;
+    }
+
+    .shortcut-hints kbd {
+      font-family: var(--font-mono);
+      background: var(--lr-bg-elevated);
+      padding: 1px 5px;
+      border-radius: 2px;
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-secondary);
+    }
+
+    /* Post-session hint strip — visible, horizontal, bottom-centered */
+    .post-hint-strip {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--lr-bg-surface);
+      border-top: 1px solid var(--lr-border-subtle);
+      padding: 10px 32px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-secondary);
+      z-index: 40;
+    }
+
+    .post-hint-strip.visible {
+      display: flex;
+    }
+
+    .post-hint-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .post-hint-item kbd {
+      font-family: var(--font-mono);
+      background: var(--lr-bg-elevated);
+      padding: 2px 7px;
+      border-radius: 3px;
+      border: 1px solid var(--lr-border-default);
+      border-bottom-width: 2px;
+      color: var(--lr-text-primary);
+      font-size: 11px;
+      font-weight: 600;
+      min-width: 14px;
+      text-align: center;
+    }
+
+    .post-hint-item .sep {
+      color: var(--lr-text-tertiary);
+      font-size: 10px;
+    }
+
+    .post-hint-divider {
+      width: 1px;
+      height: 14px;
+      background: var(--lr-border-default);
+    }
+
+    /* Add padding-bottom to post-session content so it doesn't sit behind hint strip */
+    .stage-content.active.post-padding {
+      padding-bottom: 60px;
+    }
+
+    /* ============================================
      PAUSED STATE (overlay with settings)
      ============================================ */
-  .pause-overlay {
-    position: fixed;
-    inset: 95px 0 0 0;
-    background: rgba(24, 20, 16, 0.92);
-    backdrop-filter: blur(6px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 80;
-    padding: 32px;
-  }
-  .pause-overlay.visible { display: flex; animation: fadeIn 200ms ease; }
-  
-  .pause-panel {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-default);
-    border-radius: 12px;
-    padding: 32px 36px;
-    max-width: 560px;
-    width: 100%;
-  }
-  .pause-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-amber-base);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-  .pause-title {
-    font-size: 24px;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  .pause-subtitle {
-    font-size: 13px;
-    color: var(--lr-text-secondary);
-    text-align: center;
-    margin-bottom: 28px;
-  }
-  
-  .pause-settings {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 28px;
-  }
-  .pause-setting-row {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: 16px;
-    align-items: center;
-    padding: 12px 16px;
-    background: var(--lr-bg-elevated);
-    border-radius: 8px;
-    border: 1px solid var(--lr-border-subtle);
-  }
-  .pause-setting-label {
-    font-size: 13px;
-    color: var(--lr-text-primary);
-    font-weight: 500;
-  }
-  .pause-setting-desc {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-text-tertiary);
-    margin-top: 2px;
-  }
-  
-  .pause-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-  }
-  .pause-btn {
-    padding: 12px 20px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    font-family: var(--font-sans);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 150ms;
-  }
-  .pause-btn-primary { background: var(--lr-amber-base); color: var(--lr-text-inverse); }
-  .pause-btn-primary:hover { background: var(--lr-amber-hover); }
-  .pause-btn-secondary { background: transparent; border: 1px solid var(--lr-border-default); color: var(--lr-text-primary); }
-  .pause-btn-secondary:hover { background: var(--lr-bg-elevated); }
-  .pause-btn-shortcut {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    background: rgba(0,0,0,0.2);
-    padding: 2px 6px;
-    border-radius: 3px;
-  }
-  
-  /* ============================================
+    .pause-overlay {
+      position: fixed;
+      inset: 95px 0 0 0;
+      background: rgba(24, 20, 16, 0.92);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 80;
+      padding: 32px;
+    }
+
+    .pause-overlay.visible {
+      display: flex;
+      animation: fadeIn 200ms ease;
+    }
+
+    .pause-panel {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-default);
+      border-radius: 12px;
+      padding: 32px 36px;
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .pause-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-amber-base);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .pause-title {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .pause-subtitle {
+      font-size: 13px;
+      color: var(--lr-text-secondary);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .pause-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .pause-setting-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--lr-bg-elevated);
+      border-radius: 8px;
+      border: 1px solid var(--lr-border-subtle);
+    }
+
+    .pause-setting-label {
+      font-size: 13px;
+      color: var(--lr-text-primary);
+      font-weight: 500;
+    }
+
+    .pause-setting-desc {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--lr-text-tertiary);
+      margin-top: 2px;
+    }
+
+    .pause-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .pause-btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-sans);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 150ms;
+    }
+
+    .pause-btn-primary {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+    }
+
+    .pause-btn-primary:hover {
+      background: var(--lr-amber-hover);
+    }
+
+    .pause-btn-secondary {
+      background: transparent;
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-primary);
+    }
+
+    .pause-btn-secondary:hover {
+      background: var(--lr-bg-elevated);
+    }
+
+    .pause-btn-shortcut {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* ============================================
      POST-SESSION STATE (inline)
      ============================================ */
-  .post-session { padding-top: 32px; }
-  
-  .post-complete-mark { text-align: center; margin-bottom: 16px; }
-  .post-complete-mark-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 20px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-  }
-  .post-complete-mark-dot {
-    width: 6px;
-    height: 6px;
-    background: var(--lr-amber-base);
-    border-radius: 50%;
-  }
-  
-  .post-title {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 40px;
-    line-height: 1.2;
-  }
-  
-  /* Stats with accuracy-first ordering */
-  .post-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 40px;
-    padding-bottom: 40px;
-    border-bottom: 1px solid var(--lr-border-subtle);
-  }
-  .post-stat { text-align: center; }
-  .post-stat-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-  .post-stat-value {
-    font-family: var(--font-mono);
-    font-size: 44px;
-    font-weight: 700;
-    color: var(--lr-text-primary);
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-  .post-stat-value.featured { color: var(--lr-amber-base); }
-  .post-stat-delta { font-family: var(--font-mono); font-size: 11px; }
-  .post-stat-delta.up { color: var(--lr-success); }
-  .post-stat-delta.down { color: var(--lr-error); }
-  .post-stat-delta.neutral { color: var(--lr-text-tertiary); }
-  
-  .post-section-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-  }
-  
-  /* Error review section */
-  .error-review {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 20px 24px;
-    margin-bottom: 28px;
-  }
-  .error-review-stats {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--lr-text-tertiary);
-  }
-  .error-review-stats .count {
-    color: var(--lr-error);
-    font-weight: 700;
-  }
-  .error-review-text {
-    font-family: var(--font-mono);
-    font-size: 18px;
-    line-height: 1.8;
-    color: var(--lr-text-secondary);
-    padding: 16px 0;
-    user-select: text;
-  }
-  .error-review-text .error-char {
-    color: var(--lr-error);
-    background: rgba(239, 68, 68, 0.12);
-    border-radius: 2px;
-    padding: 1px 2px;
-    cursor: help;
-    position: relative;
-    border-bottom: 1px solid var(--lr-error);
-  }
-  .error-review-text .error-char:hover::after {
-    content: attr(data-expected);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 8px;
-    background: var(--lr-bg-overlay);
-    color: var(--lr-text-primary);
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    white-space: nowrap;
-    border: 1px solid var(--lr-amber-base);
-    z-index: 10;
-  }
-  .error-review-text .error-char:hover::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 3px;
-    border: 4px solid transparent;
-    border-top-color: var(--lr-amber-base);
-    z-index: 10;
-  }
-  .error-patterns {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--lr-border-subtle);
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    line-height: 1.7;
-  }
-  .error-patterns strong {
-    color: var(--lr-amber-base);
-    font-family: var(--font-mono);
-  }
-  
-  /* Weakness shifts */
-  .weakness-shifts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 28px;
-  }
-  .shift-group {
-    background: var(--lr-bg-surface);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 8px;
-    padding: 18px 20px;
-  }
-  .shift-group-title {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .shift-group.improved .shift-group-title { color: var(--lr-success); }
-  .shift-group.emergent .shift-group-title { color: var(--lr-warning); }
-  .shift-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 0;
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-  }
-  .shift-pill {
-    background: var(--lr-bg-elevated);
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    color: var(--lr-text-primary);
-  }
-  .shift-delta {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    margin-left: auto;
-  }
-  .shift-delta.improved { color: var(--lr-success); }
-  .shift-delta.worse { color: var(--lr-warning); }
-  
-  /* Insight */
-  .insight {
-    background: var(--lr-amber-faint);
-    border-left: 3px solid var(--lr-amber-base);
-    padding: 20px 24px;
-    border-radius: 0 6px 6px 0;
-    margin-bottom: 32px;
-  }
-  .insight-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--lr-amber-base);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .insight-text { font-size: 14px; line-height: 1.7; color: var(--lr-text-primary); }
-  .insight-text strong { color: var(--lr-amber-base); font-family: var(--font-mono); }
-  
-  .post-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .post-btn {
-    padding: 14px 24px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    border: none;
-    font-family: var(--font-sans);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 150ms;
-  }
-  .post-btn-primary { background: var(--lr-amber-base); color: var(--lr-text-inverse); }
-  .post-btn-primary:hover { background: var(--lr-amber-hover); }
-  .post-btn-secondary { background: transparent; border: 1px solid var(--lr-border-default); color: var(--lr-text-primary); }
-  .post-btn-secondary:hover { background: var(--lr-bg-elevated); }
-  .post-btn-shortcut {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    background: rgba(0,0,0,0.2);
-    padding: 2px 6px;
-    border-radius: 3px;
-  }
-  .post-btn-secondary .post-btn-shortcut {
-    background: var(--lr-bg-elevated);
-    color: var(--lr-text-secondary);
-  }
-  
-  /* Pill group for settings */
-  .pill-group {
-    display: flex;
-    gap: 4px;
-    background: var(--lr-bg-base);
-    border: 1px solid var(--lr-border-subtle);
-    border-radius: 6px;
-    padding: 2px;
-    width: fit-content;
-  }
-  .pill-option {
-    padding: 5px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    color: var(--lr-text-secondary);
-    cursor: pointer;
-    transition: all 100ms;
-  }
-  .pill-option.active {
-    background: var(--lr-amber-base);
-    color: var(--lr-text-inverse);
-    font-weight: 600;
-  }
-  
-  /* Annotation */
-  .annotation {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--lr-bg-overlay);
-    border: 1px solid var(--lr-border-strong);
-    border-radius: 6px;
-    padding: 10px 18px;
-    font-size: 11px;
-    color: var(--lr-text-secondary);
-    font-family: var(--font-mono);
-    z-index: 200;
-    max-width: 80vw;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  }
-  .annotation strong { color: var(--lr-amber-base); }
-</style>
+    .post-session {
+      padding-top: 32px;
+    }
+
+    .post-complete-mark {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .post-complete-mark-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .post-complete-mark-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--lr-amber-base);
+      border-radius: 50%;
+    }
+
+    .post-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      line-height: 1.2;
+    }
+
+    /* Stats with accuracy-first ordering */
+    .post-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--lr-border-subtle);
+    }
+
+    .post-stat {
+      text-align: center;
+    }
+
+    .post-stat-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .post-stat-value {
+      font-family: var(--font-mono);
+      font-size: 44px;
+      font-weight: 700;
+      color: var(--lr-text-primary);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .post-stat-value.featured {
+      color: var(--lr-amber-base);
+    }
+
+    .post-stat-delta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .post-stat-delta.up {
+      color: var(--lr-success);
+    }
+
+    .post-stat-delta.down {
+      color: var(--lr-error);
+    }
+
+    .post-stat-delta.neutral {
+      color: var(--lr-text-tertiary);
+    }
+
+    .post-section-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    /* Error review section */
+    .error-review {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 28px;
+    }
+
+    .error-review-stats {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lr-text-tertiary);
+    }
+
+    .error-review-stats .count {
+      color: var(--lr-error);
+      font-weight: 700;
+    }
+
+    .error-review-text {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      line-height: 1.8;
+      color: var(--lr-text-secondary);
+      padding: 16px 0;
+      user-select: text;
+    }
+
+    .error-review-text .error-char {
+      color: var(--lr-error);
+      background: rgba(239, 68, 68, 0.12);
+      border-radius: 2px;
+      padding: 1px 2px;
+      cursor: help;
+      position: relative;
+      border-bottom: 1px solid var(--lr-error);
+    }
+
+    .error-review-text .error-char:hover::after {
+      content: attr(data-expected);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 8px;
+      background: var(--lr-bg-overlay);
+      color: var(--lr-text-primary);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      border: 1px solid var(--lr-amber-base);
+      z-index: 10;
+    }
+
+    .error-review-text .error-char:hover::before {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 3px;
+      border: 4px solid transparent;
+      border-top-color: var(--lr-amber-base);
+      z-index: 10;
+    }
+
+    .error-patterns {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--lr-border-subtle);
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      line-height: 1.7;
+    }
+
+    .error-patterns strong {
+      color: var(--lr-amber-base);
+      font-family: var(--font-mono);
+    }
+
+    /* Weakness shifts */
+    .weakness-shifts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .shift-group {
+      background: var(--lr-bg-surface);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .shift-group-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .shift-group.improved .shift-group-title {
+      color: var(--lr-success);
+    }
+
+    .shift-group.emergent .shift-group-title {
+      color: var(--lr-warning);
+    }
+
+    .shift-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+    }
+
+    .shift-pill {
+      background: var(--lr-bg-elevated);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--lr-text-primary);
+    }
+
+    .shift-delta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      margin-left: auto;
+    }
+
+    .shift-delta.improved {
+      color: var(--lr-success);
+    }
+
+    .shift-delta.worse {
+      color: var(--lr-warning);
+    }
+
+    /* Insight */
+    .insight {
+      background: var(--lr-amber-faint);
+      border-left: 3px solid var(--lr-amber-base);
+      padding: 20px 24px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 32px;
+    }
+
+    .insight-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--lr-amber-base);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .insight-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--lr-text-primary);
+    }
+
+    .insight-text strong {
+      color: var(--lr-amber-base);
+      font-family: var(--font-mono);
+    }
+
+    .post-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .post-btn {
+      padding: 14px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-sans);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 150ms;
+    }
+
+    .post-btn-primary {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+    }
+
+    .post-btn-primary:hover {
+      background: var(--lr-amber-hover);
+    }
+
+    .post-btn-secondary {
+      background: transparent;
+      border: 1px solid var(--lr-border-default);
+      color: var(--lr-text-primary);
+    }
+
+    .post-btn-secondary:hover {
+      background: var(--lr-bg-elevated);
+    }
+
+    .post-btn-shortcut {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .post-btn-secondary .post-btn-shortcut {
+      background: var(--lr-bg-elevated);
+      color: var(--lr-text-secondary);
+    }
+
+    /* Pill group for settings */
+    .pill-group {
+      display: flex;
+      gap: 4px;
+      background: var(--lr-bg-base);
+      border: 1px solid var(--lr-border-subtle);
+      border-radius: 6px;
+      padding: 2px;
+      width: fit-content;
+    }
+
+    .pill-option {
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--lr-text-secondary);
+      cursor: pointer;
+      transition: all 100ms;
+    }
+
+    .pill-option.active {
+      background: var(--lr-amber-base);
+      color: var(--lr-text-inverse);
+      font-weight: 600;
+    }
+
+    /* Annotation */
+    .annotation {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--lr-bg-overlay);
+      border: 1px solid var(--lr-border-strong);
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-size: 11px;
+      color: var(--lr-text-secondary);
+      font-family: var(--font-mono);
+      z-index: 200;
+      max-width: 80vw;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .annotation strong {
+      color: var(--lr-amber-base);
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="wireframe-header">
-  <div class="wireframe-title">
-    Practice wireframe v0.4 · <strong>/practice</strong> · transition-aware + SVG keyboards + error review + vim scroll
-  </div>
-  <div class="state-switcher">
-    <button class="state-btn active" data-state="pre">pre-session</button>
-    <button class="state-btn" data-state="active">active typing</button>
-    <button class="state-btn" data-state="paused">paused (settings)</button>
-    <button class="state-btn" data-state="post">post-session</button>
-  </div>
-</div>
-
-<div class="app-nav" id="appNav">
-  <div class="nav-logo">leftype-rightype</div>
-  <div class="nav-links">
-    <span class="nav-link active">Practice</span>
-    <span class="nav-link">Dashboard</span>
-    <span class="nav-link">Keyboards</span>
-  </div>
-  <div class="nav-right">
-    <span>⚙</span>
-    <span class="nav-avatar">U</span>
-  </div>
-</div>
-
-<div class="session-progress" id="progressBar">
-  <div class="session-progress-fill"></div>
-</div>
-
-<!-- Live WPM + shortcuts (active state only) -->
-<div class="live-wpm" id="liveWpm">
-  <span class="live-wpm-value">52</span> wpm
-</div>
-<div class="shortcut-hints" id="shortcutHints">
-  <div><kbd>Esc</kbd> pause · settings</div>
-  <div><kbd>Tab</kbd>+<kbd>↵</kbd> restart</div>
-</div>
-
-<!-- Post-session shortcut hint strip -->
-<div class="post-hint-strip" id="postHintStrip">
-  <div class="post-hint-item">
-    <kbd>j</kbd>
-    <span>scroll down</span>
-  </div>
-  <div class="post-hint-item">
-    <kbd>k</kbd>
-    <span>scroll up</span>
-  </div>
-  <div class="post-hint-divider"></div>
-  <div class="post-hint-item">
-    <kbd>↵</kbd>
-    <span>practice again</span>
-  </div>
-  <div class="post-hint-item">
-    <kbd>D</kbd>
-    <span>drill</span>
-  </div>
-  <div class="post-hint-item">
-    <kbd>⌘</kbd>+<kbd>D</kbd>
-    <span>dashboard</span>
-  </div>
-</div>
-
-<!-- Pause overlay -->
-<div class="pause-overlay" id="pauseOverlay">
-  <div class="pause-panel">
-    <div class="pause-label">paused</div>
-    <h2 class="pause-title">Take a breath.</h2>
-    <p class="pause-subtitle">Accuracy improves when you slow down. Adjust settings below or resume when ready.</p>
-    
-    <div class="pause-settings">
-      <div class="pause-setting-row">
-        <div>
-          <div class="pause-setting-label">Typing text size</div>
-          <div class="pause-setting-desc">larger = easier on the eyes</div>
-        </div>
-        <div class="pill-group">
-          <div class="pill-option">S</div>
-          <div class="pill-option active">M</div>
-          <div class="pill-option">L</div>
-          <div class="pill-option">XL</div>
-        </div>
-      </div>
-      
-      <div class="pause-setting-row">
-        <div>
-          <div class="pause-setting-label">Visual keyboard</div>
-          <div class="pause-setting-desc">show finger assignment hints</div>
-        </div>
-        <div class="pill-group">
-          <div class="pill-option active">Show</div>
-          <div class="pill-option">Hide</div>
-        </div>
-      </div>
-      
-      <div class="pause-setting-row">
-        <div>
-          <div class="pause-setting-label">Expected-letter hint</div>
-          <div class="pause-setting-desc">show correct letter above errors</div>
-        </div>
-        <div class="pill-group">
-          <div class="pill-option active">On</div>
-          <div class="pill-option">Off</div>
-        </div>
-      </div>
+  <div class="wireframe-header">
+    <div class="wireframe-title">
+      Practice wireframe v0.4 · <strong>/practice</strong> · transition-aware + SVG keyboards + error review + vim
+      scroll
     </div>
-    
-    <div class="pause-actions">
-      <button class="pause-btn pause-btn-primary">
-        Resume
-        <span class="pause-btn-shortcut">⏎</span>
-      </button>
-      <button class="pause-btn pause-btn-secondary">
-        Restart exercise
-        <span class="pause-btn-shortcut">⇥⏎</span>
-      </button>
-      <button class="pause-btn pause-btn-secondary">
-        End session
-      </button>
+    <div class="state-switcher">
+      <button class="state-btn active" data-state="pre">pre-session</button>
+      <button class="state-btn" data-state="active">active typing</button>
+      <button class="state-btn" data-state="paused">paused (settings)</button>
+      <button class="state-btn" data-state="post">post-session</button>
     </div>
   </div>
-</div>
 
-<div class="practice-page">
-  
-  <!-- ============ PRE-SESSION ============ -->
-  <div class="stage-content active" id="stage-pre">
-    <div class="pre-session">
-      <div>
-        <div class="pre-keyboard-context">
-          <span class="pill-icon">⊞</span>
-          <span>active</span>
-          <span class="pill-name">lily58</span>
-          <span class="pill-switch">switch →</span>
-        </div>
-        <span class="phase-badge">
-          <span class="phase-badge-dot"></span>
-          transitioning
-        </span>
-      </div>
-      
-      <h1 class="pre-title">What will you practice?</h1>
-      <p class="pre-subtitle">Accuracy first. Speed follows.</p>
-      
-      <button class="pre-cta-primary">
-        <div class="pre-cta-primary-text">
-          <span class="pre-cta-primary-label">Continue adaptive practice</span>
-          <span class="pre-cta-primary-meta">columnar focus: <span class="highlight">B, N, T</span> · 30 words · ~90 sec</span>
-        </div>
-        <div class="pre-cta-primary-action">
-          <span class="shortcut">⏎</span>
-          <span class="arrow">→</span>
-        </div>
-      </button>
-      
-      <div class="pre-modes-label">or pick a different mode</div>
-      <div class="pre-modes">
-        <div class="mode-card">
-          <div class="mode-card-icon">◎</div>
-          <div class="mode-card-name">Drill weakness</div>
-          <div class="mode-card-desc">Target a specific letter or bigram, repeatedly</div>
-        </div>
-        <div class="mode-card">
-          <div class="mode-card-icon">⬌</div>
-          <div class="mode-card-name">Inner column</div>
-          <div class="mode-card-desc">Focus drill on B, G, H, N, T, Y — classic split pain points</div>
-        </div>
-        <div class="mode-card">
-          <div class="mode-card-icon">◷</div>
-          <div class="mode-card-name">Warm up</div>
-          <div class="mode-card-desc">Comfortable pace, no evaluation tracking</div>
-        </div>
-      </div>
-      
-      <div class="pre-filters">
-        <div class="pre-filters-header" onclick="toggleFilters()">
-          <span>Filters & options</span>
-          <span class="pre-filters-caret" id="filtersCaret">▶</span>
-        </div>
-        <div class="pre-filters-content" id="filtersContent">
-          <div class="filter-row">
-            <span class="filter-label">Hand isolation</span>
-            <div class="filter-pills">
-              <div class="filter-pill active">Either</div>
-              <div class="filter-pill">Left only</div>
-              <div class="filter-pill">Right only</div>
-            </div>
-          </div>
-          <div class="filter-row">
-            <span class="filter-label">Max word length</span>
-            <div class="filter-pills">
-              <div class="filter-pill">4</div>
-              <div class="filter-pill active">6</div>
-              <div class="filter-pill">8</div>
-              <div class="filter-pill">all</div>
-            </div>
-          </div>
-          <div class="filter-row">
-            <span class="filter-label">Visual keyboard</span>
-            <div class="filter-pills">
-              <div class="filter-pill active">Show</div>
-              <div class="filter-pill">Hide</div>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="app-nav" id="appNav">
+    <div class="nav-logo">kerf<span class="accent">.</span></div>
+    <div class="nav-links">
+      <span class="nav-link active">Practice</span>
+      <span class="nav-link">Dashboard</span>
+      <span class="nav-link">Keyboards</span>
+    </div>
+    <div class="nav-right">
+      <span>⚙</span>
+      <span class="nav-avatar">U</span>
     </div>
   </div>
-  
-  <!-- ============ ACTIVE TYPING ============ -->
-  <div class="stage-content" id="stage-active">
-    <div class="active-typing">
-      <div class="typing-area">
-        <span class="typed">the quick </span><span class="error">b<span class="error-expected">n</span></span><span class="current">r</span><span class="upcoming">own fox jumps over</span>
-      </div>
-      
-      <!-- SVG Keyboard (Lily58) with finger colors -->
-      <div class="svg-keyboard" id="svgKeyboard">
-        <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" style="max-width: 800px;">
-          <!-- LEFT HALF -->
-          <g transform="translate(20, 20)">
-            <!-- Row 0: 1 2 3 4 5 6 -->
-            <g>
-              <rect class="key" x="0" y="6" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="6" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)"/>
-              <text class="key-label" x="18" y="22">1</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="-4" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="-4" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)"/>
-              <text class="key-label" x="52" y="12">2</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="-2" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="-2" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)"/>
-              <text class="key-label" x="86" y="14">3</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="4" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="4" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="120" y="20">4</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="4" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="4" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="154" y="20">5</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="10" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="170" y="10" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="188" y="26">6</text>
-            </g>
-            
-            <!-- Row 1: q w e r t · -->
-            <g>
-              <rect class="key" x="0" y="42" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="42" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)"/>
-              <text class="key-label" x="18" y="58">q</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="32" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="32" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)"/>
-              <text class="key-label" x="52" y="48">w</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="34" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="34" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)"/>
-              <text class="key-label" x="86" y="50">e</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="40" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="40" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="120" y="56">r</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="40" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="40" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="154" y="56">t</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="46" width="32" height="32" rx="4"/>
-              <text class="key-label" x="188" y="62">tab</text>
-            </g>
-            
-            <!-- Row 2: a s d f g · (home row) -->
-            <g>
-              <rect class="key" x="0" y="78" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="78" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)"/>
-              <text class="key-label" x="18" y="94">a</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="68" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="68" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)"/>
-              <text class="key-label" x="52" y="84">s</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="70" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="70" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)"/>
-              <text class="key-label" x="86" y="86">d</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="76" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="76" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="120" y="92">f</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="76" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="76" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="154" y="92">g</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="82" width="32" height="32" rx="4"/>
-              <text class="key-label" x="188" y="98">esc</text>
-            </g>
-            
-            <!-- Row 3: z x c v b · (bottom row) -->
-            <g>
-              <rect class="key" x="0" y="114" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="114" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)"/>
-              <text class="key-label" x="18" y="130">z</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="104" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="104" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)"/>
-              <text class="key-label" x="52" y="120">x</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="106" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="106" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)"/>
-              <text class="key-label" x="86" y="122">c</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="112" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="112" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="120" y="128">v</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="112" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="112" width="3" height="32" rx="1.5" fill="var(--finger-l-index)"/>
-              <text class="key-label" x="154" y="128">b</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="118" width="32" height="32" rx="4"/>
-              <text class="key-label" x="188" y="134">⇧</text>
-            </g>
-            
-            <!-- Thumb cluster: 4 keys for Lily58 -->
-            <g>
-              <rect class="key" x="102" y="154" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="120" y="170">ctrl</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="154" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="154" y="170">lwr</text>
-            </g>
-            <g transform="translate(174, 158) rotate(15)">
-              <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="18" y="16">spc</text>
-            </g>
-            <g transform="translate(214, 170) rotate(15)">
-              <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="18" y="16">rse</text>
-            </g>
-          </g>
-          
-          <!-- RIGHT HALF -->
-          <g transform="translate(440, 20)">
-            <!-- Row 0: 7 8 9 0 - = -->
-            <g>
-              <rect class="key" x="0" y="10" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="10" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="18" y="26">7</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="4" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="4" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="52" y="20">8</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="4" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="4" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="86" y="20">9</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="-2" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="-2" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)"/>
-              <text class="key-label" x="120" y="14">0</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="-4" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="-4" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)"/>
-              <text class="key-label" x="154" y="12">-</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="6" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="170" y="6" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)"/>
-              <text class="key-label" x="188" y="22">=</text>
-            </g>
-            
-            <!-- Row 1: · y u i o p -->
-            <g>
-              <rect class="key" x="0" y="46" width="32" height="32" rx="4"/>
-              <text class="key-label" x="18" y="62">bsp</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="40" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="40" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="52" y="56">y</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="40" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="40" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="86" y="56">u</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="34" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="34" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)"/>
-              <text class="key-label" x="120" y="50">i</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="32" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="32" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)"/>
-              <text class="key-label" x="154" y="48">o</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="42" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="170" y="42" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)"/>
-              <text class="key-label" x="188" y="58">p</text>
-            </g>
-            
-            <!-- Row 2: · h j k l ; -->
-            <g>
-              <rect class="key" x="0" y="82" width="32" height="32" rx="4"/>
-              <text class="key-label" x="18" y="98">del</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="76" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="76" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="52" y="92">h</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="76" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="76" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="86" y="92">j</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="70" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="70" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)"/>
-              <text class="key-label" x="120" y="86">k</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="68" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="68" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)"/>
-              <text class="key-label" x="154" y="84">l</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="78" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="170" y="78" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)"/>
-              <text class="key-label" x="188" y="94">;</text>
-            </g>
-            
-            <!-- Row 3: · n m , . / -->
-            <g>
-              <rect class="key" x="0" y="118" width="32" height="32" rx="4"/>
-              <text class="key-label" x="18" y="134">'</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="112" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="112" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="52" y="128">n</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="112" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="112" width="3" height="32" rx="1.5" fill="var(--finger-r-index)"/>
-              <text class="key-label" x="86" y="128">m</text>
-            </g>
-            <g>
-              <rect class="key" x="102" y="106" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="102" y="106" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)"/>
-              <text class="key-label" x="120" y="122">,</text>
-            </g>
-            <g>
-              <rect class="key" x="136" y="104" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="136" y="104" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)"/>
-              <text class="key-label" x="154" y="120">.</text>
-            </g>
-            <g>
-              <rect class="key" x="170" y="114" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="170" y="114" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)"/>
-              <text class="key-label" x="188" y="130">/</text>
-            </g>
-            
-            <!-- Right thumb cluster -->
-            <g transform="translate(-40, 170) rotate(-15 16 16)">
-              <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="18" y="16">rse</text>
-            </g>
-            <g transform="translate(0, 158) rotate(-15 16 16)">
-              <rect class="key" x="0" y="0" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="18" y="16">spc</text>
-            </g>
-            <g>
-              <rect class="key" x="34" y="154" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="34" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="52" y="170">lwr</text>
-            </g>
-            <g>
-              <rect class="key" x="68" y="154" width="32" height="32" rx="4"/>
-              <rect class="finger-bar" x="68" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)"/>
-              <text class="key-label" x="86" y="170">ctrl</text>
-            </g>
-          </g>
-        </svg>
-      </div>
+
+  <div class="session-progress" id="progressBar">
+    <div class="session-progress-fill"></div>
+  </div>
+
+  <!-- Live WPM + shortcuts (active state only) -->
+  <div class="live-wpm" id="liveWpm">
+    <span class="live-wpm-value">52</span> wpm
+  </div>
+  <div class="shortcut-hints" id="shortcutHints">
+    <div><kbd>Esc</kbd> pause · settings</div>
+    <div><kbd>Tab</kbd>+<kbd>↵</kbd> restart</div>
+  </div>
+
+  <!-- Post-session shortcut hint strip -->
+  <div class="post-hint-strip" id="postHintStrip">
+    <div class="post-hint-item">
+      <kbd>j</kbd>
+      <span>scroll down</span>
+    </div>
+    <div class="post-hint-item">
+      <kbd>k</kbd>
+      <span>scroll up</span>
+    </div>
+    <div class="post-hint-divider"></div>
+    <div class="post-hint-item">
+      <kbd>↵</kbd>
+      <span>practice again</span>
+    </div>
+    <div class="post-hint-item">
+      <kbd>D</kbd>
+      <span>drill</span>
+    </div>
+    <div class="post-hint-item">
+      <kbd>⌘</kbd>+<kbd>D</kbd>
+      <span>dashboard</span>
     </div>
   </div>
-  
-  <!-- ============ POST-SESSION ============ -->
-  <div class="stage-content" id="stage-post">
-    <div class="post-session">
-      
-      <div class="post-complete-mark">
-        <div class="post-complete-mark-badge">
-          <span class="post-complete-mark-dot"></span>
-          session complete
-        </div>
-      </div>
-      
-      <h1 class="post-title">Accuracy held up well.</h1>
-      
-      <!-- Stats — accuracy featured as primary (leftmost), speed secondary -->
-      <div class="post-stats">
-        <div class="post-stat">
-          <div class="post-stat-label">accuracy</div>
-          <div class="post-stat-value featured">94%</div>
-          <div class="post-stat-delta up">↑ 2% vs avg</div>
-        </div>
-        <div class="post-stat">
-          <div class="post-stat-label">speed</div>
-          <div class="post-stat-value">62</div>
-          <div class="post-stat-delta neutral">wpm</div>
-        </div>
-        <div class="post-stat">
-          <div class="post-stat-label">time</div>
-          <div class="post-stat-value">2:14</div>
-          <div class="post-stat-delta neutral">30 words</div>
-        </div>
-      </div>
-      
-      <!-- ERROR REVIEW (new) -->
-      <div class="post-section-label">
-        <span>Error review</span>
-        <span class="error-review-stats"><span class="count">4 errors</span> · click to see what you typed</span>
-      </div>
-      <div class="error-review">
-        <div class="error-review-text">
-          the quick <span class="error-char" data-expected="typed 'b', expected 'n'">b</span>rown fox <span class="error-char" data-expected="typed 'j', expected 'b'">j</span>umps over the lazy <span class="error-char" data-expected="typed 'v', expected 'b'">v</span>ench beneath the <span class="error-char" data-expected="typed 'b', expected 'n'">b</span>ight sky
-        </div>
-        <div class="error-patterns">
-          <strong>B ↔ N confusion</strong> (2 errors) suggests you're still mapping QWERTY muscle memory to the columnar layout. Both keys are index finger territory but on different hands in split. <strong>B ↔ V</strong> (1 error) and <strong>B ↔ J</strong> (1 error) are classic inner-column drift.
-        </div>
-      </div>
-      
-      <!-- Weakness shifts -->
-      <div class="post-section-label">Weakness shifts this session</div>
-      <div class="weakness-shifts">
-        <div class="shift-group improved">
-          <div class="shift-group-title">
-            <span>✓</span>
-            <span>improved</span>
+
+  <!-- Pause overlay -->
+  <div class="pause-overlay" id="pauseOverlay">
+    <div class="pause-panel">
+      <div class="pause-label">paused</div>
+      <h2 class="pause-title">Take a breath.</h2>
+      <p class="pause-subtitle">Accuracy improves when you slow down. Adjust settings below or resume when ready.</p>
+
+      <div class="pause-settings">
+        <div class="pause-setting-row">
+          <div>
+            <div class="pause-setting-label">Typing text size</div>
+            <div class="pause-setting-desc">larger = easier on the eyes</div>
           </div>
-          <div class="shift-row">
-            <span class="shift-pill">er</span>
-            <span>faster transitions</span>
-            <span class="shift-delta improved">−18ms</span>
-          </div>
-          <div class="shift-row">
-            <span class="shift-pill">T</span>
-            <span>accuracy up</span>
-            <span class="shift-delta improved">−6%</span>
+          <div class="pill-group">
+            <div class="pill-option">S</div>
+            <div class="pill-option active">M</div>
+            <div class="pill-option">L</div>
+            <div class="pill-option">XL</div>
           </div>
         </div>
-        <div class="shift-group emergent">
-          <div class="shift-group-title">
-            <span>⚠</span>
-            <span>watch this</span>
+
+        <div class="pause-setting-row">
+          <div>
+            <div class="pause-setting-label">Visual keyboard</div>
+            <div class="pause-setting-desc">show finger assignment hints</div>
           </div>
-          <div class="shift-row">
-            <span class="shift-pill">B</span>
-            <span>still confusing with N</span>
-            <span class="shift-delta worse">stable 18%</span>
+          <div class="pill-group">
+            <div class="pill-option active">Show</div>
+            <div class="pill-option">Hide</div>
+          </div>
+        </div>
+
+        <div class="pause-setting-row">
+          <div>
+            <div class="pause-setting-label">Expected-letter hint</div>
+            <div class="pause-setting-desc">show correct letter above errors</div>
+          </div>
+          <div class="pill-group">
+            <div class="pill-option active">On</div>
+            <div class="pill-option">Off</div>
           </div>
         </div>
       </div>
-      
-      <!-- Insight -->
-      <div class="insight">
-        <div class="insight-label">What engine noticed</div>
-        <div class="insight-text">
-          Your <strong>er</strong> bigram and letter <strong>T</strong> both improved this session — that's real columnar muscle memory forming. <strong>B</strong> is still tricky, mostly confused with <strong>N</strong>. These are both index-finger keys but assigned to different hands in split layouts — your right hand is still reaching for B the way it did on QWERTY. Next exercise will isolate B with slow, deliberate repetitions.
-        </div>
-      </div>
-      
-      <!-- Actions -->
-      <div class="post-actions">
-        <button class="post-btn post-btn-primary">
-          Practice again
-          <span class="post-btn-shortcut">⏎</span>
+
+      <div class="pause-actions">
+        <button class="pause-btn pause-btn-primary">
+          Resume
+          <span class="pause-btn-shortcut">⏎</span>
         </button>
-        <button class="post-btn post-btn-secondary">
-          Drill B specifically
-          <span class="post-btn-shortcut">D</span>
+        <button class="pause-btn pause-btn-secondary">
+          Restart exercise
+          <span class="pause-btn-shortcut">⇥⏎</span>
         </button>
-        <button class="post-btn post-btn-secondary">
-          View dashboard
-          <span class="post-btn-shortcut">⌘D</span>
+        <button class="pause-btn pause-btn-secondary">
+          End session
         </button>
       </div>
-      
     </div>
   </div>
-  
-</div>
 
-<div class="annotation" id="annotation">
-  <strong>Pre-session state</strong> · transitioning-phase badge · columnar-focused CTA · 3 mode cards including new "Inner column" drill
-</div>
+  <div class="practice-page">
 
-<script>
-  function setState(state) {
-    document.querySelectorAll('.state-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.state === state);
-    });
-    document.querySelectorAll('.stage-content').forEach(s => {
-      s.classList.remove('active');
-      s.classList.remove('post-padding');
-    });
-    
-    const nav = document.getElementById('appNav');
-    const progress = document.getElementById('progressBar');
-    const liveWpm = document.getElementById('liveWpm');
-    const shortcuts = document.getElementById('shortcutHints');
-    const pauseOverlay = document.getElementById('pauseOverlay');
-    const postHintStrip = document.getElementById('postHintStrip');
-    const annotation = document.getElementById('annotation');
-    
-    nav.classList.remove('hidden-typing');
-    progress.classList.remove('visible');
-    liveWpm.classList.remove('visible');
-    shortcuts.classList.remove('visible');
-    pauseOverlay.classList.remove('visible');
-    postHintStrip.classList.remove('visible');
-    
-    if (state === 'pre') {
-      document.getElementById('stage-pre').classList.add('active');
-      annotation.innerHTML = '<strong>Pre-session state</strong> · transitioning-phase badge · columnar-focused CTA · 3 mode cards including new "Inner column" drill';
-    } else if (state === 'active') {
-      document.getElementById('stage-active').classList.add('active');
-      nav.classList.add('hidden-typing');
-      progress.classList.add('visible');
-      liveWpm.classList.add('visible');
-      shortcuts.classList.add('visible');
-      annotation.innerHTML = '<strong>Active typing state</strong> · typing area 36px · error shows "n" above typed "b" · Lily58 SVG with finger color bars · nav hidden';
-    } else if (state === 'paused') {
-      document.getElementById('stage-active').classList.add('active');
-      progress.classList.add('visible');
-      pauseOverlay.classList.add('visible');
-      annotation.innerHTML = '<strong>Paused state</strong> · settings accessible here (not during typing) · typing text size · visual keyboard · expected-letter hint · resume on Enter';
-    } else if (state === 'post') {
+    <!-- ============ PRE-SESSION ============ -->
+    <div class="stage-content active" id="stage-pre">
+      <div class="pre-session">
+        <div>
+          <div class="pre-keyboard-context">
+            <span class="pill-icon">⊞</span>
+            <span>active</span>
+            <span class="pill-name">lily58</span>
+            <span class="pill-switch">switch →</span>
+          </div>
+          <span class="phase-badge">
+            <span class="phase-badge-dot"></span>
+            transitioning
+          </span>
+        </div>
+
+        <h1 class="pre-title">What will you practice?</h1>
+        <p class="pre-subtitle">Accuracy first. Speed follows.</p>
+
+        <button class="pre-cta-primary">
+          <div class="pre-cta-primary-text">
+            <span class="pre-cta-primary-label">Continue adaptive practice</span>
+            <span class="pre-cta-primary-meta">columnar focus: <span class="highlight">B, N, T</span> · 30 words · ~90
+              sec</span>
+          </div>
+          <div class="pre-cta-primary-action">
+            <span class="shortcut">⏎</span>
+            <span class="arrow">→</span>
+          </div>
+        </button>
+
+        <div class="pre-modes-label">or pick a different mode</div>
+        <div class="pre-modes">
+          <div class="mode-card">
+            <div class="mode-card-icon">◎</div>
+            <div class="mode-card-name">Drill weakness</div>
+            <div class="mode-card-desc">Target a specific letter or bigram, repeatedly</div>
+          </div>
+          <div class="mode-card">
+            <div class="mode-card-icon">⬌</div>
+            <div class="mode-card-name">Inner column</div>
+            <div class="mode-card-desc">Focus drill on B, G, H, N, T, Y — classic split pain points</div>
+          </div>
+          <div class="mode-card">
+            <div class="mode-card-icon">◷</div>
+            <div class="mode-card-name">Warm up</div>
+            <div class="mode-card-desc">Comfortable pace, no evaluation tracking</div>
+          </div>
+        </div>
+
+        <div class="pre-filters">
+          <div class="pre-filters-header" onclick="toggleFilters()">
+            <span>Filters & options</span>
+            <span class="pre-filters-caret" id="filtersCaret">▶</span>
+          </div>
+          <div class="pre-filters-content" id="filtersContent">
+            <div class="filter-row">
+              <span class="filter-label">Hand isolation</span>
+              <div class="filter-pills">
+                <div class="filter-pill active">Either</div>
+                <div class="filter-pill">Left only</div>
+                <div class="filter-pill">Right only</div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <span class="filter-label">Max word length</span>
+              <div class="filter-pills">
+                <div class="filter-pill">4</div>
+                <div class="filter-pill active">6</div>
+                <div class="filter-pill">8</div>
+                <div class="filter-pill">all</div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <span class="filter-label">Visual keyboard</span>
+              <div class="filter-pills">
+                <div class="filter-pill active">Show</div>
+                <div class="filter-pill">Hide</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ACTIVE TYPING ============ -->
+    <div class="stage-content" id="stage-active">
+      <div class="active-typing">
+        <div class="typing-area">
+          <span class="typed">the quick </span><span class="error">b<span class="error-expected">n</span></span><span
+            class="current">r</span><span class="upcoming">own fox jumps over</span>
+        </div>
+
+        <!-- SVG Keyboard (Lily58) with finger colors -->
+        <div class="svg-keyboard" id="svgKeyboard">
+          <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" style="max-width: 800px;">
+            <!-- LEFT HALF -->
+            <g transform="translate(20, 20)">
+              <!-- Row 0: 1 2 3 4 5 6 -->
+              <g>
+                <rect class="key" x="0" y="6" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="6" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)" />
+                <text class="key-label" x="18" y="22">1</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="-4" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="-4" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)" />
+                <text class="key-label" x="52" y="12">2</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="-2" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="-2" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)" />
+                <text class="key-label" x="86" y="14">3</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="4" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="4" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="120" y="20">4</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="4" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="4" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="154" y="20">5</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="10" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="170" y="10" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="188" y="26">6</text>
+              </g>
+
+              <!-- Row 1: q w e r t · -->
+              <g>
+                <rect class="key" x="0" y="42" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="42" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)" />
+                <text class="key-label" x="18" y="58">q</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="32" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="32" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)" />
+                <text class="key-label" x="52" y="48">w</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="34" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="34" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)" />
+                <text class="key-label" x="86" y="50">e</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="40" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="40" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="120" y="56">r</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="40" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="40" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="154" y="56">t</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="46" width="32" height="32" rx="4" />
+                <text class="key-label" x="188" y="62">tab</text>
+              </g>
+
+              <!-- Row 2: a s d f g · (home row) -->
+              <g>
+                <rect class="key" x="0" y="78" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="78" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)" />
+                <text class="key-label" x="18" y="94">a</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="68" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="68" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)" />
+                <text class="key-label" x="52" y="84">s</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="70" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="70" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)" />
+                <text class="key-label" x="86" y="86">d</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="76" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="76" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="120" y="92">f</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="76" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="76" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="154" y="92">g</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="82" width="32" height="32" rx="4" />
+                <text class="key-label" x="188" y="98">esc</text>
+              </g>
+
+              <!-- Row 3: z x c v b · (bottom row) -->
+              <g>
+                <rect class="key" x="0" y="114" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="114" width="3" height="32" rx="1.5" fill="var(--finger-l-pinky)" />
+                <text class="key-label" x="18" y="130">z</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="104" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="104" width="3" height="32" rx="1.5" fill="var(--finger-l-ring)" />
+                <text class="key-label" x="52" y="120">x</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="106" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="106" width="3" height="32" rx="1.5" fill="var(--finger-l-middle)" />
+                <text class="key-label" x="86" y="122">c</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="112" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="112" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="120" y="128">v</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="112" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="112" width="3" height="32" rx="1.5" fill="var(--finger-l-index)" />
+                <text class="key-label" x="154" y="128">b</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="118" width="32" height="32" rx="4" />
+                <text class="key-label" x="188" y="134">⇧</text>
+              </g>
+
+              <!-- Thumb cluster: 4 keys for Lily58 -->
+              <g>
+                <rect class="key" x="102" y="154" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="120" y="170">ctrl</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="154" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="154" y="170">lwr</text>
+              </g>
+              <g transform="translate(174, 158) rotate(15)">
+                <rect class="key" x="0" y="0" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="18" y="16">spc</text>
+              </g>
+              <g transform="translate(214, 170) rotate(15)">
+                <rect class="key" x="0" y="0" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="18" y="16">rse</text>
+              </g>
+            </g>
+
+            <!-- RIGHT HALF -->
+            <g transform="translate(440, 20)">
+              <!-- Row 0: 7 8 9 0 - = -->
+              <g>
+                <rect class="key" x="0" y="10" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="10" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="18" y="26">7</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="4" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="4" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="52" y="20">8</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="4" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="4" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="86" y="20">9</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="-2" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="-2" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)" />
+                <text class="key-label" x="120" y="14">0</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="-4" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="-4" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)" />
+                <text class="key-label" x="154" y="12">-</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="6" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="170" y="6" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)" />
+                <text class="key-label" x="188" y="22">=</text>
+              </g>
+
+              <!-- Row 1: · y u i o p -->
+              <g>
+                <rect class="key" x="0" y="46" width="32" height="32" rx="4" />
+                <text class="key-label" x="18" y="62">bsp</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="40" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="40" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="52" y="56">y</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="40" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="40" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="86" y="56">u</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="34" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="34" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)" />
+                <text class="key-label" x="120" y="50">i</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="32" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="32" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)" />
+                <text class="key-label" x="154" y="48">o</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="42" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="170" y="42" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)" />
+                <text class="key-label" x="188" y="58">p</text>
+              </g>
+
+              <!-- Row 2: · h j k l ; -->
+              <g>
+                <rect class="key" x="0" y="82" width="32" height="32" rx="4" />
+                <text class="key-label" x="18" y="98">del</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="76" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="76" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="52" y="92">h</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="76" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="76" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="86" y="92">j</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="70" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="70" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)" />
+                <text class="key-label" x="120" y="86">k</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="68" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="68" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)" />
+                <text class="key-label" x="154" y="84">l</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="78" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="170" y="78" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)" />
+                <text class="key-label" x="188" y="94">;</text>
+              </g>
+
+              <!-- Row 3: · n m , . / -->
+              <g>
+                <rect class="key" x="0" y="118" width="32" height="32" rx="4" />
+                <text class="key-label" x="18" y="134">'</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="112" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="112" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="52" y="128">n</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="112" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="112" width="3" height="32" rx="1.5" fill="var(--finger-r-index)" />
+                <text class="key-label" x="86" y="128">m</text>
+              </g>
+              <g>
+                <rect class="key" x="102" y="106" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="102" y="106" width="3" height="32" rx="1.5" fill="var(--finger-r-middle)" />
+                <text class="key-label" x="120" y="122">,</text>
+              </g>
+              <g>
+                <rect class="key" x="136" y="104" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="136" y="104" width="3" height="32" rx="1.5" fill="var(--finger-r-ring)" />
+                <text class="key-label" x="154" y="120">.</text>
+              </g>
+              <g>
+                <rect class="key" x="170" y="114" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="170" y="114" width="3" height="32" rx="1.5" fill="var(--finger-r-pinky)" />
+                <text class="key-label" x="188" y="130">/</text>
+              </g>
+
+              <!-- Right thumb cluster -->
+              <g transform="translate(-40, 170) rotate(-15 16 16)">
+                <rect class="key" x="0" y="0" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="18" y="16">rse</text>
+              </g>
+              <g transform="translate(0, 158) rotate(-15 16 16)">
+                <rect class="key" x="0" y="0" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="0" y="0" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="18" y="16">spc</text>
+              </g>
+              <g>
+                <rect class="key" x="34" y="154" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="34" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="52" y="170">lwr</text>
+              </g>
+              <g>
+                <rect class="key" x="68" y="154" width="32" height="32" rx="4" />
+                <rect class="finger-bar" x="68" y="154" width="3" height="32" rx="1.5" fill="var(--finger-thumb)" />
+                <text class="key-label" x="86" y="170">ctrl</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ POST-SESSION ============ -->
+    <div class="stage-content" id="stage-post">
+      <div class="post-session">
+
+        <div class="post-complete-mark">
+          <div class="post-complete-mark-badge">
+            <span class="post-complete-mark-dot"></span>
+            session complete
+          </div>
+        </div>
+
+        <h1 class="post-title">Accuracy held up well.</h1>
+
+        <!-- Stats — accuracy featured as primary (leftmost), speed secondary -->
+        <div class="post-stats">
+          <div class="post-stat">
+            <div class="post-stat-label">accuracy</div>
+            <div class="post-stat-value featured">94%</div>
+            <div class="post-stat-delta up">↑ 2% vs avg</div>
+          </div>
+          <div class="post-stat">
+            <div class="post-stat-label">speed</div>
+            <div class="post-stat-value">62</div>
+            <div class="post-stat-delta neutral">wpm</div>
+          </div>
+          <div class="post-stat">
+            <div class="post-stat-label">time</div>
+            <div class="post-stat-value">2:14</div>
+            <div class="post-stat-delta neutral">30 words</div>
+          </div>
+        </div>
+
+        <!-- ERROR REVIEW (new) -->
+        <div class="post-section-label">
+          <span>Error review</span>
+          <span class="error-review-stats"><span class="count">4 errors</span> · click to see what you typed</span>
+        </div>
+        <div class="error-review">
+          <div class="error-review-text">
+            the quick <span class="error-char" data-expected="typed 'b', expected 'n'">b</span>rown fox <span
+              class="error-char" data-expected="typed 'j', expected 'b'">j</span>umps over the lazy <span
+              class="error-char" data-expected="typed 'v', expected 'b'">v</span>ench beneath the <span
+              class="error-char" data-expected="typed 'b', expected 'n'">b</span>ight sky
+          </div>
+          <div class="error-patterns">
+            <strong>B ↔ N confusion</strong> (2 errors) suggests you're still mapping QWERTY muscle memory to the
+            columnar layout. Both keys are index finger territory but on different hands in split. <strong>B ↔
+              V</strong> (1 error) and <strong>B ↔ J</strong> (1 error) are classic inner-column drift.
+          </div>
+        </div>
+
+        <!-- Weakness shifts -->
+        <div class="post-section-label">Weakness shifts this session</div>
+        <div class="weakness-shifts">
+          <div class="shift-group improved">
+            <div class="shift-group-title">
+              <span>✓</span>
+              <span>improved</span>
+            </div>
+            <div class="shift-row">
+              <span class="shift-pill">er</span>
+              <span>faster transitions</span>
+              <span class="shift-delta improved">−18ms</span>
+            </div>
+            <div class="shift-row">
+              <span class="shift-pill">T</span>
+              <span>accuracy up</span>
+              <span class="shift-delta improved">−6%</span>
+            </div>
+          </div>
+          <div class="shift-group emergent">
+            <div class="shift-group-title">
+              <span>⚠</span>
+              <span>watch this</span>
+            </div>
+            <div class="shift-row">
+              <span class="shift-pill">B</span>
+              <span>still confusing with N</span>
+              <span class="shift-delta worse">stable 18%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insight -->
+        <div class="insight">
+          <div class="insight-label">What engine noticed</div>
+          <div class="insight-text">
+            Your <strong>er</strong> bigram and letter <strong>T</strong> both improved this session — that's real
+            columnar muscle memory forming. <strong>B</strong> is still tricky, mostly confused with <strong>N</strong>.
+            These are both index-finger keys but assigned to different hands in split layouts — your right hand is still
+            reaching for B the way it did on QWERTY. Next exercise will isolate B with slow, deliberate repetitions.
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="post-actions">
+          <button class="post-btn post-btn-primary">
+            Practice again
+            <span class="post-btn-shortcut">⏎</span>
+          </button>
+          <button class="post-btn post-btn-secondary">
+            Drill B specifically
+            <span class="post-btn-shortcut">D</span>
+          </button>
+          <button class="post-btn post-btn-secondary">
+            View dashboard
+            <span class="post-btn-shortcut">⌘D</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="annotation" id="annotation">
+    <strong>Pre-session state</strong> · transitioning-phase badge · columnar-focused CTA · 3 mode cards including new
+    "Inner column" drill
+  </div>
+
+  <script>
+    function setState(state) {
+      document.querySelectorAll('.state-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.state === state);
+      });
+      document.querySelectorAll('.stage-content').forEach(s => {
+        s.classList.remove('active');
+        s.classList.remove('post-padding');
+      });
+
+      const nav = document.getElementById('appNav');
+      const progress = document.getElementById('progressBar');
+      const liveWpm = document.getElementById('liveWpm');
+      const shortcuts = document.getElementById('shortcutHints');
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      const postHintStrip = document.getElementById('postHintStrip');
+      const annotation = document.getElementById('annotation');
+
+      nav.classList.remove('hidden-typing');
+      progress.classList.remove('visible');
+      liveWpm.classList.remove('visible');
+      shortcuts.classList.remove('visible');
+      pauseOverlay.classList.remove('visible');
+      postHintStrip.classList.remove('visible');
+
+      if (state === 'pre') {
+        document.getElementById('stage-pre').classList.add('active');
+        annotation.innerHTML = '<strong>Pre-session state</strong> · transitioning-phase badge · columnar-focused CTA · 3 mode cards including new "Inner column" drill';
+      } else if (state === 'active') {
+        document.getElementById('stage-active').classList.add('active');
+        nav.classList.add('hidden-typing');
+        progress.classList.add('visible');
+        liveWpm.classList.add('visible');
+        shortcuts.classList.add('visible');
+        annotation.innerHTML = '<strong>Active typing state</strong> · typing area 36px · error shows "n" above typed "b" · Lily58 SVG with finger color bars · nav hidden';
+      } else if (state === 'paused') {
+        document.getElementById('stage-active').classList.add('active');
+        progress.classList.add('visible');
+        pauseOverlay.classList.add('visible');
+        annotation.innerHTML = '<strong>Paused state</strong> · settings accessible here (not during typing) · typing text size · visual keyboard · expected-letter hint · resume on Enter';
+      } else if (state === 'post') {
+        const postStage = document.getElementById('stage-post');
+        postStage.classList.add('active');
+        postStage.classList.add('post-padding');
+        postHintStrip.classList.add('visible');
+        annotation.innerHTML = '<strong>Post-session inline</strong> · accuracy FIRST · error review with hover tooltips · vim-style <kbd style="font-family: var(--font-mono); background: var(--lr-bg-elevated); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--lr-border-default);">j</kbd>/<kbd style="font-family: var(--font-mono); background: var(--lr-bg-elevated); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--lr-border-default);">k</kbd> scroll';
+      }
+    }
+
+    function toggleFilters() {
+      document.getElementById('filtersContent').classList.toggle('open');
+      document.getElementById('filtersCaret').classList.toggle('open');
+    }
+
+    // Vim-style j/k scroll — active only in post-session state
+    // Safeguards:
+    // - Only fires when post-session stage is active
+    // - Ignored when user is typing in an input, textarea, or contenteditable element
+    // - Ignored when a modifier key is pressed (so ⌘D dashboard shortcut isn't swallowed)
+    // - Uses smooth scroll for single press, handles repeat naturally via browser keyrepeat
+    document.addEventListener('keydown', (e) => {
       const postStage = document.getElementById('stage-post');
-      postStage.classList.add('active');
-      postStage.classList.add('post-padding');
-      postHintStrip.classList.add('visible');
-      annotation.innerHTML = '<strong>Post-session inline</strong> · accuracy FIRST · error review with hover tooltips · vim-style <kbd style="font-family: var(--font-mono); background: var(--lr-bg-elevated); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--lr-border-default);">j</kbd>/<kbd style="font-family: var(--font-mono); background: var(--lr-bg-elevated); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--lr-border-default);">k</kbd> scroll';
-    }
-  }
-  
-  function toggleFilters() {
-    document.getElementById('filtersContent').classList.toggle('open');
-    document.getElementById('filtersCaret').classList.toggle('open');
-  }
-  
-  // Vim-style j/k scroll — active only in post-session state
-  // Safeguards:
-  // - Only fires when post-session stage is active
-  // - Ignored when user is typing in an input, textarea, or contenteditable element
-  // - Ignored when a modifier key is pressed (so ⌘D dashboard shortcut isn't swallowed)
-  // - Uses smooth scroll for single press, handles repeat naturally via browser keyrepeat
-  document.addEventListener('keydown', (e) => {
-    const postStage = document.getElementById('stage-post');
-    if (!postStage.classList.contains('active')) return;
-    
-    // Don't interfere with form inputs
-    const active = document.activeElement;
-    const isInputFocused = active && (
-      active.tagName === 'INPUT' ||
-      active.tagName === 'TEXTAREA' ||
-      active.isContentEditable
-    );
-    if (isInputFocused) return;
-    
-    // Don't interfere with shortcuts that use modifiers
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    
-    const SCROLL_AMOUNT = 80;
-    
-    if (e.key === 'j') {
-      e.preventDefault();
-      window.scrollBy({ top: SCROLL_AMOUNT, behavior: 'smooth' });
-    } else if (e.key === 'k') {
-      e.preventDefault();
-      window.scrollBy({ top: -SCROLL_AMOUNT, behavior: 'smooth' });
-    }
-  });
-  
-  document.querySelectorAll('.state-btn').forEach(btn => {
-    btn.addEventListener('click', () => setState(btn.dataset.state));
-  });
-</script>
+      if (!postStage.classList.contains('active')) return;
+
+      // Don't interfere with form inputs
+      const active = document.activeElement;
+      const isInputFocused = active && (
+        active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        active.isContentEditable
+      );
+      if (isInputFocused) return;
+
+      // Don't interfere with shortcuts that use modifiers
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const SCROLL_AMOUNT = 80;
+
+      if (e.key === 'j') {
+        e.preventDefault();
+        window.scrollBy({ top: SCROLL_AMOUNT, behavior: 'smooth' });
+      } else if (e.key === 'k') {
+        e.preventDefault();
+        window.scrollBy({ top: -SCROLL_AMOUNT, behavior: 'smooth' });
+      }
+    });
+
+    document.querySelectorAll('.state-btn').forEach(btn => {
+      btn.addEventListener('click', () => setState(btn.dataset.state));
+    });
+  </script>
 
 </body>
+
 </html>
