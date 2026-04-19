@@ -88,11 +88,25 @@ const rightKeys: KeyGeometry[] = [
   { char: ".", label: ".", x: 136, y: 102, width: W, height: H },
   { char: "/", label: "/", x: 170, y: 114, width: W, height: H },
 
-  // Right thumb cluster (mirror of left)
+  // Right thumb cluster — true VISUAL mirror of the left cluster
+  // across the keyboard's SVG center (x=331). Getting this right is
+  // more than a sign-flip on x: a left key rotated +18° CW has its
+  // top-left corner as the anchor (rotation origin), while its top-
+  // right slips down+right (relative to origin) by (w*cos18, w*sin18).
+  // The mirror right key rotates -18° — its top-left anchor must land
+  // at the mirror of the LEFT key's TOP-RIGHT (not top-left), which
+  // introduces a y offset of w*sin18 ≈ 10 for w=32, ≈ 15 for w=48.
+  //
+  // Previous attempts got x right but forgot the y compensation,
+  // which made the right thumb sit ~10-15px too HIGH and read as
+  // "scattered" even though x values matched.
+  //
+  //   spc   (x=206, y=172, w=32, rot=+18)  →  bsp_thumb (x=-34, y=182, w=32, rot=-18)
+  //   enter (x=244, y=182, w=48, rot=+18)  →  space_r   (x=-88, y=197, w=48, rot=-18)
   { char: "rse_r",     label: "rse",   x: 0,   y: 154, width: W,  height: H },
   { char: "lwr_r",     label: "lwr",   x: 34,  y: 148, width: W,  height: H },
-  { char: "space_r",   label: "space", x: -40, y: 182, width: 48, height: H, rotate: -18 },
-  { char: "bsp_thumb", label: "bsp",   x: 36,  y: 172, width: W,  height: H, rotate: -18 },
+  { char: "bsp_thumb", label: "bsp",   x: -34, y: 182, width: W,  height: H, rotate: -18 },
+  { char: "space_r",   label: "space", x: -88, y: 197, width: 48, height: H, rotate: -18 },
 ];
 
 /* ViewBox width trimmed from the design-source 780 to 662: the rightmost
@@ -115,7 +129,14 @@ export const SOFLE_GEOMETRY: KeyboardGeometry = {
       translateY: 30,
       keys: rightKeys,
       encoders: [
-        { id: "sofle-encoder-right", x: -80, y: 204, rotate: -18, cx: 16, cy: 16, r: 14 },
+        // Mirror of the left encoder (x=304, y=204, rotate=+18) using
+        // the same top-left-as-rotation-anchor math as the thumb keys
+        // above. Post-rotation, left's SVG top-right lands at
+        // (324+30.44, 234+9.89). Mirror that point across x=331 and
+        // use it as the right encoder's TOP-LEFT SVG position, then
+        // subtract the right translate (440) for the x and (30) for
+        // the y: X=-132, Y=214.
+        { id: "sofle-encoder-right", x: -132, y: 214, rotate: -18, cx: 16, cy: 16, r: 14 },
       ],
     },
   },
