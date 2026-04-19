@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
@@ -20,6 +20,7 @@ import { useCorpus } from "#/hooks/useCorpus";
 import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
+import { persistSession } from "#/server/persistSession";
 
 /**
  * Drizzle types the profile columns as `string` (the schema uses `text()`
@@ -148,6 +149,50 @@ function PracticePage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [status, corpus.status, filters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fire-and-forget session persistence (Task 2.8). Dedup by completedAt
+  // so Strict Mode's double-invoked effect doesn't produce two rows.
+  const lastPersistedAt = useRef<number | null>(null);
+  useEffect(() => {
+    if (status !== "complete") return;
+    const state = sessionStore.getState();
+    if (state.events.length === 0) return;
+    if (state.completedAt === null) return;
+    if (lastPersistedAt.current === state.completedAt) return;
+    lastPersistedAt.current = state.completedAt;
+
+    const elapsedMs =
+      state.startedAt !== null ? Math.max(0, state.completedAt - state.startedAt) : 0;
+    const endedAt = new Date();
+    const startedAt = new Date(endedAt.getTime() - elapsedMs);
+
+    persistSession({
+      data: {
+        sessionId: crypto.randomUUID(),
+        keyboardProfileId: profile.id,
+        mode: "adaptive",
+        target: state.target,
+        events: state.events.map((e) => ({
+          targetChar: e.targetChar,
+          actualChar: e.actualChar,
+          isError: e.isError,
+          keystrokeMs: e.keystrokeMs,
+          prevChar: e.prevChar,
+          timestamp: e.timestamp.toISOString(),
+        })),
+        startedAt: startedAt.toISOString(),
+        endedAt: endedAt.toISOString(),
+        phase: profile.transitionPhase,
+        filterConfig: {
+          handIsolation: filters.handIsolation,
+          maxWordLength: filters.maxWordLength,
+        },
+      },
+    }).catch((err) => {
+      // Summary UI is already rendered — log only per §2.8 decision.
+      console.error("persistSession failed:", err);
+    });
+  }, [status, profile.id, profile.transitionPhase, filters]);
 
   if (status === "complete") {
     // Pull the values the summary depends on straight from the store.

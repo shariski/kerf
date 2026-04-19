@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
@@ -27,6 +27,7 @@ import {
 } from "#/domain/adaptive/drillGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { summarizeDrill } from "#/domain/session/drillSummary";
+import { persistSession } from "#/server/persistSession";
 import type { Corpus } from "#/domain/corpus/types";
 
 type LoadedProfile = {
@@ -220,6 +221,55 @@ function DrillPage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fire-and-forget session persistence (Task 2.8). Same dedup pattern
+  // as /practice — completedAt identifies each distinct finish.
+  const lastPersistedAt = useRef<number | null>(null);
+  useEffect(() => {
+    if (status !== "complete") return;
+    if (!activeDrill) return;
+    const state = sessionStore.getState();
+    if (state.events.length === 0) return;
+    if (state.completedAt === null) return;
+    if (lastPersistedAt.current === state.completedAt) return;
+    lastPersistedAt.current = state.completedAt;
+
+    const elapsedMs =
+      state.startedAt !== null ? Math.max(0, state.completedAt - state.startedAt) : 0;
+    const endedAt = new Date();
+    const startedAt = new Date(endedAt.getTime() - elapsedMs);
+
+    // Capture which kind of drill this was so Phase 3 can group runs
+    // by preset or by manual target.
+    const filterConfig: Record<string, unknown> = search.target
+      ? { drillTarget: search.target }
+      : search.preset
+        ? { drillPreset: search.preset }
+        : {};
+
+    persistSession({
+      data: {
+        sessionId: crypto.randomUUID(),
+        keyboardProfileId: profile.id,
+        mode: "targeted_drill",
+        target: state.target,
+        events: state.events.map((e) => ({
+          targetChar: e.targetChar,
+          actualChar: e.actualChar,
+          isError: e.isError,
+          keystrokeMs: e.keystrokeMs,
+          prevChar: e.prevChar,
+          timestamp: e.timestamp.toISOString(),
+        })),
+        startedAt: startedAt.toISOString(),
+        endedAt: endedAt.toISOString(),
+        phase: profile.transitionPhase,
+        filterConfig,
+      },
+    }).catch((err) => {
+      console.error("persistSession failed:", err);
+    });
+  }, [status, activeDrill, profile.id, profile.transitionPhase, search]);
 
   const runAgain = () => {
     if (!activeDrill || corpus.status !== "ready") return;

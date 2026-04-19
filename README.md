@@ -63,4 +63,4 @@ npm run lint        # linter
 - [x] Phase 2 / Task 2.5: Post-session inline summary with error review (summarizeSession + pickSummaryTitle + 1:1 wireframe port)
 - [x] Phase 2 / Task 2.6: Drill mode submode (`/practice/drill` route, manual target + 3 presets, before/after card in post-drill)
 - [x] Phase 2 / Task 2.7: Hand isolation filter (UI + filter plumbing + corpus metadata already in place from Tasks 1.3 / 2.4; locked in by a real-corpus integration test)
-- [ ] Phase 2 / Task 2.8: Session persistence (NEW — wires `sessions` / `keystroke_events` / `character_stats` / `bigram_stats` / `split_metrics_snapshots` on session complete)
+- [x] Phase 2 / Task 2.8: Session persistence (`persistSession` server function with all-or-nothing transaction, client-generated UUID for idempotency, UPSERT on per-user stats)
