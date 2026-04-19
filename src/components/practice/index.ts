@@ -2,4 +2,7 @@ export { PreSessionStage } from "./PreSessionStage";
 export { ActiveSessionStage, type TypingSize } from "./ActiveSessionStage";
 export { PauseOverlay, type PauseSettings } from "./PauseOverlay";
 export { PostSessionStage } from "./PostSessionStage";
+export { DrillPreSessionStage, type PresetKey } from "./DrillPreSessionStage";
+export { DrillActiveHeader } from "./DrillActiveHeader";
+export { DrillPostSessionStage } from "./DrillPostSessionStage";
 export type { PreSessionFilterValues } from "./PreSessionFilters";

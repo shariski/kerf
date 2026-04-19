@@ -17,17 +17,24 @@ const FILTERS: PreSessionFilterValues = {
   showKeyboard: true,
 };
 
+/** Baseline props — tests override only what they assert on. */
+const baseProps = {
+  filterValues: FILTERS,
+  onFilterChange: () => {},
+  onStartAdaptive: () => {},
+  onDrillWeakness: () => {},
+  onDrillInnerColumn: () => {},
+} as const;
+
 afterEach(() => cleanup());
 
 describe("PreSessionStage", () => {
   it("renders title, subtitle, keyboard pill, and phase badge", () => {
     const { container } = render(
       <PreSessionStage
+        {...baseProps}
         keyboardType="lily58"
         phase="transitioning"
-        filterValues={FILTERS}
-        onFilterChange={() => {}}
-        onStartAdaptive={() => {}}
       />,
     );
     expect(container.querySelector(".kerf-pre-title")?.textContent).toBe(
@@ -48,10 +55,9 @@ describe("PreSessionStage", () => {
     const onStart = vi.fn();
     const { container } = render(
       <PreSessionStage
+        {...baseProps}
         keyboardType="sofle"
         phase="refining"
-        filterValues={FILTERS}
-        onFilterChange={() => {}}
         onStartAdaptive={onStart}
       />,
     );
@@ -61,32 +67,51 @@ describe("PreSessionStage", () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 
-  it("renders the secondary mode cards as disabled (Task 2.6+)", () => {
+  it("enables Drill and Inner-column mode cards, keeps Warm up disabled", () => {
     const { container } = render(
       <PreSessionStage
+        {...baseProps}
         keyboardType="sofle"
         phase="transitioning"
-        filterValues={FILTERS}
-        onFilterChange={() => {}}
-        onStartAdaptive={() => {}}
       />,
     );
-    const cards = container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card");
+    const cards = Array.from(
+      container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"),
+    );
     expect(cards).toHaveLength(3);
-    for (const card of cards) {
-      expect(card.disabled).toBe(true);
-      expect(card.dataset.disabled).toBe("true");
-    }
+    const [drill, innerColumn, warmUp] = cards;
+    expect(drill!.disabled).toBe(false);
+    expect(innerColumn!.disabled).toBe(false);
+    expect(warmUp!.disabled).toBe(true);
+  });
+
+  it("fires onDrillWeakness / onDrillInnerColumn when the respective cards are clicked", () => {
+    const onDrill = vi.fn();
+    const onInner = vi.fn();
+    const { container } = render(
+      <PreSessionStage
+        {...baseProps}
+        keyboardType="sofle"
+        phase="transitioning"
+        onDrillWeakness={onDrill}
+        onDrillInnerColumn={onInner}
+      />,
+    );
+    const [drillCard, innerColumnCard] = Array.from(
+      container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"),
+    );
+    fireEvent.click(drillCard!);
+    fireEvent.click(innerColumnCard!);
+    expect(onDrill).toHaveBeenCalledTimes(1);
+    expect(onInner).toHaveBeenCalledTimes(1);
   });
 
   it("toggles the filters panel open/closed via the header button", () => {
     const { container } = render(
       <PreSessionStage
+        {...baseProps}
         keyboardType="sofle"
         phase="transitioning"
-        filterValues={FILTERS}
-        onFilterChange={() => {}}
-        onStartAdaptive={() => {}}
       />,
     );
     const header = container.querySelector(".kerf-pre-filters-header") as HTMLButtonElement;
@@ -101,11 +126,10 @@ describe("PreSessionStage", () => {
     const onChange = vi.fn();
     const { container } = render(
       <PreSessionStage
+        {...baseProps}
         keyboardType="sofle"
         phase="transitioning"
-        filterValues={FILTERS}
         onFilterChange={onChange}
-        onStartAdaptive={() => {}}
       />,
     );
     fireEvent.click(container.querySelector(".kerf-pre-filters-header")!);

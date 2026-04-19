@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
@@ -70,6 +70,7 @@ const TARGET_WORD_COUNT = 30;
 
 function PracticePage() {
   const { profile } = Route.useLoaderData();
+  const navigate = useNavigate();
   const status = useSessionStore((s) => s.status);
   const currentTarget = useSessionStore((s) => s.target);
   const corpus = useCorpus();
@@ -208,6 +209,15 @@ function PracticePage() {
           filterValues={filters}
           onFilterChange={setFilters}
           onStartAdaptive={startAdaptive}
+          onDrillWeakness={() =>
+            navigate({ to: "/practice/drill", search: {} })
+          }
+          onDrillInnerColumn={() =>
+            navigate({
+              to: "/practice/drill",
+              search: { preset: "innerColumn" },
+            })
+          }
         />
         {corpus.status === "error" && (
           <p className="kerf-corpus-error" role="alert" aria-live="polite">

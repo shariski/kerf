@@ -13,6 +13,7 @@ import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PracticeDrillRouteImport } from './routes/practice_.drill'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const PracticeRoute = PracticeRouteImport.update({
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PracticeDrillRoute = PracticeDrillRouteImport.update({
+  id: '/practice_/drill',
+  path: '/practice/drill',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/practice': typeof PracticeRoute
+  '/practice/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/practice': typeof PracticeRoute
+  '/practice/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,34 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/practice': typeof PracticeRoute
+  '/practice_/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/onboarding' | '/practice' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/onboarding'
+    | '/practice'
+    | '/practice/drill'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/onboarding' | '/practice' | '/api/auth/$'
-  id: '__root__' | '/' | '/login' | '/onboarding' | '/practice' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/onboarding'
+    | '/practice'
+    | '/practice/drill'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/onboarding'
+    | '/practice'
+    | '/practice_/drill'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +104,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PracticeRoute: typeof PracticeRoute
+  PracticeDrillRoute: typeof PracticeDrillRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -109,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/practice_/drill': {
+      id: '/practice_/drill'
+      path: '/practice/drill'
+      fullPath: '/practice/drill'
+      preLoaderRoute: typeof PracticeDrillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -124,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PracticeRoute: PracticeRoute,
+  PracticeDrillRoute: PracticeDrillRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
