@@ -121,7 +121,13 @@ export const SOFLE_GEOMETRY: KeyboardGeometry = {
       translateY: 30,
       keys: leftKeys,
       encoders: [
-        { id: "sofle-encoder-left", x: 304, y: 204, rotate: 18, cx: 16, cy: 16, r: 14 },
+        // Top-inner position per the developer's real Sofle hardware
+        // (photo confirmed). The rotary encoder sits on the outer
+        // side of the inner column at row-0 height, not in the thumb
+        // cluster where the original design-source wireframe placed
+        // it. No rotation — the knob is sideways-mounted; the visual
+        // circle represents the knob face as seen from above.
+        { id: "sofle-encoder-left", x: 206, y: 10, cx: 16, cy: 16, r: 14 },
       ],
     },
     right: {
@@ -129,14 +135,11 @@ export const SOFLE_GEOMETRY: KeyboardGeometry = {
       translateY: 30,
       keys: rightKeys,
       encoders: [
-        // Mirror of the left encoder (x=304, y=204, rotate=+18) using
-        // the same top-left-as-rotation-anchor math as the thumb keys
-        // above. Post-rotation, left's SVG top-right lands at
-        // (324+30.44, 234+9.89). Mirror that point across x=331 and
-        // use it as the right encoder's TOP-LEFT SVG position, then
-        // subtract the right translate (440) for the x and (30) for
-        // the y: X=-132, Y=214.
-        { id: "sofle-encoder-right", x: -132, y: 214, rotate: -18, cx: 16, cy: 16, r: 14 },
+        // Mirror of the left encoder: right-inner-column's outer side
+        // at row-0 height. x=-36 puts the circle's center at absolute
+        // x=420, which is the mirror of the left encoder's center
+        // (242) across the keyboard's SVG center 331.
+        { id: "sofle-encoder-right", x: -36, y: 10, cx: 16, cy: 16, r: 14 },
       ],
     },
   },
