@@ -61,5 +61,5 @@ npm run lint        # linter
 - [x] Phase 2 / Task 2.3: Typing area component (TypingArea + useKeystrokeCapture + sessionStore with amber expected-letter badge on errors)
 - [x] Phase 2 / Task 2.4: Practice page integration with pause state (pre-session → active → pause overlay → post-session placeholder)
 - [x] Phase 2 / Task 2.5: Post-session inline summary with error review (summarizeSession + pickSummaryTitle + 1:1 wireframe port)
-- [ ] Phase 2 / Task 2.6: Drill mode submode
+- [x] Phase 2 / Task 2.6: Drill mode submode (`/practice/drill` route, manual target + 3 presets, before/after card in post-drill)
 - [ ] Phase 2 / Task 2.7: Hand isolation filter

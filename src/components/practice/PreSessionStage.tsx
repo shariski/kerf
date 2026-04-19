@@ -31,6 +31,10 @@ type Props = {
   filterValues: PreSessionFilterValues;
   onFilterChange: (next: PreSessionFilterValues) => void;
   onStartAdaptive: () => void;
+  /** Navigate to /practice/drill so the user can pick a target. */
+  onDrillWeakness: () => void;
+  /** Shortcut to /practice/drill?preset=innerColumn. */
+  onDrillInnerColumn: () => void;
 };
 
 const TARGET_WORD_COUNT = 30;
@@ -43,6 +47,8 @@ export function PreSessionStage({
   filterValues,
   onFilterChange,
   onStartAdaptive,
+  onDrillWeakness,
+  onDrillInnerColumn,
 }: Props) {
   const approxSeconds = TARGET_WORD_COUNT * APPROX_SECONDS_PER_WORD;
   const metaLine = `balanced practice · ${TARGET_WORD_COUNT} words · ~${approxSeconds} sec`;
@@ -80,13 +86,13 @@ export function PreSessionStage({
           icon="◎"
           name="Drill weakness"
           description="Target a specific letter or bigram, repeatedly"
-          disabled
+          onSelect={onDrillWeakness}
         />
         <ModeCard
           icon="⬌"
           name="Inner column"
           description="Focus drill on B, G, H, N, T, Y — classic split pain points"
-          disabled
+          onSelect={onDrillInnerColumn}
         />
         <ModeCard
           icon="◷"
