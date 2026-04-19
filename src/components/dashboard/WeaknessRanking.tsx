@@ -3,16 +3,18 @@ import type { DashboardWeaknessRankingData } from "#/server/dashboard";
 /**
  * Dashboard Section 4 — top-10 weakness ranking.
  *
- * 1:1 port of the `.weakness-row` block in dashboard-wireframe.html.
- * Seven columns: rank, unit, relative-weight bar, error %, avg time,
- * score. Characters render uppercase for legibility (B, T); bigrams
- * stay lowercase (er, th).
+ * 1:1 port of the `.weakness-row` block in dashboard-wireframe.html,
+ * with one deliberate departure: we render every unit lowercase
+ * regardless of whether it's a character or a bigram. The wireframe
+ * uppercases single chars (B, T) for typographic distinction, but
+ * users read that as "I typed capitals" even though the DB only
+ * stores lowercase — confusing. The monospace font's built-in width
+ * difference between a 1-char and 2-char unit is distinction enough.
  *
  * The bar width is self-normalized to the current list — the #1
- * entry is always 100% filled, others proportional. This matches the
- * wireframe's intent and communicates *ordering* well, but the
- * absolute score number to its right is what the adaptive engine
- * actually consumes.
+ * entry is always 100% filled, others proportional. Ordering signal,
+ * not absolute-scale; the score number beside it carries the
+ * engine's actual input.
  */
 
 type Props = { data: DashboardWeaknessRankingData };
@@ -46,9 +48,7 @@ export function WeaknessRanking({ data }: Props) {
           <span className="kerf-dash-weakness-rank">
             {(i + 1).toString().padStart(2, "0")}
           </span>
-          <span className="kerf-dash-weakness-key">
-            {entry.isCharacter ? entry.unit.toUpperCase() : entry.unit}
-          </span>
+          <span className="kerf-dash-weakness-key">{entry.unit}</span>
           <div
             className="kerf-dash-weakness-bar"
             role="progressbar"
