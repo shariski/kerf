@@ -1,0 +1,1 @@
+export { TypingArea } from "./TypingArea";

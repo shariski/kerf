@@ -17,6 +17,7 @@ dist-ssr
 __unconfig*
 todos.json
 
-# Local tooling artifacts (Serena MCP cache, Superpowers skill docs)
+# Local tooling artifacts (Serena MCP cache, Superpowers skill docs, Playwright MCP session files)
 .serena/
 docs/superpowers/
+.playwright-mcp/
