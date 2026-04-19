@@ -98,6 +98,51 @@ describe("useNavAutoHide — active typing", () => {
     expect(result.current.hidden).toBe(true);
   });
 
+  // Regression: an earlier debounced implementation cleared and
+  // re-armed the hide timer on every keystroke, so rapid continuous
+  // typing pushed hide indefinitely into the future and the nav never
+  // disappeared. This lock-ins the "arm once, let it fire" behaviour.
+  it("hides after 1s even during rapid continuous typing (no pause)", () => {
+    const { result } = renderHook(() => useNavAutoHide());
+    // Ten keystrokes, 100ms apart → 1s total, no gap long enough to be
+    // a pause. In the buggy version, hide was always 1s in the future
+    // so by t=1000 it had not yet fired.
+    for (let i = 0; i < 10; i++) {
+      act(() => typeKey("a"));
+      act(() => vi.advanceTimersByTime(100));
+    }
+    expect(result.current.hidden).toBe(true);
+  });
+
+  // Regression: after a reveal (pause, Esc, mouse-top), resuming
+  // typing must re-arm hide. Without clearing `hideArmed` on reveal,
+  // the second-session / post-pause typing would stay visible forever.
+  it("re-arms hide after a pause-reveal: nav hides 1s into the next typing burst", () => {
+    const { result } = renderHook(() => useNavAutoHide());
+    act(() => typeKey("a"));
+    act(() => vi.advanceTimersByTime(1000));
+    expect(result.current.hidden).toBe(true);
+    // 3s silence triggers the pause-reveal.
+    act(() => vi.advanceTimersByTime(3000));
+    expect(result.current.hidden).toBe(false);
+    // Resume typing — hide must re-arm.
+    act(() => typeKey("b"));
+    act(() => vi.advanceTimersByTime(1000));
+    expect(result.current.hidden).toBe(true);
+  });
+
+  it("re-arms hide after an Esc reveal: nav hides 1s into the next typing burst", () => {
+    const { result } = renderHook(() => useNavAutoHide());
+    act(() => typeKey("a"));
+    act(() => vi.advanceTimersByTime(1000));
+    expect(result.current.hidden).toBe(true);
+    act(() => typeKey("Escape"));
+    expect(result.current.hidden).toBe(false);
+    act(() => typeKey("b"));
+    act(() => vi.advanceTimersByTime(1000));
+    expect(result.current.hidden).toBe(true);
+  });
+
   it("reveals after 3s without a keystroke (pause intent)", () => {
     const { result } = renderHook(() => useNavAutoHide());
     act(() => typeKey("a"));

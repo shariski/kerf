@@ -10,10 +10,14 @@ import { useSessionStore } from "#/stores/sessionStore";
  *   - Session status === "active":
  *       • Nav starts visible (no typing yet).
  *       • First keystroke schedules a hide in 1s (the "don't vanish
- *         mid-word" grace window).
- *       • Each subsequent keystroke both re-arms the hide timer and
- *         re-arms a 3s reveal timer.
+ *         mid-word" grace window). The hide timer is armed ONCE per
+ *         typing burst — subsequent keystrokes do NOT push it out,
+ *         otherwise continuous typing would prevent the nav from ever
+ *         disappearing. (The earlier debounced version had exactly
+ *         that bug.)
+ *       • Each keystroke re-arms the 3s pause-reveal timer.
  *       • 3s without a keystroke → reveal (interpreted as a pause).
+ *         After a reveal, the next keystroke re-arms hide from scratch.
  *       • Mouse moves into the top 60px of the viewport → reveal.
  *       • Esc key → reveal. (Does not interfere with the practice
  *         route's Esc-to-pause handler; both listeners run.)
@@ -42,12 +46,16 @@ export function useNavAutoHide(): { hidden: boolean } {
 
     let hideTimer: ReturnType<typeof setTimeout> | undefined;
     let pauseTimer: ReturnType<typeof setTimeout> | undefined;
+    // True once the hide-after-1s timer is armed for the current typing
+    // burst. Cleared on reveal so the next keystroke can arm hide again.
+    let hideArmed = false;
 
     const clearHide = () => {
       if (hideTimer) {
         clearTimeout(hideTimer);
         hideTimer = undefined;
       }
+      hideArmed = false;
     };
     const clearPause = () => {
       if (pauseTimer) {
@@ -58,6 +66,7 @@ export function useNavAutoHide(): { hidden: boolean } {
 
     const reveal = () => {
       clearHide();
+      clearPause();
       setHidden(false);
     };
 
@@ -73,10 +82,17 @@ export function useNavAutoHide(): { hidden: boolean } {
       // keystroke-capture hook uses.
       if (e.key.length !== 1) return;
 
-      clearHide();
-      hideTimer = setTimeout(() => setHidden(true), HIDE_AFTER_MS);
+      // Arm the hide ONCE per typing burst. Do NOT debounce it — rapid
+      // typing would otherwise push the hide indefinitely into the
+      // future and the nav would never disappear.
+      if (!hideArmed) {
+        hideArmed = true;
+        hideTimer = setTimeout(() => setHidden(true), HIDE_AFTER_MS);
+      }
+      // Any keystroke resets the pause-reveal clock. Only a 3s gap
+      // between keystrokes counts as "the user stopped typing".
       clearPause();
-      pauseTimer = setTimeout(() => setHidden(false), PAUSE_REVEAL_MS);
+      pauseTimer = setTimeout(reveal, PAUSE_REVEAL_MS);
     };
 
     const onMouseMove = (e: MouseEvent) => {
