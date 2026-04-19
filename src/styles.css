@@ -1046,11 +1046,28 @@ a {
 }
 
 /* Typing text size — controlled by pause overlay setting. Applied on the
-   active-session wrapper so the whole typing block scales together. */
-.kerf-active-session[data-typing-size="S"] .kerf-typing { font-size: 26px; }
-.kerf-active-session[data-typing-size="M"] .kerf-typing { font-size: 36px; }
-.kerf-active-session[data-typing-size="L"] .kerf-typing { font-size: 44px; }
-.kerf-active-session[data-typing-size="XL"] .kerf-typing { font-size: 54px; }
+   active-session wrapper so the whole typing block scales together.
+   `--kerf-typing-text-lines` tapers as font-size grows so the container's
+   pixel height stays roughly constant (~320-360px) across S/M/L/XL.
+   Without this taper, XL would be 540px tall and push the keyboard off
+   the bottom of typical laptop viewports. The scroll-snap math reads
+   this variable, so reducing lines keeps the math consistent. */
+.kerf-active-session[data-typing-size="S"] .kerf-typing {
+  font-size: 26px;
+  --kerf-typing-text-lines: 5;
+}
+.kerf-active-session[data-typing-size="M"] .kerf-typing {
+  font-size: 36px;
+  --kerf-typing-text-lines: 4;
+}
+.kerf-active-session[data-typing-size="L"] .kerf-typing {
+  font-size: 44px;
+  --kerf-typing-text-lines: 3;
+}
+.kerf-active-session[data-typing-size="XL"] .kerf-typing {
+  font-size: 54px;
+  --kerf-typing-text-lines: 2;
+}
 
 /* ================================================================
    Pause overlay — Task 2.4
