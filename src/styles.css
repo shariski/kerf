@@ -759,9 +759,12 @@ body {
 
 /* Live WPM corner widget */
 .kerf-live-wpm {
+  /* Bottom-right per practice-page-wireframe.html .live-wpm.
+     Moved up from the original top-right placement so the auto-hiding
+     AppNav doesn't occlude this readout during a typing burst. */
   position: fixed;
-  top: 20px;
-  right: 24px;
+  bottom: 32px;
+  right: 32px;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--color-kerf-text-tertiary);
@@ -784,9 +787,12 @@ body {
 
 /* Shortcut hints strip */
 .kerf-shortcut-hints {
+  /* Bottom-LEFT per practice-page-wireframe.html .shortcut-hints.
+     Opposite corner from .kerf-live-wpm so they don't overlap and
+     each gets a dedicated corner for its own signal. */
   position: fixed;
-  bottom: 20px;
-  right: 24px;
+  bottom: 32px;
+  left: 32px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1633,9 +1639,10 @@ body {
   background: var(--color-kerf-bg-base);
   border-bottom: 1px solid var(--color-kerf-border-subtle);
   /* Auto-hide during active typing — see useNavAutoHide hook + IA §5.
-     Transition both the slide and the fade so the reveal feels
-     continuous rather than popping back in. */
-  transition: transform 150ms ease, opacity 150ms ease;
+     Tightened from the spec's 150ms after empirical testing: 150ms
+     read as sluggish; 90ms still reads as smooth but answers the
+     typing burst faster. */
+  transition: transform 90ms ease, opacity 90ms ease;
 }
 
 .kerf-app-nav[data-hidden] {

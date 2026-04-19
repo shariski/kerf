@@ -9,12 +9,12 @@ import { useSessionStore } from "#/stores/sessionStore";
  *     post-session, dashboard, every other page.
  *   - Session status === "active":
  *       • Nav starts visible (no typing yet).
- *       • First keystroke schedules a hide in 1s (the "don't vanish
- *         mid-word" grace window). The hide timer is armed ONCE per
- *         typing burst — subsequent keystrokes do NOT push it out,
- *         otherwise continuous typing would prevent the nav from ever
- *         disappearing. (The earlier debounced version had exactly
- *         that bug.)
+ *       • First keystroke schedules a hide after HIDE_AFTER_MS (short
+ *         grace so the nav doesn't flash on an accidental first key).
+ *         The hide timer is armed ONCE per typing burst — subsequent
+ *         keystrokes do NOT push it out, otherwise continuous typing
+ *         would prevent the nav from ever disappearing. (The earlier
+ *         debounced version had exactly that bug.)
  *       • Each keystroke re-arms the 3s pause-reveal timer.
  *       • 3s without a keystroke → reveal (interpreted as a pause).
  *         After a reveal, the next keystroke re-arms hide from scratch.
@@ -26,8 +26,14 @@ import { useSessionStore } from "#/stores/sessionStore";
  * on and let CSS do the transition.
  */
 
-const HIDE_AFTER_MS = 1000;
-const PAUSE_REVEAL_MS = 3000;
+// Shorter than the original IA §5 spec's 1s — empirical testing
+// showed 1s feels sluggish, as if the nav hangs on after the user
+// clearly committed to typing. 300ms keeps enough grace to avoid
+// flashing on an accidental first key while still reading as
+// "snappy". The 3s pause-reveal window is intentionally untouched —
+// that's about detecting intent, not responsiveness.
+export const HIDE_AFTER_MS = 300;
+export const PAUSE_REVEAL_MS = 3000;
 const REVEAL_TOP_PX = 60;
 
 export function useNavAutoHide(): { hidden: boolean } {

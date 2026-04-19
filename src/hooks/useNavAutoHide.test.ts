@@ -9,7 +9,11 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sessionStore } from "#/stores/sessionStore";
-import { useNavAutoHide } from "./useNavAutoHide";
+import {
+  HIDE_AFTER_MS,
+  PAUSE_REVEAL_MS,
+  useNavAutoHide,
+} from "./useNavAutoHide";
 
 function setStatus(status: "idle" | "active" | "complete") {
   sessionStore.setState((s) => ({ ...s, status }));
@@ -56,7 +60,7 @@ describe("useNavAutoHide — status gating", () => {
     const { result } = renderHook(() => useNavAutoHide());
     act(() => setStatus("active"));
     act(() => typeKey("a"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
     act(() => setStatus("idle"));
     expect(result.current.hidden).toBe(false);
@@ -75,11 +79,11 @@ describe("useNavAutoHide — active typing", () => {
     expect(result.current.hidden).toBe(false);
   });
 
-  it("hides 1s after the first keystroke", () => {
+  it("hides after HIDE_AFTER_MS since the first keystroke", () => {
     const { result } = renderHook(() => useNavAutoHide());
     act(() => typeKey("a"));
     expect(result.current.hidden).toBe(false);
-    act(() => vi.advanceTimersByTime(999));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS - 1));
     expect(result.current.hidden).toBe(false);
     act(() => vi.advanceTimersByTime(1));
     expect(result.current.hidden).toBe(true);
@@ -88,7 +92,7 @@ describe("useNavAutoHide — active typing", () => {
   it("stays hidden as the user continues typing", () => {
     const { result } = renderHook(() => useNavAutoHide());
     act(() => typeKey("a"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
     // Keep typing every 500ms — nav stays hidden.
     for (let i = 0; i < 5; i++) {
@@ -101,15 +105,15 @@ describe("useNavAutoHide — active typing", () => {
   // Regression: an earlier debounced implementation cleared and
   // re-armed the hide timer on every keystroke, so rapid continuous
   // typing pushed hide indefinitely into the future and the nav never
-  // disappeared. This lock-ins the "arm once, let it fire" behaviour.
-  it("hides after 1s even during rapid continuous typing (no pause)", () => {
+  // disappeared. This locks in the "arm once, let it fire" behaviour.
+  it("hides within HIDE_AFTER_MS even during rapid continuous typing (no pause)", () => {
     const { result } = renderHook(() => useNavAutoHide());
-    // Ten keystrokes, 100ms apart → 1s total, no gap long enough to be
-    // a pause. In the buggy version, hide was always 1s in the future
-    // so by t=1000 it had not yet fired.
+    // Ten keystrokes, 50ms apart — no gap long enough to be a pause.
+    // In the buggy version, hide was always HIDE_AFTER_MS in the
+    // future so it would not have fired by t=500.
     for (let i = 0; i < 10; i++) {
       act(() => typeKey("a"));
-      act(() => vi.advanceTimersByTime(100));
+      act(() => vi.advanceTimersByTime(50));
     }
     expect(result.current.hidden).toBe(true);
   });
@@ -117,39 +121,40 @@ describe("useNavAutoHide — active typing", () => {
   // Regression: after a reveal (pause, Esc, mouse-top), resuming
   // typing must re-arm hide. Without clearing `hideArmed` on reveal,
   // the second-session / post-pause typing would stay visible forever.
-  it("re-arms hide after a pause-reveal: nav hides 1s into the next typing burst", () => {
+  it("re-arms hide after a pause-reveal", () => {
     const { result } = renderHook(() => useNavAutoHide());
     act(() => typeKey("a"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
-    // 3s silence triggers the pause-reveal.
-    act(() => vi.advanceTimersByTime(3000));
+    // Silence long enough to trigger the pause-reveal.
+    act(() => vi.advanceTimersByTime(PAUSE_REVEAL_MS));
     expect(result.current.hidden).toBe(false);
     // Resume typing — hide must re-arm.
     act(() => typeKey("b"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
   });
 
-  it("re-arms hide after an Esc reveal: nav hides 1s into the next typing burst", () => {
+  it("re-arms hide after an Esc reveal", () => {
     const { result } = renderHook(() => useNavAutoHide());
     act(() => typeKey("a"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
     act(() => typeKey("Escape"));
     expect(result.current.hidden).toBe(false);
     act(() => typeKey("b"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
   });
 
-  it("reveals after 3s without a keystroke (pause intent)", () => {
+  it("reveals after PAUSE_REVEAL_MS without a keystroke (pause intent)", () => {
     const { result } = renderHook(() => useNavAutoHide());
     act(() => typeKey("a"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
-    // Stop typing. Pause-reveal fires at 3s from the last keystroke.
-    act(() => vi.advanceTimersByTime(2000));
+    // Stop typing. Pause-reveal fires PAUSE_REVEAL_MS after the last
+    // keystroke (which was the initial one — HIDE_AFTER_MS ago).
+    act(() => vi.advanceTimersByTime(PAUSE_REVEAL_MS - HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(false);
   });
 });
@@ -161,7 +166,7 @@ describe("useNavAutoHide — reveal triggers while hidden", () => {
 
   const hideNav = (result: { current: { hidden: boolean } }) => {
     act(() => typeKey("a"));
-    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(HIDE_AFTER_MS));
     expect(result.current.hidden).toBe(true);
   };
 
