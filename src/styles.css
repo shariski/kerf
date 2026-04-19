@@ -2452,6 +2452,143 @@ body {
   }
 }
 
+/* --- engine insight section (Task 3.2f) ---
+   Narrative + decision rationale + phase badge + footer CTA. The
+   final section on the dashboard — closes the page narrative by
+   explaining what the engine sees and what it'll pick next. */
+
+.kerf-dash-insight {
+  background: var(--color-kerf-amber-faint);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-left: 3px solid var(--color-kerf-amber-base);
+  border-radius: 0 8px 8px 0;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kerf-dash-insight-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kerf-dash-insight-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-amber-base);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.kerf-dash-insight-narrative {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-insight-rationale {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kerf-dash-insight-rationale-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.kerf-dash-insight-rationale-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-dash-insight-focus {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-amber-base);
+  font-weight: 700;
+}
+
+.kerf-dash-insight-focus-score {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.kerf-dash-insight-footer {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.kerf-dash-insight-footer-copy {
+  font-size: 13px;
+  color: var(--color-kerf-text-secondary);
+  font-style: italic;
+}
+
+.kerf-dash-insight-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kerf-dash-insight-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.kerf-dash-insight-btn--primary {
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+}
+
+.kerf-dash-insight-btn--primary:hover {
+  background: var(--color-kerf-amber-hover);
+}
+
+.kerf-dash-insight-btn--secondary {
+  background: transparent;
+  border: 1px solid var(--color-kerf-border-default);
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-insight-btn--secondary:hover {
+  background: var(--color-kerf-bg-elevated);
+}
+
+.kerf-dash-insight-btn--secondary strong {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-amber-base);
+}
+
 /* --- empty state --- */
 
 .kerf-dash-empty {

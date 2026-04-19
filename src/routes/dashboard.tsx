@@ -18,7 +18,9 @@ import { ActivityLog } from "#/components/dashboard/ActivityLog";
 import { Heatmap } from "#/components/dashboard/Heatmap";
 import { WeaknessRanking } from "#/components/dashboard/WeaknessRanking";
 import { TrajectoryCharts } from "#/components/dashboard/TrajectoryCharts";
+import { EngineInsight } from "#/components/dashboard/EngineInsight";
 import { Section } from "#/components/dashboard/Section";
+import { composeDashboardInsight } from "#/domain/dashboard/insight";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: async () => {
@@ -93,6 +95,20 @@ function DashboardPage() {
 
       <Section title="Split-keyboard metrics" meta="recent sessions">
         <SplitMetrics data={hero} />
+      </Section>
+
+      <Section title="Engine insight" meta="how the engine reads your history">
+        <EngineInsight
+          insight={composeDashboardInsight({
+            totalSessions: hero.totalSessions,
+            accuracyTrendPct: hero.accuracyTrendPct,
+            wpmTrend: hero.avgWpmTrend,
+            phase: weakness.phase,
+            topWeaknesses: weakness.entries,
+          })}
+          phase={weakness.phase}
+          topWeaknessName={weakness.entries[0]?.unit ?? null}
+        />
       </Section>
     </main>
   );
