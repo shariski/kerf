@@ -69,7 +69,7 @@ npm run lint        # linter
   - [x] 3.2a: Hero stats (accuracy-featured) + split-keyboard metrics
   - [x] 3.2b: Activity log (30-day contribution grid + last 5 sessions list)
   - [x] 3.2c: Heatmap overlay on visual keyboard SVG (per-key error-rate, amber → red ramp, legend + plain-language caption)
-  - [ ] 3.2d: Weakness ranking (top 7–10 with score breakdown)
+  - [x] 3.2d: Weakness ranking (top-10 mixed chars + bigrams, score from the same engine formula the adaptive exercise generator uses, self-normalized bar widths)
   - [ ] 3.2e: Skill trajectory charts (WPM + accuracy over time)
   - [ ] 3.2f: Engine insight narrative + phase badge + footer CTA
 - [ ] Phase 3 / Task 3.3: Power-user transparency panel (formula + decision rationale)

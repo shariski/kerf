@@ -9,10 +9,12 @@ import {
   computeMasteredCount,
   computeStreakDays,
   computeTrendDelta,
+  computeWeaknessRanking,
   formatDurationLabel,
   formatRelativeDay,
   type SplitSnapshot,
 } from "./aggregates";
+import type { BigramStat, UserBaseline } from "#/domain/stats/types";
 
 // --- streak ----------------------------------------------------------------
 
@@ -401,5 +403,184 @@ describe("computeHeatLevels", () => {
     expect(out[0]!.attempts).toBe(100);
     expect(out[0]!.errors).toBe(12);
     expect(out[0]!.errorRate).toBeCloseTo(0.12);
+  });
+});
+
+// --- computeWeaknessRanking ------------------------------------------------
+
+const baseline: UserBaseline = {
+  meanErrorRate: 0.05,
+  meanKeystrokeTime: 200,
+  meanHesitationRate: 0.1,
+};
+
+const cStat = (over: Partial<CharacterStat> & { character: string }): CharacterStat => ({
+  character: over.character,
+  attempts: over.attempts ?? 100,
+  errors: over.errors ?? 5,
+  sumTime: over.sumTime ?? 200 * 100,
+  hesitationCount: over.hesitationCount ?? 10,
+});
+
+const bStat = (over: Partial<BigramStat> & { bigram: string }): BigramStat => ({
+  bigram: over.bigram,
+  attempts: over.attempts ?? 100,
+  errors: over.errors ?? 5,
+  sumTime: over.sumTime ?? 200 * 100,
+});
+
+describe("computeWeaknessRanking", () => {
+  it("returns empty when no stats rows", () => {
+    const out = computeWeaknessRanking({
+      chars: [],
+      bigrams: [],
+      baseline,
+      phase: "transitioning",
+      topN: 10,
+    });
+    expect(out).toEqual([]);
+  });
+
+  it("filters out low-confidence units (< 5 attempts)", () => {
+    const out = computeWeaknessRanking({
+      chars: [
+        cStat({ character: "a", attempts: 4, errors: 4 }), // huge error rate but too few attempts
+      ],
+      bigrams: [],
+      baseline,
+      phase: "transitioning",
+      topN: 10,
+    });
+    expect(out).toEqual([]);
+  });
+
+  it("ranks characters and bigrams together in one list", () => {
+    const out = computeWeaknessRanking({
+      chars: [
+        cStat({ character: "q", attempts: 50, errors: 20 }), // very error-prone char
+      ],
+      bigrams: [
+        bStat({ bigram: "er", attempts: 50, errors: 15 }),
+      ],
+      baseline,
+      phase: "transitioning",
+      topN: 10,
+    });
+    expect(out).toHaveLength(2);
+    const units = new Set(out.map((e) => e.unit));
+    expect(units).toEqual(new Set(["q", "er"]));
+    const char = out.find((e) => e.unit === "q")!;
+    const bigram = out.find((e) => e.unit === "er")!;
+    expect(char.isCharacter).toBe(true);
+    expect(bigram.isCharacter).toBe(false);
+  });
+
+  it("sorts by score descending and caps at topN", () => {
+    const chars = Array.from({ length: 15 }, (_, i) =>
+      cStat({
+        character: String.fromCharCode("a".charCodeAt(0) + i),
+        attempts: 100,
+        errors: i + 1, // a: 1 error, b: 2, …, o: 15 errors
+      }),
+    );
+    const out = computeWeaknessRanking({
+      chars,
+      bigrams: [],
+      baseline,
+      phase: "transitioning",
+      topN: 5,
+    });
+    expect(out).toHaveLength(5);
+    // Descending by score — lettering by error count decreasing.
+    // Highest-error entries are at the top (o, n, m, l, k).
+    const scores = out.map((e) => e.score);
+    for (let i = 1; i < scores.length; i++) {
+      expect(scores[i]! <= scores[i - 1]!).toBe(true);
+    }
+  });
+
+  it("assigns relativeWeightPct = 100 to the top entry", () => {
+    const out = computeWeaknessRanking({
+      chars: [
+        cStat({ character: "a", attempts: 50, errors: 20 }),
+        cStat({ character: "b", attempts: 50, errors: 5 }),
+      ],
+      bigrams: [],
+      baseline,
+      phase: "transitioning",
+      topN: 5,
+    });
+    expect(out[0]!.relativeWeightPct).toBe(100);
+    // The second entry's bar is proportional (not 100, not 0).
+    expect(out[1]!.relativeWeightPct).toBeGreaterThan(0);
+    expect(out[1]!.relativeWeightPct).toBeLessThan(100);
+  });
+
+  it("applies the transitioning-phase inner-column bonus to letters like B, T", () => {
+    // Same error/slowness profile: B (inner column) vs S (not inner).
+    // Transitioning phase gives B the inner-column bonus — it should
+    // outrank S.
+    const out = computeWeaknessRanking({
+      chars: [
+        cStat({ character: "b", attempts: 100, errors: 10 }),
+        cStat({ character: "s", attempts: 100, errors: 10 }),
+      ],
+      bigrams: [],
+      baseline,
+      phase: "transitioning",
+      topN: 5,
+    });
+    const b = out.find((e) => e.unit === "b")!;
+    const s = out.find((e) => e.unit === "s")!;
+    expect(b.score).toBeGreaterThan(s.score);
+  });
+
+  it("refining phase applies no inner-column bonus (shifts weight to slowness/hesitation)", () => {
+    // Same profile — inner-column bonus only applies in transitioning.
+    const out = computeWeaknessRanking({
+      chars: [
+        cStat({ character: "b", attempts: 100, errors: 10 }),
+        cStat({ character: "s", attempts: 100, errors: 10 }),
+      ],
+      bigrams: [],
+      baseline,
+      phase: "refining",
+      topN: 5,
+    });
+    const b = out.find((e) => e.unit === "b")!;
+    const s = out.find((e) => e.unit === "s")!;
+    expect(Math.abs(b.score - s.score)).toBeLessThan(0.05);
+  });
+
+  it("surfaces errorRatePct and avgTimeMs in rounded integers", () => {
+    const out = computeWeaknessRanking({
+      chars: [cStat({ character: "q", attempts: 50, errors: 9, sumTime: 50 * 247 })],
+      bigrams: [],
+      baseline,
+      phase: "transitioning",
+      topN: 5,
+    });
+    expect(out[0]!.errorRatePct).toBe(18); // 9/50
+    expect(out[0]!.avgTimeMs).toBe(247);
+  });
+
+  // Regression: a stray empty prev_char in the persist pipeline can
+  // leak 1-char strings into bigram_stats. The ranking must ignore
+  // them so the UI doesn't render a lone letter next to its real
+  // character-stats sibling.
+  it("skips malformed bigrams (length !== 2)", () => {
+    const out = computeWeaknessRanking({
+      chars: [],
+      bigrams: [
+        bStat({ bigram: "n", attempts: 100, errors: 20 }), // stray 1-char
+        bStat({ bigram: "abc", attempts: 100, errors: 20 }), // stray 3-char
+        bStat({ bigram: "er", attempts: 50, errors: 10 }), // valid
+      ],
+      baseline,
+      phase: "transitioning",
+      topN: 5,
+    });
+    expect(out).toHaveLength(1);
+    expect(out[0]!.unit).toBe("er");
   });
 });

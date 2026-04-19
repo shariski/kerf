@@ -2212,6 +2212,129 @@ body {
   font-weight: 700;
 }
 
+/* --- weakness ranking section (Task 3.2d) ---
+   1:1 port of dashboard-wireframe.html .weakness-* block. Seven-column
+   grid: rank / unit / bar / error / time / score (+ hidden header). */
+
+.kerf-dash-weakness {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+
+.kerf-dash-weakness--empty {
+  text-align: center;
+}
+
+.kerf-dash-weakness-empty-note {
+  margin: 0;
+  color: var(--color-kerf-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 20px 0;
+}
+
+.kerf-dash-weakness-head,
+.kerf-dash-weakness-row {
+  display: grid;
+  grid-template-columns: 40px 60px 1fr 70px 80px 60px;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.kerf-dash-weakness-head {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-kerf-border-subtle);
+  margin-bottom: 4px;
+}
+
+.kerf-dash-weakness-head .kerf-dash-weakness-num,
+.kerf-dash-weakness-row .kerf-dash-weakness-stat,
+.kerf-dash-weakness-row .kerf-dash-weakness-score {
+  text-align: right;
+}
+
+.kerf-dash-weakness-row {
+  border-bottom: 1px solid var(--color-kerf-border-subtle);
+  font-size: 13px;
+  transition: background-color 120ms ease;
+}
+
+.kerf-dash-weakness-row:last-child {
+  border-bottom: none;
+}
+
+.kerf-dash-weakness-row:hover {
+  background: var(--color-kerf-bg-elevated);
+}
+
+.kerf-dash-weakness-rank {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  font-weight: 600;
+}
+
+.kerf-dash-weakness-key {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-kerf-amber-base);
+  font-size: 14px;
+}
+
+.kerf-dash-weakness-bar {
+  height: 6px;
+  background: var(--color-kerf-bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.kerf-dash-weakness-bar-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-kerf-amber-base) 0%,
+    var(--color-kerf-amber-hover) 100%
+  );
+  border-radius: 3px;
+  transition: width 160ms ease;
+}
+
+.kerf-dash-weakness-stat {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-dash-weakness-score {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-kerf-text-primary);
+}
+
+@media (max-width: 720px) {
+  .kerf-dash-weakness-head,
+  .kerf-dash-weakness-row {
+    grid-template-columns: 32px 50px 1fr 50px 50px;
+    gap: 8px;
+  }
+  /* Hide the avg-time column on narrow viewports — error rate and
+     score carry the primary signal. */
+  .kerf-dash-weakness-head > :nth-child(5),
+  .kerf-dash-weakness-row .kerf-dash-weakness-stat:last-of-type {
+    display: none;
+  }
+}
+
 /* --- empty state --- */
 
 .kerf-dash-empty {

@@ -8,7 +8,16 @@
  * queries; tests call them with plain arrays.
  */
 
-import type { CharacterStat } from "#/domain/stats/types";
+import {
+  computeWeaknessScore,
+  isLowConfidence,
+} from "#/domain/adaptive/weaknessScore";
+import type {
+  BigramStat,
+  CharacterStat,
+  TransitionPhase,
+  UserBaseline,
+} from "#/domain/stats/types";
 
 // --- streak math -----------------------------------------------------------
 
@@ -401,6 +410,119 @@ const HEAT_THRESHOLDS: readonly { lt: number; level: HeatLevel }[] = [
   { lt: 0.15, level: 3 }, // 7–15% → red-amber ("work on it")
   { lt: Infinity, level: 4 }, // ≥ 15% → strong red ("big weakness")
 ];
+
+// --- weakness ranking (Task 3.2d) -----------------------------------------
+
+export type WeaknessRankEntry = {
+  /** "b" for a character, "er" for a bigram. Already lowercase. */
+  unit: string;
+  /** UI cue for formatting (characters render uppercase, bigrams
+   * render as-is). */
+  isCharacter: boolean;
+  /** Weakness score as computed by the adaptive engine, rounded to
+   * one decimal to match the wireframe's stat column. */
+  score: number;
+  /** Error rate as a 0–100 integer for display. */
+  errorRatePct: number;
+  /** Average keystroke time in ms, rounded. */
+  avgTimeMs: number;
+  /** Total attempts across the user's history for this unit. Surfaced
+   * so tooltips or later extensions can show "n attempts" — not in the
+   * current visual. */
+  attempts: number;
+  /** Self-normalized to the list's top score: the #1 entry is always
+   * 100, others proportional. Matches the wireframe's
+   * .weakness-bar-fill widths and gives an at-a-glance sense of
+   * ordering without forcing an absolute scale the user can't read. */
+  relativeWeightPct: number;
+};
+
+/**
+ * Rank the user's weakest typing units for the dashboard.
+ *
+ * Mixes characters and bigrams into a single list per the wireframe
+ * (B / er / T / ; / th / G / Y). Filters low-confidence units (per
+ * adaptive engine's `isLowConfidence`) so early-session noise doesn't
+ * surface fake rankings. Sorts by score desc, takes the top N.
+ *
+ * Uses `computeWeaknessScore` — the same function the exercise
+ * generator ranks by — so the dashboard's ranking matches what the
+ * engine will pick next. Pass frequencyInLanguage=0 because the
+ * corpus isn't loaded in the server/dashboard read path; that term
+ * drops out and score reflects error/slowness/hesitation only, which
+ * is still the majority of the signal.
+ */
+export function computeWeaknessRanking(input: {
+  chars: readonly CharacterStat[];
+  bigrams: readonly BigramStat[];
+  baseline: UserBaseline;
+  phase: TransitionPhase;
+  topN: number;
+}): WeaknessRankEntry[] {
+  const { chars, bigrams, baseline, phase, topN } = input;
+
+  type Candidate = {
+    entry: WeaknessRankEntry;
+    rawScore: number;
+  };
+  const candidates: Candidate[] = [];
+
+  for (const c of chars) {
+    if (isLowConfidence(c)) continue;
+    const score = computeWeaknessScore(c, baseline, phase, 0);
+    candidates.push({
+      entry: {
+        unit: c.character.toLowerCase(),
+        isCharacter: true,
+        score: roundTo(score, 1),
+        errorRatePct: Math.round((c.errors / Math.max(1, c.attempts)) * 100),
+        avgTimeMs: Math.round(c.sumTime / Math.max(1, c.attempts)),
+        attempts: c.attempts,
+        relativeWeightPct: 0, // filled in after we know max score
+      },
+      rawScore: score,
+    });
+  }
+
+  for (const b of bigrams) {
+    if (isLowConfidence(b)) continue;
+    // Defensive: the persist pipeline records `prev_char + target_char`
+    // which includes "n " (n + space) at word boundaries and empty
+    // leak-throughs on first keystrokes. The dashboard ranking is
+    // about letter-letter patterns only — anything containing a space
+    // or non-alpha reads as a lone letter once rendered, confusing
+    // the table next to real character-stats entries.
+    if (!/^[a-z]{2}$/i.test(b.bigram)) continue;
+    const score = computeWeaknessScore(b, baseline, phase, 0);
+    candidates.push({
+      entry: {
+        unit: b.bigram.toLowerCase(),
+        isCharacter: false,
+        score: roundTo(score, 1),
+        errorRatePct: Math.round((b.errors / Math.max(1, b.attempts)) * 100),
+        avgTimeMs: Math.round(b.sumTime / Math.max(1, b.attempts)),
+        attempts: b.attempts,
+        relativeWeightPct: 0,
+      },
+      rawScore: score,
+    });
+  }
+
+  candidates.sort((a, b) => b.rawScore - a.rawScore);
+  const top = candidates.slice(0, topN);
+
+  const maxRaw = top.length > 0 ? top[0]!.rawScore : 0;
+  return top.map(({ entry, rawScore }) => ({
+    ...entry,
+    relativeWeightPct:
+      maxRaw > 0 ? Math.max(0, Math.round((rawScore / maxRaw) * 100)) : 0,
+  }));
+}
+
+function roundTo(value: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+}
 
 /**
  * Bucket character_stats rows into dashboard heatmap entries. Only
