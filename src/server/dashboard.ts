@@ -11,10 +11,14 @@ import {
 } from "./db/schema";
 import {
   averageSplitMetrics,
+  bucketActivityByDay,
   buildSparklineValues,
   computeMasteredCount,
   computeStreakDays,
   computeTrendDelta,
+  formatDurationLabel,
+  formatRelativeDay,
+  type ActivityDay,
   type SplitSnapshot,
 } from "#/domain/dashboard/aggregates";
 import type { KeyboardType } from "./profile";
@@ -289,4 +293,170 @@ function roundOrNull(value: number | null, decimals = 0): number | null {
   if (value === null) return null;
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
+}
+
+// --- activity log (Task 3.2b) ---------------------------------------------
+
+export type RecentSession = {
+  id: string;
+  relativeTime: string; // "2h ago" / "today" / "yesterday" / "Nd ago" / YYYY-MM-DD
+  mode: "adaptive" | "targeted_drill";
+  /** Human-readable "52 words" or "drill on B" built from totals + filter config. */
+  description: string;
+  wpm: number;
+  accuracyPct: number;
+  durationLabel: string; // M:SS
+};
+
+export type DashboardActivityData = {
+  /** Oldest → newest, always 30 entries. */
+  days: ActivityDay[];
+  /** Most recent 5 sessions. Empty when the user has no sessions yet. */
+  recentSessions: RecentSession[];
+};
+
+const ACTIVITY_WINDOW_DAYS = 30;
+const RECENT_SESSIONS_N = 5;
+/** Average characters per word used to approximate word count from
+ * `sessions.total_chars`. English averages ~4.7 letters + 1 space, so
+ * 5 is a reasonable single-number approximation for a session. */
+const CHARS_PER_WORD_APPROX = 5;
+
+/**
+ * Load 30-day activity buckets + the latest N sessions for the
+ * active profile. Called alongside `getDashboardHeroStats` from the
+ * dashboard route's loader.
+ */
+export const getDashboardActivity = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<DashboardActivityData> => {
+  const request = getRequest();
+  const authSession = await auth.api.getSession({ headers: request.headers });
+  if (!authSession) {
+    throw new Error("getDashboardActivity: unauthorized");
+  }
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({ id: keyboardProfiles.id })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, userId),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) {
+    return { days: bucketActivityByDay([], new Date(), ACTIVITY_WINDOW_DAYS), recentSessions: [] };
+  }
+
+  // Cheap: all session rows for this profile. One row per session;
+  // a lifetime of practice is still small by DB standards.
+  const allSessions = await db
+    .select({
+      id: sessions.id,
+      startedAt: sessions.startedAt,
+      endedAt: sessions.endedAt,
+      mode: sessions.mode,
+      totalChars: sessions.totalChars,
+      wpm: sessions.wpm,
+      accuracy: sessions.accuracy,
+      filterConfig: sessions.filterConfig,
+    })
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.userId, userId),
+        eq(sessions.keyboardProfileId, profile.id),
+      ),
+    )
+    .orderBy(asc(sessions.startedAt));
+
+  const now = new Date();
+  const days = bucketActivityByDay(
+    allSessions.map((s) => s.startedAt),
+    now,
+    ACTIVITY_WINDOW_DAYS,
+  );
+
+  // Latest N by startedAt desc. Slice from the all-sessions array we
+  // already fetched — one query is cheaper than a second window query.
+  const recent = [...allSessions]
+    .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
+    .slice(0, RECENT_SESSIONS_N);
+
+  const recentSessions: RecentSession[] = recent.map((s) =>
+    toRecentSession(s, now),
+  );
+
+  return { days, recentSessions };
+});
+
+type SessionRow = {
+  id: string;
+  startedAt: Date;
+  endedAt: Date | null;
+  mode: string;
+  totalChars: number | null;
+  wpm: number | null;
+  accuracy: number | null;
+  filterConfig: unknown;
+};
+
+function toRecentSession(row: SessionRow, now: Date): RecentSession {
+  const durationMs =
+    row.endedAt !== null
+      ? row.endedAt.getTime() - row.startedAt.getTime()
+      : 0;
+
+  const mode = row.mode === "targeted_drill" ? "targeted_drill" : "adaptive";
+  const cfg = isRecord(row.filterConfig) ? row.filterConfig : {};
+
+  return {
+    id: row.id,
+    relativeTime: formatRelativeDay(row.startedAt, now),
+    mode,
+    description: buildSessionDescription({
+      mode,
+      totalChars: row.totalChars ?? 0,
+      filterConfig: cfg,
+    }),
+    wpm: Math.round(row.wpm ?? 0),
+    accuracyPct: Math.round((row.accuracy ?? 0) * 100),
+    durationLabel: formatDurationLabel(durationMs),
+  };
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+function buildSessionDescription(input: {
+  mode: "adaptive" | "targeted_drill";
+  totalChars: number;
+  filterConfig: Record<string, unknown>;
+}): string {
+  const words = Math.max(1, Math.round(input.totalChars / CHARS_PER_WORD_APPROX));
+
+  if (input.mode === "targeted_drill") {
+    const target = input.filterConfig.drillTarget;
+    const preset = input.filterConfig.drillPreset;
+    if (typeof target === "string" && target.length > 0) {
+      return `drill on ${target.toUpperCase()} · ${words} words`;
+    }
+    if (preset === "innerColumn") return `inner-column drill · ${words} words`;
+    if (preset === "thumbCluster") return `thumb-cluster drill · ${words} words`;
+    if (preset === "crossHandBigram") return `cross-hand drill · ${words} words`;
+    return `drill · ${words} words`;
+  }
+
+  // Adaptive. Add hand-isolation context when it's anything other
+  // than "either" so filters show up in the session log.
+  const hand = input.filterConfig.handIsolation;
+  const handSuffix =
+    hand === "left" ? " · left hand only"
+      : hand === "right" ? " · right hand only"
+        : "";
+  return `${words} words${handSuffix}`;
 }

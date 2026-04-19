@@ -1,11 +1,14 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
 import {
+  getDashboardActivity,
   getDashboardHeroStats,
+  type DashboardActivityData,
   type DashboardHeroData,
 } from "#/server/dashboard";
 import { HeroStats } from "#/components/dashboard/HeroStats";
 import { SplitMetrics } from "#/components/dashboard/SplitMetrics";
+import { ActivityLog } from "#/components/dashboard/ActivityLog";
 import { Section } from "#/components/dashboard/Section";
 
 export const Route = createFileRoute("/dashboard")({
@@ -13,23 +16,31 @@ export const Route = createFileRoute("/dashboard")({
     const session = await getAuthSession();
     if (!session) throw redirect({ to: "/login" });
   },
-  loader: async (): Promise<{ data: DashboardHeroData }> => {
-    const data = await getDashboardHeroStats();
-    return { data };
+  loader: async (): Promise<{
+    hero: DashboardHeroData;
+    activity: DashboardActivityData;
+  }> => {
+    // Load hero + activity in parallel — they're independent queries
+    // against the same active profile.
+    const [hero, activity] = await Promise.all([
+      getDashboardHeroStats(),
+      getDashboardActivity(),
+    ]);
+    return { hero, activity };
   },
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { data } = Route.useLoaderData();
+  const { hero, activity } = Route.useLoaderData();
 
-  if (!data.hasAnyData) {
+  if (!hero.hasAnyData) {
     return <EmptyState />;
   }
 
-  const keyboardName = data.profile.keyboardType;
-  const sessionSuffix = data.totalSessions === 1 ? "session" : "sessions";
-  const meta = `all-time on ${keyboardName} · ${data.totalSessions} ${sessionSuffix}`;
+  const keyboardName = hero.profile.keyboardType;
+  const sessionSuffix = hero.totalSessions === 1 ? "session" : "sessions";
+  const meta = `all-time on ${keyboardName} · ${hero.totalSessions} ${sessionSuffix}`;
 
   return (
     <main className="kerf-dash-page">
@@ -39,11 +50,15 @@ function DashboardPage() {
       </header>
 
       <Section title="Where you are now" meta={meta}>
-        <HeroStats data={data} />
+        <HeroStats data={hero} />
+      </Section>
+
+      <Section title="Recent activity" meta="last 30 days">
+        <ActivityLog data={activity} />
       </Section>
 
       <Section title="Split-keyboard metrics" meta="recent sessions">
-        <SplitMetrics data={data} />
+        <SplitMetrics data={hero} />
       </Section>
     </main>
   );

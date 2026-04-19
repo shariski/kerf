@@ -64,3 +64,14 @@ npm run lint        # linter
 - [x] Phase 2 / Task 2.6: Drill mode submode (`/practice/drill` route, manual target + 3 presets, before/after card in post-drill)
 - [x] Phase 2 / Task 2.7: Hand isolation filter (UI + filter plumbing + corpus metadata already in place from Tasks 1.3 / 2.4; locked in by a real-corpus integration test)
 - [x] Phase 2 / Task 2.8: Session persistence (`persistSession` server function with all-or-nothing transaction, client-generated UUID for idempotency, UPSERT on per-user stats)
+- [x] Phase 3 / Task 3.1: Post-session summary screen (implemented inline as part of Task 2.5 per `docs/03-task-breakdown.md §3.1`)
+- [ ] Phase 3 / Task 3.2: Dashboard page — `/dashboard` with 6 sections
+  - [x] 3.2a: Hero stats (accuracy-featured) + split-keyboard metrics
+  - [x] 3.2b: Activity log (30-day contribution grid + last 5 sessions list)
+  - [ ] 3.2c: Heatmap overlay on visual keyboard SVG
+  - [ ] 3.2d: Weakness ranking (top 7–10 with score breakdown)
+  - [ ] 3.2e: Skill trajectory charts (WPM + accuracy over time)
+  - [ ] 3.2f: Engine insight narrative + phase badge + footer CTA
+- [ ] Phase 3 / Task 3.3: Power-user transparency panel (formula + decision rationale)
+- [ ] Phase 3 / Task 3.4: Weekly insight + phase-transition suggestion banner
+- [ ] Phase 3 / Task 3.5: Multi-keyboard switcher
