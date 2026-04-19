@@ -31,11 +31,27 @@ describe("TypingArea — rendering", () => {
     expect(current[0]?.textContent).toBe("a");
   });
 
-  it("renders spaces as non-breaking so highlight has width", () => {
+  it("renders spaces as regular spaces so the browser can wrap at word boundaries", () => {
     const { container } = render(<TypingArea target="a b" />);
     const chars = container.querySelectorAll(".kerf-typing-char");
-    // The middle char is a space — rendered as U+00A0 so layout doesn't collapse.
-    expect(chars[1]?.textContent).toBe("\u00A0");
+    // Space char is preserved as-is (not \u00A0). Words are atomic via inline-
+    // block wrappers; browser wraps between them at these real space chars.
+    expect(chars[1]?.textContent).toBe(" ");
+  });
+
+  it("wraps each word in an inline-block .kerf-typing-word container (atomic wrapping)", () => {
+    const { container } = render(<TypingArea target="one two" />);
+    const words = container.querySelectorAll(".kerf-typing-word");
+    expect(words).toHaveLength(2);
+    expect(words[0]?.textContent).toBe("one");
+    expect(words[1]?.textContent).toBe("two");
+    // The space between them lives outside any word wrapper so it's a real
+    // break opportunity for the browser.
+    const spaceChars = Array.from(
+      container.querySelectorAll(".kerf-typing-char"),
+    ).filter((el) => el.textContent === " ");
+    expect(spaceChars).toHaveLength(1);
+    expect(spaceChars[0]?.closest(".kerf-typing-word")).toBeNull();
   });
 });
 

@@ -95,9 +95,12 @@ const rightKeys: KeyGeometry[] = [
   { char: "bsp_thumb", label: "bsp",   x: 36,  y: 172, width: W,  height: H, rotate: -18 },
 ];
 
+/* ViewBox width trimmed from the design-source 780 to 662: the rightmost
+   matrix key sits at x=642 after translate, so 780 left ~138px of empty
+   right-side space that made the keyboard look pushed left in practice. */
 export const SOFLE_GEOMETRY: KeyboardGeometry = {
   layout: "sofle",
-  viewBox: [0, 0, 780, 260] as const,
+  viewBox: [0, 0, 662, 260] as const,
   halves: {
     left: {
       translateX: 20,

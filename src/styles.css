@@ -360,7 +360,12 @@ a {
 /* ── keyboard SVG (Sofle / Lily58) ── */
 
 .kb-svg {
-  max-width: 100%;
+  /* Force the SVG to always fill its flex-centered container so the viewBox's
+     symmetric internal margin (content spans x=20..642 within a 662-wide
+     viewBox) maps to symmetric pixel padding. Without an explicit width,
+     browsers fall back to the SVG's intrinsic size, which caused the whole
+     element to sit slightly left of its container. */
+  width: 100%;
   height: auto;
   --kb-key-face: var(--color-kerf-bg-elevated);
   --kb-key-edge: var(--color-kerf-border-default);
@@ -471,18 +476,78 @@ a {
 /* ── typing area (Task 2.3) ── */
 
 .kerf-typing {
+  /* Tunables — single source of truth for the scroll-snap math in
+     TypingArea.tsx.
+       --kerf-typing-line-height : unitless line-height multiplier
+       --kerf-typing-text-lines  : visible TEXT lines when scrolled
+       --kerf-typing-top-slots   : line-height slots reserved above the first
+                                   text line for the expected-letter badge
+                                   (which renders above the current char via
+                                   `.kerf-typing-expected { top: -24px }`)
+     Both the total height AND the top padding are exact multiples of
+     line-height, so every snapped scrollTop lands on a line boundary — no
+     partial "cut" lines at the viewport edges, at any font-size (S/M/L/XL).
+     Total viewport height = (top-slots + text-lines) × line-height.
+     At scrollTop=0, viewport shows top-slots of empty space + text-lines of
+     text; once scrolled past the padding, it shows (top-slots + text-lines)
+     of text. 1 slot of padding = 1 line-height of badge clearance. */
+  --kerf-typing-line-height: 2;
+  --kerf-typing-text-lines: 4;
+  --kerf-typing-top-slots: 1;
   font-family: var(--font-mono);
   font-size: 36px;
-  line-height: 2.0;
+  line-height: var(--kerf-typing-line-height);
   letter-spacing: 0.02em;
   color: var(--color-kerf-text-tertiary);
   text-align: left;
-  padding: 24px 0;
-  min-height: 240px;
+  /* Words are wrapped in inline-block .kerf-typing-word containers so they
+     never split mid-word; spaces between them are plain text nodes and wrap
+     at word boundaries. `white-space: normal` collapses leading/trailing
+     spaces at wrap points so a wrapped line never starts with a stray space. */
+  height: calc(
+    (var(--kerf-typing-top-slots) + var(--kerf-typing-text-lines)) *
+    var(--kerf-typing-line-height) * 1em
+  );
+  padding-top: calc(
+    var(--kerf-typing-top-slots) * var(--kerf-typing-line-height) * 1em
+  );
+  /* Horizontal padding reserves a gutter wide enough for the expected-
+     letter badge to fan out on either side of edge chars without being
+     clipped by `overflow-x: hidden`. The badge is `translateX(-50%)`
+     centered above the char, so it extends half its width past the char's
+     edge on each side. 1em (= font-size) comfortably covers that at any
+     typing-size setting. Horizontal padding has no effect on the vertical
+     scroll-snap math. */
+  padding-right: 1em;
+  padding-left: 1em;
+  /* Bottom padding gives the final text line extra scroll headroom so the
+     exercise doesn't end flush against the container edge. One line-height
+     slot keeps the padding aligned to the scroll-snap grid. */
+  padding-bottom: calc(var(--kerf-typing-line-height) * 1em);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
   user-select: none;
   position: relative;
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.kerf-typing::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-typing {
+    scroll-behavior: auto;
+  }
+}
+
+.kerf-typing-word {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .kerf-typing-char {
@@ -549,5 +614,665 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .kerf-typing-expected { animation-duration: 1ms; }
+}
+
+/* ================================================================
+   Practice page — Task 2.4
+   Pre-session layout, phase badge, mode cards, filters panel.
+   ================================================================ */
+
+.kerf-practice-main {
+  min-height: 100vh;
+  background: var(--color-kerf-bg-base);
+  padding: 48px 24px;
+}
+
+.kerf-practice-container {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.kerf-practice-restart {
+  margin-top: 32px;
+  border: 1px solid var(--color-kerf-amber-base);
+  padding: 8px 16px;
+  color: var(--color-kerf-amber-base);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+}
+.kerf-practice-restart:hover {
+  background: var(--color-kerf-amber-subtle);
+}
+
+/* Pre-session ---------------------------------------------------- */
+
+.kerf-pre-session {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kerf-pre-session-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kerf-pre-title {
+  font-family: var(--font-display, "Inter", sans-serif);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-kerf-text-primary);
+  margin: 24px 0 0;
+}
+
+.kerf-pre-subtitle {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 15px;
+  color: var(--color-kerf-text-secondary);
+  margin: 0 0 16px;
+}
+
+/* Keyboard context pill */
+.kerf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+  background: var(--color-kerf-bg-surface);
+}
+.kerf-pill-icon {
+  color: var(--color-kerf-text-tertiary);
+}
+.kerf-pill-state {
+  color: var(--color-kerf-text-tertiary);
+}
+.kerf-pill-name {
+  color: var(--color-kerf-text-primary);
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+/* Phase badge */
+.kerf-phase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  color: var(--color-kerf-text-secondary);
+  background: var(--color-kerf-bg-surface);
+}
+.kerf-phase-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-kerf-amber-base);
+}
+.kerf-phase-badge[data-phase="refining"] .kerf-phase-badge-dot {
+  background: var(--color-kerf-success-base, #10b981);
+}
+
+/* Primary CTA */
+.kerf-pre-cta-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 24px;
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.kerf-pre-cta-primary:hover:not(:disabled) {
+  background: var(--color-kerf-amber-subtle);
+}
+.kerf-pre-cta-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.kerf-pre-cta-primary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kerf-pre-cta-primary-label {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 16px;
+  font-weight: 600;
+}
+.kerf-pre-cta-primary-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-tertiary);
+}
+.kerf-pre-cta-primary-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-kerf-amber-base);
+}
+.kerf-pre-cta-arrow {
+  font-size: 20px;
+}
+
+.kerf-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 4px;
+  background: var(--color-kerf-bg-base);
+  color: var(--color-kerf-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Mode cards */
+.kerf-pre-modes-label {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-pre-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.kerf-mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.kerf-mode-card:hover:not(:disabled) {
+  border-color: var(--color-kerf-amber-base);
+}
+.kerf-mode-card[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.kerf-mode-card-icon {
+  font-size: 18px;
+  color: var(--color-kerf-text-secondary);
+}
+.kerf-mode-card-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+}
+.kerf-mode-card-tag {
+  padding: 2px 6px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 4px;
+  background: var(--color-kerf-bg-base);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+}
+.kerf-mode-card-desc {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 12px;
+  color: var(--color-kerf-text-tertiary);
+  line-height: 1.4;
+}
+
+/* Collapsible filter panel — mirrors design/practice-page-wireframe.html
+   (.pre-filters / .filter-row / .filter-pills / .filter-pill) 1:1.
+   Pills use a grouped segment-control look: a bar with bg-elevated, thin
+   border, and 2px inner padding — active pill is solid amber, not outline. */
+.kerf-pre-filters {
+  margin-top: 8px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+  overflow: hidden;
+}
+.kerf-pre-filters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  color: var(--color-kerf-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.kerf-pre-filters-header:hover {
+  background: var(--color-kerf-bg-elevated);
+}
+.kerf-pre-filters-caret {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-text-tertiary);
+  transition: transform 150ms;
+}
+.kerf-pre-filters-caret[data-open] {
+  transform: rotate(90deg);
+}
+.kerf-pre-filters-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+}
+.kerf-filter-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  align-items: center;
+  font-size: 13px;
+}
+.kerf-filter-label {
+  color: var(--color-kerf-text-secondary);
+  text-align: left;
+}
+.kerf-filter-pills {
+  display: flex;
+  gap: 4px;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  padding: 2px;
+  width: fit-content;
+}
+.kerf-filter-pill {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-kerf-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 100ms, color 100ms;
+}
+.kerf-filter-pill[data-active] {
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+  font-weight: 600;
+}
+
+.kerf-corpus-error {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-error-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-pre-cta-primary,
+  .kerf-mode-card,
+  .kerf-pre-filters-caret {
+    transition-duration: 1ms;
+  }
+}
+
+/* ================================================================
+   Active session stage — Task 2.4
+   Typing area + keyboard SVG + corner widgets (live WPM, shortcuts).
+   ================================================================ */
+
+.kerf-practice-main--active {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  min-height: 100vh;
+}
+
+.kerf-active-session {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.kerf-active-session-typing {
+  width: 100%;
+  max-width: 800px;
+  /* Breathing room lives on the wrapper, not inside the scrolling .kerf-
+     typing container. Padding inside the scroller would shift line positions
+     off the scroll-snap grid and cause half-cut lines at the edges. */
+  padding: 24px 0;
+}
+
+.kerf-active-session-keyboard {
+  /* Match the typing area max-width so both containers have the same
+     horizontal offset inside .kerf-active-session; the SVG's own 20px
+     symmetric viewBox margin then lines the keyboard up with the text. */
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Live WPM corner widget */
+.kerf-live-wpm {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-kerf-text-tertiary);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+}
+.kerf-live-wpm[data-visible] {
+  opacity: 1;
+}
+.kerf-live-wpm-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-kerf-text-secondary);
+}
+.kerf-live-wpm-unit {
+  color: var(--color-kerf-text-tertiary);
+}
+
+/* Shortcut hints strip */
+.kerf-shortcut-hints {
+  position: fixed;
+  bottom: 20px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+.kerf-shortcut-hints[data-visible] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-live-wpm,
+  .kerf-shortcut-hints {
+    transition-duration: 1ms;
+  }
+}
+
+/* Typing text size — controlled by pause overlay setting. Applied on the
+   active-session wrapper so the whole typing block scales together. */
+.kerf-active-session[data-typing-size="S"] .kerf-typing { font-size: 26px; }
+.kerf-active-session[data-typing-size="M"] .kerf-typing { font-size: 36px; }
+.kerf-active-session[data-typing-size="L"] .kerf-typing { font-size: 44px; }
+.kerf-active-session[data-typing-size="XL"] .kerf-typing { font-size: 54px; }
+
+/* ================================================================
+   Pause overlay — Task 2.4
+   Backdrop + settings panel + Resume/Restart/End actions.
+   ================================================================ */
+
+.kerf-pause-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24, 20, 16, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: kerf-pause-fade-in 150ms ease;
+}
+
+@keyframes kerf-pause-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.kerf-pause-panel {
+  width: min(520px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 32px;
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.kerf-pause-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-amber-base);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.kerf-pause-title {
+  font-family: var(--font-display, "Inter", sans-serif);
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-kerf-text-primary);
+  margin: 0 0 8px;
+}
+.kerf-pause-subtitle {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 14px;
+  color: var(--color-kerf-text-secondary);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.kerf-pause-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  border-bottom: 1px solid var(--color-kerf-border-subtle);
+}
+
+.kerf-pause-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.kerf-pause-setting-label {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+}
+.kerf-pause-setting-desc {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  margin-top: 2px;
+}
+
+.kerf-pill-group {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 999px;
+  background: var(--color-kerf-bg-base);
+}
+.kerf-pill-option {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-kerf-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  min-width: 28px;
+}
+.kerf-pill-option[data-active] {
+  background: var(--color-kerf-amber-subtle);
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 24px;
+}
+.kerf-pause-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-kerf-text-secondary);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.kerf-pause-btn:hover {
+  border-color: var(--color-kerf-text-secondary);
+}
+.kerf-pause-btn:focus-visible {
+  outline: 2px solid var(--color-kerf-amber-base);
+  outline-offset: 2px;
+}
+.kerf-pause-btn--primary {
+  border-color: var(--color-kerf-amber-base);
+  color: var(--color-kerf-amber-base);
+}
+.kerf-pause-btn--primary:hover {
+  background: var(--color-kerf-amber-subtle);
+}
+.kerf-pause-btn-shortcut {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-pause-overlay { animation-duration: 1ms; }
+  .kerf-pause-btn { transition-duration: 1ms; }
+}
+
+/* ================================================================
+   Post-session placeholder — Task 2.4 (full summary lands in Task 2.5)
+   ================================================================ */
+
+.kerf-post-session {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  text-align: center;
+}
+.kerf-post-session-title {
+  font-family: var(--font-display, "Inter", sans-serif);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-kerf-text-primary);
+  margin: 0;
+}
+.kerf-post-session-subtitle {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 14px;
+  color: var(--color-kerf-text-secondary);
+  margin: 0 0 16px;
+}
+.kerf-post-session-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.kerf-post-session-cta:hover {
+  background: var(--color-kerf-amber-subtle);
+}
+.kerf-post-session-shortcut {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Cross-stage fade-in — applied on mount when a stage becomes visible.
+   Keeps the pre → active → complete transition gentle without building
+   a full AnimatePresence-style crossfade machinery. */
+@keyframes kerf-stage-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.kerf-stage-fade-in {
+  animation: kerf-stage-fade-in 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-stage-fade-in,
+  .kerf-post-session-cta {
+    animation-duration: 1ms;
+    transition-duration: 1ms;
+  }
 }
 

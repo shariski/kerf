@@ -7,10 +7,15 @@
  *
  * Invariants (enforced by the tests):
  *   1. On error, position does not advance; activeError holds the pending badge.
- *   2. Backspace only clears an activeError — never rewinds correct history.
- *   3. KeystrokeEvent emitted for every target-key attempt (correct or error),
+ *   2. Once activeError is set, it latches: every further keypress is recorded
+ *      as another error attempt (even if it matches the target char). Only
+ *      backspace clears it. See docs/01-product-spec.md §204, 03-task-
+ *      breakdown.md §287, 06-design-summary.md §324 — the user must backspace
+ *      to correct an error; typing the right letter does not auto-fix it.
+ *   3. Backspace only clears an activeError — never rewinds correct history.
+ *   4. KeystrokeEvent emitted for every target-key attempt (correct or error),
  *      never for backspace. Shape matches computeStats's consumer contract.
- *   4. prevChar resets to undefined across word boundaries (spaces).
+ *   5. prevChar resets to undefined across word boundaries (spaces).
  */
 
 import type {
@@ -52,7 +57,9 @@ export function keystrokeReducer(
       if (state.status !== "active") return state;
 
       const targetChar = state.target[state.position]!;
-      const isError = action.char !== targetChar;
+      // Error latches until backspace: once we're in an error state, any
+      // further keypress stays an error even if it matches the target char.
+      const isError = action.char !== targetChar || state.activeError !== null;
       const keystrokeMs =
         state.lastKeystrokeAt === null ? 0 : action.now - state.lastKeystrokeAt;
       const event: KeystrokeEvent = {

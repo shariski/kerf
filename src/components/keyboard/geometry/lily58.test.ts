@@ -7,9 +7,9 @@ describe("LILY58_GEOMETRY", () => {
   const allKeys = [...left.keys, ...right.keys];
   const allChars = allKeys.map((k) => k.char);
 
-  it("declares layout and viewBox matching the design source", () => {
+  it("declares layout and a viewBox trimmed to fit the content with symmetric 20px margin", () => {
     expect(LILY58_GEOMETRY.layout).toBe("lily58");
-    expect(LILY58_GEOMETRY.viewBox).toEqual([0, 0, 760, 260]);
+    expect(LILY58_GEOMETRY.viewBox).toEqual([0, 0, 662, 260]);
   });
 
   it("has 28 keys per half (24 matrix + 4 thumb)", () => {
