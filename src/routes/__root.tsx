@@ -1,17 +1,17 @@
+import { useEffect, useState } from 'react'
 import {
   HeadContent,
   Scripts,
   createRootRoute,
   useRouterState,
 } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import Footer from '../components/Footer'
-import Header from '../components/Header'
+import { AppNav } from '#/components/nav/AppNav'
 
 // Routes that own their full viewport chrome and should not render the
-// starter Header/Footer (onboarding has its own logo + progress bar).
-const CHROMELESS_PATHS = ['/onboarding']
+// global AppNav:
+//   - /onboarding has its own logo + progress bar
+//   - /login is a centered full-screen card
+const CHROMELESS_PATHS = ['/onboarding', '/login']
 
 import appCss from '../styles.css?url'
 
@@ -28,7 +28,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'kerf',
       },
     ],
     links: [
@@ -50,23 +50,47 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-        {!chromeless && <Header />}
+      <body>
+        {!chromeless && <AppNav />}
         {children}
-        {!chromeless && <Footer />}
+        {import.meta.env.DEV && <DevtoolsLazy />}
+        <Scripts />
+      </body>
+    </html>
+  )
+}
+
+/**
+ * Tanstack Devtools only in dev — keeps prod bundles lean and the UI
+ * free of the corner launcher. Lazy-loaded so the two devtools packages
+ * don't bloat the server render path either.
+ */
+function DevtoolsLazy() {
+  const [panel, setPanel] = useState<React.ReactNode>(null)
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const [{ TanStackDevtools }, { TanStackRouterDevtoolsPanel }] =
+        await Promise.all([
+          import('@tanstack/react-devtools'),
+          import('@tanstack/react-router-devtools'),
+        ])
+      if (cancelled) return
+      setPanel(
         <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
+          config={{ position: 'bottom-right' }}
           plugins={[
             {
               name: 'Tanstack Router',
               render: <TanStackRouterDevtoolsPanel />,
             },
           ]}
-        />
-        <Scripts />
-      </body>
-    </html>
-  )
+        />,
+      )
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  return <>{panel}</>
 }
