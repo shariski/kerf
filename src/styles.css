@@ -2589,6 +2589,283 @@ body {
   color: var(--color-kerf-amber-base);
 }
 
+/* --- transparency panel (Task 3.3) --- */
+
+.kerf-dash-transparency {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: var(--color-kerf-surface);
+  border: 1px solid var(--color-kerf-border);
+  border-radius: 8px;
+}
+
+.kerf-dash-transparency--empty {
+  gap: 20px;
+}
+
+.kerf-dash-transparency-empty-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-dash-transparency-eyebrow {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-kerf-text-muted);
+}
+
+/* --- formula --- */
+
+.kerf-dash-transparency-formula {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--color-kerf-border);
+}
+
+.kerf-dash-transparency-formula-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kerf-dash-transparency-phase {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.kerf-dash-transparency-phase--transitioning {
+  background: color-mix(
+    in oklab,
+    var(--color-kerf-amber-base) 18%,
+    transparent
+  );
+  color: var(--color-kerf-amber-base);
+  border: 1px solid
+    color-mix(in oklab, var(--color-kerf-amber-base) 32%, transparent);
+}
+
+.kerf-dash-transparency-phase--refining {
+  background: color-mix(
+    in oklab,
+    var(--color-kerf-text-muted) 14%,
+    transparent
+  );
+  color: var(--color-kerf-text-secondary);
+  border: 1px solid var(--color-kerf-border);
+}
+
+.kerf-dash-transparency-formula-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.kerf-dash-transparency-formula-var {
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-transparency-formula-op {
+  color: var(--color-kerf-text-muted);
+  font-weight: 600;
+}
+
+.kerf-dash-transparency-formula-term {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.kerf-dash-transparency-formula-coef {
+  color: var(--color-kerf-amber-base);
+  font-weight: 600;
+}
+
+.kerf-dash-transparency-formula-sym {
+  color: var(--color-kerf-text-muted);
+  font-style: italic;
+}
+
+.kerf-dash-transparency-formula-name {
+  color: var(--color-kerf-text-secondary);
+}
+
+/* --- breakdown block --- */
+
+.kerf-dash-transparency-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kerf-dash-transparency-block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.kerf-dash-transparency-unit {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-kerf-text-primary);
+  line-height: 1;
+}
+
+.kerf-dash-transparency-attempts {
+  font-size: 12px;
+  color: var(--color-kerf-text-muted);
+  margin-left: auto;
+}
+
+/* --- table --- */
+
+.kerf-dash-transparency-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+}
+
+.kerf-dash-transparency-table thead th {
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-kerf-text-muted);
+  border-bottom: 1px solid var(--color-kerf-border);
+}
+
+.kerf-dash-transparency-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--color-kerf-border) 60%, transparent);
+  color: var(--color-kerf-text-primary);
+  vertical-align: baseline;
+}
+
+.kerf-dash-transparency-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.kerf-dash-transparency-num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.kerf-dash-transparency-muted {
+  color: var(--color-kerf-text-muted);
+}
+
+.kerf-dash-transparency-symbol {
+  display: inline-block;
+  width: 14px;
+  color: var(--color-kerf-text-muted);
+  font-style: italic;
+  font-family: var(--font-mono);
+}
+
+.kerf-dash-transparency-contribution {
+  color: var(--color-kerf-amber-base);
+  font-weight: 600;
+}
+
+.kerf-dash-transparency-bonus-row {
+  background: color-mix(
+    in oklab,
+    var(--color-kerf-amber-base) 6%,
+    transparent
+  );
+}
+
+.kerf-dash-transparency-total-row {
+  border-top: 2px solid var(--color-kerf-border);
+}
+
+.kerf-dash-transparency-total-row td {
+  padding-top: 14px;
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-transparency-total {
+  font-size: 16px;
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-dash-transparency-bonus-note,
+.kerf-dash-transparency-phase-note {
+  margin: 0;
+  padding: 12px 14px;
+  background: color-mix(
+    in oklab,
+    var(--color-kerf-surface-raised, var(--color-kerf-surface)) 80%,
+    transparent
+  );
+  border-left: 2px solid var(--color-kerf-amber-base);
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-dash-transparency-bonus-note code {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-amber-base);
+  background: transparent;
+}
+
+.kerf-dash-transparency-phase-note strong {
+  color: var(--color-kerf-text-primary);
+  font-weight: 600;
+}
+
+.kerf-dash-transparency-phase-note em {
+  font-style: italic;
+  color: var(--color-kerf-amber-base);
+}
+
+@media (max-width: 700px) {
+  .kerf-dash-transparency-table thead {
+    display: none;
+  }
+  .kerf-dash-transparency-table tbody td {
+    display: block;
+    padding: 4px 0;
+    border-bottom: none;
+    text-align: left;
+  }
+  .kerf-dash-transparency-table tbody tr {
+    display: block;
+    padding: 10px 0;
+    border-bottom: 1px solid
+      color-mix(in oklab, var(--color-kerf-border) 60%, transparent);
+  }
+}
+
 /* --- empty state --- */
 
 .kerf-dash-empty {

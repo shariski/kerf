@@ -25,6 +25,10 @@ import {
   type SplitSnapshot,
   type WeaknessRankEntry,
 } from "#/domain/dashboard/aggregates";
+import {
+  computeWeaknessBreakdown,
+  type WeaknessBreakdown,
+} from "#/domain/dashboard/breakdown";
 import { PHASE_BASELINES } from "#/domain/stats/baselines";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import type { KeyboardType } from "./profile";
@@ -702,6 +706,10 @@ export type DashboardWeaknessRankingData = {
    * this so users understand why certain units rank where they do
    * (inner-column bonus only fires in `transitioning`). */
   phase: TransitionPhase;
+  /** Full component breakdown for `entries[0]` — fuels the
+   * transparency panel (Task 3.3). `null` when the user has no
+   * high-confidence weaknesses yet. */
+  topBreakdown: WeaknessBreakdown | null;
 };
 
 /** Top-N target for the ranking list. 10 matches the task-breakdown's
@@ -742,7 +750,7 @@ export const getDashboardWeaknessRanking = createServerFn({
     )
     .limit(1);
   if (!profile) {
-    return { entries: [], phase: "transitioning" };
+    return { entries: [], phase: "transitioning", topBreakdown: null };
   }
 
   const phase = profile.transitionPhase as TransitionPhase;
@@ -787,5 +795,30 @@ export const getDashboardWeaknessRanking = createServerFn({
     topN: WEAKNESS_RANKING_TOP_N,
   });
 
-  return { entries, phase };
+  // Look up the raw stat behind entries[0] so the transparency panel
+  // (Task 3.3) can render a live component breakdown. Matching by unit
+  // is safe — computeWeaknessRanking preserves the lowercase unit
+  // string verbatim, and we applied the same `/^[a-z]{2}$/` bigram
+  // filter there so only well-formed units make it into `entries`.
+  const top = entries[0] ?? null;
+  let topBreakdown: WeaknessBreakdown | null = null;
+  if (top) {
+    if (top.isCharacter) {
+      const raw = charRows.find(
+        (r) => r.character.toLowerCase() === top.unit,
+      );
+      if (raw) {
+        topBreakdown = computeWeaknessBreakdown(raw, baseline, phase, 0);
+      }
+    } else {
+      const raw = bigramRows.find(
+        (r) => r.bigram.toLowerCase() === top.unit,
+      );
+      if (raw) {
+        topBreakdown = computeWeaknessBreakdown(raw, baseline, phase, 0);
+      }
+    }
+  }
+
+  return { entries, phase, topBreakdown };
 });
