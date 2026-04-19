@@ -270,3 +270,97 @@ function weightedAvgOfAvg<T>(
   }
   return totalCount > 0 ? weightedSum / totalCount : null;
 }
+
+// --- activity log helpers (Task 3.2b) -------------------------------------
+
+/** Cell saturation for a single day's cell in the 30-day contribution
+ * grid. Conventions mirror GitHub's graph — gray (0) through four
+ * escalating amber tints. Thresholds are session-count based because
+ * it matches the "did you show up?" narrative better than total chars
+ * (a single long session vs several short ones is the same intent). */
+export type ActivityLevel = 0 | 1 | 2 | 3 | 4;
+
+export function activityLevel(sessionCount: number): ActivityLevel {
+  if (sessionCount <= 0) return 0;
+  if (sessionCount === 1) return 1;
+  if (sessionCount <= 3) return 2;
+  if (sessionCount <= 5) return 3;
+  return 4;
+}
+
+export type ActivityDay = {
+  /** YYYY-MM-DD (local). */
+  date: string;
+  sessionCount: number;
+  level: ActivityLevel;
+};
+
+/**
+ * Build an ordered (oldest → newest) `days`-length array of activity
+ * buckets ending at `today`. Each bucket has its session count and
+ * a 0–4 level for the UI. Days with no sessions still appear — they
+ * render as empty cells, which is the whole point of a contribution
+ * grid (seeing the gaps matters).
+ */
+export function bucketActivityByDay(
+  sessionStartedAt: readonly Date[],
+  today: Date,
+  days = 30,
+): ActivityDay[] {
+  const counts = new Map<string, number>();
+  for (const d of sessionStartedAt) {
+    const k = dayKey(d);
+    counts.set(k, (counts.get(k) ?? 0) + 1);
+  }
+
+  const out: ActivityDay[] = [];
+  for (let offset = days - 1; offset >= 0; offset--) {
+    const d = addDays(today, -offset);
+    const key = dayKey(d);
+    const count = counts.get(key) ?? 0;
+    out.push({ date: key, sessionCount: count, level: activityLevel(count) });
+  }
+  return out;
+}
+
+/**
+ * Relative time label for a session row. Buckets:
+ *   - same calendar day → "today" or "Nh ago" if < 12h
+ *   - yesterday         → "yesterday"
+ *   - within a week     → "Nd ago"
+ *   - older             → "YYYY-MM-DD"
+ *
+ * `now` is a parameter so the function stays pure.
+ */
+export function formatRelativeDay(from: Date, now: Date): string {
+  const fromKey = dayKey(from);
+  const nowKey = dayKey(now);
+  if (fromKey === nowKey) {
+    const diffMs = now.getTime() - from.getTime();
+    const hours = Math.floor(diffMs / 3_600_000);
+    if (hours <= 0) return "just now";
+    if (hours < 12) return `${hours}h ago`;
+    return "today";
+  }
+  const yesterday = dayKey(addDays(now, -1));
+  if (fromKey === yesterday) return "yesterday";
+
+  // Scan back up to 7 days for "Nd ago".
+  for (let i = 2; i <= 7; i++) {
+    if (fromKey === dayKey(addDays(now, -i))) return `${i}d ago`;
+  }
+  return fromKey;
+}
+
+/**
+ * Format elapsed ms as "M:SS". Used by the latest-sessions list's
+ * duration column. Same shape as the post-session summary's elapsed
+ * label, duplicated here to avoid reaching into the domain/session
+ * layer from the dashboard layer.
+ */
+export function formatDurationLabel(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}

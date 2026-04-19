@@ -1,18 +1,22 @@
 import { describe, expect, it } from "vitest";
 import type { CharacterStat } from "#/domain/stats/types";
 import {
+  activityLevel,
   averageSplitMetrics,
+  bucketActivityByDay,
   buildSparklineValues,
   computeMasteredCount,
   computeStreakDays,
   computeTrendDelta,
+  formatDurationLabel,
+  formatRelativeDay,
   type SplitSnapshot,
 } from "./aggregates";
 
 // --- streak ----------------------------------------------------------------
 
-const at = (y: number, m: number, d: number, h = 12): Date =>
-  new Date(y, m - 1, d, h, 0, 0);
+const at = (y: number, m: number, d: number, h = 12, min = 0): Date =>
+  new Date(y, m - 1, d, h, min, 0);
 
 describe("computeStreakDays", () => {
   const today = at(2026, 4, 19);
@@ -221,5 +225,102 @@ describe("averageSplitMetrics", () => {
       snap({ columnarStableCount: 50, columnarDriftCount: 50 }),
     ]);
     expect(out.columnarStabilityPct).toBeCloseTo(52.7272, 2);
+  });
+});
+
+// --- activity level + bucket ----------------------------------------------
+
+describe("activityLevel", () => {
+  it("maps session counts to 0-4 buckets", () => {
+    expect(activityLevel(0)).toBe(0);
+    expect(activityLevel(1)).toBe(1);
+    expect(activityLevel(2)).toBe(2);
+    expect(activityLevel(3)).toBe(2);
+    expect(activityLevel(4)).toBe(3);
+    expect(activityLevel(5)).toBe(3);
+    expect(activityLevel(6)).toBe(4);
+    expect(activityLevel(20)).toBe(4);
+  });
+
+  it("treats negative counts as zero (defensive)", () => {
+    expect(activityLevel(-3)).toBe(0);
+  });
+});
+
+describe("bucketActivityByDay", () => {
+  const today = at(2026, 4, 19);
+
+  it("always returns `days` entries, oldest first", () => {
+    const out = bucketActivityByDay([], today, 30);
+    expect(out).toHaveLength(30);
+    expect(out[0]!.date < out[out.length - 1]!.date).toBe(true);
+    expect(out[out.length - 1]!.date).toBe("2026-04-19");
+  });
+
+  it("counts sessions per day and assigns levels", () => {
+    const sessions = [
+      at(2026, 4, 19, 9),
+      at(2026, 4, 19, 11),
+      at(2026, 4, 19, 14), // 3 today → level 2
+      at(2026, 4, 18, 10), // 1 yesterday → level 1
+    ];
+    const out = bucketActivityByDay(sessions, today, 30);
+    const last = out[out.length - 1]!;
+    const yesterday = out[out.length - 2]!;
+    expect(last.sessionCount).toBe(3);
+    expect(last.level).toBe(2);
+    expect(yesterday.sessionCount).toBe(1);
+    expect(yesterday.level).toBe(1);
+  });
+
+  it("ignores sessions outside the window", () => {
+    // A session 40 days ago should not appear in a 30-day window.
+    const farBack = at(2026, 3, 10);
+    const out = bucketActivityByDay([farBack, today], today, 30);
+    expect(out.filter((d) => d.sessionCount > 0)).toHaveLength(1);
+  });
+});
+
+// --- formatRelativeDay ----------------------------------------------------
+
+describe("formatRelativeDay", () => {
+  const now = at(2026, 4, 19, 14); // 2pm
+
+  it("shows 'today' once >= 12h old but same day", () => {
+    expect(formatRelativeDay(at(2026, 4, 19, 1), now)).toBe("today");
+  });
+
+  it("shows 'Nh ago' for sub-12h same-day", () => {
+    expect(formatRelativeDay(at(2026, 4, 19, 12), now)).toBe("2h ago");
+  });
+
+  it("shows 'just now' for same-hour", () => {
+    expect(formatRelativeDay(at(2026, 4, 19, 13, 45), now)).toBe("just now");
+  });
+
+  it("shows 'yesterday' for previous day", () => {
+    expect(formatRelativeDay(at(2026, 4, 18, 14), now)).toBe("yesterday");
+  });
+
+  it("shows 'Nd ago' for 2-7 days old", () => {
+    expect(formatRelativeDay(at(2026, 4, 15), now)).toBe("4d ago");
+  });
+
+  it("falls back to date for older than a week", () => {
+    expect(formatRelativeDay(at(2026, 4, 1), now)).toBe("2026-04-01");
+  });
+});
+
+// --- formatDurationLabel --------------------------------------------------
+
+describe("formatDurationLabel", () => {
+  it("formats M:SS with zero-padding", () => {
+    expect(formatDurationLabel(4000)).toBe("0:04");
+    expect(formatDurationLabel(134_000)).toBe("2:14");
+  });
+
+  it("clamps negative and zero elapsed to 0:00", () => {
+    expect(formatDurationLabel(-5000)).toBe("0:00");
+    expect(formatDurationLabel(0)).toBe("0:00");
   });
 });
