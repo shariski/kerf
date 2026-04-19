@@ -4,10 +4,12 @@ import {
   getDashboardActivity,
   getDashboardHeatmap,
   getDashboardHeroStats,
+  getDashboardTrajectory,
   getDashboardWeaknessRanking,
   type DashboardActivityData,
   type DashboardHeatmapData,
   type DashboardHeroData,
+  type DashboardTrajectoryData,
   type DashboardWeaknessRankingData,
 } from "#/server/dashboard";
 import { HeroStats } from "#/components/dashboard/HeroStats";
@@ -15,6 +17,7 @@ import { SplitMetrics } from "#/components/dashboard/SplitMetrics";
 import { ActivityLog } from "#/components/dashboard/ActivityLog";
 import { Heatmap } from "#/components/dashboard/Heatmap";
 import { WeaknessRanking } from "#/components/dashboard/WeaknessRanking";
+import { TrajectoryCharts } from "#/components/dashboard/TrajectoryCharts";
 import { Section } from "#/components/dashboard/Section";
 
 export const Route = createFileRoute("/dashboard")({
@@ -27,23 +30,25 @@ export const Route = createFileRoute("/dashboard")({
     activity: DashboardActivityData;
     heatmap: DashboardHeatmapData;
     weakness: DashboardWeaknessRankingData;
+    trajectory: DashboardTrajectoryData;
   }> => {
-    // Four independent queries against the same active profile —
+    // Five independent queries against the same active profile —
     // parallel so the dashboard's first paint scales with the
     // slowest single query, not the sum.
-    const [hero, activity, heatmap, weakness] = await Promise.all([
+    const [hero, activity, heatmap, weakness, trajectory] = await Promise.all([
       getDashboardHeroStats(),
       getDashboardActivity(),
       getDashboardHeatmap(),
       getDashboardWeaknessRanking(),
+      getDashboardTrajectory(),
     ]);
-    return { hero, activity, heatmap, weakness };
+    return { hero, activity, heatmap, weakness, trajectory };
   },
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { hero, activity, heatmap, weakness } = Route.useLoaderData();
+  const { hero, activity, heatmap, weakness, trajectory } = Route.useLoaderData();
 
   if (!hero.hasAnyData) {
     return <EmptyState />;
@@ -80,6 +85,10 @@ function DashboardPage() {
         meta={`ranked by ${weakness.phase} engine`}
       >
         <WeaknessRanking data={weakness} />
+      </Section>
+
+      <Section title="Skill trajectory" meta="last 30 sessions">
+        <TrajectoryCharts data={trajectory} />
       </Section>
 
       <Section title="Split-keyboard metrics" meta="recent sessions">

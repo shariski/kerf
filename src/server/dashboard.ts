@@ -569,6 +569,129 @@ function buildSessionDescription(input: {
   return `${words} words${handSuffix}`;
 }
 
+// --- skill trajectory (Task 3.2e) -----------------------------------------
+
+export type TrajectoryPoint = {
+  /** 0-based index within the returned window. */
+  index: number;
+  /** ISO date — used for tick labels / tooltips later. */
+  startedAt: string;
+  /** Session WPM, rounded. 0 when below the min-elapsed noise floor. */
+  wpm: number;
+  /** Session accuracy as 0–100 int. */
+  accuracyPct: number;
+};
+
+export type DashboardTrajectoryData = {
+  /** Ordered oldest → newest, at most TRAJECTORY_WINDOW_N entries. */
+  points: TrajectoryPoint[];
+  /** Most recent session's wpm / accuracy, or null when empty. */
+  current: { wpm: number | null; accuracyPct: number | null };
+  /** Delta vs first TREND_BASELINE_N sessions (integer; null when
+   * insufficient history). */
+  wpmDelta: number | null;
+  accuracyDelta: number | null;
+};
+
+/** Number of most-recent sessions the trajectory charts cover. 30
+ * matches the wireframe caption "last 30 sessions" and is long enough
+ * to smooth out single-session noise without making the chart a blur. */
+const TRAJECTORY_WINDOW_N = 30;
+
+/**
+ * Load the last-30-sessions time series of WPM + accuracy plus trend
+ * deltas against the first few sessions in the window. Server-side
+ * computation means the client renders immediately with already-
+ * rounded numbers — no chart-library math on untrusted inputs.
+ */
+export const getDashboardTrajectory = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<DashboardTrajectoryData> => {
+  const request = getRequest();
+  const authSession = await auth.api.getSession({ headers: request.headers });
+  if (!authSession) {
+    throw new Error("getDashboardTrajectory: unauthorized");
+  }
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({ id: keyboardProfiles.id })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, userId),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) {
+    return {
+      points: [],
+      current: { wpm: null, accuracyPct: null },
+      wpmDelta: null,
+      accuracyDelta: null,
+    };
+  }
+
+  // Pull all sessions ordered chronologically, then tail the window.
+  // Small user-scoped table so the full scan is cheap — no reason to
+  // push the window into SQL with LIMIT + reverse-sort.
+  const rows = await db
+    .select({
+      startedAt: sessions.startedAt,
+      wpm: sessions.wpm,
+      accuracy: sessions.accuracy,
+    })
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.userId, userId),
+        eq(sessions.keyboardProfileId, profile.id),
+      ),
+    )
+    .orderBy(asc(sessions.startedAt));
+
+  if (rows.length === 0) {
+    return {
+      points: [],
+      current: { wpm: null, accuracyPct: null },
+      wpmDelta: null,
+      accuracyDelta: null,
+    };
+  }
+
+  const window = rows.slice(-TRAJECTORY_WINDOW_N);
+  const points: TrajectoryPoint[] = window.map((r, i) => ({
+    index: i,
+    startedAt: r.startedAt.toISOString(),
+    wpm: Math.round(r.wpm ?? 0),
+    accuracyPct: Math.round((r.accuracy ?? 0) * 100),
+  }));
+
+  const last = points[points.length - 1]!;
+  const wpmSeries = points.map((p) => p.wpm).filter((w) => w > 0);
+  const accSeries = points.map((p) => p.accuracyPct);
+
+  return {
+    points,
+    current: { wpm: last.wpm, accuracyPct: last.accuracyPct },
+    wpmDelta: roundOrNull(
+      computeTrendDelta(wpmSeries, TREND_BASELINE_N_TRAJECTORY),
+    ),
+    accuracyDelta: roundOrNull(
+      computeTrendDelta(accSeries, TREND_BASELINE_N_TRAJECTORY),
+      1,
+    ),
+  };
+});
+
+/** Trajectory trend baseline is smaller than the hero-stats one (7)
+ * because the trajectory window itself is only 30; comparing the
+ * last N against the first 3 of that window shows "how much has
+ * momentum changed recently" rather than "how far from zero have
+ * I come lifetime". */
+const TREND_BASELINE_N_TRAJECTORY = 3;
+
 // --- weakness ranking (Task 3.2d) -----------------------------------------
 
 export type DashboardWeaknessRankingData = {

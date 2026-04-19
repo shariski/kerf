@@ -2335,6 +2335,123 @@ body {
   }
 }
 
+/* --- trajectory charts section (Task 3.2e) ---
+   Two area-chart cards side by side. Recharts owns the SVG inside
+   .kerf-dash-trend-chart; everything around it is this file's
+   responsibility. */
+
+.kerf-dash-trajectory {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.kerf-dash-trajectory--empty {
+  grid-template-columns: 1fr;
+  padding: 24px;
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.kerf-dash-trajectory-empty-note {
+  margin: 0;
+  color: var(--color-kerf-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.kerf-dash-trend-card {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kerf-dash-trend-card[data-accent="amber"] {
+  /* Accuracy is the featured primary metric per product-spec §6.2 —
+     a faint amber bleed at the top of the card reinforces that. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-kerf-amber-faint) 50%, var(--color-kerf-bg-surface)) 0%,
+    var(--color-kerf-bg-surface) 40%
+  );
+}
+
+.kerf-dash-trend-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kerf-dash-trend-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.kerf-dash-trend-value {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-trend-card[data-accent="amber"] .kerf-dash-trend-value {
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-dash-trend-value-unit {
+  font-size: 13px;
+  color: var(--color-kerf-text-tertiary);
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.kerf-dash-trend-chart {
+  width: 100%;
+  height: 120px;
+}
+
+.kerf-dash-trend-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-dash-trend-delta {
+  font-weight: 700;
+}
+
+.kerf-dash-trend-delta[data-dir="up"]   { color: var(--color-kerf-success-base); }
+.kerf-dash-trend-delta[data-dir="down"] { color: var(--color-kerf-warning-base); }
+.kerf-dash-trend-delta[data-dir="flat"] { color: var(--color-kerf-text-tertiary); }
+
+.kerf-dash-trend-delta--muted {
+  color: var(--color-kerf-text-tertiary);
+  font-weight: 500;
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .kerf-dash-trajectory {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- empty state --- */
 
 .kerf-dash-empty {
