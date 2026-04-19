@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useNavAutoHide } from "#/hooks/useNavAutoHide";
 
 /**
  * Global top navigation — 1:1 port of the `.app-nav` block in
@@ -22,9 +23,15 @@ const NAV_LINKS = [
 
 export function AppNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { hidden } = useNavAutoHide();
 
   return (
-    <header className="kerf-app-nav" role="banner">
+    <header
+      className="kerf-app-nav"
+      role="banner"
+      data-hidden={hidden || undefined}
+      aria-hidden={hidden || undefined}
+    >
       <Link to="/" className="kerf-nav-logo" aria-label="Home">
         kerf<span className="kerf-nav-logo-accent">.</span>
       </Link>

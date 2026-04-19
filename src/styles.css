@@ -1632,6 +1632,16 @@ body {
   padding: 0 32px;
   background: var(--color-kerf-bg-base);
   border-bottom: 1px solid var(--color-kerf-border-subtle);
+  /* Auto-hide during active typing — see useNavAutoHide hook + IA §5.
+     Transition both the slide and the fade so the reveal feels
+     continuous rather than popping back in. */
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.kerf-app-nav[data-hidden] {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Wordmark — Fraunces SOFT 100, lowercase, amber accent period.
@@ -1761,6 +1771,12 @@ body {
   }
   .kerf-nav-links {
     gap: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-app-nav {
+    transition-duration: 1ms;
   }
 }
 
