@@ -1225,53 +1225,356 @@ a {
 }
 
 /* ================================================================
-   Post-session placeholder — Task 2.4 (full summary lands in Task 2.5)
+   Post-session summary — Task 2.5
+   Port of design/practice-page-wireframe.html (.post-session block)
+   mapped 1:1 from the wireframe's bare --kerf-* tokens to the
+   project's --color-kerf-* @theme tokens.
    ================================================================ */
 
 .kerf-post-session {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 80px 24px;
+  padding-top: 32px;
+}
+
+/* Complete badge */
+.kerf-post-complete-mark {
   text-align: center;
+  margin-bottom: 16px;
 }
-.kerf-post-session-title {
-  font-family: var(--font-display, "Inter", sans-serif);
-  font-size: 32px;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  color: var(--color-kerf-text-primary);
-  margin: 0;
-}
-.kerf-post-session-subtitle {
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 14px;
-  color: var(--color-kerf-text-secondary);
-  margin: 0 0 16px;
-}
-.kerf-post-session-cta {
+
+.kerf-post-complete-mark-badge {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  border: 1px solid var(--color-kerf-amber-base);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-kerf-amber-base);
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 15px;
-  cursor: pointer;
-  transition: background 120ms ease;
-}
-.kerf-post-session-cta:hover {
-  background: var(--color-kerf-amber-subtle);
-}
-.kerf-post-session-shortcut {
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 20px;
   font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.kerf-post-complete-mark-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-kerf-amber-base);
+  border-radius: 50%;
+}
+
+/* Title */
+.kerf-post-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 40px;
+  line-height: 1.2;
+  color: var(--color-kerf-text-primary);
+}
+
+/* Stats row — accuracy-first ordering */
+.kerf-post-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--color-kerf-border-subtle);
+}
+
+.kerf-post-stat {
+  text-align: center;
+}
+
+.kerf-post-stat-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.kerf-post-stat-value {
+  font-family: var(--font-mono);
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--color-kerf-text-primary);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.kerf-post-stat-value.featured {
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-post-stat-delta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.kerf-post-stat-delta.up      { color: var(--color-kerf-success-base); }
+.kerf-post-stat-delta.down    { color: var(--color-kerf-error-base); }
+.kerf-post-stat-delta.neutral { color: var(--color-kerf-text-tertiary); }
+
+/* Section label — used above error review + weakness shifts */
+.kerf-post-section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+/* Error review */
+.kerf-error-review {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+
+.kerf-error-review-stats {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.kerf-error-review-stats .count {
+  color: var(--color-kerf-error-base);
+  font-weight: 700;
+}
+
+.kerf-error-review-text {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--color-kerf-text-secondary);
+  padding: 16px 0;
+  user-select: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.kerf-error-char {
+  color: var(--color-kerf-error-base);
+  background: var(--color-kerf-error-subtle);
+  border-radius: 2px;
+  padding: 1px 2px;
+  cursor: help;
+  position: relative;
+  border-bottom: 1px solid var(--color-kerf-error-base);
+}
+
+.kerf-error-char:hover::after,
+.kerf-error-char:focus-visible::after {
+  content: attr(data-expected);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background: var(--color-kerf-bg-overlay);
+  color: var(--color-kerf-text-primary);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  border: 1px solid var(--color-kerf-amber-base);
+  z-index: 10;
+}
+
+.kerf-error-char:hover::before,
+.kerf-error-char:focus-visible::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 3px;
+  border: 4px solid transparent;
+  border-top-color: var(--color-kerf-amber-base);
+  z-index: 10;
+}
+
+.kerf-error-patterns {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
   font-size: 12px;
-  opacity: 0.7;
+  color: var(--color-kerf-text-secondary);
+  line-height: 1.7;
+}
+
+.kerf-error-patterns strong {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* Weakness shifts — Phase 2 only renders the emergent column,
+   kept in the grid so layout matches the wireframe. Phase 3 fills
+   in the "improved" column once sessions persist. */
+.kerf-weakness-shifts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.kerf-shift-group {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+.kerf-shift-group-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kerf-shift-group.improved  .kerf-shift-group-title { color: var(--color-kerf-success-base); }
+.kerf-shift-group.emergent  .kerf-shift-group-title { color: var(--color-kerf-warning-base); }
+
+.kerf-shift-empty {
+  font-size: 12px;
+  color: var(--color-kerf-text-tertiary);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.kerf-shift-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-shift-pill {
+  background: var(--color-kerf-bg-elevated);
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-shift-delta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.kerf-shift-delta.improved { color: var(--color-kerf-success-base); }
+.kerf-shift-delta.worse    { color: var(--color-kerf-warning-base); }
+
+/* Insight callout */
+.kerf-insight {
+  background: var(--color-kerf-amber-faint);
+  border-left: 3px solid var(--color-kerf-amber-base);
+  padding: 20px 24px;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 32px;
+}
+
+.kerf-insight-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-amber-base);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.kerf-insight-text {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-insight-text strong {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* Actions */
+.kerf-post-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.kerf-post-btn {
+  padding: 14px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-sans, "Inter", sans-serif);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.kerf-post-btn.primary {
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+}
+
+.kerf-post-btn.primary:hover {
+  background: var(--color-kerf-amber-hover);
+}
+
+.kerf-post-btn.secondary {
+  background: transparent;
+  border: 1px solid var(--color-kerf-border-default);
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-post-btn.secondary:hover:not(:disabled) {
+  background: var(--color-kerf-bg-elevated);
+}
+
+.kerf-post-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.kerf-post-btn-shortcut {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.kerf-post-btn.secondary .kerf-post-btn-shortcut {
+  background: var(--color-kerf-bg-elevated);
+  color: var(--color-kerf-text-secondary);
 }
 
 /* Cross-stage fade-in — applied on mount when a stage becomes visible.
@@ -1287,9 +1590,26 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .kerf-stage-fade-in,
-  .kerf-post-session-cta {
+  .kerf-post-btn {
     animation-duration: 1ms;
     transition-duration: 1ms;
+  }
+}
+
+@media (max-width: 720px) {
+  .kerf-post-stats {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .kerf-weakness-shifts {
+    grid-template-columns: 1fr;
+  }
+  .kerf-post-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .kerf-post-btn {
+    justify-content: center;
   }
 }
 
