@@ -68,7 +68,7 @@ npm run lint        # linter
 - [ ] Phase 3 / Task 3.2: Dashboard page — `/dashboard` with 6 sections
   - [x] 3.2a: Hero stats (accuracy-featured) + split-keyboard metrics
   - [x] 3.2b: Activity log (30-day contribution grid + last 5 sessions list)
-  - [ ] 3.2c: Heatmap overlay on visual keyboard SVG
+  - [x] 3.2c: Heatmap overlay on visual keyboard SVG (per-key error-rate, amber → red ramp, legend + plain-language caption)
   - [ ] 3.2d: Weakness ranking (top 7–10 with score breakdown)
   - [ ] 3.2e: Skill trajectory charts (WPM + accuracy over time)
   - [ ] 3.2f: Engine insight narrative + phase badge + footer CTA

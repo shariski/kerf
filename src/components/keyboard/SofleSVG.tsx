@@ -7,6 +7,7 @@ type Props = {
   targetKey?: string;
   showFingerBars?: boolean;
   onKeyClick?: (char: string) => void;
+  heatLevels?: Record<string, number>;
   className?: string;
   style?: CSSProperties;
 };

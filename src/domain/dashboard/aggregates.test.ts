@@ -5,6 +5,7 @@ import {
   averageSplitMetrics,
   bucketActivityByDay,
   buildSparklineValues,
+  computeHeatLevels,
   computeMasteredCount,
   computeStreakDays,
   computeTrendDelta,
@@ -322,5 +323,83 @@ describe("formatDurationLabel", () => {
   it("clamps negative and zero elapsed to 0:00", () => {
     expect(formatDurationLabel(-5000)).toBe("0:00");
     expect(formatDurationLabel(0)).toBe("0:00");
+  });
+});
+
+// --- computeHeatLevels ----------------------------------------------------
+
+describe("computeHeatLevels", () => {
+  const opts = { minAttempts: 10 };
+
+  it("returns empty array on empty input", () => {
+    expect(computeHeatLevels([], opts)).toEqual([]);
+  });
+
+  it("excludes non-alphabetic characters", () => {
+    const out = computeHeatLevels(
+      [
+        { character: " ", attempts: 100, errors: 5 },
+        { character: ".", attempts: 100, errors: 5 },
+        { character: "a", attempts: 100, errors: 5 },
+      ],
+      opts,
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0]!.character).toBe("a");
+  });
+
+  it("lowercases input characters", () => {
+    const out = computeHeatLevels(
+      [{ character: "A", attempts: 100, errors: 0 }],
+      opts,
+    );
+    expect(out[0]!.character).toBe("a");
+  });
+
+  it("assigns level 0 when below minAttempts even with high error rate", () => {
+    const out = computeHeatLevels(
+      [{ character: "b", attempts: 5, errors: 3 }],
+      opts,
+    );
+    expect(out[0]!.level).toBe(0);
+  });
+
+  it("assigns level 0 when error rate is exactly 0", () => {
+    const out = computeHeatLevels(
+      [{ character: "a", attempts: 100, errors: 0 }],
+      opts,
+    );
+    expect(out[0]!.level).toBe(0);
+  });
+
+  it.each([
+    [0.01, 1], // 1% → level 1
+    [0.029, 1], // just under 3%
+    [0.03, 2], // exactly 3% → level 2
+    [0.05, 2], // 5% → level 2
+    [0.069, 2], // just under 7%
+    [0.07, 3], // 7% → level 3
+    [0.1, 3], // 10% → level 3
+    [0.149, 3], // just under 15%
+    [0.15, 4], // 15% → level 4
+    [0.3, 4], // 30% → level 4
+  ])("error rate %s maps to level %i", (rate, expectedLevel) => {
+    const attempts = 1000;
+    const errors = Math.round(rate * attempts);
+    const out = computeHeatLevels(
+      [{ character: "x", attempts, errors }],
+      opts,
+    );
+    expect(out[0]!.level).toBe(expectedLevel);
+  });
+
+  it("surfaces errorRate and attempts on each entry", () => {
+    const out = computeHeatLevels(
+      [{ character: "b", attempts: 100, errors: 12 }],
+      opts,
+    );
+    expect(out[0]!.attempts).toBe(100);
+    expect(out[0]!.errors).toBe(12);
+    expect(out[0]!.errorRate).toBeCloseTo(0.12);
   });
 });
