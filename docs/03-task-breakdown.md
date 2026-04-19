@@ -363,7 +363,36 @@ This means Claude Code never needs SSH access or VPS credentials.
 
 - Validate that "left hand only" actually generates words typeable with left hand only on Sofle/Lily58
 
-**Phase 2 milestone**: full end-to-end flow. Onboard, practice adaptively for 5 minutes, see inline post-session summary with error review, data persists in local DB.
+### Task 2.8: Session persistence (NEW)
+
+**Why this task exists**: the Phase 2 milestone implied "data persists in local DB" but no earlier task explicitly wired persistence. Schema + migrations for `sessions`, `keystroke_events`, `character_stats`, `bigram_stats`, and `split_metrics_snapshots` landed with Task 0.2 but nothing writes to them at runtime. Without this task, the post-session summary renders from in-memory state and evaporates on reload — which blocks the Phase 3 dashboard (Task 3.2) from having anything to read.
+
+**Claude Code scope:**
+
+- Server function `persistSession({ userId, profileId, mode, events, summary, splitMetrics, filters, target, phase })` that, in a single transaction:
+  - Inserts one row to `sessions` with `mode` ('adaptive' | 'targeted_drill'), `phaseAtSession`, `filterConfig` (jsonb), `startedAt`, `endedAt`, `totalChars`, `totalErrors`, `wpm`, `accuracy`
+  - Bulk-inserts `keystroke_events` rows with `sequence` reflecting the event's position in the session buffer
+  - **Upserts** `character_stats` and `bigram_stats` (user, keyboardProfile, character|bigram) rows — incrementing `totalAttempts`, `totalErrors`, `sumKeystrokeMs`, `hesitationCount` on conflict, per the `uniqueIndex` already in the schema
+  - Inserts one row to `split_metrics_snapshots` from `computeSplitMetrics` output
+- Wire `persistSession()` into both the `/practice` and `/practice/drill` complete flows:
+  - Fire-and-forget with error logging — the summary UI must render regardless of DB outcome
+  - Drills set `mode: 'targeted_drill'`; adaptive sets `mode: 'adaptive'`; `filterConfig` carries `handIsolation` / `maxWordLength` / drill `target` / drill `preset` as applicable
+- Unit tests: per-table insert shape, UPSERT behaviour on repeated characters across sessions, transaction rollback on any table failure
+- Integration test: round-trip — compute a session, persist it, read it back, assert the reconstructed state matches the in-memory `SessionSummary` closely enough for Phase 3 consumption
+
+**Your scope:**
+
+- Review transaction strategy — is all-or-nothing correct, or do you want partial persistence for resilience (e.g. session + events succeed, stats upsert fails → still call that a "saved session")?
+- Decide the "fire-and-forget" error surface: silent log only, a muted UI toast, or a retry banner?
+- Validate schema is final — does anything about the Phase 3 dashboard need columns we don't have yet?
+
+**Explicitly out of scope:**
+
+- Reading sessions back for any UI (that's Task 3.2's dashboard)
+- Offline queue / retry-on-reconnect (Phase 4 if needed)
+- Per-event timestamp precision beyond `keystroke_ms` (good enough for Phase 3 heatmap)
+
+**Phase 2 milestone**: formally closes with this task. Post-session summary data survives a reload, and Phase 3 dashboard (Task 3.2) has a populated database to read from.
 
 ---
 
