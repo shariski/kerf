@@ -18,6 +18,8 @@ import {
 import { useSessionStore, sessionStore } from "#/stores/sessionStore";
 import { useCorpus } from "#/hooks/useCorpus";
 import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
+import { summarizeSession } from "#/domain/session/summarize";
+import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
 
 /**
  * Drizzle types the profile columns as `string` (the schema uses `text()`
@@ -147,10 +149,28 @@ function PracticePage() {
   }, [status, corpus.status, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (status === "complete") {
+    // Pull the values the summary depends on straight from the store.
+    // Only read inside the branch so active-session renders aren't
+    // tied to state that only matters post-complete.
+    const state = sessionStore.getState();
+    const summary = summarizeSession({
+      target: state.target,
+      events: state.events,
+      keyboardType: profile.keyboardType,
+      startedAt: state.startedAt,
+      completedAt: state.completedAt,
+      phase: profile.transitionPhase,
+    });
+    const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
     return (
       <main className="kerf-practice-main">
         <div className="kerf-practice-container kerf-stage-fade-in">
-          <PostSessionStage onPracticeAgain={startAdaptive} />
+          <PostSessionStage
+            target={state.target}
+            title={title}
+            summary={summary}
+            onPracticeAgain={startAdaptive}
+          />
         </div>
       </main>
     );

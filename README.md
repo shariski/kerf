@@ -60,6 +60,6 @@ npm run lint        # linter
 - [x] Phase 2 / Task 2.2: Visual Keyboard SVG (SofleSVG / Lily58SVG with target highlight, finger bars, imperative flash API)
 - [x] Phase 2 / Task 2.3: Typing area component (TypingArea + useKeystrokeCapture + sessionStore with amber expected-letter badge on errors)
 - [x] Phase 2 / Task 2.4: Practice page integration with pause state (pre-session → active → pause overlay → post-session placeholder)
-- [ ] Phase 2 / Task 2.5: Post-session inline summary with error review
+- [x] Phase 2 / Task 2.5: Post-session inline summary with error review (summarizeSession + pickSummaryTitle + 1:1 wireframe port)
 - [ ] Phase 2 / Task 2.6: Drill mode submode
 - [ ] Phase 2 / Task 2.7: Hand isolation filter
