@@ -4,6 +4,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { auth } from "./auth";
 import { db } from "./db";
 import {
+  bigramStats,
   characterStats,
   keyboardProfiles,
   sessions,
@@ -17,11 +18,15 @@ import {
   computeMasteredCount,
   computeStreakDays,
   computeTrendDelta,
+  computeWeaknessRanking,
   formatDurationLabel,
   formatRelativeDay,
   type ActivityDay,
   type SplitSnapshot,
+  type WeaknessRankEntry,
 } from "#/domain/dashboard/aggregates";
+import { PHASE_BASELINES } from "#/domain/stats/baselines";
+import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import type { KeyboardType } from "./profile";
 
 /**
@@ -563,3 +568,101 @@ function buildSessionDescription(input: {
         : "";
   return `${words} words${handSuffix}`;
 }
+
+// --- weakness ranking (Task 3.2d) -----------------------------------------
+
+export type DashboardWeaknessRankingData = {
+  /** Top N entries, descending by score. Shape matches
+   * WeaknessRankEntry from the aggregates module. */
+  entries: WeaknessRankEntry[];
+  /** Active phase the score was computed under — the UI can surface
+   * this so users understand why certain units rank where they do
+   * (inner-column bonus only fires in `transitioning`). */
+  phase: TransitionPhase;
+};
+
+/** Top-N target for the ranking list. 10 matches the task-breakdown's
+ * "top 7–10"; actual length can be shorter when the user has fewer
+ * high-confidence units than the cap. */
+const WEAKNESS_RANKING_TOP_N = 10;
+
+/**
+ * Rank the user's weakest typing units for dashboard Section 4.
+ *
+ * Reads per-user/profile `character_stats` + `bigram_stats` (both
+ * maintained as UPSERTs by Task 2.8's `persistSession`). Uses the
+ * active profile's phase to pick coefficients from PHASE_BASELINES
+ * so the dashboard ranking agrees with what the adaptive engine
+ * picks as exercise targets.
+ */
+export const getDashboardWeaknessRanking = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<DashboardWeaknessRankingData> => {
+  const request = getRequest();
+  const authSession = await auth.api.getSession({ headers: request.headers });
+  if (!authSession) {
+    throw new Error("getDashboardWeaknessRanking: unauthorized");
+  }
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({
+      id: keyboardProfiles.id,
+      transitionPhase: keyboardProfiles.transitionPhase,
+    })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, userId),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) {
+    return { entries: [], phase: "transitioning" };
+  }
+
+  const phase = profile.transitionPhase as TransitionPhase;
+  const baseline = PHASE_BASELINES[phase];
+
+  const charRows = await db
+    .select({
+      character: characterStats.character,
+      attempts: characterStats.totalAttempts,
+      errors: characterStats.totalErrors,
+      sumTime: characterStats.sumKeystrokeMs,
+      hesitationCount: characterStats.hesitationCount,
+    })
+    .from(characterStats)
+    .where(
+      and(
+        eq(characterStats.userId, userId),
+        eq(characterStats.keyboardProfileId, profile.id),
+      ),
+    );
+
+  const bigramRows = await db
+    .select({
+      bigram: bigramStats.bigram,
+      attempts: bigramStats.totalAttempts,
+      errors: bigramStats.totalErrors,
+      sumTime: bigramStats.sumKeystrokeMs,
+    })
+    .from(bigramStats)
+    .where(
+      and(
+        eq(bigramStats.userId, userId),
+        eq(bigramStats.keyboardProfileId, profile.id),
+      ),
+    );
+
+  const entries = computeWeaknessRanking({
+    chars: charRows,
+    bigrams: bigramRows,
+    baseline,
+    phase,
+    topN: WEAKNESS_RANKING_TOP_N,
+  });
+
+  return { entries, phase };
+});

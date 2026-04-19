@@ -4,14 +4,17 @@ import {
   getDashboardActivity,
   getDashboardHeatmap,
   getDashboardHeroStats,
+  getDashboardWeaknessRanking,
   type DashboardActivityData,
   type DashboardHeatmapData,
   type DashboardHeroData,
+  type DashboardWeaknessRankingData,
 } from "#/server/dashboard";
 import { HeroStats } from "#/components/dashboard/HeroStats";
 import { SplitMetrics } from "#/components/dashboard/SplitMetrics";
 import { ActivityLog } from "#/components/dashboard/ActivityLog";
 import { Heatmap } from "#/components/dashboard/Heatmap";
+import { WeaknessRanking } from "#/components/dashboard/WeaknessRanking";
 import { Section } from "#/components/dashboard/Section";
 
 export const Route = createFileRoute("/dashboard")({
@@ -23,22 +26,24 @@ export const Route = createFileRoute("/dashboard")({
     hero: DashboardHeroData;
     activity: DashboardActivityData;
     heatmap: DashboardHeatmapData;
+    weakness: DashboardWeaknessRankingData;
   }> => {
-    // Three independent queries against the same active profile —
-    // parallel so the dashboard's first paint scales linearly with
-    // the slowest single query, not the sum.
-    const [hero, activity, heatmap] = await Promise.all([
+    // Four independent queries against the same active profile —
+    // parallel so the dashboard's first paint scales with the
+    // slowest single query, not the sum.
+    const [hero, activity, heatmap, weakness] = await Promise.all([
       getDashboardHeroStats(),
       getDashboardActivity(),
       getDashboardHeatmap(),
+      getDashboardWeaknessRanking(),
     ]);
-    return { hero, activity, heatmap };
+    return { hero, activity, heatmap, weakness };
   },
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { hero, activity, heatmap } = Route.useLoaderData();
+  const { hero, activity, heatmap, weakness } = Route.useLoaderData();
 
   if (!hero.hasAnyData) {
     return <EmptyState />;
@@ -68,6 +73,13 @@ function DashboardPage() {
         meta={`${heatmap.keyboardType} base layer`}
       >
         <Heatmap data={heatmap} />
+      </Section>
+
+      <Section
+        title="Top weaknesses"
+        meta={`ranked by ${weakness.phase} engine`}
+      >
+        <WeaknessRanking data={weakness} />
       </Section>
 
       <Section title="Split-keyboard metrics" meta="recent sessions">
