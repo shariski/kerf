@@ -364,3 +364,73 @@ export function formatDurationLabel(ms: number): string {
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
+
+// --- heatmap levels (Task 3.2c) -------------------------------------------
+
+export type HeatLevel = 0 | 1 | 2 | 3 | 4;
+
+export type HeatOptions = {
+  /** Min attempts before a character gets a heat level above 0.
+   * Below this it stays level-0 (treated as "no signal yet"). */
+  minAttempts: number;
+};
+
+export type HeatEntry = {
+  character: string;
+  attempts: number;
+  errors: number;
+  /** 0–1. NaN-safe (0 when attempts is 0). */
+  errorRate: number;
+  level: HeatLevel;
+};
+
+/**
+ * Absolute-threshold error-rate buckets for the per-key dashboard
+ * heatmap. The amber→red ramp mirrors the wireframe's design tokens:
+ * faint amber for "noticed", deeper amber for "watch this", red for
+ * "practice target".
+ *
+ * Thresholds are absolute (not relative to the series' max) because
+ * a 10% error rate on a single key has standalone meaning regardless
+ * of how much better other keys are. Relative ramping would hide a
+ * genuinely weak keyboard by stretching its best keys to look "good".
+ */
+const HEAT_THRESHOLDS: readonly { lt: number; level: HeatLevel }[] = [
+  { lt: 0.03, level: 1 }, // < 3% → faint amber ("fine")
+  { lt: 0.07, level: 2 }, // 3–7% → amber ("watch this")
+  { lt: 0.15, level: 3 }, // 7–15% → red-amber ("work on it")
+  { lt: Infinity, level: 4 }, // ≥ 15% → strong red ("big weakness")
+];
+
+/**
+ * Bucket character_stats rows into dashboard heatmap entries. Only
+ * alphabetic characters (a–z) are returned — the keyboard SVG has
+ * no slots for space/punctuation, so there's nothing to color.
+ */
+export function computeHeatLevels(
+  chars: readonly { character: string; attempts: number; errors: number }[],
+  options: HeatOptions,
+): HeatEntry[] {
+  const out: HeatEntry[] = [];
+  for (const c of chars) {
+    const ch = c.character.toLowerCase();
+    if (!/^[a-z]$/.test(ch)) continue;
+
+    const attempts = c.attempts;
+    const errors = c.errors;
+    const errorRate = attempts > 0 ? errors / attempts : 0;
+
+    let level: HeatLevel = 0;
+    if (attempts >= options.minAttempts && errorRate > 0) {
+      for (const t of HEAT_THRESHOLDS) {
+        if (errorRate < t.lt) {
+          level = t.level;
+          break;
+        }
+      }
+    }
+
+    out.push({ character: ch, attempts, errors, errorRate, level });
+  }
+  return out;
+}

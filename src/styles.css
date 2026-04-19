@@ -175,6 +175,31 @@ body {
   fill: var(--color-kerf-bg-base);
 }
 
+/* Dashboard heatmap overlay (Task 3.2c).
+   Amber → red ramp tied to --color-kerf-heat-*. Target key wins over
+   heat (see the [data-heat-level] rules NOT applying to .kb-key-target
+   via the combinator specificity). */
+.kb-key[data-heat-level="1"] > .kb-key-face {
+  fill: var(--color-kerf-heat-1);
+}
+.kb-key[data-heat-level="2"] > .kb-key-face {
+  fill: var(--color-kerf-heat-2);
+  stroke: rgba(245, 158, 11, 0.5);
+}
+.kb-key[data-heat-level="3"] > .kb-key-face {
+  fill: var(--color-kerf-heat-3);
+  stroke: rgba(239, 68, 68, 0.6);
+}
+.kb-key[data-heat-level="4"] > .kb-key-face {
+  fill: var(--color-kerf-heat-4);
+  stroke: var(--color-kerf-error-base);
+  stroke-width: 1.5;
+}
+.kb-key[data-heat-level]:not(.kb-key-target) > .kb-key-label {
+  fill: var(--color-kerf-text-primary);
+  font-weight: 700;
+}
+
 .kb-key-clickable {
   cursor: pointer;
 }
@@ -2110,6 +2135,81 @@ body {
     text-align: left;
     grid-column: 2 / -1;
   }
+}
+
+/* --- heatmap section (Task 3.2c) ---
+   Renders KeyboardSVG under a legend + plain-language caption. The
+   per-key color overlay lives in the .kb-key[data-heat-level="N"]
+   rules up by the keyboard SVG styles. */
+
+.kerf-dash-heatmap {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.kerf-dash-heatmap-svg-wrap {
+  /* The SVG auto-scales to the container width; a max keeps the
+     board from stretching absurdly wide on 1600px+ viewports. */
+  max-width: 820px;
+  margin: 0 auto 24px;
+}
+
+.kerf-dash-heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-dash-heatmap-scale {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kerf-dash-heatmap-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid var(--color-kerf-border-default);
+}
+
+.kerf-dash-heatmap-swatch[data-heat-level="1"] {
+  background: var(--color-kerf-heat-1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.kerf-dash-heatmap-swatch[data-heat-level="2"] {
+  background: var(--color-kerf-heat-2);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+.kerf-dash-heatmap-swatch[data-heat-level="3"] {
+  background: var(--color-kerf-heat-3);
+  border-color: rgba(239, 68, 68, 0.6);
+}
+.kerf-dash-heatmap-swatch[data-heat-level="4"] {
+  background: var(--color-kerf-heat-4);
+  border-color: var(--color-kerf-error-base);
+}
+
+.kerf-dash-heatmap-caption {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-dash-heatmap-caption strong {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-amber-base);
+  font-weight: 700;
 }
 
 /* --- empty state --- */

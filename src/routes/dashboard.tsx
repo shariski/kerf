@@ -2,13 +2,16 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getDashboardActivity,
+  getDashboardHeatmap,
   getDashboardHeroStats,
   type DashboardActivityData,
+  type DashboardHeatmapData,
   type DashboardHeroData,
 } from "#/server/dashboard";
 import { HeroStats } from "#/components/dashboard/HeroStats";
 import { SplitMetrics } from "#/components/dashboard/SplitMetrics";
 import { ActivityLog } from "#/components/dashboard/ActivityLog";
+import { Heatmap } from "#/components/dashboard/Heatmap";
 import { Section } from "#/components/dashboard/Section";
 
 export const Route = createFileRoute("/dashboard")({
@@ -19,20 +22,23 @@ export const Route = createFileRoute("/dashboard")({
   loader: async (): Promise<{
     hero: DashboardHeroData;
     activity: DashboardActivityData;
+    heatmap: DashboardHeatmapData;
   }> => {
-    // Load hero + activity in parallel — they're independent queries
-    // against the same active profile.
-    const [hero, activity] = await Promise.all([
+    // Three independent queries against the same active profile —
+    // parallel so the dashboard's first paint scales linearly with
+    // the slowest single query, not the sum.
+    const [hero, activity, heatmap] = await Promise.all([
       getDashboardHeroStats(),
       getDashboardActivity(),
+      getDashboardHeatmap(),
     ]);
-    return { hero, activity };
+    return { hero, activity, heatmap };
   },
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { hero, activity } = Route.useLoaderData();
+  const { hero, activity, heatmap } = Route.useLoaderData();
 
   if (!hero.hasAnyData) {
     return <EmptyState />;
@@ -55,6 +61,13 @@ function DashboardPage() {
 
       <Section title="Recent activity" meta="last 30 days">
         <ActivityLog data={activity} />
+      </Section>
+
+      <Section
+        title="Per-key heatmap"
+        meta={`${heatmap.keyboardType} base layer`}
+      >
+        <Heatmap data={heatmap} />
       </Section>
 
       <Section title="Split-keyboard metrics" meta="recent sessions">

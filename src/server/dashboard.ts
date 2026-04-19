@@ -13,6 +13,7 @@ import {
   averageSplitMetrics,
   bucketActivityByDay,
   buildSparklineValues,
+  computeHeatLevels,
   computeMasteredCount,
   computeStreakDays,
   computeTrendDelta,
@@ -431,6 +432,108 @@ function toRecentSession(row: SessionRow, now: Date): RecentSession {
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
+
+// --- heatmap (Task 3.2c) --------------------------------------------------
+
+export type DashboardHeatmapData = {
+  keyboardType: KeyboardType;
+  /** char → heat level 0..4 for KeyboardSVG's heatLevels prop. Only
+   * alphabetic keys with at least HEATMAP_MIN_ATTEMPTS are included. */
+  heatByChar: Record<string, number>;
+  /** Number of alphabetic keys that have enough attempts to read. */
+  measuredCount: number;
+  /** Top-3 hottest keys (level 3 or 4) by error rate desc — surfaced
+   * in the caption so the user doesn't have to scan the whole board. */
+  hottest: string[];
+};
+
+/** Min per-key attempts before a key gets colored. Below this, the
+ * signal is too noisy (one fat-fingered B in the whole session
+ * shouldn't paint B red). */
+const HEATMAP_MIN_ATTEMPTS = 10;
+const HEATMAP_HOTTEST_N = 3;
+
+/**
+ * Per-key error-rate heatmap data for the active profile. Reads the
+ * same per-user-aggregated `character_stats` rows as the hero stats;
+ * the heatmap and "mastered" count are two views of the same data.
+ */
+export const getDashboardHeatmap = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<DashboardHeatmapData> => {
+  const request = getRequest();
+  const authSession = await auth.api.getSession({ headers: request.headers });
+  if (!authSession) {
+    throw new Error("getDashboardHeatmap: unauthorized");
+  }
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({
+      id: keyboardProfiles.id,
+      keyboardType: keyboardProfiles.keyboardType,
+    })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, userId),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) {
+    return {
+      keyboardType: "sofle",
+      heatByChar: {},
+      measuredCount: 0,
+      hottest: [],
+    };
+  }
+
+  const rows = await db
+    .select({
+      character: characterStats.character,
+      totalAttempts: characterStats.totalAttempts,
+      totalErrors: characterStats.totalErrors,
+    })
+    .from(characterStats)
+    .where(
+      and(
+        eq(characterStats.userId, userId),
+        eq(characterStats.keyboardProfileId, profile.id),
+      ),
+    );
+
+  const entries = computeHeatLevels(
+    rows.map((r) => ({
+      character: r.character,
+      attempts: r.totalAttempts,
+      errors: r.totalErrors,
+    })),
+    { minAttempts: HEATMAP_MIN_ATTEMPTS },
+  );
+
+  const heatByChar: Record<string, number> = {};
+  let measuredCount = 0;
+  for (const e of entries) {
+    if (e.attempts >= HEATMAP_MIN_ATTEMPTS) measuredCount++;
+    if (e.level > 0) heatByChar[e.character] = e.level;
+  }
+
+  // Top-N hottest: anything at level 3 or 4, ordered by error rate.
+  const hottest = entries
+    .filter((e) => e.level >= 3)
+    .sort((a, b) => b.errorRate - a.errorRate)
+    .slice(0, HEATMAP_HOTTEST_N)
+    .map((e) => e.character);
+
+  return {
+    keyboardType: profile.keyboardType as KeyboardType,
+    heatByChar,
+    measuredCount,
+    hottest,
+  };
+});
 
 function buildSessionDescription(input: {
   mode: "adaptive" | "targeted_drill";

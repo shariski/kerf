@@ -32,6 +32,14 @@ type Props = {
   showFingerBars?: boolean;
   /** Making keys focusable + clickable. Used in onboarding for "click this key". */
   onKeyClick?: (char: string) => void;
+  /**
+   * Per-key heat level for the dashboard heatmap. `char -> 0..4`.
+   * Rendered as `data-heat-level` on each key group; CSS owns the
+   * color ramp via --color-kerf-heat-* tokens. Keys not in the map
+   * default to no heat. When `targetKey` is also set on the same
+   * char, the amber target fill takes visual precedence.
+   */
+  heatLevels?: Record<string, number>;
   /** Optional class merged onto the <svg>. */
   className?: string;
   style?: CSSProperties;
@@ -72,6 +80,7 @@ export const KeyboardSVG = forwardRef<KeyboardSVGHandle, Props>(
       targetKey,
       showFingerBars = false,
       onKeyClick,
+      heatLevels,
       className,
       style,
     },
@@ -119,6 +128,9 @@ export const KeyboardSVG = forwardRef<KeyboardSVGHandle, Props>(
         .filter(Boolean)
         .join(" ");
 
+      const heat = heatLevels?.[k.char];
+      const heatAttr = typeof heat === "number" && heat > 0 ? heat : undefined;
+
       return (
         <g
           key={k.char}
@@ -128,6 +140,7 @@ export const KeyboardSVG = forwardRef<KeyboardSVGHandle, Props>(
           }}
           transform={keyTransform(k)}
           data-char={k.char}
+          data-heat-level={heatAttr}
           className={classes}
           {...(clickable
             ? {
