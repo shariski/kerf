@@ -103,9 +103,12 @@ const rightKeys: KeyGeometry[] = [
   { char: "ctrl_r",  label: "ctrl", x: 68,  y: 154, width: W, height: H },
 ];
 
+/* ViewBox width trimmed from the design-source 760 to 662 so the keyboard
+   sits centered: rightmost matrix key is at x=642 after translate, so 760
+   left ~118px of empty right-side space. Matches Sofle's trimmed width. */
 export const LILY58_GEOMETRY: KeyboardGeometry = {
   layout: "lily58",
-  viewBox: [0, 0, 760, 260] as const,
+  viewBox: [0, 0, 662, 260] as const,
   halves: {
     left: {
       translateX: 20,

@@ -111,6 +111,19 @@ describe("keystrokeReducer — error keystroke", () => {
     expect(s.events[1]).toMatchObject({ targetChar: "n", actualChar: "v", isError: true });
     expect(s.activeError).toEqual({ expected: "n", actual: "v" });
   });
+
+  it("typing the correct letter while in error state does NOT advance (spec: must backspace)", () => {
+    // See docs/01-product-spec.md §204 and 06-design-summary.md §324:
+    // once an error is latched, only backspace clears it.
+    let s = start("nice", 1000);
+    s = keystrokeReducer(s, { type: "keypress", char: "b", now: 1100 });
+    s = keystrokeReducer(s, { type: "keypress", char: "n", now: 1200 }); // correct letter
+    expect(s.position).toBe(0);
+    expect(s.charStatus[0]).toBe("error");
+    expect(s.activeError).toEqual({ expected: "n", actual: "n" });
+    expect(s.events).toHaveLength(2);
+    expect(s.events[1]).toMatchObject({ targetChar: "n", actualChar: "n", isError: true });
+  });
 });
 
 describe("keystrokeReducer — backspace", () => {

@@ -59,7 +59,7 @@ npm run lint        # linter
 - [x] Phase 2 / Task 2.1: Onboarding flow
 - [x] Phase 2 / Task 2.2: Visual Keyboard SVG (SofleSVG / Lily58SVG with target highlight, finger bars, imperative flash API)
 - [x] Phase 2 / Task 2.3: Typing area component (TypingArea + useKeystrokeCapture + sessionStore with amber expected-letter badge on errors)
-- [ ] Phase 2 / Task 2.4: Practice page integration with pause state
+- [x] Phase 2 / Task 2.4: Practice page integration with pause state (pre-session → active → pause overlay → post-session placeholder)
 - [ ] Phase 2 / Task 2.5: Post-session inline summary with error review
 - [ ] Phase 2 / Task 2.6: Drill mode submode
 - [ ] Phase 2 / Task 2.7: Hand isolation filter
