@@ -19,6 +19,7 @@ import { Heatmap } from "#/components/dashboard/Heatmap";
 import { WeaknessRanking } from "#/components/dashboard/WeaknessRanking";
 import { TrajectoryCharts } from "#/components/dashboard/TrajectoryCharts";
 import { EngineInsight } from "#/components/dashboard/EngineInsight";
+import { TransparencyPanel } from "#/components/dashboard/TransparencyPanel";
 import { Section } from "#/components/dashboard/Section";
 import { composeDashboardInsight } from "#/domain/dashboard/insight";
 
@@ -108,6 +109,16 @@ function DashboardPage() {
           })}
           phase={weakness.phase}
           topWeaknessName={weakness.entries[0]?.unit ?? null}
+        />
+      </Section>
+
+      <Section
+        title="How is this calculated?"
+        meta="live formula + top-weakness breakdown"
+      >
+        <TransparencyPanel
+          breakdown={weakness.topBreakdown}
+          phase={weakness.phase}
         />
       </Section>
     </main>

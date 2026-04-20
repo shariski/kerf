@@ -22,7 +22,7 @@ import type {
  *    generator with the corpus loaded) supplies it as a separate arg.
  */
 
-const COEFFICIENTS: Record<
+export const COEFFICIENTS: Record<
   TransitionPhase,
   { ALPHA: number; BETA: number; GAMMA: number; DELTA: number }
 > = {
@@ -30,7 +30,7 @@ const COEFFICIENTS: Record<
   refining: { ALPHA: 0.3, BETA: 0.35, GAMMA: 0.25, DELTA: 0.1 },
 };
 
-const INNER_COLUMN: ReadonlySet<string> = new Set([
+export const INNER_COLUMN: ReadonlySet<string> = new Set([
   "b",
   "g",
   "h",

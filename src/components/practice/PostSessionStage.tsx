@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type {
   EmergentWeakness,
   ErrorPosition,
@@ -13,11 +14,9 @@ import type { PatternDetection } from "#/domain/insight/types";
  * `summarizeSession` (pure domain) and `pickSummaryTitle` (pure copy).
  * The route passes in ready-to-render values.
  *
- * Phase 2 constraints (see CLAUDE.md §B6, task-breakdown §2.5):
- *   - No "improved" column in weakness shifts — session history lands
- *     in Phase 3. Renders a muted placeholder in its place.
- *   - Drill + View-dashboard buttons are disabled until their target
- *     routes exist (Tasks 2.6 and Phase 3 respectively).
+ * Phase 2 constraint still active: session history lands in Phase 3, so
+ * the "improved" column in weakness shifts shows a muted placeholder
+ * instead of real deltas.
  */
 
 type Props = {
@@ -155,28 +154,20 @@ export function PostSessionStage({
           Practice again
           <span className="kerf-post-btn-shortcut" aria-hidden="true">⏎</span>
         </button>
-        <button
-          type="button"
+        <Link
+          to="/practice/drill"
+          search={topWeaknessName ? { target: topWeaknessName } : undefined}
           className="kerf-post-btn secondary"
-          disabled
-          title="Drill mode lands in Task 2.6"
-          aria-disabled="true"
         >
           {topWeaknessName
             ? `Drill ${topWeaknessName.toUpperCase()} specifically`
             : "Drill a weakness"}
           <span className="kerf-post-btn-shortcut" aria-hidden="true">D</span>
-        </button>
-        <button
-          type="button"
-          className="kerf-post-btn secondary"
-          disabled
-          title="Dashboard lands in Phase 3"
-          aria-disabled="true"
-        >
+        </Link>
+        <Link to="/dashboard" className="kerf-post-btn secondary">
           View dashboard
           <span className="kerf-post-btn-shortcut" aria-hidden="true">⌘D</span>
-        </button>
+        </Link>
       </div>
     </div>
   );
