@@ -8,6 +8,7 @@ import {
   type DayOfWeekBucket,
   type HourBucket,
 } from "#/domain/dashboard/temporalPatterns";
+import { useIsClient } from "#/hooks/useIsClient";
 
 /**
  * Dashboard "When you practice best" section (Task 3.4c).
@@ -106,6 +107,7 @@ function PeakCaption({
 const CHART_HEIGHT = 140;
 
 function HourChart({ buckets }: { buckets: readonly HourBucket[] }) {
+  const isClient = useIsClient();
   // Sub-threshold buckets get meanWpm=null → 0 here → zero-height
   // (invisible) bar. Keeps the x-axis spacing uniform across 24 slots
   // while still hiding noise from buckets that don't have enough
@@ -122,28 +124,30 @@ function HourChart({ buckets }: { buckets: readonly HourBucket[] }) {
         <span className="kerf-dash-temporal-chart-axis">WPM</span>
       </header>
       <div style={{ height: CHART_HEIGHT }}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
-            <Bar
-              dataKey="wpm"
-              fill="var(--color-kerf-info-base)"
-              fillOpacity={0.75}
-              isAnimationActive={false}
-            />
-            <XAxis
-              dataKey="hour"
-              tick={{
-                fill: "var(--color-kerf-text-tertiary)",
-                fontSize: 10,
-                fontFamily: "var(--font-mono)",
-              }}
-              tickLine={false}
-              axisLine={{ stroke: "var(--color-kerf-border-subtle)" }}
-              interval={5} // labels at 0, 6, 12, 18
-              tickFormatter={(h: number) => (h < 10 ? `0${h}` : `${h}`)}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        {isClient ? (
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
+              <Bar
+                dataKey="wpm"
+                fill="var(--color-kerf-info-base)"
+                fillOpacity={0.75}
+                isAnimationActive={false}
+              />
+              <XAxis
+                dataKey="hour"
+                tick={{
+                  fill: "var(--color-kerf-text-tertiary)",
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                }}
+                tickLine={false}
+                axisLine={{ stroke: "var(--color-kerf-border-subtle)" }}
+                interval={5} // labels at 0, 6, 12, 18
+                tickFormatter={(h: number) => (h < 10 ? `0${h}` : `${h}`)}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : null}
       </div>
     </div>
   );
@@ -152,6 +156,7 @@ function HourChart({ buckets }: { buckets: readonly HourBucket[] }) {
 // --- day-of-week chart ----------------------------------------------------
 
 function DayOfWeekChart({ buckets }: { buckets: readonly DayOfWeekBucket[] }) {
+  const isClient = useIsClient();
   const chartData = buckets.map((b) => ({
     day: b.dayLabel,
     wpm: b.meanWpm ?? 0,
@@ -164,27 +169,29 @@ function DayOfWeekChart({ buckets }: { buckets: readonly DayOfWeekBucket[] }) {
         <span className="kerf-dash-temporal-chart-axis">WPM</span>
       </header>
       <div style={{ height: CHART_HEIGHT }}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
-            <Bar
-              dataKey="wpm"
-              fill="var(--color-kerf-info-base)"
-              fillOpacity={0.75}
-              isAnimationActive={false}
-            />
-            <XAxis
-              dataKey="day"
-              tick={{
-                fill: "var(--color-kerf-text-tertiary)",
-                fontSize: 10,
-                fontFamily: "var(--font-mono)",
-              }}
-              tickLine={false}
-              axisLine={{ stroke: "var(--color-kerf-border-subtle)" }}
-              interval={0} // show every day label
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        {isClient ? (
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
+              <Bar
+                dataKey="wpm"
+                fill="var(--color-kerf-info-base)"
+                fillOpacity={0.75}
+                isAnimationActive={false}
+              />
+              <XAxis
+                dataKey="day"
+                tick={{
+                  fill: "var(--color-kerf-text-tertiary)",
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                }}
+                tickLine={false}
+                axisLine={{ stroke: "var(--color-kerf-border-subtle)" }}
+                interval={0} // show every day label
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : null}
       </div>
     </div>
   );

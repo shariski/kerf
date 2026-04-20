@@ -1,5 +1,6 @@
 import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts";
 import type { DashboardTrajectoryData } from "#/server/dashboard";
+import { useIsClient } from "#/hooks/useIsClient";
 
 /**
  * Dashboard Section 5 — skill trajectory. Two area charts side by side:
@@ -88,6 +89,7 @@ function TrendCard({
   deltaUnit,
   series,
 }: TrendCardProps) {
+  const isClient = useIsClient();
   // SVG `stroke` / `fill` attributes don't resolve CSS custom
   // properties, so Recharts can't use `var(--color-kerf-amber-base)`
   // directly — the stroke silently becomes invalid and the line
@@ -108,30 +110,32 @@ function TrendCard({
         </div>
       </header>
 
-      <div className="kerf-dash-trend-chart">
-        <ResponsiveContainer width="100%" height={120} minWidth={0}>
-          <AreaChart
-            data={[...series]}
-            margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
-          >
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={colorHex} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={colorHex} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            {/* Hidden axis — just sets the domain. */}
-            <YAxis hide domain={["auto", "auto"]} />
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke={colorHex}
-              strokeWidth={1.5}
-              fill={`url(#${gradientId})`}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      <div className="kerf-dash-trend-chart" style={{ height: 120 }}>
+        {isClient ? (
+          <ResponsiveContainer width="100%" height={120} minWidth={0}>
+            <AreaChart
+              data={[...series]}
+              margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+            >
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={colorHex} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={colorHex} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              {/* Hidden axis — just sets the domain. */}
+              <YAxis hide domain={["auto", "auto"]} />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke={colorHex}
+                strokeWidth={1.5}
+                fill={`url(#${gradientId})`}
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : null}
       </div>
 
       <footer className="kerf-dash-trend-meta">
