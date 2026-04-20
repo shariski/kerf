@@ -10,23 +10,15 @@ import {
   type ProfileListEntry,
 } from "#/server/profile";
 import type { InitialLevel } from "#/domain/profile/initialPhase";
-import { PhaseBadge } from "#/components/practice/PhaseBadge";
 
 /**
  * `/keyboards` — profile management for multi-keyboard users
- * (Task 3.5).
- *
- * Lists every profile as a card, marks the active one, and lets the
- * user switch by clicking an inactive card or add a new profile via
- * an inline form. The 5-second-undo-toast pattern from the
- * wireframe is deferred — it's polish, not load-bearing for the
- * task's success criteria ("switch between profiles"). Added as a
- * follow-up if it's useful during beta.
+ * (Task 3.5). Ported 1:1 from `design/keyboards-wireframe.html`.
  *
  * §B2 — every query downstream of this page assumes exactly one
- * active profile per user. The switch + add writes both run inside
- * Postgres transactions on the server side (see `profile.ts`) so
- * the dashboard can't observe a torn "zero or two active" state.
+ * active profile per user. Switch + add both run inside Postgres
+ * transactions on the server so the dashboard can't observe a torn
+ * "zero or two active" state. See `profile.ts`.
  */
 
 export const Route = createFileRoute("/keyboards")({
@@ -43,19 +35,12 @@ export const Route = createFileRoute("/keyboards")({
 
 // --- keyboard metadata ----------------------------------------------------
 
-/** Display-side metadata per keyboard type. Keeping it in this file
- * instead of a shared module because it's UI-only — key counts and
- * display names don't belong in `src/domain`. */
+/** Display-side metadata per keyboard type. Lives in this file
+ * instead of `src/domain` because it's UI-only. */
 const KEYBOARD_META: Record<KeyboardType, { name: string; keys: number }> = {
   sofle: { name: "Sofle", keys: 58 },
   lily58: { name: "Lily58", keys: 58 },
 };
-
-function levelLabel(level: InitialLevel): string {
-  if (level === "first_day") return "first day";
-  if (level === "few_weeks") return "few weeks in";
-  return "comfortable";
-}
 
 // --- page -----------------------------------------------------------------
 
@@ -63,7 +48,6 @@ function KeyboardsPage() {
   const { profiles } = Route.useLoaderData();
   const [adding, setAdding] = useState(false);
 
-  const hasAnyProfile = profiles.length > 0;
   const addedTypes = new Set(profiles.map((p) => p.keyboardType));
   const availableTypes = (Object.keys(KEYBOARD_META) as KeyboardType[]).filter(
     (t) => !addedTypes.has(t),
@@ -88,7 +72,10 @@ function KeyboardsPage() {
               className="kerf-keyboards-add-btn"
               onClick={() => setAdding(true)}
             >
-              <span aria-hidden>+</span> Add keyboard
+              <span className="kerf-keyboards-add-btn-icon" aria-hidden>
+                +
+              </span>
+              Add keyboard
             </button>
           ) : null}
         </div>
@@ -107,11 +94,26 @@ function KeyboardsPage() {
         {profiles.map((p) => (
           <ProfileCard key={p.id} profile={p} />
         ))}
+        {canAdd ? (
+          <button
+            type="button"
+            className="kerf-keyboards-add-card"
+            onClick={() => setAdding(true)}
+            disabled={adding}
+          >
+            <span className="kerf-keyboards-add-card-icon" aria-hidden>
+              +
+            </span>
+            <span className="kerf-keyboards-add-card-label">Add keyboard</span>
+          </button>
+        ) : null}
       </div>
 
-      {hasAnyProfile && profiles.length === 1 ? (
+      {profiles.length === 1 ? (
         <aside className="kerf-keyboards-nudge" role="note">
-          <span aria-hidden className="kerf-keyboards-nudge-icon">⊞</span>
+          <span aria-hidden className="kerf-keyboards-nudge-icon">
+            ⊞
+          </span>
           <p className="kerf-keyboards-nudge-text">
             <strong>You only have one profile.</strong> Add another keyboard if
             you switch between split layouts — each gets its own independent
@@ -164,24 +166,24 @@ function ProfileCard({ profile }: { profile: ProfileListEntry }) {
         aria-label={label}
       >
         <div className="kerf-keyboards-card-visual" aria-hidden>
-          <div className="kerf-keyboards-card-visual-half" />
-          <div className="kerf-keyboards-card-visual-half" />
+          {profile.isActive ? (
+            <span className="kerf-keyboards-card-active-badge">active</span>
+          ) : null}
+          <span className="kerf-keyboards-card-menu" aria-hidden>
+            ⋯
+          </span>
+          <div className="kerf-keyboards-card-photo">
+            <MiniKeyboardHalf />
+            <MiniKeyboardHalf />
+          </div>
+          <span className="kerf-keyboards-card-photo-label">
+            PHOTO PLACEHOLDER
+          </span>
         </div>
         <div className="kerf-keyboards-card-body">
-          <div className="kerf-keyboards-card-row">
-            <span className="kerf-keyboards-card-name">{meta.name}</span>
-            {profile.isActive ? (
-              <span className="kerf-keyboards-card-active-badge">active</span>
-            ) : null}
-          </div>
+          <div className="kerf-keyboards-card-name">{meta.name}</div>
           <div className="kerf-keyboards-card-meta">
-            {meta.keys} keys · split columnar · {profile.dominantHand}-handed
-          </div>
-          <div className="kerf-keyboards-card-footer">
-            <PhaseBadge phase={profile.transitionPhase} />
-            <span className="kerf-keyboards-card-level">
-              joined as {levelLabel(profile.initialLevel)}
-            </span>
+            {meta.keys} keys · split columnar
           </div>
         </div>
       </button>
@@ -191,11 +193,34 @@ function ProfileCard({ profile }: { profile: ProfileListEntry }) {
         </p>
       ) : null}
       {error ? (
-        <p className="kerf-keyboards-card-status kerf-keyboards-card-status--error" role="alert">
+        <p
+          className="kerf-keyboards-card-status kerf-keyboards-card-status--error"
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
     </article>
+  );
+}
+
+/** Mini keyboard half — 4×6 key grid + thumb cluster. Stylized
+ * placeholder, not an accurate layout; the real KeyboardSVG lives on
+ * the practice/dashboard pages. Matches the wireframe's
+ * `.photo-half` > `.photo-key-grid` / `.photo-thumbs` structure. */
+function MiniKeyboardHalf() {
+  return (
+    <div className="kerf-keyboards-card-photo-half">
+      <div className="kerf-keyboards-card-photo-grid">
+        {Array.from({ length: 24 }, (_, i) => (
+          <span key={i} className="kerf-keyboards-card-photo-key" />
+        ))}
+      </div>
+      <div className="kerf-keyboards-card-photo-thumbs">
+        <span className="kerf-keyboards-card-photo-thumb" />
+        <span className="kerf-keyboards-card-photo-thumb kerf-keyboards-card-photo-thumb--large" />
+      </div>
+    </div>
   );
 }
 
@@ -304,7 +329,9 @@ function AddProfileForm({
       </fieldset>
 
       <fieldset className="kerf-keyboards-add-field">
-        <legend className="kerf-keyboards-add-label">How far in are you?</legend>
+        <legend className="kerf-keyboards-add-label">
+          How far in are you?
+        </legend>
         <div className="kerf-keyboards-add-choices">
           {(
             [

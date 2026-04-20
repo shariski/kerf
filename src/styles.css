@@ -2831,7 +2831,8 @@ body {
   color: var(--color-kerf-text-secondary);
 }
 
-/* --- /keyboards page (Task 3.5) --- */
+/* --- /keyboards page (Task 3.5) — ported 1:1 from
+   design/keyboards-wireframe.html --- */
 
 .kerf-keyboards-page {
   max-width: 1080px;
@@ -2842,11 +2843,7 @@ body {
   gap: 32px;
 }
 
-.kerf-keyboards-header {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+/* --- header --- */
 
 .kerf-keyboards-breadcrumb {
   font-family: var(--font-mono);
@@ -2862,6 +2859,7 @@ body {
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .kerf-keyboards-title {
@@ -2900,31 +2898,41 @@ body {
   background: var(--color-kerf-amber-hover);
 }
 
+.kerf-keyboards-add-btn-icon {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* --- keyboard-cards grid (wireframe §.keyboards-grid) --- */
+
 .kerf-keyboards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 
 .kerf-keyboards-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
   background: var(--color-kerf-bg-surface);
-  border: 1px solid var(--color-kerf-border-subtle);
+  border: 2px solid var(--color-kerf-border-subtle);
   border-radius: 10px;
   overflow: hidden;
-  transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.kerf-keyboards-card:hover {
+  border-color: var(--color-kerf-border-strong);
+  transform: translateY(-2px);
 }
 
 .kerf-keyboards-card[data-active="true"] {
   border-color: var(--color-kerf-amber-base);
-  background: color-mix(
-    in oklab,
-    var(--color-kerf-amber-faint) 60%,
-    var(--color-kerf-bg-surface)
-  );
+}
+
+.kerf-keyboards-card[data-active="true"]:hover {
+  /* Active card stays put on hover — it's not a switch target. */
+  transform: none;
 }
 
 .kerf-keyboards-card[data-switching="true"] {
@@ -2933,116 +2941,181 @@ body {
 
 .kerf-keyboards-card-tap {
   all: unset;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   width: 100%;
+  cursor: pointer;
   color: inherit;
   box-sizing: border-box;
 }
 
+.kerf-keyboards-card[data-active="true"] .kerf-keyboards-card-tap,
 .kerf-keyboards-card-tap:disabled {
   cursor: default;
 }
 
-.kerf-keyboards-card:not([data-active="true"]) .kerf-keyboards-card-tap:hover:not(:disabled) {
-  background: var(--color-kerf-bg-elevated);
-}
+/* --- card image area — the 16:10 photo box --- */
 
 .kerf-keyboards-card-visual {
-  height: 140px;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--color-kerf-bg-base);
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 12px;
-  background: var(--color-kerf-bg-elevated);
+  justify-content: center;
   border-bottom: 1px solid var(--color-kerf-border-subtle);
+  overflow: hidden;
 }
 
-.kerf-keyboards-card[data-active="true"] .kerf-keyboards-card-visual {
-  background: color-mix(
-    in oklab,
-    var(--color-kerf-amber-faint) 30%,
-    var(--color-kerf-bg-elevated)
-  );
+/* Active badge — top-right amber pill with inverse-colored dot
+   (wireframe §.active-badge). */
+.kerf-keyboards-card-active-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.kerf-keyboards-card-visual-half {
-  width: 86px;
-  height: 78px;
-  background: linear-gradient(
-    135deg,
-    var(--color-kerf-bg-overlay) 25%,
-    var(--color-kerf-bg-surface) 25% 50%,
-    var(--color-kerf-bg-overlay) 50% 75%,
-    var(--color-kerf-bg-surface) 75%
-  );
-  background-size: 14px 14px;
+.kerf-keyboards-card-active-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--color-kerf-text-inverse);
+  border-radius: 50%;
+}
+
+/* Hover-revealed 3-dot menu (wireframe §.card-menu). Visual only —
+   no dropdown. Positioned opposite the active badge so the two
+   never overlap. */
+.kerf-keyboards-card-menu {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--color-kerf-border-default);
-  border-radius: 6px;
-  opacity: 0.55;
+  color: var(--color-kerf-text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 150ms ease;
 }
 
-.kerf-keyboards-card[data-active="true"] .kerf-keyboards-card-visual-half {
-  border-color: var(--color-kerf-amber-subtle);
-  opacity: 0.9;
+.kerf-keyboards-card:hover .kerf-keyboards-card-menu {
+  opacity: 1;
 }
 
-.kerf-keyboards-card-body {
-  padding: 16px 18px 18px;
+.kerf-keyboards-card[data-active="true"] .kerf-keyboards-card-menu {
+  /* Active card's badge takes top-right — move the menu to top-left. */
+  right: auto;
+  left: 12px;
+}
+
+/* Photo placeholder — two halves, each with 4×6 key grid and a
+   thumb row. Matches the wireframe's visual language. */
+.kerf-keyboards-card-photo {
+  width: 80%;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  opacity: 0.6;
+}
+
+.kerf-keyboards-card-photo-half {
+  flex: 1;
+  aspect-ratio: 5 / 3;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-default);
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
+  padding: 8px;
 }
 
-.kerf-keyboards-card-row {
+.kerf-keyboards-card-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+}
+
+.kerf-keyboards-card-photo-key {
+  aspect-ratio: 1;
+  background: var(--color-kerf-bg-overlay);
+  border-radius: 1px;
+}
+
+.kerf-keyboards-card-photo-thumbs {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.kerf-keyboards-card-photo-thumb {
+  width: 12px;
+  height: 8px;
+  background: var(--color-kerf-bg-overlay);
+  border-radius: 1px;
+}
+
+.kerf-keyboards-card-photo-thumb--large {
+  width: 18px;
+}
+
+.kerf-keyboards-card-photo-label {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--color-kerf-text-tertiary);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+
+/* --- card body --- */
+
+.kerf-keyboards-card-body {
+  padding: 16px 20px;
 }
 
 .kerf-keyboards-card-name {
   font-size: 16px;
   font-weight: 600;
+  margin-bottom: 4px;
   color: var(--color-kerf-text-primary);
 }
 
-.kerf-keyboards-card-active-badge {
+.kerf-keyboards-card-meta {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
-  padding: 2px 8px;
-  border: 1px solid var(--color-kerf-amber-base);
-  border-radius: 999px;
-}
-
-.kerf-keyboards-card-meta {
-  font-size: 12px;
-  color: var(--color-kerf-text-tertiary);
-}
-
-.kerf-keyboards-card-footer {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.kerf-keyboards-card-level {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--color-kerf-text-tertiary);
+  letter-spacing: 0.05em;
 }
 
 .kerf-keyboards-card-status {
   margin: 0;
-  padding: 8px 18px 12px;
+  padding: 8px 20px 12px;
   font-size: 12px;
   font-family: var(--font-mono);
   color: var(--color-kerf-text-secondary);
@@ -3052,29 +3125,77 @@ body {
   color: var(--color-kerf-error-base);
 }
 
-/* --- empty-state nudge --- */
+/* --- add-card (dashed placeholder at end of grid) --- */
+
+.kerf-keyboards-add-card {
+  all: unset;
+  cursor: pointer;
+  background: transparent;
+  border: 2px dashed var(--color-kerf-border-default);
+  border-radius: 10px;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-kerf-text-tertiary);
+  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
+  box-sizing: border-box;
+}
+
+.kerf-keyboards-add-card:hover:not(:disabled) {
+  border-color: var(--color-kerf-amber-base);
+  color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-faint);
+}
+
+.kerf-keyboards-add-card:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.kerf-keyboards-add-card-icon {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.kerf-keyboards-add-card-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* --- empty-state nudge (wireframe §.empty-message) --- */
 
 .kerf-keyboards-nudge {
-  display: flex;
-  gap: 12px;
-  padding: 16px 20px;
   background: var(--color-kerf-bg-surface);
-  border: 1px dashed var(--color-kerf-border-subtle);
+  border: 1px solid var(--color-kerf-border-subtle);
   border-radius: 8px;
-  align-items: flex-start;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--color-kerf-text-secondary);
+  font-size: 13px;
 }
 
 .kerf-keyboards-nudge-icon {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
   font-size: 18px;
-  color: var(--color-kerf-text-tertiary);
-  line-height: 1.2;
 }
 
 .kerf-keyboards-nudge-text {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--color-kerf-text-secondary);
+  flex: 1;
+  line-height: 1.6;
+}
+
+.kerf-keyboards-nudge-text strong {
+  color: var(--color-kerf-text-primary);
+  font-weight: 500;
 }
 
 /* --- add-profile inline form --- */
@@ -3153,6 +3274,7 @@ body {
   cursor: pointer;
   transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
   text-transform: capitalize;
+  position: relative;
 }
 
 .kerf-keyboards-add-choice:hover {
@@ -3166,9 +3288,6 @@ body {
   background: var(--color-kerf-amber-faint);
 }
 
-/* Hide native radio — the label + its data-selected state is the
-   visible affordance. The input still gets keyboard focus so screen
-   readers and tab navigation still work correctly. */
 .kerf-keyboards-add-choice input {
   position: absolute;
   opacity: 0;
@@ -3232,7 +3351,6 @@ body {
   background: var(--color-kerf-bg-overlay);
   color: var(--color-kerf-text-primary);
 }
-
 
 /* --- temporal patterns (Task 3.4c) --- */
 
