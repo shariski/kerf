@@ -4,11 +4,13 @@ import {
   getDashboardActivity,
   getDashboardHeatmap,
   getDashboardHeroStats,
+  getDashboardPhaseSuggestion,
   getDashboardTrajectory,
   getDashboardWeaknessRanking,
   type DashboardActivityData,
   type DashboardHeatmapData,
   type DashboardHeroData,
+  type DashboardPhaseSuggestionData,
   type DashboardTrajectoryData,
   type DashboardWeaknessRankingData,
 } from "#/server/dashboard";
@@ -20,6 +22,7 @@ import { WeaknessRanking } from "#/components/dashboard/WeaknessRanking";
 import { TrajectoryCharts } from "#/components/dashboard/TrajectoryCharts";
 import { EngineInsight } from "#/components/dashboard/EngineInsight";
 import { TransparencyPanel } from "#/components/dashboard/TransparencyPanel";
+import { PhaseSuggestionBanner } from "#/components/dashboard/PhaseSuggestionBanner";
 import { Section } from "#/components/dashboard/Section";
 import { composeDashboardInsight } from "#/domain/dashboard/insight";
 
@@ -34,24 +37,28 @@ export const Route = createFileRoute("/dashboard")({
     heatmap: DashboardHeatmapData;
     weakness: DashboardWeaknessRankingData;
     trajectory: DashboardTrajectoryData;
+    phaseSuggestion: DashboardPhaseSuggestionData;
   }> => {
-    // Five independent queries against the same active profile —
+    // Six independent queries against the same active profile —
     // parallel so the dashboard's first paint scales with the
     // slowest single query, not the sum.
-    const [hero, activity, heatmap, weakness, trajectory] = await Promise.all([
-      getDashboardHeroStats(),
-      getDashboardActivity(),
-      getDashboardHeatmap(),
-      getDashboardWeaknessRanking(),
-      getDashboardTrajectory(),
-    ]);
-    return { hero, activity, heatmap, weakness, trajectory };
+    const [hero, activity, heatmap, weakness, trajectory, phaseSuggestion] =
+      await Promise.all([
+        getDashboardHeroStats(),
+        getDashboardActivity(),
+        getDashboardHeatmap(),
+        getDashboardWeaknessRanking(),
+        getDashboardTrajectory(),
+        getDashboardPhaseSuggestion(),
+      ]);
+    return { hero, activity, heatmap, weakness, trajectory, phaseSuggestion };
   },
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { hero, activity, heatmap, weakness, trajectory } = Route.useLoaderData();
+  const { hero, activity, heatmap, weakness, trajectory, phaseSuggestion } =
+    Route.useLoaderData();
 
   if (!hero.hasAnyData) {
     return <EmptyState />;
@@ -63,6 +70,11 @@ function DashboardPage() {
 
   return (
     <main className="kerf-dash-page">
+      <PhaseSuggestionBanner
+        signal={phaseSuggestion.signal}
+        currentPhase={phaseSuggestion.currentPhase}
+      />
+
       <header className="kerf-dash-page-header">
         <div className="kerf-dash-page-breadcrumb">Your progress</div>
         <h1 className="kerf-dash-page-title">Dashboard</h1>

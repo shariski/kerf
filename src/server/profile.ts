@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import {
   initialPhaseForLevel,
   type InitialLevel,
+  type TransitionPhase,
 } from "#/domain/profile/initialPhase";
 import { auth } from "./auth";
 import { db } from "./db";
@@ -87,3 +88,58 @@ export const getActiveProfile = createServerFn({ method: "GET" }).handler(
     return rows[0] ?? null;
   },
 );
+
+export type UpdateTransitionPhaseInput = { phase: TransitionPhase };
+
+export function validateUpdateTransitionPhaseInput(
+  input: unknown,
+): UpdateTransitionPhaseInput {
+  if (typeof input !== "object" || input === null) {
+    throw new Error("updateTransitionPhase: input must be an object");
+  }
+  const i = input as Record<string, unknown>;
+  if (i.phase !== "transitioning" && i.phase !== "refining") {
+    throw new Error(
+      "updateTransitionPhase: phase must be 'transitioning' or 'refining'",
+    );
+  }
+  return { phase: i.phase };
+}
+
+/**
+ * Apply a phase switch initiated by the user via the dashboard
+ * suggestion banner (Task 3.4a).
+ *
+ * The banner surfaces `phaseSuggestion.ts`'s advisory; this function
+ * is the only write path — the engine never mutates the profile on its
+ * own (per 02-architecture.md §4.6: "suggests phase changes but does
+ * not enforce them"). Updates `phase_changed_at` so the dashboard can
+ * later distinguish "user switched" from "engine default" when the
+ * analytics need it.
+ */
+export const updateTransitionPhase = createServerFn({ method: "POST" })
+  .inputValidator(validateUpdateTransitionPhaseInput)
+  .handler(async ({ data }) => {
+    const request = getRequest();
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) throw redirect({ to: "/login" });
+
+    const [updated] = await db
+      .update(keyboardProfiles)
+      .set({ transitionPhase: data.phase, phaseChangedAt: new Date() })
+      .where(
+        and(
+          eq(keyboardProfiles.userId, session.user.id),
+          eq(keyboardProfiles.isActive, true),
+        ),
+      )
+      .returning({
+        id: keyboardProfiles.id,
+        transitionPhase: keyboardProfiles.transitionPhase,
+      });
+
+    if (!updated) {
+      throw new Error("updateTransitionPhase: no active profile");
+    }
+    return updated;
+  });
