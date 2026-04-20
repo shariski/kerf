@@ -1036,3 +1036,85 @@ export const getDashboardWeeklyInsight = createServerFn({
   const insight = generateWeeklyInsight({ sessions: windowed, phase });
   return { phase, insight };
 });
+
+// --- temporal patterns (Task 3.4c) ----------------------------------------
+
+export type TemporalSessionPoint = {
+  /** ISO string — the client rebuilds a `Date` and buckets under its
+   * local timezone. Doing the hour/day-of-week split server-side
+   * would use the server's tz (typically UTC in production) and
+   * mislabel everyone's "best hour". */
+  startedAt: string;
+  /** Session WPM, rounded. 0 for sessions below the min-elapsed
+   * noise floor — matches the trajectory endpoint's convention. */
+  wpm: number;
+};
+
+export type DashboardTemporalPatternsData = {
+  sessions: readonly TemporalSessionPoint[];
+};
+
+/** 30 days gives ~20-30 sessions across 24 hour buckets for a
+ * typical practicing user — enough that a few buckets clear the
+ * minimum-samples gate without waiting months for the chart to
+ * populate. */
+const TEMPORAL_PATTERNS_WINDOW_DAYS = 30;
+
+/**
+ * Return the raw session window the temporal-patterns chart reads.
+ * Intentionally thin — the bucketing domain fn
+ * (`computeTemporalPatterns`) runs client-side so it uses the
+ * browser's timezone; see its docstring for the rationale.
+ */
+export const getDashboardTemporalPatterns = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<DashboardTemporalPatternsData> => {
+  const request = getRequest();
+  const authSession = await auth.api.getSession({ headers: request.headers });
+  if (!authSession) {
+    throw new Error("getDashboardTemporalPatterns: unauthorized");
+  }
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({ id: keyboardProfiles.id })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, userId),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) {
+    return { sessions: [] };
+  }
+
+  const cutoff = new Date(
+    Date.now() - TEMPORAL_PATTERNS_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+  );
+
+  const rows = await db
+    .select({
+      startedAt: sessions.startedAt,
+      wpm: sessions.wpm,
+    })
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.userId, userId),
+        eq(sessions.keyboardProfileId, profile.id),
+      ),
+    )
+    .orderBy(desc(sessions.startedAt))
+    .limit(250); // generous upper bound — worst-case 8 sessions/day × 30
+
+  return {
+    sessions: rows
+      .filter((r) => r.startedAt.getTime() > cutoff.getTime())
+      .map((r) => ({
+        startedAt: r.startedAt.toISOString(),
+        wpm: Math.round(r.wpm ?? 0),
+      })),
+  };
+});
