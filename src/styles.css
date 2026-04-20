@@ -2590,6 +2590,101 @@ body {
   color: var(--color-kerf-amber-base);
 }
 
+/* --- phase-suggestion banner (Task 3.4a) --- */
+
+/* Sits above the dashboard page-header. Deliberately quieter than
+   `.kerf-dash-insight` (neutral ground, not amber-faint) so two amber
+   washes don't stack — per §B5 "amber accent used sparingly". The
+   left stripe carries the continuity with the engine-insight card. */
+.kerf-dash-phase-banner {
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-left: 3px solid var(--color-kerf-amber-base);
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.kerf-dash-phase-banner-body {
+  flex: 1 1 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.kerf-dash-phase-banner-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-amber-base);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.kerf-dash-phase-banner-reason {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-phase-banner-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-dash-phase-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kerf-dash-phase-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.kerf-dash-phase-banner-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.kerf-dash-phase-banner-btn--primary {
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+}
+
+.kerf-dash-phase-banner-btn--primary:hover:not(:disabled) {
+  background: var(--color-kerf-amber-hover);
+}
+
+.kerf-dash-phase-banner-btn--secondary {
+  background: transparent;
+  border-color: var(--color-kerf-border-default);
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-dash-phase-banner-btn--secondary:hover:not(:disabled) {
+  background: var(--color-kerf-bg-overlay);
+  color: var(--color-kerf-text-primary);
+}
+
 /* --- transparency panel (Task 3.3) --- */
 
 .kerf-dash-transparency {

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { auth } from "./auth";
 import { db } from "./db";
 import {
@@ -31,6 +31,12 @@ import {
 } from "#/domain/dashboard/breakdown";
 import { PHASE_BASELINES } from "#/domain/stats/baselines";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import {
+  suggestPhaseTransition,
+  type PhaseTransitionSignal,
+} from "#/domain/adaptive/phaseSuggestion";
+import { INSUFFICIENT_DATA_THRESHOLD } from "#/domain/metrics/computeSplitMetrics";
+import type { SplitMetricsSnapshot } from "#/domain/metrics/types";
 import type { KeyboardType } from "./profile";
 
 /**
@@ -821,4 +827,122 @@ export const getDashboardWeaknessRanking = createServerFn({
   }
 
   return { entries, phase, topBreakdown };
+});
+
+// --- phase-transition suggestion (Task 3.4a) ------------------------------
+
+export type DashboardPhaseSuggestionData = {
+  /** Current phase on the active profile — the banner component needs
+   * this to disambiguate a null signal (no suggestion *yet*) from
+   * "already matches what the engine would suggest". */
+  currentPhase: TransitionPhase;
+  /** Non-null when thresholds in `phaseSuggestion.ts` fire. The UI is
+   * responsible for honoring "max once per session" via sessionStorage
+   * — that's a surface-level concern the domain stays out of. */
+  signal: PhaseTransitionSignal | null;
+};
+
+/** Sized to the largest window the advisory needs: graduation checks
+ * the last 10 sessions; break-return checks the last 3. One query
+ * serves both. */
+const PHASE_SUGGESTION_WINDOW_N = 10;
+
+/**
+ * Server-side wrapper around the `suggestPhaseTransition` domain
+ * advisory. Inner-joins sessions with their `split_metrics_snapshots`
+ * row so the two arrays we feed to the domain stay 1:1 — the domain
+ * fails closed on length mismatch (`phaseSuggestion.ts:111`), and a
+ * session without a snapshot can't contribute an inner-column signal
+ * anyway.
+ *
+ * Materializes only the snapshot fields the advisory reads
+ * (`innerColErrorRate`, `insufficientData`) — the latter is
+ * reconstructed from `sessions.totalChars < INSUFFICIENT_DATA_THRESHOLD`
+ * rather than persisted, matching how `computeSplitMetrics` derives it.
+ */
+export const getDashboardPhaseSuggestion = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<DashboardPhaseSuggestionData> => {
+  const request = getRequest();
+  const authSession = await auth.api.getSession({ headers: request.headers });
+  if (!authSession) {
+    throw new Error("getDashboardPhaseSuggestion: unauthorized");
+  }
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({
+      id: keyboardProfiles.id,
+      transitionPhase: keyboardProfiles.transitionPhase,
+    })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, userId),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) {
+    return { currentPhase: "transitioning", signal: null };
+  }
+
+  const currentPhase = profile.transitionPhase as TransitionPhase;
+
+  // Fetch the last N sessions with matching snapshots, newest first,
+  // then reverse so the domain receives chronological order (`.slice(-N)`
+  // is what the advisory does internally).
+  const rowsDesc = await db
+    .select({
+      startedAt: sessions.startedAt,
+      accuracy: sessions.accuracy,
+      totalChars: sessions.totalChars,
+      innerColErrorRate: splitMetricsSnapshots.innerColErrorRate,
+    })
+    .from(sessions)
+    .innerJoin(
+      splitMetricsSnapshots,
+      eq(splitMetricsSnapshots.sessionId, sessions.id),
+    )
+    .where(
+      and(
+        eq(sessions.userId, userId),
+        eq(sessions.keyboardProfileId, profile.id),
+      ),
+    )
+    .orderBy(desc(sessions.startedAt))
+    .limit(PHASE_SUGGESTION_WINDOW_N);
+
+  const rows = rowsDesc.slice().reverse();
+
+  const recentSessions = rows.map((r) => ({
+    accuracy: r.accuracy ?? 0,
+  }));
+  const recentSnapshots: SplitMetricsSnapshot[] = rows.map((r) => ({
+    innerColAttempts: 0,
+    innerColErrors: 0,
+    innerColErrorRate: r.innerColErrorRate ?? 0,
+    thumbClusterCount: 0,
+    thumbClusterSumMs: 0,
+    thumbClusterAvgMs: 0,
+    crossHandBigramCount: 0,
+    crossHandBigramSumMs: 0,
+    crossHandBigramAvgMs: 0,
+    columnarStableCount: 0,
+    columnarDriftCount: 0,
+    columnarStabilityPct: 0,
+    totalKeystrokes: r.totalChars ?? 0,
+    insufficientData: (r.totalChars ?? 0) < INSUFFICIENT_DATA_THRESHOLD,
+  }));
+
+  const lastSessionAt = rows.length > 0 ? rows[rows.length - 1]!.startedAt : undefined;
+
+  const signal = suggestPhaseTransition({
+    currentPhase,
+    lastSessionAt,
+    recentSessions,
+    recentSnapshots,
+  });
+
+  return { currentPhase, signal };
 });
