@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { validateCreateProfileInput } from "./profile";
+import {
+  validateCreateProfileInput,
+  validateSwitchActiveProfileInput,
+} from "./profile";
 
 describe("validateCreateProfileInput", () => {
   const valid = {
@@ -56,5 +59,37 @@ describe("validateCreateProfileInput", () => {
     expect(() =>
       validateCreateProfileInput({ keyboardType: "sofle" }),
     ).toThrow();
+  });
+});
+
+describe("validateSwitchActiveProfileInput", () => {
+  it("accepts a well-formed input and returns the typed shape", () => {
+    const valid = { profileId: "abc-123" };
+    expect(validateSwitchActiveProfileInput(valid)).toEqual(valid);
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => validateSwitchActiveProfileInput(null)).toThrow();
+    expect(() => validateSwitchActiveProfileInput("abc")).toThrow();
+    expect(() => validateSwitchActiveProfileInput(42)).toThrow();
+  });
+
+  it("rejects missing profileId", () => {
+    expect(() => validateSwitchActiveProfileInput({})).toThrow(/profileId/);
+  });
+
+  it("rejects non-string profileId", () => {
+    expect(() =>
+      validateSwitchActiveProfileInput({ profileId: 42 }),
+    ).toThrow(/profileId/);
+    expect(() =>
+      validateSwitchActiveProfileInput({ profileId: null }),
+    ).toThrow(/profileId/);
+  });
+
+  it("rejects empty-string profileId — guards against the 'switch to nothing' no-op", () => {
+    expect(() =>
+      validateSwitchActiveProfileInput({ profileId: "" }),
+    ).toThrow(/profileId/);
   });
 });
