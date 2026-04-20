@@ -109,7 +109,7 @@ function TrendCard({
       </header>
 
       <div className="kerf-dash-trend-chart">
-        <ResponsiveContainer width="100%" height={120}>
+        <ResponsiveContainer width="100%" height={120} minWidth={0}>
           <AreaChart
             data={[...series]}
             margin={{ top: 4, right: 0, bottom: 0, left: 0 }}

@@ -122,7 +122,7 @@ function HourChart({ buckets }: { buckets: readonly HourBucket[] }) {
         <span className="kerf-dash-temporal-chart-axis">WPM</span>
       </header>
       <div style={{ height: CHART_HEIGHT }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
             <Bar
               dataKey="wpm"
@@ -164,7 +164,7 @@ function DayOfWeekChart({ buckets }: { buckets: readonly DayOfWeekBucket[] }) {
         <span className="kerf-dash-temporal-chart-axis">WPM</span>
       </header>
       <div style={{ height: CHART_HEIGHT }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
             <Bar
               dataKey="wpm"
