@@ -1333,6 +1333,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  text-decoration: none;
   transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
