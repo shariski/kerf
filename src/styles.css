@@ -2831,6 +2831,107 @@ body {
   color: var(--color-kerf-text-secondary);
 }
 
+/* --- temporal patterns (Task 3.4c) --- */
+
+.kerf-dash-temporal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+}
+
+.kerf-dash-temporal-empty {
+  margin: 0;
+  padding: 20px 24px;
+  background: var(--color-kerf-bg-surface);
+  border: 1px dashed var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  color: var(--color-kerf-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.kerf-dash-temporal-peak {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kerf-dash-temporal-peak-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.kerf-dash-temporal-peak-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-temporal-charts {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+}
+
+/* The hour-of-day chart earns 3fr because it has 24 bars to lay out;
+   the day chart only has 7 and reads fine at a smaller width. */
+@media (max-width: 720px) {
+  .kerf-dash-temporal-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kerf-dash-temporal-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+}
+
+.kerf-dash-temporal-chart-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kerf-dash-temporal-chart-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-kerf-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.kerf-dash-temporal-chart-axis {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.kerf-dash-temporal-meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 /* --- transparency panel (Task 3.3) --- */
 
 .kerf-dash-transparency {

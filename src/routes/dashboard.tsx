@@ -5,6 +5,7 @@ import {
   getDashboardHeatmap,
   getDashboardHeroStats,
   getDashboardPhaseSuggestion,
+  getDashboardTemporalPatterns,
   getDashboardTrajectory,
   getDashboardWeaknessRanking,
   getDashboardWeeklyInsight,
@@ -12,6 +13,7 @@ import {
   type DashboardHeatmapData,
   type DashboardHeroData,
   type DashboardPhaseSuggestionData,
+  type DashboardTemporalPatternsData,
   type DashboardTrajectoryData,
   type DashboardWeaknessRankingData,
   type DashboardWeeklyInsightData,
@@ -26,6 +28,7 @@ import { EngineInsight } from "#/components/dashboard/EngineInsight";
 import { TransparencyPanel } from "#/components/dashboard/TransparencyPanel";
 import { PhaseSuggestionBanner } from "#/components/dashboard/PhaseSuggestionBanner";
 import { WeeklyInsight } from "#/components/dashboard/WeeklyInsight";
+import { TemporalPatterns } from "#/components/dashboard/TemporalPatterns";
 import { Section } from "#/components/dashboard/Section";
 import { composeDashboardInsight } from "#/domain/dashboard/insight";
 
@@ -42,6 +45,7 @@ export const Route = createFileRoute("/dashboard")({
     trajectory: DashboardTrajectoryData;
     phaseSuggestion: DashboardPhaseSuggestionData;
     weekly: DashboardWeeklyInsightData;
+    temporal: DashboardTemporalPatternsData;
   }> => {
     // Seven independent queries against the same active profile —
     // parallel so the dashboard's first paint scales with the
@@ -54,6 +58,7 @@ export const Route = createFileRoute("/dashboard")({
       trajectory,
       phaseSuggestion,
       weekly,
+      temporal,
     ] = await Promise.all([
       getDashboardHeroStats(),
       getDashboardActivity(),
@@ -62,6 +67,7 @@ export const Route = createFileRoute("/dashboard")({
       getDashboardTrajectory(),
       getDashboardPhaseSuggestion(),
       getDashboardWeeklyInsight(),
+      getDashboardTemporalPatterns(),
     ]);
     return {
       hero,
@@ -71,6 +77,7 @@ export const Route = createFileRoute("/dashboard")({
       trajectory,
       phaseSuggestion,
       weekly,
+      temporal,
     };
   },
   component: DashboardPage,
@@ -85,6 +92,7 @@ function DashboardPage() {
     trajectory,
     phaseSuggestion,
     weekly,
+    temporal,
   } = Route.useLoaderData();
 
   if (!hero.hasAnyData) {
@@ -135,6 +143,10 @@ function DashboardPage() {
 
       <Section title="This week vs last" meta="rolling 7-day windows">
         <WeeklyInsight data={weekly.insight} />
+      </Section>
+
+      <Section title="When you practice best" meta="last 30 days, local time">
+        <TemporalPatterns data={temporal} />
       </Section>
 
       <Section title="Split-keyboard metrics" meta="recent sessions">
