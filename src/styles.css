@@ -2685,6 +2685,152 @@ body {
   color: var(--color-kerf-text-primary);
 }
 
+/* --- weekly insight (Task 3.4b) --- */
+
+/* Neutral card (no amber wash) so the dashboard's amber budget stays
+   on accuracy/hero + engine insight. The strip-then-narrative layout
+   is deliberately different from the engine insight's label+text to
+   signal "this is a comparison, not a live moment-read". */
+.kerf-dash-weekly {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+}
+
+.kerf-dash-weekly-empty {
+  margin: 0;
+  padding: 20px 24px;
+  background: var(--color-kerf-bg-surface);
+  border: 1px dashed var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  color: var(--color-kerf-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.kerf-dash-weekly-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .kerf-dash-weekly-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kerf-dash-weekly-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+}
+
+.kerf-dash-weekly-cell[data-primary="true"] {
+  border-color: var(--color-kerf-border-default);
+}
+
+.kerf-dash-weekly-cell[data-empty="true"] {
+  background: var(--color-kerf-bg-surface);
+  opacity: 0.7;
+}
+
+.kerf-dash-weekly-cell-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.kerf-dash-weekly-cell-empty {
+  font-size: 13px;
+  color: var(--color-kerf-text-tertiary);
+  font-style: italic;
+}
+
+.kerf-dash-weekly-cell-stats {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.kerf-dash-weekly-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kerf-dash-weekly-stat-value {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-kerf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.kerf-dash-weekly-stat[data-featured="true"] .kerf-dash-weekly-stat-value {
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-dash-weekly-stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.kerf-dash-weekly-narrative {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-dash-weekly-recs {
+  padding-top: 16px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kerf-dash-weekly-recs-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.kerf-dash-weekly-recs-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style-type: disc;
+}
+
+.kerf-dash-weekly-recs-item {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-kerf-text-secondary);
+}
+
 /* --- transparency panel (Task 3.3) --- */
 
 .kerf-dash-transparency {

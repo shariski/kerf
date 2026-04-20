@@ -37,6 +37,8 @@ import {
 } from "#/domain/adaptive/phaseSuggestion";
 import { INSUFFICIENT_DATA_THRESHOLD } from "#/domain/metrics/computeSplitMetrics";
 import type { SplitMetricsSnapshot } from "#/domain/metrics/types";
+import { generateWeeklyInsight } from "#/domain/insight/weeklyInsight";
+import type { WeeklyInsight } from "#/domain/insight/types";
 import type { KeyboardType } from "./profile";
 
 /**
@@ -945,4 +947,92 @@ export const getDashboardPhaseSuggestion = createServerFn({
   });
 
   return { currentPhase, signal };
+});
+
+// --- weekly insight (Task 3.4b) -------------------------------------------
+
+export type DashboardWeeklyInsightData = {
+  /** Active phase — the UI can surface it alongside the narrative if
+   * helpful, and it's already what the domain used to pick copy. */
+  phase: TransitionPhase;
+  /** `null` when the user has no sessions at all. The UI renders an
+   * empty-state caption instead of an empty card. */
+  insight: WeeklyInsight | null;
+};
+
+/** Upper bound on the rolling window the domain reads. 14 days covers
+ * thisWeek + lastWeek; older sessions are irrelevant to the advisory
+ * and we'd rather not materialize them. */
+const WEEKLY_INSIGHT_WINDOW_DAYS = 14;
+
+/**
+ * Server-side wrapper around `generateWeeklyInsight`. Pulls the last
+ * 14 days of sessions (all we need for the thisWeek/lastWeek
+ * comparison) for the active profile and hands them to the pure
+ * domain function.
+ *
+ * No keystroke-level data is needed here — the weekly narrative only
+ * reads session-level accuracy and WPM, so we skip the join to
+ * `split_metrics_snapshots` that the phase-suggestion endpoint needs.
+ */
+export const getDashboardWeeklyInsight = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<DashboardWeeklyInsightData> => {
+  const request = getRequest();
+  const authSession = await auth.api.getSession({ headers: request.headers });
+  if (!authSession) {
+    throw new Error("getDashboardWeeklyInsight: unauthorized");
+  }
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({
+      id: keyboardProfiles.id,
+      transitionPhase: keyboardProfiles.transitionPhase,
+    })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, userId),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) {
+    return { phase: "transitioning", insight: null };
+  }
+  const phase = profile.transitionPhase as TransitionPhase;
+
+  const rows = await db
+    .select({
+      startedAt: sessions.startedAt,
+      accuracy: sessions.accuracy,
+      wpm: sessions.wpm,
+    })
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.userId, userId),
+        eq(sessions.keyboardProfileId, profile.id),
+      ),
+    )
+    .orderBy(desc(sessions.startedAt))
+    .limit(120); // generous ceiling — 14 days at ~8 sessions/day
+
+  if (rows.length === 0) {
+    return { phase, insight: null };
+  }
+
+  const cutoff = Date.now() - WEEKLY_INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  const windowed = rows
+    .filter((r) => r.startedAt.getTime() > cutoff)
+    .map((r) => ({
+      startedAt: r.startedAt,
+      // `accuracy` is persisted 0-1; the domain expects 0-100.
+      accuracyPct: (r.accuracy ?? 0) * 100,
+      wpm: r.wpm ?? 0,
+    }));
+
+  const insight = generateWeeklyInsight({ sessions: windowed, phase });
+  return { phase, insight };
 });
