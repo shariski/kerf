@@ -7,12 +7,14 @@ import {
   getDashboardPhaseSuggestion,
   getDashboardTrajectory,
   getDashboardWeaknessRanking,
+  getDashboardWeeklyInsight,
   type DashboardActivityData,
   type DashboardHeatmapData,
   type DashboardHeroData,
   type DashboardPhaseSuggestionData,
   type DashboardTrajectoryData,
   type DashboardWeaknessRankingData,
+  type DashboardWeeklyInsightData,
 } from "#/server/dashboard";
 import { HeroStats } from "#/components/dashboard/HeroStats";
 import { SplitMetrics } from "#/components/dashboard/SplitMetrics";
@@ -23,6 +25,7 @@ import { TrajectoryCharts } from "#/components/dashboard/TrajectoryCharts";
 import { EngineInsight } from "#/components/dashboard/EngineInsight";
 import { TransparencyPanel } from "#/components/dashboard/TransparencyPanel";
 import { PhaseSuggestionBanner } from "#/components/dashboard/PhaseSuggestionBanner";
+import { WeeklyInsight } from "#/components/dashboard/WeeklyInsight";
 import { Section } from "#/components/dashboard/Section";
 import { composeDashboardInsight } from "#/domain/dashboard/insight";
 
@@ -38,27 +41,51 @@ export const Route = createFileRoute("/dashboard")({
     weakness: DashboardWeaknessRankingData;
     trajectory: DashboardTrajectoryData;
     phaseSuggestion: DashboardPhaseSuggestionData;
+    weekly: DashboardWeeklyInsightData;
   }> => {
-    // Six independent queries against the same active profile —
+    // Seven independent queries against the same active profile —
     // parallel so the dashboard's first paint scales with the
     // slowest single query, not the sum.
-    const [hero, activity, heatmap, weakness, trajectory, phaseSuggestion] =
-      await Promise.all([
-        getDashboardHeroStats(),
-        getDashboardActivity(),
-        getDashboardHeatmap(),
-        getDashboardWeaknessRanking(),
-        getDashboardTrajectory(),
-        getDashboardPhaseSuggestion(),
-      ]);
-    return { hero, activity, heatmap, weakness, trajectory, phaseSuggestion };
+    const [
+      hero,
+      activity,
+      heatmap,
+      weakness,
+      trajectory,
+      phaseSuggestion,
+      weekly,
+    ] = await Promise.all([
+      getDashboardHeroStats(),
+      getDashboardActivity(),
+      getDashboardHeatmap(),
+      getDashboardWeaknessRanking(),
+      getDashboardTrajectory(),
+      getDashboardPhaseSuggestion(),
+      getDashboardWeeklyInsight(),
+    ]);
+    return {
+      hero,
+      activity,
+      heatmap,
+      weakness,
+      trajectory,
+      phaseSuggestion,
+      weekly,
+    };
   },
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { hero, activity, heatmap, weakness, trajectory, phaseSuggestion } =
-    Route.useLoaderData();
+  const {
+    hero,
+    activity,
+    heatmap,
+    weakness,
+    trajectory,
+    phaseSuggestion,
+    weekly,
+  } = Route.useLoaderData();
 
   if (!hero.hasAnyData) {
     return <EmptyState />;
@@ -104,6 +131,10 @@ function DashboardPage() {
 
       <Section title="Skill trajectory" meta="last 30 sessions">
         <TrajectoryCharts data={trajectory} />
+      </Section>
+
+      <Section title="This week vs last" meta="rolling 7-day windows">
+        <WeeklyInsight data={weekly.insight} />
       </Section>
 
       <Section title="Split-keyboard metrics" meta="recent sessions">

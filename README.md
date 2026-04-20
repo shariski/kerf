@@ -75,6 +75,6 @@ npm run lint        # linter
 - [x] Phase 3 / Task 3.3: Power-user transparency panel — always-expanded "How is this calculated?" section on `/dashboard` with live phase-aware formula + per-component breakdown (value vs. baseline vs. normalized vs. contribution) for the top weakness, inner-column bonus explanation when applicable
 - [ ] Phase 3 / Task 3.4: Weekly insight + phase-transition suggestion banner
   - [x] 3.4a: Phase-transition suggestion banner (top-of-dashboard, dismissible per session, wires the existing `phaseSuggestion.ts` advisory + new `updateTransitionPhase` write path)
-  - [ ] 3.4b: Weekly insight aggregation + narrative card
+  - [x] 3.4b: Weekly insight aggregation + narrative card (`generateWeeklyInsight` pure domain with 6-frame classification including honest `stagnant` per Core Value 2.2, rolling 7d-vs-7d comparison, phase-aware template recommendations; new "This week vs last" dashboard section)
   - [ ] 3.4c: Temporal patterns chart (WPM by hour/day)
 - [ ] Phase 3 / Task 3.5: Multi-keyboard switcher

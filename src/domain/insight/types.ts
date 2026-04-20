@@ -56,3 +56,38 @@ export type SessionInsight = {
    * fields above. Accuracy-first tone per product-spec §6.2. */
   plainLanguageSummary: string;
 };
+
+/** Weekly trajectory classification — wider-grained than the session
+ * version because a week has enough data to surface a plateau
+ * (`stagnant`) honestly, per Core Value 2.2 ("if user hasn't improved
+ * in 2 weeks, platform says so"). Task 3.4b. */
+export type WeeklyTrajectoryFrame =
+  | "building"          // not enough comparison data yet
+  | "stagnant"          // ≥2 weeks of meaningful data, neither metric moved
+  | "right-trajectory"  // accuracy climbed (regardless of speed)
+  | "concern"           // accuracy dropped while speed rose
+  | "mixed"             // both cooled
+  | "steady";           // within noise but comparison window is too short to call it a plateau
+
+/** Aggregate for a single week window. `accuracyPct` and `wpm` are
+ * rounded for direct display and are `null` when the window was empty. */
+export type WeeklyAggregate = {
+  sessions: number;
+  accuracyPct: number | null;
+  wpm: number | null;
+};
+
+export type WeeklyInsight = {
+  /** True when both the current-week and prior-week windows have ≥1
+   * session — the narrative uses this to pick between comparison copy
+   * and first-week "building" copy. */
+  hasComparison: boolean;
+  thisWeek: WeeklyAggregate;
+  lastWeek: WeeklyAggregate;
+  frame: WeeklyTrajectoryFrame;
+  /** Single-paragraph plain-language read on the week. */
+  narrative: string;
+  /** 1-3 short recommendation strings for the UI to render as a list.
+   * Template-assembled, phase-aware, accuracy-first. */
+  recommendations: readonly string[];
+};
