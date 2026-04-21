@@ -3127,13 +3127,21 @@ body {
 
 /* --- add-card (dashed placeholder at end of grid) --- */
 
+/* Matches the sibling keyboard-card height: the grid already lays
+   items out at equal heights via default `align-items: stretch`, so
+   removing the `aspect-ratio` and adding `height: 100%` lets the
+   dashed card inherit whichever neighboring card is tallest rather
+   than shrinking to 4/3 and pulling its bottom edge up. A minimum
+   height guards the "add is the only item" case, where there's no
+   sibling to align to. */
 .kerf-keyboards-add-card {
   all: unset;
   cursor: pointer;
   background: transparent;
   border: 2px dashed var(--color-kerf-border-default);
   border-radius: 10px;
-  aspect-ratio: 4 / 3;
+  height: 100%;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3198,158 +3206,379 @@ body {
   font-weight: 500;
 }
 
-/* --- add-profile inline form --- */
+/* --- add-keyboard modal (wireframe §.add-modal) --- */
 
-.kerf-keyboards-add-form {
+.kerf-keyboards-modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 24px 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+  animation: kerf-keyboards-modal-fade 120ms ease-out;
+}
+
+@keyframes kerf-keyboards-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.kerf-keyboards-modal {
   background: var(--color-kerf-bg-surface);
   border: 1px solid var(--color-kerf-border-default);
   border-radius: 10px;
+  width: min(640px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
 }
 
-.kerf-keyboards-add-head {
+.kerf-keyboards-modal-head {
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--color-kerf-border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
-.kerf-keyboards-add-title {
+.kerf-keyboards-modal-title {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--color-kerf-text-primary);
 }
 
-.kerf-keyboards-add-close {
+.kerf-keyboards-modal-hint {
+  margin: 4px 0 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-keyboards-modal-hint strong {
+  color: var(--color-kerf-amber-base);
+  font-weight: 700;
+}
+
+.kerf-keyboards-modal-close {
   all: unset;
   cursor: pointer;
-  padding: 6px 10px;
   color: var(--color-kerf-text-tertiary);
-  font-size: 14px;
+  font-size: 18px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
   line-height: 1;
 }
 
-.kerf-keyboards-add-close:hover {
+.kerf-keyboards-modal-close:hover {
   color: var(--color-kerf-text-primary);
 }
 
-.kerf-keyboards-add-field {
-  border: none;
-  padding: 0;
-  margin: 0;
+.kerf-keyboards-modal-body {
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 28px;
 }
 
-.kerf-keyboards-add-label {
-  padding: 0;
+.kerf-keyboards-modal-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kerf-keyboards-modal-step-label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-kerf-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 600;
-}
-
-.kerf-keyboards-add-choices {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.kerf-keyboards-add-choice {
-  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 6px;
-  background: var(--color-kerf-bg-elevated);
-  border: 1px solid var(--color-kerf-border-subtle);
-  font-size: 13px;
-  color: var(--color-kerf-text-secondary);
+  justify-content: space-between;
+}
+
+.kerf-keyboards-prefilled-tag {
+  background: var(--color-kerf-success-base);
+  color: var(--color-kerf-text-inverse);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* --- mini-keyboard cards (step 1) --- */
+
+.kerf-keyboards-mini-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.kerf-keyboards-mini-card {
+  all: unset;
   cursor: pointer;
-  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
-  text-transform: capitalize;
-  position: relative;
+  background: var(--color-kerf-bg-elevated);
+  border: 2px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 150ms ease, background 150ms ease;
+  box-sizing: border-box;
 }
 
-.kerf-keyboards-add-choice:hover {
-  border-color: var(--color-kerf-border-default);
-  color: var(--color-kerf-text-primary);
+.kerf-keyboards-mini-card:hover:not([data-disabled="true"]) {
+  border-color: var(--color-kerf-border-strong);
 }
 
-.kerf-keyboards-add-choice[data-selected="true"] {
+.kerf-keyboards-mini-card[data-selected="true"] {
   border-color: var(--color-kerf-amber-base);
-  color: var(--color-kerf-text-primary);
   background: var(--color-kerf-amber-faint);
 }
 
-.kerf-keyboards-add-choice input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+.kerf-keyboards-mini-card[data-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.kerf-keyboards-add-choice:focus-within {
-  outline: 2px solid var(--color-kerf-amber-base);
-  outline-offset: 1px;
+.kerf-keyboards-mini-card-thumb {
+  width: 60px;
+  height: 36px;
+  background: var(--color-kerf-bg-base);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--color-kerf-text-tertiary);
+  flex-shrink: 0;
 }
 
-.kerf-keyboards-add-error {
+.kerf-keyboards-mini-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kerf-keyboards-mini-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-mini-card-meta {
+  font-size: 11px;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-keyboards-mini-card-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 32px;
+  text-align: right;
+}
+
+.kerf-keyboards-mini-card[data-selected="true"] .kerf-keyboards-mini-card-status {
+  color: var(--color-kerf-amber-base);
+  font-size: 14px;
+}
+
+/* --- dominant-hand pill (step 2) --- */
+
+.kerf-keyboards-hand-pill {
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kerf-keyboards-hand-pill-label {
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: capitalize;
+}
+
+.kerf-keyboards-hand-initial {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-amber-base);
+  font-weight: 700;
+}
+
+.kerf-keyboards-hand-change {
+  all: unset;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: lowercase;
+}
+
+.kerf-keyboards-hand-change:hover {
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-hand-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kerf-keyboards-hand-choice {
+  all: unset;
+  cursor: pointer;
+  background: var(--color-kerf-bg-elevated);
+  border: 2px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+  transition: border-color 150ms ease, background 150ms ease;
+  text-transform: capitalize;
+}
+
+.kerf-keyboards-hand-choice:hover {
+  border-color: var(--color-kerf-border-strong);
+}
+
+.kerf-keyboards-hand-choice[data-selected="true"] {
+  border-color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-faint);
+}
+
+/* --- level cards (step 3) --- */
+
+.kerf-keyboards-level-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.kerf-keyboards-level-card {
+  all: unset;
+  cursor: pointer;
+  background: var(--color-kerf-bg-elevated);
+  border: 2px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  align-items: center;
+  transition: border-color 150ms ease, background 150ms ease;
+  box-sizing: border-box;
+}
+
+.kerf-keyboards-level-card:hover {
+  border-color: var(--color-kerf-border-strong);
+}
+
+.kerf-keyboards-level-card[data-selected="true"] {
+  border-color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-faint);
+}
+
+.kerf-keyboards-level-card-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kerf-keyboards-level-card[data-selected="true"] .kerf-keyboards-level-card-label {
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-keyboards-level-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+
+/* --- modal error + footer --- */
+
+.kerf-keyboards-modal-error {
   margin: 0;
   font-size: 12px;
   color: var(--color-kerf-error-base);
 }
 
-.kerf-keyboards-add-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  padding-top: 8px;
+.kerf-keyboards-modal-footer {
+  padding: 16px 28px;
   border-top: 1px solid var(--color-kerf-border-subtle);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
 }
 
-.kerf-keyboards-add-submit {
+.kerf-keyboards-modal-cancel {
   all: unset;
   cursor: pointer;
-  padding: 10px 18px;
-  border-radius: 6px;
+  background: transparent;
+  color: var(--color-kerf-text-secondary);
+  border: 1px solid var(--color-kerf-border-default);
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.kerf-keyboards-modal-cancel:hover:not(:disabled) {
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-modal-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kerf-keyboards-modal-submit {
+  all: unset;
+  cursor: pointer;
   background: var(--color-kerf-amber-base);
   color: var(--color-kerf-text-inverse);
-  font-family: var(--font-sans, "Inter", sans-serif);
+  padding: 10px 20px;
+  border-radius: 4px;
   font-size: 13px;
   font-weight: 600;
   transition: background 120ms ease, opacity 120ms ease;
 }
 
-.kerf-keyboards-add-submit:hover:not(:disabled) {
+.kerf-keyboards-modal-submit:hover:not(:disabled) {
   background: var(--color-kerf-amber-hover);
 }
 
-.kerf-keyboards-add-submit:disabled {
+.kerf-keyboards-modal-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.kerf-keyboards-add-cancel {
-  all: unset;
-  cursor: pointer;
-  padding: 10px 18px;
-  border-radius: 6px;
-  border: 1px solid var(--color-kerf-border-default);
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-kerf-text-secondary);
-}
-
-.kerf-keyboards-add-cancel:hover {
-  background: var(--color-kerf-bg-overlay);
-  color: var(--color-kerf-text-primary);
 }
 
 /* --- temporal patterns (Task 3.4c) --- */

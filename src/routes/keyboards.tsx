@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   createKeyboardProfile,
@@ -35,24 +35,28 @@ export const Route = createFileRoute("/keyboards")({
 
 // --- keyboard metadata ----------------------------------------------------
 
-/** Display-side metadata per keyboard type. Lives in this file
- * instead of `src/domain` because it's UI-only. */
 const KEYBOARD_META: Record<KeyboardType, { name: string; keys: number }> = {
   sofle: { name: "Sofle", keys: 58 },
   lily58: { name: "Lily58", keys: 58 },
+};
+
+const LEVEL_META: Record<
+  InitialLevel,
+  { level: string; name: string }
+> = {
+  first_day: { level: "level 1", name: "First day" },
+  few_weeks: { level: "level 2", name: "Few weeks in" },
+  comfortable: { level: "level 3", name: "Comfortable" },
 };
 
 // --- page -----------------------------------------------------------------
 
 function KeyboardsPage() {
   const { profiles } = Route.useLoaderData();
-  const [adding, setAdding] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   const addedTypes = new Set(profiles.map((p) => p.keyboardType));
-  const availableTypes = (Object.keys(KEYBOARD_META) as KeyboardType[]).filter(
-    (t) => !addedTypes.has(t),
-  );
-  const canAdd = availableTypes.length > 0;
+  const canAdd = addedTypes.size < Object.keys(KEYBOARD_META).length;
 
   return (
     <main className="kerf-keyboards-page">
@@ -66,11 +70,11 @@ function KeyboardsPage() {
               and exercises are independent per profile.
             </p>
           </div>
-          {canAdd && !adding ? (
+          {canAdd ? (
             <button
               type="button"
               className="kerf-keyboards-add-btn"
-              onClick={() => setAdding(true)}
+              onClick={() => setAddOpen(true)}
             >
               <span className="kerf-keyboards-add-btn-icon" aria-hidden>
                 +
@@ -81,15 +85,6 @@ function KeyboardsPage() {
         </div>
       </header>
 
-      {adding && canAdd ? (
-        <AddProfileForm
-          availableTypes={availableTypes}
-          defaultHand={profiles[0]?.dominantHand}
-          onCancel={() => setAdding(false)}
-          onAdded={() => setAdding(false)}
-        />
-      ) : null}
-
       <div className="kerf-keyboards-grid">
         {profiles.map((p) => (
           <ProfileCard key={p.id} profile={p} />
@@ -98,8 +93,7 @@ function KeyboardsPage() {
           <button
             type="button"
             className="kerf-keyboards-add-card"
-            onClick={() => setAdding(true)}
-            disabled={adding}
+            onClick={() => setAddOpen(true)}
           >
             <span className="kerf-keyboards-add-card-icon" aria-hidden>
               +
@@ -120,6 +114,13 @@ function KeyboardsPage() {
             stats and weakness tracking.
           </p>
         </aside>
+      ) : null}
+
+      {addOpen && canAdd ? (
+        <AddKeyboardModal
+          profiles={profiles}
+          onClose={() => setAddOpen(false)}
+        />
       ) : null}
     </main>
   );
@@ -204,10 +205,6 @@ function ProfileCard({ profile }: { profile: ProfileListEntry }) {
   );
 }
 
-/** Mini keyboard half — 4×6 key grid + thumb cluster. Stylized
- * placeholder, not an accurate layout; the real KeyboardSVG lives on
- * the practice/dashboard pages. Matches the wireframe's
- * `.photo-half` > `.photo-key-grid` / `.photo-thumbs` structure. */
 function MiniKeyboardHalf() {
   return (
     <div className="kerf-keyboards-card-photo-half">
@@ -224,35 +221,46 @@ function MiniKeyboardHalf() {
   );
 }
 
-// --- add-profile inline form ----------------------------------------------
+// --- add-keyboard modal (wireframe §.add-modal) ---------------------------
 
-function AddProfileForm({
-  availableTypes,
-  defaultHand,
-  onCancel,
-  onAdded,
+function AddKeyboardModal({
+  profiles,
+  onClose,
 }: {
-  availableTypes: readonly KeyboardType[];
-  defaultHand?: DominantHand;
-  onCancel: () => void;
-  onAdded: () => void;
+  profiles: readonly ProfileListEntry[];
+  onClose: () => void;
 }) {
   const router = useRouter();
+  const addedTypes = new Set(profiles.map((p) => p.keyboardType));
+  const allTypes = Object.keys(KEYBOARD_META) as KeyboardType[];
+  const availableTypes = allTypes.filter((t) => !addedTypes.has(t));
+  const prefilledHand = profiles[0]?.dominantHand;
+
   const [keyboardType, setKeyboardType] = useState<KeyboardType>(
     availableTypes[0]!,
   );
   const [dominantHand, setDominantHand] = useState<DominantHand>(
-    defaultHand ?? "right",
+    prefilledHand ?? "right",
   );
+  const [editingHand, setEditingHand] = useState(false);
   const [initialLevel, setInitialLevel] = useState<InitialLevel>("first_day");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Duck-typed event — React 19 marks `FormEvent` and `React.FormEvent`
-  // as deprecated in favor of the Actions API, but Tanstack Start's
-  // server-fn story is easier with a classic onSubmit handler. The only
-  // method we call is `preventDefault`, so typing to that minimal shape
-  // keeps the code both warning-free and functional.
+  // Escape closes, body scroll locked while open.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
   const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     if (submitting) return;
@@ -263,124 +271,193 @@ function AddProfileForm({
         data: { keyboardType, dominantHand, initialLevel },
       });
       await router.invalidate();
-      onAdded();
+      onClose();
     } catch (err) {
       setSubmitting(false);
       setError(err instanceof Error ? err.message : "Could not add profile.");
     }
   };
 
+  const selectedKeyboardName = KEYBOARD_META[keyboardType].name;
+  const handInitial = dominantHand === "right" ? "R" : "L";
+
   return (
-    <form className="kerf-keyboards-add-form" onSubmit={handleSubmit}>
-      <header className="kerf-keyboards-add-head">
-        <h2 className="kerf-keyboards-add-title">Add a new keyboard</h2>
-        <button
-          type="button"
-          className="kerf-keyboards-add-close"
-          onClick={onCancel}
-          aria-label="Cancel"
-        >
-          ✕
-        </button>
-      </header>
-
-      <fieldset className="kerf-keyboards-add-field">
-        <legend className="kerf-keyboards-add-label">Which keyboard?</legend>
-        <div className="kerf-keyboards-add-choices">
-          {availableTypes.map((t) => (
-            <label
-              key={t}
-              className="kerf-keyboards-add-choice"
-              data-selected={keyboardType === t ? "true" : undefined}
+    <div
+      className="kerf-keyboards-modal-bg"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="kerf-keyboards-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-keyboard-title"
+      >
+        <form onSubmit={handleSubmit}>
+          <header className="kerf-keyboards-modal-head">
+            <div>
+              <h2 id="add-keyboard-title" className="kerf-keyboards-modal-title">
+                Add a new keyboard
+              </h2>
+              {prefilledHand ? (
+                <p className="kerf-keyboards-modal-hint">
+                  dominant hand prefilled from your existing profile ·{" "}
+                  <strong>{prefilledHand}-handed</strong>
+                </p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              className="kerf-keyboards-modal-close"
+              onClick={onClose}
+              aria-label="Close"
             >
-              <input
-                type="radio"
-                name="keyboardType"
-                value={t}
-                checked={keyboardType === t}
-                onChange={() => setKeyboardType(t)}
-              />
-              <span>{KEYBOARD_META[t].name}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+              ✕
+            </button>
+          </header>
 
-      <fieldset className="kerf-keyboards-add-field">
-        <legend className="kerf-keyboards-add-label">Dominant hand</legend>
-        <div className="kerf-keyboards-add-choices">
-          {(["left", "right"] as const).map((h) => (
-            <label
-              key={h}
-              className="kerf-keyboards-add-choice"
-              data-selected={dominantHand === h ? "true" : undefined}
+          <div className="kerf-keyboards-modal-body">
+            {/* Step 1 — which keyboard */}
+            <section className="kerf-keyboards-modal-step">
+              <div className="kerf-keyboards-modal-step-label">
+                <span>which keyboard?</span>
+              </div>
+              <div className="kerf-keyboards-mini-cards">
+                {allTypes.map((t) => {
+                  const already = addedTypes.has(t);
+                  const selected = keyboardType === t;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      className="kerf-keyboards-mini-card"
+                      data-selected={selected ? "true" : undefined}
+                      data-disabled={already ? "true" : undefined}
+                      disabled={already}
+                      onClick={() => !already && setKeyboardType(t)}
+                    >
+                      <span className="kerf-keyboards-mini-card-thumb">
+                        ⊞⊞
+                      </span>
+                      <span className="kerf-keyboards-mini-card-info">
+                        <span className="kerf-keyboards-mini-card-name">
+                          {KEYBOARD_META[t].name}
+                        </span>
+                        <span className="kerf-keyboards-mini-card-meta">
+                          {KEYBOARD_META[t].keys} keys · split columnar
+                        </span>
+                      </span>
+                      <span className="kerf-keyboards-mini-card-status">
+                        {already ? "added" : selected ? "✓" : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Step 2 — dominant hand */}
+            <section className="kerf-keyboards-modal-step">
+              <div className="kerf-keyboards-modal-step-label">
+                <span>dominant hand</span>
+                {prefilledHand && !editingHand ? (
+                  <span className="kerf-keyboards-prefilled-tag">prefilled</span>
+                ) : null}
+              </div>
+              {editingHand || !prefilledHand ? (
+                <div className="kerf-keyboards-hand-choices">
+                  {(["left", "right"] as const).map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      className="kerf-keyboards-hand-choice"
+                      data-selected={dominantHand === h ? "true" : undefined}
+                      onClick={() => {
+                        setDominantHand(h);
+                        setEditingHand(false);
+                      }}
+                    >
+                      <span className="kerf-keyboards-hand-initial" aria-hidden>
+                        {h === "right" ? "R" : "L"}
+                      </span>
+                      <span>{h}-handed</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="kerf-keyboards-hand-pill">
+                  <span className="kerf-keyboards-hand-pill-label">
+                    <span className="kerf-keyboards-hand-initial" aria-hidden>
+                      {handInitial}
+                    </span>
+                    {dominantHand}-handed
+                  </span>
+                  <button
+                    type="button"
+                    className="kerf-keyboards-hand-change"
+                    onClick={() => setEditingHand(true)}
+                  >
+                    change
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* Step 3 — level */}
+            <section className="kerf-keyboards-modal-step">
+              <div className="kerf-keyboards-modal-step-label">
+                <span>how comfortable on this keyboard?</span>
+              </div>
+              <div className="kerf-keyboards-level-cards">
+                {(Object.keys(LEVEL_META) as InitialLevel[]).map((lvl) => {
+                  const selected = initialLevel === lvl;
+                  return (
+                    <button
+                      key={lvl}
+                      type="button"
+                      className="kerf-keyboards-level-card"
+                      data-selected={selected ? "true" : undefined}
+                      onClick={() => setInitialLevel(lvl)}
+                    >
+                      <span className="kerf-keyboards-level-card-label">
+                        {LEVEL_META[lvl].level}
+                      </span>
+                      <span className="kerf-keyboards-level-card-name">
+                        {LEVEL_META[lvl].name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {error ? (
+              <p className="kerf-keyboards-modal-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+          </div>
+
+          <footer className="kerf-keyboards-modal-footer">
+            <button
+              type="button"
+              className="kerf-keyboards-modal-cancel"
+              onClick={onClose}
+              disabled={submitting}
             >
-              <input
-                type="radio"
-                name="dominantHand"
-                value={h}
-                checked={dominantHand === h}
-                onChange={() => setDominantHand(h)}
-              />
-              <span>{h}-handed</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset className="kerf-keyboards-add-field">
-        <legend className="kerf-keyboards-add-label">
-          How far in are you?
-        </legend>
-        <div className="kerf-keyboards-add-choices">
-          {(
-            [
-              { value: "first_day", label: "First day" },
-              { value: "few_weeks", label: "Few weeks in" },
-              { value: "comfortable", label: "Comfortable" },
-            ] as const
-          ).map((opt) => (
-            <label
-              key={opt.value}
-              className="kerf-keyboards-add-choice"
-              data-selected={initialLevel === opt.value ? "true" : undefined}
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="kerf-keyboards-modal-submit"
+              disabled={submitting}
             >
-              <input
-                type="radio"
-                name="initialLevel"
-                value={opt.value}
-                checked={initialLevel === opt.value}
-                onChange={() => setInitialLevel(opt.value)}
-              />
-              <span>{opt.label}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      {error ? (
-        <p className="kerf-keyboards-add-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      <div className="kerf-keyboards-add-actions">
-        <button
-          type="submit"
-          className="kerf-keyboards-add-submit"
-          disabled={submitting}
-        >
-          {submitting ? "Adding…" : "Add keyboard"}
-        </button>
-        <button
-          type="button"
-          className="kerf-keyboards-add-cancel"
-          onClick={onCancel}
-          disabled={submitting}
-        >
-          Cancel
-        </button>
+              {submitting ? "Adding…" : `Add ${selectedKeyboardName}`}
+            </button>
+          </footer>
+        </form>
       </div>
-    </form>
+    </div>
   );
 }
