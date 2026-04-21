@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import type {
   EmergentWeakness,
@@ -44,6 +45,38 @@ export function PostSessionStage({
     insightText,
     topWeaknessName,
   } = summary;
+
+  // The old `autoFocus` on the primary button was pulling the viewport
+  // to the bottom on mount, skipping past the stats hero. Instead we
+  // start at the top and focus the button without scrolling, so Enter
+  // still triggers "practice again" from anywhere on the page.
+  const practiceAgainRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    practiceAgainRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  // Floating scroll hint — only visible when the user is at the top and
+  // there is meaningful content below. Fades the moment they scroll, so
+  // it never covers content they're trying to read.
+  const [showScrollHint, setShowScrollHint] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const scrolled = window.scrollY;
+      const max =
+        document.documentElement.scrollHeight - window.innerHeight;
+      // Hide if page isn't scrollable (nothing to hint at).
+      if (max < 40) {
+        setShowScrollHint(false);
+        return;
+      }
+      const threshold = Math.round(window.innerHeight * 0.5);
+      setShowScrollHint(scrolled < threshold);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <div className="kerf-post-session">
@@ -149,7 +182,7 @@ export function PostSessionStage({
           type="button"
           className="kerf-post-btn primary"
           onClick={onPracticeAgain}
-          autoFocus
+          ref={practiceAgainRef}
         >
           Practice again
           <span className="kerf-post-btn-shortcut" aria-hidden="true">⏎</span>
@@ -168,6 +201,54 @@ export function PostSessionStage({
           View dashboard
           <span className="kerf-post-btn-shortcut" aria-hidden="true">⌘D</span>
         </Link>
+      </div>
+
+      <div
+        className="kerf-post-floating-scroll-hint"
+        data-visible={showScrollHint || undefined}
+        aria-hidden="true"
+      >
+        <span className="kerf-post-floating-scroll-hint-chevron">↓</span>
+      </div>
+
+      <ShortcutHintStrip />
+    </div>
+  );
+}
+
+function ShortcutHintStrip() {
+  return (
+    <div className="kerf-post-hint-strip" aria-hidden="true">
+      <div className="kerf-post-hint-item">
+        <kbd>j</kbd>
+        <span>scroll down</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>k</kbd>
+        <span>scroll up</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>gg</kbd>
+        <span>top</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>G</kbd>
+        <span>bottom</span>
+      </div>
+      <div className="kerf-post-hint-divider" />
+      <div className="kerf-post-hint-item">
+        <kbd>↵</kbd>
+        <span>practice again</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>D</kbd>
+        <span>drill</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>⌘</kbd>
+        <span className="sep">+</span>
+        <kbd>D</kbd>
+        <span>dashboard</span>
       </div>
     </div>
   );

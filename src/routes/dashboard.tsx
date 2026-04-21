@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
 import {
@@ -95,6 +96,104 @@ function DashboardPage() {
     temporal,
   } = Route.useLoaderData();
 
+  // Vim-style scroll shortcuts: j / k nudge, gg jumps to top, G to
+  // bottom. Step scales with viewport so it feels consistent on any
+  // screen size. Guarded against input focus so future inline inputs
+  // don't hijack it.
+  useEffect(() => {
+    let gPending = false;
+    let gTimer: ReturnType<typeof setTimeout> | null = null;
+    const clearGPending = () => {
+      gPending = false;
+      if (gTimer) {
+        clearTimeout(gTimer);
+        gTimer = null;
+      }
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const targetEl = e.target as HTMLElement | null;
+      const tag = targetEl?.tagName;
+      const inField =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        targetEl?.isContentEditable === true;
+      if (inField) return;
+
+      // Use `e.code` (physical key) rather than `e.key` for vim
+      // navigation — some browsers/layouts emit `e.key === "g"` for
+      // Shift+g instead of "G", which would make G silently fail.
+      const isKeyG = e.code === "KeyG";
+
+      // Any non-`g` key cancels a pending gg — otherwise unrelated
+      // keystrokes would "glue" into an accidental top-jump.
+      if (!isKeyG) clearGPending();
+
+      if (isKeyG && e.shiftKey) {
+        e.preventDefault();
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: "smooth",
+        });
+        return;
+      }
+      if (isKeyG && !e.shiftKey) {
+        if (gPending) {
+          clearGPending();
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          gPending = true;
+          gTimer = setTimeout(() => {
+            gPending = false;
+            gTimer = null;
+          }, 600);
+        }
+        return;
+      }
+
+      if (e.shiftKey) return;
+
+      const step = Math.round(window.innerHeight * 0.4);
+      if (e.code === "KeyJ") {
+        e.preventDefault();
+        window.scrollBy({ top: step, behavior: "smooth" });
+        return;
+      }
+      if (e.code === "KeyK") {
+        e.preventDefault();
+        window.scrollBy({ top: -step, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (gTimer) clearTimeout(gTimer);
+    };
+  }, []);
+
+  // Mirror the post-session scroll-hint: visible while the user is
+  // still near the top and there's meaningful content below. Fades once
+  // they've committed to scrolling.
+  const [showScrollHint, setShowScrollHint] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const scrolled = window.scrollY;
+      const max =
+        document.documentElement.scrollHeight - window.innerHeight;
+      if (max < 40) {
+        setShowScrollHint(false);
+        return;
+      }
+      const threshold = Math.round(window.innerHeight * 0.5);
+      setShowScrollHint(scrolled < threshold);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   if (!hero.hasAnyData) {
     return <EmptyState />;
   }
@@ -176,6 +275,33 @@ function DashboardPage() {
           phase={weakness.phase}
         />
       </Section>
+
+      <div
+        className="kerf-post-floating-scroll-hint"
+        data-visible={showScrollHint || undefined}
+        aria-hidden="true"
+      >
+        <span className="kerf-post-floating-scroll-hint-chevron">↓</span>
+      </div>
+
+      <div className="kerf-post-hint-strip" aria-hidden="true">
+        <div className="kerf-post-hint-item">
+          <kbd>j</kbd>
+          <span>scroll down</span>
+        </div>
+        <div className="kerf-post-hint-item">
+          <kbd>k</kbd>
+          <span>scroll up</span>
+        </div>
+        <div className="kerf-post-hint-item">
+          <kbd>gg</kbd>
+          <span>top</span>
+        </div>
+        <div className="kerf-post-hint-item">
+          <kbd>G</kbd>
+          <span>bottom</span>
+        </div>
+      </div>
     </main>
   );
 }

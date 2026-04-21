@@ -87,6 +87,13 @@ export type SummarizeSessionInput = {
   keyboardType: KeyboardLayout;
   startedAt: number | null;
   completedAt: number | null;
+  /**
+   * Accumulated ms the session spent paused (idle auto-pause + manual
+   * Esc pause). Subtracted from wall time so elapsed reflects actual
+   * typing time, not time-on-task. Defaults to 0 for callers that
+   * predate the pause feature.
+   */
+  pausedMs?: number;
   phase: TransitionPhase;
 };
 
@@ -103,7 +110,15 @@ export type SummarizeSessionInput = {
  * `previousSession` input and the frame/improvements become real.
  */
 export function summarizeSession(input: SummarizeSessionInput): SessionSummary {
-  const { target, events, keyboardType, startedAt, completedAt, phase } = input;
+  const {
+    target,
+    events,
+    keyboardType,
+    startedAt,
+    completedAt,
+    pausedMs = 0,
+    phase,
+  } = input;
 
   const correctCount = events.filter((e) => !e.isError).length;
   const errorCount = events.length - correctCount;
@@ -114,7 +129,7 @@ export function summarizeSession(input: SummarizeSessionInput): SessionSummary {
 
   const elapsedMs =
     startedAt !== null && completedAt !== null
-      ? Math.max(0, completedAt - startedAt)
+      ? Math.max(0, completedAt - startedAt - pausedMs)
       : 0;
   const wpm =
     elapsedMs < MIN_ELAPSED_MS_FOR_WPM

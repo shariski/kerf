@@ -23,7 +23,12 @@ import { useIsClient } from "#/hooks/useIsClient";
 type Props = { data: DashboardTrajectoryData };
 
 export function TrajectoryCharts({ data }: Props) {
-  if (data.points.length === 0) {
+  // Defensive: the loader normally guarantees a populated shape, but a
+  // transient failure on one of the parallel dashboard queries can land
+  // us here with undefined fields during the error-boundary remount. An
+  // empty-state render beats crashing the whole page.
+  const points = data?.points ?? [];
+  if (points.length === 0) {
     return (
       <div className="kerf-dash-trajectory kerf-dash-trajectory--empty">
         <p className="kerf-dash-trajectory-empty-note">
@@ -34,8 +39,8 @@ export function TrajectoryCharts({ data }: Props) {
     );
   }
 
-  const first = data.points[0]!;
-  const last = data.points[data.points.length - 1]!;
+  const first = points[0]!;
+  const last = points[points.length - 1]!;
 
   return (
     <div className="kerf-dash-trajectory">
@@ -44,20 +49,20 @@ export function TrajectoryCharts({ data }: Props) {
         color="amber"
         current={last.accuracyPct}
         currentLabel="%"
-        baselineCaption={`${data.points.length} sessions ago: ${first.accuracyPct}%`}
-        delta={data.accuracyDelta}
+        baselineCaption={`${points.length} sessions ago: ${first.accuracyPct}%`}
+        delta={data?.accuracyDelta ?? null}
         deltaUnit="pts"
-        series={data.points.map((p) => ({ index: p.index, value: p.accuracyPct }))}
+        series={points.map((p) => ({ index: p.index, value: p.accuracyPct }))}
       />
       <TrendCard
         title="Speed"
         color="info"
         current={last.wpm}
         currentLabel="wpm"
-        baselineCaption={`${data.points.length} sessions ago: ${first.wpm} wpm`}
-        delta={data.wpmDelta}
+        baselineCaption={`${points.length} sessions ago: ${first.wpm} wpm`}
+        delta={data?.wpmDelta ?? null}
         deltaUnit="wpm"
-        series={data.points.map((p) => ({ index: p.index, value: p.wpm }))}
+        series={points.map((p) => ({ index: p.index, value: p.wpm }))}
       />
     </div>
   );

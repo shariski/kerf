@@ -49,68 +49,117 @@ export function keystrokeReducer(
         startedAt: null,
         completedAt: null,
         status: "active",
+        pausedAt: null,
+        pausedMs: 0,
       };
 
     case "reset":
       return idleSessionState();
 
+    case "pause": {
+      // Only pausable from an already-ticking session. Pre-keystroke
+      // (startedAt === null) or a completed session has nothing to pause.
+      if (state.status !== "active" || state.startedAt === null) return state;
+      return { ...state, status: "paused", pausedAt: action.now };
+    }
+
+    case "resume": {
+      if (state.status !== "paused" || state.pausedAt === null) return state;
+      return {
+        ...state,
+        status: "active",
+        pausedAt: null,
+        pausedMs: state.pausedMs + Math.max(0, action.now - state.pausedAt),
+      };
+    }
+
     case "backspace": {
-      if (state.status !== "active" || state.activeError === null) return state;
-      const charStatus = [...state.charStatus];
-      charStatus[state.position] = "pending";
-      return { ...state, activeError: null, charStatus };
+      // Auto-resume on input: backspace during a paused session is user
+      // activity and should unfreeze the clock. Resume uses `now` if we
+      // have it — the caller already passes it for keypress. Since
+      // backspace has no timestamp in the action payload, approximate by
+      // replaying the last-keystroke time; the paused slice won't be
+      // undercounted so long as the next keypress lands immediately.
+      let working = state;
+      if (working.status === "paused" && working.pausedAt !== null) {
+        const resumeAt = working.lastKeystrokeAt ?? working.pausedAt;
+        working = {
+          ...working,
+          status: "active",
+          pausedAt: null,
+          pausedMs: working.pausedMs + Math.max(0, resumeAt - working.pausedAt),
+        };
+      }
+      if (working.status !== "active" || working.activeError === null) {
+        return working;
+      }
+      const charStatus = [...working.charStatus];
+      charStatus[working.position] = "pending";
+      return { ...working, activeError: null, charStatus };
     }
 
     case "keypress": {
-      if (state.status !== "active") return state;
+      // Auto-resume first: any typed character during a paused session
+      // folds the pause slice into pausedMs and continues as if the user
+      // never paused. This is how idle auto-pause transparently resumes.
+      let working = state;
+      if (working.status === "paused" && working.pausedAt !== null) {
+        working = {
+          ...working,
+          status: "active",
+          pausedAt: null,
+          pausedMs: working.pausedMs + Math.max(0, action.now - working.pausedAt),
+        };
+      }
+      if (working.status !== "active") return working;
 
       // First real keystroke starts the clock (invariant #6). `??` covers
       // both "fresh session, startedAt still null" and "already started"
       // in one line.
-      const sessionStartedAt = state.startedAt ?? action.now;
+      const sessionStartedAt = working.startedAt ?? action.now;
 
-      const targetChar = state.target[state.position]!;
+      const targetChar = working.target[working.position]!;
       // Error latches until backspace: once we're in an error state, any
       // further keypress stays an error even if it matches the target char.
-      const isError = action.char !== targetChar || state.activeError !== null;
+      const isError = action.char !== targetChar || working.activeError !== null;
       const keystrokeMs =
-        state.lastKeystrokeAt === null ? 0 : action.now - state.lastKeystrokeAt;
+        working.lastKeystrokeAt === null ? 0 : action.now - working.lastKeystrokeAt;
       const event: KeystrokeEvent = {
         targetChar,
         actualChar: action.char,
         isError,
         keystrokeMs,
-        prevChar: prevCharFor(state.target, state.position),
+        prevChar: prevCharFor(working.target, working.position),
         timestamp: new Date(action.now),
       };
 
       if (isError) {
-        const charStatus = [...state.charStatus];
-        charStatus[state.position] = "error";
+        const charStatus = [...working.charStatus];
+        charStatus[working.position] = "error";
         return {
-          ...state,
+          ...working,
           charStatus,
           activeError: { expected: targetChar, actual: action.char },
-          events: [...state.events, event],
+          events: [...working.events, event],
           lastKeystrokeAt: action.now,
           startedAt: sessionStartedAt,
         };
       }
 
       // Correct keystroke — advance.
-      const charStatus = [...state.charStatus];
-      charStatus[state.position] = "correct";
-      const nextPosition = state.position + 1;
-      const isComplete = nextPosition === state.target.length;
+      const charStatus = [...working.charStatus];
+      charStatus[working.position] = "correct";
+      const nextPosition = working.position + 1;
+      const isComplete = nextPosition === working.target.length;
       return {
-        ...state,
+        ...working,
         charStatus,
         activeError: null,
         position: nextPosition,
-        events: [...state.events, event],
+        events: [...working.events, event],
         lastKeystrokeAt: action.now,
         startedAt: sessionStartedAt,
-        completedAt: isComplete ? action.now : state.completedAt,
+        completedAt: isComplete ? action.now : working.completedAt,
         status: isComplete ? "complete" : "active",
       };
     }

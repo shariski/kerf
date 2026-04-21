@@ -17,6 +17,7 @@ import {
   type PresetKey,
 } from "#/components/practice";
 import { useSessionStore, sessionStore } from "#/stores/sessionStore";
+import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
 import { useCorpus } from "#/hooks/useCorpus";
 import {
   INNER_COLUMN_CHARS,
@@ -196,18 +197,36 @@ function DrillPage() {
     if (build) startDrill(build);
   }, [hasRouteDrill, corpus.status, status, search, profile.keyboardType]);
 
-  // Escape toggles pause during active drill (mirrors /practice).
+  // Escape toggles the pause overlay; dispatches pause/resume to the
+  // reducer so the timer actually freezes (see same block in
+  // /practice route for the rationale).
   useEffect(() => {
-    if (status !== "active") return;
+    if (status !== "active" && status !== "paused") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       e.preventDefault();
-      setPaused((p) => !p);
+      setPaused((prev) => {
+        const next = !prev;
+        const state = sessionStore.getState();
+        if (next) {
+          if (state.status === "active") {
+            state.dispatch({ type: "pause", now: performance.now() });
+          }
+        } else {
+          if (state.status === "paused") {
+            state.dispatch({ type: "resume", now: performance.now() });
+          }
+        }
+        return next;
+      });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [status]);
+
+  // Idle auto-pause watchdog — same threshold (2s) as /practice.
+  useIdleAutoPause(status === "active" || status === "paused");
 
   // Enter on the complete screen runs the drill again.
   useEffect(() => {
@@ -306,6 +325,7 @@ function DrillPage() {
       keyboardType: profile.keyboardType,
       startedAt: state.startedAt,
       completedAt: state.completedAt,
+      pausedMs: state.pausedMs,
       phase: profile.transitionPhase,
     });
     const drillDelta = summarizeDrill({
@@ -328,7 +348,8 @@ function DrillPage() {
     );
   }
 
-  if (status === "active") {
+  if (status === "active" || status === "paused") {
+    const idleAutoPaused = status === "paused" && !paused;
     return (
       <main className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
         {activeDrill && <DrillActiveHeader label={activeDrill.label} />}
@@ -339,11 +360,19 @@ function DrillPage() {
           capture={!paused}
           typingSize={pauseSettings.typingSize}
         />
+        {idleAutoPaused && <DrillIdlePauseChip />}
         {paused && (
           <PauseOverlay
             settings={pauseSettings}
             onSettingsChange={setPauseSettings}
-            onResume={() => setPaused(false)}
+            onResume={() => {
+              if (sessionStore.getState().status === "paused") {
+                sessionStore
+                  .getState()
+                  .dispatch({ type: "resume", now: performance.now() });
+              }
+              setPaused(false);
+            }}
             onRestart={restartSameExercise}
             onEnd={endDrill}
           />
@@ -382,6 +411,20 @@ function DrillPage() {
         )}
       </div>
     </main>
+  );
+}
+
+/**
+ * Idle-pause visual chip — same shape as the one in /practice.
+ * Kept route-local rather than shared: it's a thin status element and
+ * sharing would require a component folder entry for two callers only.
+ */
+function DrillIdlePauseChip() {
+  return (
+    <div className="kerf-idle-pause-chip" role="status" aria-live="polite">
+      <span className="kerf-idle-pause-chip-dot" aria-hidden="true" />
+      paused · type to resume
+    </div>
   );
 }
 

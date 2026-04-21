@@ -105,6 +105,37 @@ describe("summarizeSession — accuracy and wpm", () => {
     expect(summary.wpm).toBe(0);
     expect(summary.elapsedLabel).toBe("0:00");
   });
+
+  it("subtracts pausedMs from elapsed so idle time doesn't deflate WPM", () => {
+    // 50 correct chars over 120s wall time, but 60s was paused.
+    // Effective elapsed = 60s → 10 WPM, matching the unpaused run above.
+    const events = Array.from({ length: 50 }, () => event({ targetChar: "a" }));
+    const summary = summarizeSession({
+      target: "a".repeat(50),
+      events,
+      keyboardType: "sofle",
+      startedAt: 0,
+      completedAt: 120_000,
+      pausedMs: 60_000,
+      phase: "transitioning",
+    });
+    expect(summary.elapsedMs).toBe(60_000);
+    expect(summary.wpm).toBe(10);
+  });
+
+  it("clamps elapsed at 0 if pausedMs exceeds wall time (defensive)", () => {
+    const summary = summarizeSession({
+      target: "ab",
+      events: flawless("ab"),
+      keyboardType: "sofle",
+      startedAt: 0,
+      completedAt: 1_000,
+      pausedMs: 5_000,
+      phase: "transitioning",
+    });
+    expect(summary.elapsedMs).toBe(0);
+    expect(summary.wpm).toBe(0);
+  });
 });
 
 describe("summarizeSession — elapsed formatting", () => {

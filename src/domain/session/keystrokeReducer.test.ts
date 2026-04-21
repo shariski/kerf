@@ -258,3 +258,95 @@ describe("keystrokeReducer — purity", () => {
     expect(JSON.stringify(s0)).toBe(snapshot);
   });
 });
+
+describe("keystrokeReducer — pause/resume", () => {
+  it("pause is a no-op before the clock is armed", () => {
+    // `start` sets status=active but leaves startedAt null until the
+    // first keystroke. Pausing a session that has nothing to freeze
+    // would just set pausedAt from a later keystroke, subtracting time
+    // the user never actually spent typing.
+    let s = start("hello", 1000);
+    s = keystrokeReducer(s, { type: "pause", now: 1500 });
+    expect(s.status).toBe("active");
+    expect(s.pausedAt).toBeNull();
+    expect(s.pausedMs).toBe(0);
+  });
+
+  it("pause freezes an armed session; resume accumulates pausedMs", () => {
+    let s = start("hello", 1000);
+    s = type(s, "he", 1000, 100); // startedAt=1100, lastKeystrokeAt=1200
+    s = keystrokeReducer(s, { type: "pause", now: 1300 });
+    expect(s.status).toBe("paused");
+    expect(s.pausedAt).toBe(1300);
+
+    s = keystrokeReducer(s, { type: "resume", now: 5300 });
+    expect(s.status).toBe("active");
+    expect(s.pausedAt).toBeNull();
+    expect(s.pausedMs).toBe(4000);
+  });
+
+  it("pausedMs accumulates across multiple pause/resume cycles", () => {
+    let s = start("hello", 1000);
+    s = type(s, "he", 1000, 100);
+    s = keystrokeReducer(s, { type: "pause", now: 1300 });
+    s = keystrokeReducer(s, { type: "resume", now: 2300 }); // +1000ms
+    s = keystrokeReducer(s, { type: "pause", now: 2500 });
+    s = keystrokeReducer(s, { type: "resume", now: 4500 }); // +2000ms
+    expect(s.pausedMs).toBe(3000);
+    expect(s.status).toBe("active");
+  });
+
+  it("keypress while paused auto-resumes and processes the keystroke", () => {
+    let s = start("hello", 1000);
+    s = type(s, "he", 1000, 100);
+    s = keystrokeReducer(s, { type: "pause", now: 1300 });
+    // User returns after 4s and types the next correct char.
+    s = keystrokeReducer(s, { type: "keypress", char: "l", now: 5300 });
+    expect(s.status).toBe("active");
+    expect(s.pausedAt).toBeNull();
+    expect(s.pausedMs).toBe(4000);
+    expect(s.position).toBe(3);
+  });
+
+  it("backspace while paused auto-resumes (treating input as activity)", () => {
+    let s = start("hello", 1000);
+    // Type 'h' then a wrong char 'x' to create an activeError.
+    s = keystrokeReducer(s, { type: "keypress", char: "h", now: 1100 });
+    s = keystrokeReducer(s, { type: "keypress", char: "x", now: 1200 });
+    expect(s.activeError).not.toBeNull();
+    // Pause, wait, then press backspace.
+    s = keystrokeReducer(s, { type: "pause", now: 1300 });
+    s = keystrokeReducer(s, { type: "backspace" });
+    expect(s.status).toBe("active");
+    expect(s.activeError).toBeNull();
+  });
+
+  it("resume is a no-op when not paused", () => {
+    let s = start("hello", 1000);
+    s = type(s, "he", 1000, 100);
+    const before = { ...s };
+    s = keystrokeReducer(s, { type: "resume", now: 9999 });
+    expect(s).toEqual(before);
+  });
+
+  it("pause is a no-op once the session is complete", () => {
+    let s = start("hi", 1000);
+    s = type(s, "hi", 1000, 100);
+    expect(s.status).toBe("complete");
+    s = keystrokeReducer(s, { type: "pause", now: 2000 });
+    expect(s.status).toBe("complete");
+    expect(s.pausedAt).toBeNull();
+  });
+
+  it("start clears pause fields from a prior session", () => {
+    let s = start("hello", 1000);
+    s = type(s, "he", 1000, 100);
+    s = keystrokeReducer(s, { type: "pause", now: 1300 });
+    s = keystrokeReducer(s, { type: "resume", now: 2300 });
+    expect(s.pausedMs).toBe(1000);
+    s = keystrokeReducer(s, { type: "start", target: "xy", now: 3000 });
+    expect(s.pausedMs).toBe(0);
+    expect(s.pausedAt).toBeNull();
+    expect(s.status).toBe("active");
+  });
+});
