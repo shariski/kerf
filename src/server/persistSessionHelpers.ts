@@ -28,7 +28,7 @@ export type PersistSessionInput = {
    * retries (we ON CONFLICT DO NOTHING on the sessions table). */
   sessionId: string;
   keyboardProfileId: string;
-  mode: "adaptive" | "targeted_drill";
+  mode: "adaptive" | "targeted_drill" | "diagnostic";
   /** The exact exercise text the user typed. Used to derive
    * positionInWord for each event. */
   target: string;
@@ -49,7 +49,7 @@ export type PersistSessionInput = {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const MODES = new Set(["adaptive", "targeted_drill"]);
+const MODES = new Set(["adaptive", "targeted_drill", "diagnostic"]);
 const PHASES = new Set(["transitioning", "refining"]);
 
 /**

@@ -18,14 +18,17 @@ const type = (s: SessionState, chars: string, from = 1000, stepMs = 100) => {
 };
 
 describe("keystrokeReducer — start", () => {
-  it("initializes target, zeros position, sets status=active, records startedAt", () => {
+  it("initializes target, zeros position, sets status=active, leaves clock unarmed", () => {
     const s = start("hello", 1000);
     expect(s.target).toBe("hello");
     expect(s.position).toBe(0);
     expect(s.charStatus).toEqual(["pending", "pending", "pending", "pending", "pending"]);
     expect(s.status).toBe("active");
-    expect(s.startedAt).toBe(1000);
-    expect(s.lastKeystrokeAt).toBe(1000);
+    // startedAt / lastKeystrokeAt stay null until the first real keystroke
+    // lands — Monkeytype-style. Idle time between start-dispatch and first
+    // keypress must not inflate elapsed.
+    expect(s.startedAt).toBeNull();
+    expect(s.lastKeystrokeAt).toBeNull();
     expect(s.events).toEqual([]);
     expect(s.activeError).toBeNull();
   });
@@ -38,6 +41,46 @@ describe("keystrokeReducer — start", () => {
     expect(s.position).toBe(0);
     expect(s.events).toHaveLength(0);
     expect(s.charStatus).toEqual(["pending", "pending"]);
+    // Restart re-disarms the clock even if the previous session started it.
+    expect(s.startedAt).toBeNull();
+    expect(s.lastKeystrokeAt).toBeNull();
+  });
+});
+
+describe("keystrokeReducer — first-keypress clock", () => {
+  it("first correct keystroke sets startedAt to its own timestamp", () => {
+    let s = start("abc", 1000);
+    expect(s.startedAt).toBeNull();
+    s = keystrokeReducer(s, { type: "keypress", char: "a", now: 5200 });
+    // Timer armed at the first keystroke — 4.2s of idle before typing
+    // does NOT count toward elapsed time.
+    expect(s.startedAt).toBe(5200);
+    expect(s.lastKeystrokeAt).toBe(5200);
+  });
+
+  it("first keystroke arms the clock even when it's an error", () => {
+    let s = start("abc", 1000);
+    s = keystrokeReducer(s, { type: "keypress", char: "x", now: 5200 });
+    expect(s.startedAt).toBe(5200);
+    expect(s.lastKeystrokeAt).toBe(5200);
+    expect(s.activeError).toEqual({ expected: "a", actual: "x" });
+  });
+
+  it("subsequent keystrokes never overwrite startedAt", () => {
+    let s = start("abc", 1000);
+    s = keystrokeReducer(s, { type: "keypress", char: "a", now: 5200 });
+    s = keystrokeReducer(s, { type: "keypress", char: "b", now: 5350 });
+    s = keystrokeReducer(s, { type: "keypress", char: "c", now: 5500 });
+    expect(s.startedAt).toBe(5200);
+    expect(s.lastKeystrokeAt).toBe(5500);
+  });
+
+  it("backspace before first keystroke is a no-op and leaves clock unarmed", () => {
+    let s = start("abc", 1000);
+    s = keystrokeReducer(s, { type: "backspace" });
+    expect(s.startedAt).toBeNull();
+    expect(s.lastKeystrokeAt).toBeNull();
+    expect(s.events).toEqual([]);
   });
 });
 
@@ -52,18 +95,20 @@ describe("keystrokeReducer — correct keystroke", () => {
       targetChar: "a",
       actualChar: "a",
       isError: false,
-      keystrokeMs: 100,
+      // First keystroke has no "previous keystroke" to time against — the
+      // clock only arms on this event, so per-char timing starts at 0.
+      keystrokeMs: 0,
       prevChar: undefined,
     });
     expect(s.events[0]!.timestamp).toBeInstanceOf(Date);
     expect(s.events[0]!.timestamp.getTime()).toBe(1100);
   });
 
-  it("computes keystrokeMs from previous event time (not startedAt)", () => {
+  it("computes keystrokeMs from previous keystroke (first is 0, clock not armed yet)", () => {
     let s = start("abc", 1000);
     s = keystrokeReducer(s, { type: "keypress", char: "a", now: 1150 });
     s = keystrokeReducer(s, { type: "keypress", char: "b", now: 1300 });
-    expect(s.events[0]!.keystrokeMs).toBe(150);
+    expect(s.events[0]!.keystrokeMs).toBe(0);
     expect(s.events[1]!.keystrokeMs).toBe(150);
   });
 
@@ -98,7 +143,8 @@ describe("keystrokeReducer — error keystroke", () => {
       targetChar: "n",
       actualChar: "b",
       isError: true,
-      keystrokeMs: 100,
+      // First keystroke — no prior event to time against; 0 not 100.
+      keystrokeMs: 0,
     });
   });
 

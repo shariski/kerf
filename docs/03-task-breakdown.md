@@ -3,7 +3,7 @@
 > Status: v0.2 — transition-aware MVP (Phase A)
 > Strategy: build incrementally with shippable milestones. Every phase produces something demo-able.
 > Estimated total timeline: 12–18 weeks for Phase A MVP (solo developer, part-time)
-> Last updated: 2026-04-19
+> Last updated: 2026-04-21
 
 ## Phase A / Phase B Context
 

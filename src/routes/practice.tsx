@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
+  hasAnySessionOnActiveProfile,
   type KeyboardType,
   type DominantHand,
 } from "#/server/profile";
@@ -20,6 +21,7 @@ import { useCorpus } from "#/hooks/useCorpus";
 import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
+import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
 import { persistSession } from "#/server/persistSession";
 
 /**
@@ -35,13 +37,35 @@ type LoadedProfile = {
   transitionPhase: TransitionPhase;
 };
 
+/**
+ * `/practice?autostart=1` skips the pre-session stage and drops the
+ * user straight into active typing. Home's hero CTAs use this so the
+ * commit-to-practice step only happens once. The param is cleared
+ * with `replace: true` immediately after firing so a refresh (or
+ * back/forward) won't re-auto-start a session the user has since
+ * ended or completed.
+ */
+type PracticeSearch = { autostart?: boolean };
+
+function validatePracticeSearch(search: Record<string, unknown>): PracticeSearch {
+  const a = search.autostart;
+  const autostart = a === true || a === 1 || a === "1" || a === "true";
+  return autostart ? { autostart: true } : {};
+}
+
 export const Route = createFileRoute("/practice")({
   beforeLoad: async () => {
     const session = await getAuthSession();
     if (!session) throw redirect({ to: "/login" });
   },
-  loader: async (): Promise<{ profile: LoadedProfile }> => {
-    const profile = await getActiveProfile();
+  loader: async (): Promise<{
+    profile: LoadedProfile;
+    isFirstSession: boolean;
+  }> => {
+    const [profile, hasSession] = await Promise.all([
+      getActiveProfile(),
+      hasAnySessionOnActiveProfile(),
+    ]);
     if (!profile) throw redirect({ to: "/onboarding" });
     return {
       profile: {
@@ -50,8 +74,10 @@ export const Route = createFileRoute("/practice")({
         dominantHand: profile.dominantHand as DominantHand,
         transitionPhase: profile.transitionPhase as TransitionPhase,
       },
+      isFirstSession: !hasSession,
     };
   },
+  validateSearch: validatePracticeSearch,
   component: PracticePage,
 });
 
@@ -70,7 +96,8 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
 const TARGET_WORD_COUNT = 30;
 
 function PracticePage() {
-  const { profile } = Route.useLoaderData();
+  const { profile, isFirstSession } = Route.useLoaderData();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const status = useSessionStore((s) => s.status);
   const currentTarget = useSessionStore((s) => s.target);
@@ -82,13 +109,41 @@ function PracticePage() {
     DEFAULT_PAUSE_SETTINGS,
   );
 
+  // Mode used by the session currently running (or just finished). The
+  // persist effect reads this so the DB row carries the right mode. A
+  // ref — not state — so we don't re-trigger renders when it flips.
+  const sessionModeRef = useRef<"adaptive" | "diagnostic">(
+    isFirstSession ? "diagnostic" : "adaptive",
+  );
+  // Flips to true once we've actually started (or finished) the first
+  // diagnostic. The "Practice again" CTA after a diagnostic should run
+  // adaptive, not another diagnostic.
+  const diagnosticConsumedRef = useRef(false);
+
   // Keep pre-session "Visual keyboard" toggle and pause-overlay toggle in sync:
   // flipping either updates the same source of truth the active stage reads.
   useEffect(() => {
     setPauseSettings((s) => ({ ...s, showKeyboard: filters.showKeyboard }));
   }, [filters.showKeyboard]);
 
+  const useDiagnostic = isFirstSession && !diagnosticConsumedRef.current;
+
   const startAdaptive = () => {
+    // First-session gate — serve the curated diagnostic target in place
+    // of adaptive sampling, so the first DB row is a comparable baseline
+    // (Task 4.1). Adaptive sampling on an empty weakness profile is just
+    // uniform-random, which defeats the "baseline" idea.
+    if (useDiagnostic) {
+      const target = getFirstSessionTarget();
+      if (!target) return;
+      sessionModeRef.current = "diagnostic";
+      diagnosticConsumedRef.current = true;
+      sessionStore
+        .getState()
+        .dispatch({ type: "start", target, now: performance.now() });
+      return;
+    }
+
     if (corpus.status !== "ready") return;
     const maxLength =
       filters.maxWordLength === "all" ? undefined : filters.maxWordLength;
@@ -105,6 +160,7 @@ function PracticePage() {
 
     const target = words.join(" ");
     if (!target) return;
+    sessionModeRef.current = "adaptive";
     sessionStore
       .getState()
       .dispatch({ type: "start", target, now: performance.now() });
@@ -122,6 +178,23 @@ function PracticePage() {
     sessionStore.getState().dispatch({ type: "reset" });
     setPaused(false);
   };
+
+  // Auto-start when arriving with `?autostart=1` (Home hero CTAs). Fires
+  // exactly once: the effect immediately clears the param via
+  // `replace: true`, so on the subsequent render autostart is falsy and
+  // a real "end session → back to pre-session" transition won't retrigger.
+  // We read startAdaptive through a ref so we don't have to thread its
+  // (transitively state-dependent) closure into the effect deps.
+  const startAdaptiveRef = useRef(startAdaptive);
+  startAdaptiveRef.current = startAdaptive;
+  useEffect(() => {
+    if (!search.autostart) return;
+    if (status !== "idle") return;
+    // Diagnostic doesn't need the corpus; adaptive does. Wait for it.
+    if (!useDiagnostic && corpus.status !== "ready") return;
+    startAdaptiveRef.current();
+    void navigate({ to: "/practice", search: {}, replace: true });
+  }, [search.autostart, status, useDiagnostic, corpus.status, navigate]);
 
   // Esc toggles pause (only while active)
   useEffect(() => {
@@ -170,7 +243,7 @@ function PracticePage() {
       data: {
         sessionId: crypto.randomUUID(),
         keyboardProfileId: profile.id,
-        mode: "adaptive",
+        mode: sessionModeRef.current,
         target: state.target,
         events: state.events.map((e) => ({
           targetChar: e.targetChar,
@@ -231,6 +304,7 @@ function PracticePage() {
           expectedLetterHint={pauseSettings.expectedLetterHint}
           capture={!paused}
           typingSize={pauseSettings.typingSize}
+          isFirstSession={sessionModeRef.current === "diagnostic"}
         />
         {paused && (
           <PauseOverlay
@@ -263,6 +337,7 @@ function PracticePage() {
               search: { preset: "innerColumn" },
             })
           }
+          isFirstSession={useDiagnostic}
         />
         {corpus.status === "error" && (
           <p className="kerf-corpus-error" role="alert" aria-live="polite">

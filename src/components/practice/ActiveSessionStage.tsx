@@ -22,6 +22,7 @@ import { useFlashKeyboardOnKeypress } from "#/hooks/useFlashKeyboardOnKeypress";
 import type { KeyboardType } from "#/server/profile";
 import { LiveWpm } from "./LiveWpm";
 import { ShortcutHints } from "./ShortcutHints";
+import { FirstSessionTooltip } from "./FirstSessionTooltip";
 
 export type TypingSize = "S" | "M" | "L" | "XL";
 
@@ -32,6 +33,9 @@ type Props = {
   /** When false, keystroke capture unbinds — used while the pause overlay is open. */
   capture: boolean;
   typingSize: TypingSize;
+  /** True only on the first-ever session for a profile — shows the
+   * onboarding tooltip above the typing area (Task 4.1). */
+  isFirstSession?: boolean;
 };
 
 export function ActiveSessionStage({
@@ -40,6 +44,7 @@ export function ActiveSessionStage({
   expectedLetterHint,
   capture,
   typingSize,
+  isFirstSession = false,
 }: Props) {
   const target = useSessionStore((s) => s.target);
   const position = useSessionStore((s) => s.position);
@@ -53,6 +58,7 @@ export function ActiveSessionStage({
   return (
     <div className="kerf-active-session" data-typing-size={typingSize}>
       <div className="kerf-active-session-typing">
+        {isFirstSession && <FirstSessionTooltip />}
         <TypingArea
           target={target}
           expectedLetterHint={expectedLetterHint}

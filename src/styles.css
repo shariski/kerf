@@ -782,6 +782,72 @@ body {
   justify-content: center;
 }
 
+/* First-session onboarding tooltip (Task 4.1). Sits above the typing
+   area on the first-ever session for a profile; fades out once the
+   user has typed a handful of characters (dismiss logic in
+   FirstSessionTooltip.tsx) or on manual close. */
+.kerf-first-session-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 auto 20px;
+  max-width: 640px;
+  background: var(--color-kerf-amber-faint);
+  border: 1px solid var(--color-kerf-amber-subtle);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-kerf-text-primary);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.kerf-first-session-tip[data-hidden] {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.kerf-first-session-tip-icon {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-amber-base);
+  font-size: 14px;
+  line-height: 1;
+  flex: none;
+}
+
+.kerf-first-session-tip-text {
+  flex: 1;
+}
+
+.kerf-first-session-tip-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--color-kerf-text-tertiary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition:
+    color 150ms ease,
+    background 150ms ease;
+  flex: none;
+}
+
+.kerf-first-session-tip-dismiss:hover {
+  color: var(--color-kerf-text-primary);
+  background: var(--color-kerf-bg-elevated);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-first-session-tip {
+    transition-duration: 1ms;
+  }
+}
+
 /* Live WPM corner widget */
 .kerf-live-wpm {
   /* Bottom-right per practice-page-wireframe.html .live-wpm.
@@ -1764,6 +1830,433 @@ body {
   font-family: var(--font-sans, "Inter", sans-serif);
   font-size: 10px;
   font-weight: 700;
+}
+
+/* ================================================================
+   Home / lobby — `/`. 1:1 port of design/home-wireframe.html.
+   Two states sharing the same 720px column:
+     - Zero data: welcome + keyboard pill + tall "Start your first
+       session" CTA, no previews, no stats.
+     - Returning user: greeting + pill + hero CTA (primary+secondary)
+       + last session card + activity strip + weakness pills.
+   Task 4.1.
+   ================================================================ */
+
+.kerf-home-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 32px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-home-container {
+  display: block;
+}
+
+/* --- greeting (shared) --- */
+
+.kerf-home-greeting {
+  margin-bottom: 40px;
+}
+
+.kerf-home-greeting-line {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.kerf-home-greeting-title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+
+.kerf-home-greeting-subtitle {
+  color: var(--color-kerf-text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.kerf-home-highlight {
+  color: var(--color-kerf-amber-base);
+}
+
+/* --- zero state --- */
+
+.kerf-home-zero {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.kerf-home-zero .kerf-home-greeting {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.kerf-home-zero-welcome {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 12px;
+}
+
+.kerf-home-zero-message {
+  font-size: 15px;
+  color: var(--color-kerf-text-secondary);
+  line-height: 1.7;
+  margin: 0 auto 40px;
+  max-width: 520px;
+}
+
+.kerf-home-zero-pill {
+  margin-bottom: 32px;
+  display: inline-flex;
+}
+
+.kerf-home-zero-cta {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* --- hero CTA group (returning) --- */
+
+.kerf-home-hero-cta-group {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin: 24px 0 48px;
+}
+
+/* primary CTA — shared between zero + returning states */
+
+.kerf-home-cta-primary {
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+  border: none;
+  border-radius: 10px;
+  padding: 20px 24px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+
+.kerf-home-cta-primary:hover {
+  background: var(--color-kerf-amber-hover);
+}
+
+.kerf-home-cta-primary--tall {
+  padding: 24px 32px;
+  justify-content: center;
+}
+
+.kerf-home-cta-primary--tall .kerf-home-cta-primary-text {
+  align-items: center;
+  text-align: center;
+}
+
+.kerf-home-cta-primary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kerf-home-cta-primary-label {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.kerf-home-cta-primary-meta {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.75;
+  font-family: var(--font-mono);
+}
+
+.kerf-home-cta-primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.kerf-home-cta-primary-arrow {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* secondary CTA — returning only */
+
+.kerf-home-cta-secondary {
+  background: transparent;
+  border: 1px solid var(--color-kerf-border-default);
+  color: var(--color-kerf-text-primary);
+  border-radius: 10px;
+  padding: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.kerf-home-cta-secondary:hover {
+  background: var(--color-kerf-bg-elevated);
+  border-color: var(--color-kerf-border-strong);
+}
+
+.kerf-home-cta-secondary-icon {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+}
+
+/* --- preview section (last session) --- */
+
+.kerf-home-preview-section {
+  margin-bottom: 20px;
+}
+
+.kerf-home-preview-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kerf-home-preview-link {
+  color: var(--color-kerf-amber-base);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.kerf-home-preview-link:hover {
+  text-decoration: underline;
+}
+
+.kerf-home-last-session {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.kerf-home-last-session:hover {
+  border-color: var(--color-kerf-border-strong);
+  background: var(--color-kerf-bg-elevated);
+}
+
+.kerf-home-last-session-when {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  min-width: 80px;
+}
+
+.kerf-home-last-session-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  flex: 1;
+}
+
+.kerf-home-ls-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.kerf-home-ls-stat-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-home-ls-stat-unit {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-home-last-session-arrow {
+  color: var(--color-kerf-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 18px;
+}
+
+/* --- activity + weakness combined --- */
+
+.kerf-home-activity-weakness-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.kerf-home-activity-strip {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.kerf-home-activity-strip-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.kerf-home-activity-strip-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.kerf-home-activity-strip-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-home-activity-cells {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  gap: 3px;
+}
+
+.kerf-home-activity-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  display: block;
+}
+
+.kerf-home-activity-cell[data-level="1"] {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.kerf-home-activity-cell[data-level="2"] {
+  background: rgba(245, 158, 11, 0.4);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.kerf-home-activity-cell[data-level="3"] {
+  background: rgba(245, 158, 11, 0.6);
+  border-color: rgba(245, 158, 11, 0.7);
+}
+
+.kerf-home-activity-cell[data-level="4"] {
+  background: var(--color-kerf-amber-base);
+  border-color: var(--color-kerf-amber-base);
+}
+
+/* --- weakness strip --- */
+
+.kerf-home-weakness-strip {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 16px 20px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: border-color 150ms ease;
+}
+
+.kerf-home-weakness-strip:hover {
+  border-color: var(--color-kerf-border-strong);
+}
+
+.kerf-home-weakness-strip-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kerf-home-weakness-strip-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.kerf-home-weakness-strip-link {
+  color: var(--color-kerf-amber-base);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.kerf-home-weakness-pills {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.kerf-home-weakness-pill-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kerf-home-weakness-pill {
+  background: var(--color-kerf-amber-subtle);
+  color: var(--color-kerf-amber-base);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.kerf-home-weakness-divider {
+  color: var(--color-kerf-text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.kerf-home-weakness-stat-line {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  margin-top: 8px;
 }
 
 /* ================================================================
