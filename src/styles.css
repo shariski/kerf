@@ -1182,6 +1182,71 @@ body {
 .kerf-post-stat-delta.down    { color: var(--color-kerf-error-base); }
 .kerf-post-stat-delta.neutral { color: var(--color-kerf-text-tertiary); }
 
+/* Floating scroll hint — a small amber chevron pill that hovers above
+   the bottom shortcut strip while the user is at the top of the page.
+   It fades the moment the user scrolls so it never sits on top of
+   content they are trying to read, and it never shows when there is
+   nothing to scroll toward. Lives outside the document flow entirely.
+   Amber is used here deliberately (per §B5): the hint's only job is to
+   direct attention to content below the fold. */
+.kerf-post-floating-scroll-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 66px;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-amber-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-kerf-amber-base);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+  z-index: 35;
+  animation: kerf-scroll-hint-ring 2000ms ease-out infinite;
+}
+
+.kerf-post-floating-scroll-hint[data-visible] {
+  opacity: 1;
+}
+
+.kerf-post-floating-scroll-hint-chevron {
+  display: inline-block;
+  animation: kerf-scroll-hint-bob 1400ms ease-in-out infinite;
+}
+
+/* Gentle down-and-up bob that nudges the chevron toward the content
+   below. Paired with the expanding ring pulse, it reads as "there's
+   more this way" without pulling the eye away from the primary CTA. */
+@keyframes kerf-scroll-hint-bob {
+  0%, 100% { transform: translateY(-2px); }
+  50%      { transform: translateY(4px); }
+}
+
+/* A soft expanding amber ring that pulses outward from the pill,
+   echoing the chevron's motion without adding chrome to the pill
+   itself. Shadow-only so layout is untouched. */
+@keyframes kerf-scroll-hint-ring {
+  0%   { box-shadow: 0 0 0 0   rgba(245, 158, 11, 0.45); }
+  70%  { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(245, 158, 11, 0);    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-post-floating-scroll-hint,
+  .kerf-post-floating-scroll-hint-chevron {
+    animation: none;
+    transition: none;
+  }
+}
+
 /* Section label — used above error review + weakness shifts */
 .kerf-post-section-label {
   font-family: var(--font-mono);
@@ -1440,6 +1505,117 @@ body {
   color: var(--color-kerf-text-secondary);
 }
 
+/* Idle-pause chip — subtle "— paused · type to resume" affordance
+   shown when the watchdog auto-pauses the session. Deliberately
+   quieter than PauseOverlay (no dim, no settings, no buttons) so
+   returning to typing is frictionless: any keystroke auto-resumes via
+   the reducer. Positioned top-right of the viewport so it doesn't
+   collide with the LiveWpm badge (top-right corner of the typing
+   column) or the pause overlay when it later opens. */
+.kerf-idle-pause-chip {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-secondary);
+  letter-spacing: 0.02em;
+  z-index: 50;
+  animation: kerf-idle-pause-fade-in 180ms ease;
+}
+
+.kerf-idle-pause-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-kerf-amber-base);
+  animation: kerf-idle-pause-pulse 1600ms ease-in-out infinite;
+}
+
+@keyframes kerf-idle-pause-fade-in {
+  from { opacity: 0; transform: translate(-50%, -4px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes kerf-idle-pause-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-idle-pause-chip,
+  .kerf-idle-pause-chip-dot {
+    animation: none;
+  }
+}
+
+/* Post-session bottom hint strip — 1:1 port of .post-hint-strip in
+   design/practice-page-wireframe.html. Pinned to viewport so the
+   scroll (j/k) hints stay visible while the user reviews errors.
+   Rendered only inside PostSessionStage, so no .visible toggle is
+   needed (the wireframe's .visible gate exists because its single
+   DOM reuses the strip across stages). */
+.kerf-post-session {
+  padding-bottom: 60px;
+}
+
+.kerf-post-hint-strip {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-kerf-bg-surface);
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  padding: 10px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-secondary);
+  z-index: 40;
+}
+
+.kerf-post-hint-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kerf-post-hint-item kbd {
+  font-family: var(--font-mono);
+  background: var(--color-kerf-bg-elevated);
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--color-kerf-border-default);
+  border-bottom-width: 2px;
+  color: var(--color-kerf-text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 14px;
+  text-align: center;
+}
+
+.kerf-post-hint-item .sep {
+  color: var(--color-kerf-text-tertiary);
+  font-size: 10px;
+}
+
+.kerf-post-hint-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--color-kerf-border-default);
+}
+
 /* Cross-stage fade-in — applied on mount when a stage becomes visible.
    Keeps the pre → active → complete transition gentle without building
    a full AnimatePresence-style crossfade machinery. */
@@ -1473,6 +1649,12 @@ body {
   }
   .kerf-post-btn {
     justify-content: center;
+  }
+  .kerf-post-hint-strip {
+    display: none;
+  }
+  .kerf-post-session {
+    padding-bottom: 0;
   }
 }
 

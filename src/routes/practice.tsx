@@ -17,6 +17,7 @@ import {
   type PreSessionFilterValues,
 } from "#/components/practice";
 import { useSessionStore, sessionStore } from "#/stores/sessionStore";
+import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
 import { useCorpus } from "#/hooks/useCorpus";
 import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
@@ -196,32 +197,190 @@ function PracticePage() {
     void navigate({ to: "/practice", search: {}, replace: true });
   }, [search.autostart, status, useDiagnostic, corpus.status, navigate]);
 
-  // Esc toggles pause (only while active)
+  // Esc toggles the manual pause overlay during a live session. We
+  // listen while active *or* paused — the latter because idle auto-
+  // pause may have flipped the store into "paused" without the overlay
+  // being open, and Esc should still escalate that into the overlay.
+  //
+  // Clock state is reducer-managed: opening the overlay dispatches a
+  // `pause` (freezing the clock if it wasn't frozen already); resuming
+  // dispatches `resume`. This is what makes Esc pause actually freeze
+  // the timer — previously it only unbound keystroke capture and
+  // WPM/elapsed kept ticking on wall time.
   useEffect(() => {
-    if (status !== "active") return;
+    if (status !== "active" && status !== "paused") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       e.preventDefault();
-      setPaused((p) => !p);
+      setPaused((prev) => {
+        const next = !prev;
+        const state = sessionStore.getState();
+        if (next) {
+          // Opening overlay. Dispatch pause only if not already paused
+          // (idle auto-pause may have already done it for us).
+          if (state.status === "active") {
+            state.dispatch({ type: "pause", now: performance.now() });
+          }
+        } else {
+          // Closing overlay. Explicit resume — capture is gated off
+          // while paused, so reducer's keypress auto-resume can't fire.
+          if (state.status === "paused") {
+            state.dispatch({ type: "resume", now: performance.now() });
+          }
+        }
+        return next;
+      });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [status]);
 
-  // Enter restarts from the post-session placeholder. TypingArea's capture is
-  // off when status=complete, so this listener does not collide with it.
+  // Tab → restart current exercise. Only bound while the session is
+  // live and the pause overlay is closed; when the overlay is open,
+  // native Tab focus-walking owns the key.
   useEffect(() => {
-    if (status !== "complete") return;
+    if (status !== "active" && status !== "paused") return;
+    if (paused) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Enter") return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key !== "Tab") return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       e.preventDefault();
-      startAdaptive();
+      const state = sessionStore.getState();
+      if (!state.target) return;
+      state.dispatch({
+        type: "start",
+        target: state.target,
+        now: performance.now(),
+      });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [status, corpus.status, filters]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [status, paused]);
+
+  // Idle auto-pause watchdog (see useIdleAutoPause.ts). Active whenever
+  // we are mid-session, including while the pause overlay is open (the
+  // reducer's pause action is a no-op if already paused).
+  useIdleAutoPause(status === "active" || status === "paused");
+
+  // Post-session keyboard shortcuts — see docs/06-design-summary.md
+  // §Keyboard Shortcuts. TypingArea's capture is off when status=complete,
+  // so this listener does not collide with it.
+  useEffect(() => {
+    if (status !== "complete") return;
+    let gPending = false;
+    let gTimer: ReturnType<typeof setTimeout> | null = null;
+    const clearGPending = () => {
+      gPending = false;
+      if (gTimer) {
+        clearTimeout(gTimer);
+        gTimer = null;
+      }
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      const targetEl = e.target as HTMLElement | null;
+      const tag = targetEl?.tagName;
+      const inField =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        targetEl?.isContentEditable === true;
+
+      // ⌘D / Ctrl+D → dashboard. Check modifier combo before plain-D branch
+      // so ⌘D isn't mistakenly routed to drill.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
+        if (e.altKey || e.shiftKey) return;
+        clearGPending();
+        e.preventDefault();
+        void navigate({ to: "/dashboard" });
+        return;
+      }
+
+      // Remaining shortcuts: ignore any modifier combo, and ignore when
+      // focus is inside a text field (per spec guard rules).
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (inField) return;
+
+      // Use `e.code` (physical key) rather than `e.key` for vim
+      // navigation — some browsers/layouts emit `e.key === "g"` for
+      // Shift+g instead of "G", which would make G silently fail.
+      const isKeyG = e.code === "KeyG";
+
+      // Any non-`g` key cancels a pending gg — otherwise unrelated
+      // keystrokes would "glue" into an accidental top-jump.
+      if (!isKeyG) clearGPending();
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        startAdaptive();
+        return;
+      }
+
+      if (e.code === "KeyD") {
+        e.preventDefault();
+        const state = sessionStore.getState();
+        const summary = summarizeSession({
+          target: state.target,
+          events: state.events,
+          keyboardType: profile.keyboardType,
+          startedAt: state.startedAt,
+          completedAt: state.completedAt,
+          pausedMs: state.pausedMs,
+          phase: profile.transitionPhase,
+        });
+        void navigate({
+          to: "/practice/drill",
+          search: summary.topWeaknessName
+            ? { target: summary.topWeaknessName }
+            : {},
+        });
+        return;
+      }
+
+      if (isKeyG && e.shiftKey) {
+        e.preventDefault();
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: "smooth",
+        });
+        return;
+      }
+      if (isKeyG && !e.shiftKey) {
+        if (gPending) {
+          clearGPending();
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          gPending = true;
+          gTimer = setTimeout(() => {
+            gPending = false;
+            gTimer = null;
+          }, 600);
+        }
+        return;
+      }
+
+      if (e.shiftKey) return;
+
+      const step = Math.round(window.innerHeight * 0.4);
+      if (e.code === "KeyJ") {
+        e.preventDefault();
+        window.scrollBy({ top: step, behavior: "smooth" });
+        return;
+      }
+      if (e.code === "KeyK") {
+        e.preventDefault();
+        window.scrollBy({ top: -step, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (gTimer) clearTimeout(gTimer);
+    };
+    // startAdaptive closes over corpus/filters/refs; we intentionally do not
+    // list it to avoid re-subscribing on every keystroke-induced filter change.
+  }, [status, corpus.status, filters, navigate, profile.keyboardType, profile.transitionPhase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fire-and-forget session persistence (Task 2.8). Dedup by completedAt
   // so Strict Mode's double-invoked effect doesn't produce two rows.
@@ -278,6 +437,7 @@ function PracticePage() {
       keyboardType: profile.keyboardType,
       startedAt: state.startedAt,
       completedAt: state.completedAt,
+      pausedMs: state.pausedMs,
       phase: profile.transitionPhase,
     });
     const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
@@ -295,7 +455,12 @@ function PracticePage() {
     );
   }
 
-  if (status === "active") {
+  if (status === "active" || status === "paused") {
+    // `idleAutoPaused` = clock is frozen by the watchdog but the user
+    // hasn't opened the manual overlay. Capture stays on so their next
+    // keystroke auto-resumes via the reducer — the chip is purely a
+    // visual "the clock is paused, type to resume" signal.
+    const idleAutoPaused = status === "paused" && !paused;
     return (
       <main className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
         <ActiveSessionStage
@@ -306,11 +471,19 @@ function PracticePage() {
           typingSize={pauseSettings.typingSize}
           isFirstSession={sessionModeRef.current === "diagnostic"}
         />
+        {idleAutoPaused && <IdlePauseChip />}
         {paused && (
           <PauseOverlay
             settings={pauseSettings}
             onSettingsChange={setPauseSettings}
-            onResume={() => setPaused(false)}
+            onResume={() => {
+              if (sessionStore.getState().status === "paused") {
+                sessionStore
+                  .getState()
+                  .dispatch({ type: "resume", now: performance.now() });
+              }
+              setPaused(false);
+            }}
             onRestart={restartSameExercise}
             onEnd={endSession}
           />
@@ -346,5 +519,26 @@ function PracticePage() {
         )}
       </div>
     </main>
+  );
+}
+
+/**
+ * Subtle visual cue for idle auto-pause. Distinct from the full
+ * `PauseOverlay` (which is opened by Esc): no settings, no buttons,
+ * just a quiet "— paused — type to resume" chip anchored near the
+ * typing area. Input capture is still on, so any keystroke
+ * transparently resumes the session via the reducers keypress
+ * auto-resume path.
+ */
+function IdlePauseChip() {
+  return (
+    <div
+      className="kerf-idle-pause-chip"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="kerf-idle-pause-chip-dot" aria-hidden="true" />
+      paused · type to resume
+    </div>
   );
 }

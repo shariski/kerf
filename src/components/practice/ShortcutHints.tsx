@@ -14,8 +14,7 @@ export function ShortcutHints({ visible }: Props) {
         <kbd className="kerf-kbd">Esc</kbd> pause · settings
       </div>
       <div>
-        <kbd className="kerf-kbd">Tab</kbd>+<kbd className="kerf-kbd">↵</kbd>{" "}
-        restart
+        <kbd className="kerf-kbd">Tab</kbd> restart
       </div>
     </div>
   );

@@ -6,6 +6,10 @@
  *   - Tab walks Resume → Restart → End session, Shift+Tab walks back.
  *   - Esc closes the overlay (handled by parent).
  *
+ * Note: outside the overlay, plain Tab restarts the exercise directly
+ * (see practice.tsx). The overlay still uses native focus-walk because
+ * it hosts settings controls the user may want to land on.
+ *
  * Settings here are session-scoped only — per decision in Task 2.4 planning
  * they reset on reload (no localStorage yet). If this proves annoying the
  * upgrade to localStorage is a one-liner inside the parent.
@@ -132,7 +136,7 @@ export function PauseOverlay({
             onClick={onRestart}
           >
             Restart exercise
-            <span className="kerf-pause-btn-shortcut">⇥⏎</span>
+            <span className="kerf-pause-btn-shortcut">⇥</span>
           </button>
           <button type="button" className="kerf-pause-btn" onClick={onEnd}>
             End session
