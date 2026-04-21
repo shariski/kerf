@@ -63,7 +63,7 @@ function HomePage() {
         return;
       }
       e.preventDefault();
-      void navigate({ to: "/practice" });
+      void navigate({ to: "/practice", search: { autostart: true } });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -105,6 +105,7 @@ function ZeroState({ home }: { home: HomeData }) {
       <div className="kerf-home-zero-cta">
         <Link
           to="/practice"
+          search={{ autostart: true }}
           className="kerf-home-cta-primary kerf-home-cta-primary--tall"
         >
           <span className="kerf-home-cta-primary-text">
@@ -141,7 +142,11 @@ function ReturningState({ home }: { home: HomeData }) {
       <KeyboardContextPill keyboardType={home.profile.keyboardType} />
 
       <div className="kerf-home-hero-cta-group">
-        <Link to="/practice" className="kerf-home-cta-primary">
+        <Link
+          to="/practice"
+          search={{ autostart: true }}
+          className="kerf-home-cta-primary"
+        >
           <span className="kerf-home-cta-primary-text">
             <span className="kerf-home-cta-primary-label">
               Continue adaptive practice

@@ -37,6 +37,22 @@ type LoadedProfile = {
   transitionPhase: TransitionPhase;
 };
 
+/**
+ * `/practice?autostart=1` skips the pre-session stage and drops the
+ * user straight into active typing. Home's hero CTAs use this so the
+ * commit-to-practice step only happens once. The param is cleared
+ * with `replace: true` immediately after firing so a refresh (or
+ * back/forward) won't re-auto-start a session the user has since
+ * ended or completed.
+ */
+type PracticeSearch = { autostart?: boolean };
+
+function validatePracticeSearch(search: Record<string, unknown>): PracticeSearch {
+  const a = search.autostart;
+  const autostart = a === true || a === 1 || a === "1" || a === "true";
+  return autostart ? { autostart: true } : {};
+}
+
 export const Route = createFileRoute("/practice")({
   beforeLoad: async () => {
     const session = await getAuthSession();
@@ -61,6 +77,7 @@ export const Route = createFileRoute("/practice")({
       isFirstSession: !hasSession,
     };
   },
+  validateSearch: validatePracticeSearch,
   component: PracticePage,
 });
 
@@ -80,6 +97,7 @@ const TARGET_WORD_COUNT = 30;
 
 function PracticePage() {
   const { profile, isFirstSession } = Route.useLoaderData();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const status = useSessionStore((s) => s.status);
   const currentTarget = useSessionStore((s) => s.target);
@@ -160,6 +178,23 @@ function PracticePage() {
     sessionStore.getState().dispatch({ type: "reset" });
     setPaused(false);
   };
+
+  // Auto-start when arriving with `?autostart=1` (Home hero CTAs). Fires
+  // exactly once: the effect immediately clears the param via
+  // `replace: true`, so on the subsequent render autostart is falsy and
+  // a real "end session → back to pre-session" transition won't retrigger.
+  // We read startAdaptive through a ref so we don't have to thread its
+  // (transitively state-dependent) closure into the effect deps.
+  const startAdaptiveRef = useRef(startAdaptive);
+  startAdaptiveRef.current = startAdaptive;
+  useEffect(() => {
+    if (!search.autostart) return;
+    if (status !== "idle") return;
+    // Diagnostic doesn't need the corpus; adaptive does. Wait for it.
+    if (!useDiagnostic && corpus.status !== "ready") return;
+    startAdaptiveRef.current();
+    void navigate({ to: "/practice", search: {}, replace: true });
+  }, [search.autostart, status, useDiagnostic, corpus.status, navigate]);
 
   // Esc toggles pause (only while active)
   useEffect(() => {
