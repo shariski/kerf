@@ -35,11 +35,21 @@ type Props = {
   onDrillWeakness: () => void;
   /** Shortcut to /practice/drill?preset=innerColumn. */
   onDrillInnerColumn: () => void;
+  /**
+   * True on first-ever session for this profile — swaps in curated
+   * diagnostic copy and hides the drill cards + filters, which assume
+   * existing baseline data. Task 4.1.
+   */
+  isFirstSession?: boolean;
 };
 
 const TARGET_WORD_COUNT = 30;
 // ~3s per word at a transitioning-phase pace. Rough; revisited once real WPM is known.
 const APPROX_SECONDS_PER_WORD = 3;
+// Curated first-session exercise is ~30 short common words (see
+// firstSessionExercise.ts) — an easier pace than adaptive, so we quote
+// a slightly longer per-word estimate to set calmer expectations.
+const FIRST_SESSION_SECONDS = 60;
 
 export function PreSessionStage({
   keyboardType,
@@ -49,9 +59,19 @@ export function PreSessionStage({
   onStartAdaptive,
   onDrillWeakness,
   onDrillInnerColumn,
+  isFirstSession = false,
 }: Props) {
   const approxSeconds = TARGET_WORD_COUNT * APPROX_SECONDS_PER_WORD;
-  const metaLine = `balanced practice · ${TARGET_WORD_COUNT} words · ~${approxSeconds} sec`;
+  const metaLine = isFirstSession
+    ? `baseline capture · ~${FIRST_SESSION_SECONDS} sec`
+    : `balanced practice · ${TARGET_WORD_COUNT} words · ~${approxSeconds} sec`;
+  const title = isFirstSession ? "Your first session" : "What will you practice?";
+  const subtitle = isFirstSession
+    ? "We'll capture a baseline on your split layout, then tailor future exercises to your real weaknesses."
+    : "Accuracy first. Speed follows.";
+  const ctaLabel = isFirstSession
+    ? "Start your first session"
+    : "Continue adaptive practice";
 
   return (
     <div className="kerf-pre-session">
@@ -60,8 +80,8 @@ export function PreSessionStage({
         <PhaseBadge phase={phase} />
       </div>
 
-      <h1 className="kerf-pre-title">What will you practice?</h1>
-      <p className="kerf-pre-subtitle">Accuracy first. Speed follows.</p>
+      <h1 className="kerf-pre-title">{title}</h1>
+      <p className="kerf-pre-subtitle">{subtitle}</p>
 
       <button
         type="button"
@@ -69,9 +89,7 @@ export function PreSessionStage({
         onClick={onStartAdaptive}
       >
         <span className="kerf-pre-cta-primary-text">
-          <span className="kerf-pre-cta-primary-label">
-            Continue adaptive practice
-          </span>
+          <span className="kerf-pre-cta-primary-label">{ctaLabel}</span>
           <span className="kerf-pre-cta-primary-meta">{metaLine}</span>
         </span>
         <span className="kerf-pre-cta-primary-action" aria-hidden>
@@ -80,29 +98,33 @@ export function PreSessionStage({
         </span>
       </button>
 
-      <div className="kerf-pre-modes-label">or pick a different mode</div>
-      <div className="kerf-pre-modes">
-        <ModeCard
-          icon="◎"
-          name="Drill weakness"
-          description="Target a specific letter or bigram, repeatedly"
-          onSelect={onDrillWeakness}
-        />
-        <ModeCard
-          icon="⬌"
-          name="Inner column"
-          description="Focus drill on B, G, H, N, T, Y — classic split pain points"
-          onSelect={onDrillInnerColumn}
-        />
-        <ModeCard
-          icon="◷"
-          name="Warm up"
-          description="Comfortable pace, no evaluation tracking"
-          disabled
-        />
-      </div>
+      {!isFirstSession && (
+        <>
+          <div className="kerf-pre-modes-label">or pick a different mode</div>
+          <div className="kerf-pre-modes">
+            <ModeCard
+              icon="◎"
+              name="Drill weakness"
+              description="Target a specific letter or bigram, repeatedly"
+              onSelect={onDrillWeakness}
+            />
+            <ModeCard
+              icon="⬌"
+              name="Inner column"
+              description="Focus drill on B, G, H, N, T, Y — classic split pain points"
+              onSelect={onDrillInnerColumn}
+            />
+            <ModeCard
+              icon="◷"
+              name="Warm up"
+              description="Comfortable pace, no evaluation tracking"
+              disabled
+            />
+          </div>
 
-      <PreSessionFilters values={filterValues} onChange={onFilterChange} />
+          <PreSessionFilters values={filterValues} onChange={onFilterChange} />
+        </>
+      )}
     </div>
   );
 }

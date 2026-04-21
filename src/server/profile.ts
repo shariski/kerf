@@ -9,7 +9,7 @@ import {
 } from "#/domain/profile/initialPhase";
 import { auth } from "./auth";
 import { db } from "./db";
-import { keyboardProfiles } from "./db/schema";
+import { keyboardProfiles, sessions } from "./db/schema";
 
 export type KeyboardType = "sofle" | "lily58";
 export type DominantHand = "left" | "right";
@@ -102,6 +102,51 @@ export const getActiveProfile = createServerFn({ method: "GET" }).handler(
     return rows[0] ?? null;
   },
 );
+
+
+/**
+ * Cheap "does this profile have any session at all" check — drives
+ * the zero-data gate on `/practice` (use curated first-session
+ * exercise instead of adaptive sampling) and on `/` (show welcome
+ * state instead of the returning-user lobby).
+ *
+ * Returns false when there is no authenticated user or no active
+ * profile. Callers that need a different error surface should check
+ * those upstream themselves; conflating "no user" with "first
+ * session" was a deliberate simplification — both cases want the
+ * zero-data UI.
+ */
+export const hasAnySessionOnActiveProfile = createServerFn({
+  method: "GET",
+}).handler(async () => {
+  const request = getRequest();
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) return false;
+
+  const [profile] = await db
+    .select({ id: keyboardProfiles.id })
+    .from(keyboardProfiles)
+    .where(
+      and(
+        eq(keyboardProfiles.userId, session.user.id),
+        eq(keyboardProfiles.isActive, true),
+      ),
+    )
+    .limit(1);
+  if (!profile) return false;
+
+  const [row] = await db
+    .select({ id: sessions.id })
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.userId, session.user.id),
+        eq(sessions.keyboardProfileId, profile.id),
+      ),
+    )
+    .limit(1);
+  return row !== undefined;
+});
 
 export type UpdateTransitionPhaseInput = { phase: TransitionPhase };
 

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
+  hasAnySessionOnActiveProfile,
   type KeyboardType,
   type DominantHand,
 } from "#/server/profile";
@@ -20,6 +21,7 @@ import { useCorpus } from "#/hooks/useCorpus";
 import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
+import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
 import { persistSession } from "#/server/persistSession";
 
 /**
@@ -40,8 +42,14 @@ export const Route = createFileRoute("/practice")({
     const session = await getAuthSession();
     if (!session) throw redirect({ to: "/login" });
   },
-  loader: async (): Promise<{ profile: LoadedProfile }> => {
-    const profile = await getActiveProfile();
+  loader: async (): Promise<{
+    profile: LoadedProfile;
+    isFirstSession: boolean;
+  }> => {
+    const [profile, hasSession] = await Promise.all([
+      getActiveProfile(),
+      hasAnySessionOnActiveProfile(),
+    ]);
     if (!profile) throw redirect({ to: "/onboarding" });
     return {
       profile: {
@@ -50,6 +58,7 @@ export const Route = createFileRoute("/practice")({
         dominantHand: profile.dominantHand as DominantHand,
         transitionPhase: profile.transitionPhase as TransitionPhase,
       },
+      isFirstSession: !hasSession,
     };
   },
   component: PracticePage,
@@ -70,7 +79,7 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
 const TARGET_WORD_COUNT = 30;
 
 function PracticePage() {
-  const { profile } = Route.useLoaderData();
+  const { profile, isFirstSession } = Route.useLoaderData();
   const navigate = useNavigate();
   const status = useSessionStore((s) => s.status);
   const currentTarget = useSessionStore((s) => s.target);
@@ -82,13 +91,41 @@ function PracticePage() {
     DEFAULT_PAUSE_SETTINGS,
   );
 
+  // Mode used by the session currently running (or just finished). The
+  // persist effect reads this so the DB row carries the right mode. A
+  // ref — not state — so we don't re-trigger renders when it flips.
+  const sessionModeRef = useRef<"adaptive" | "diagnostic">(
+    isFirstSession ? "diagnostic" : "adaptive",
+  );
+  // Flips to true once we've actually started (or finished) the first
+  // diagnostic. The "Practice again" CTA after a diagnostic should run
+  // adaptive, not another diagnostic.
+  const diagnosticConsumedRef = useRef(false);
+
   // Keep pre-session "Visual keyboard" toggle and pause-overlay toggle in sync:
   // flipping either updates the same source of truth the active stage reads.
   useEffect(() => {
     setPauseSettings((s) => ({ ...s, showKeyboard: filters.showKeyboard }));
   }, [filters.showKeyboard]);
 
+  const useDiagnostic = isFirstSession && !diagnosticConsumedRef.current;
+
   const startAdaptive = () => {
+    // First-session gate — serve the curated diagnostic target in place
+    // of adaptive sampling, so the first DB row is a comparable baseline
+    // (Task 4.1). Adaptive sampling on an empty weakness profile is just
+    // uniform-random, which defeats the "baseline" idea.
+    if (useDiagnostic) {
+      const target = getFirstSessionTarget();
+      if (!target) return;
+      sessionModeRef.current = "diagnostic";
+      diagnosticConsumedRef.current = true;
+      sessionStore
+        .getState()
+        .dispatch({ type: "start", target, now: performance.now() });
+      return;
+    }
+
     if (corpus.status !== "ready") return;
     const maxLength =
       filters.maxWordLength === "all" ? undefined : filters.maxWordLength;
@@ -105,6 +142,7 @@ function PracticePage() {
 
     const target = words.join(" ");
     if (!target) return;
+    sessionModeRef.current = "adaptive";
     sessionStore
       .getState()
       .dispatch({ type: "start", target, now: performance.now() });
@@ -170,7 +208,7 @@ function PracticePage() {
       data: {
         sessionId: crypto.randomUUID(),
         keyboardProfileId: profile.id,
-        mode: "adaptive",
+        mode: sessionModeRef.current,
         target: state.target,
         events: state.events.map((e) => ({
           targetChar: e.targetChar,
@@ -231,6 +269,7 @@ function PracticePage() {
           expectedLetterHint={pauseSettings.expectedLetterHint}
           capture={!paused}
           typingSize={pauseSettings.typingSize}
+          isFirstSession={sessionModeRef.current === "diagnostic"}
         />
         {paused && (
           <PauseOverlay
@@ -263,6 +302,7 @@ function PracticePage() {
               search: { preset: "innerColumn" },
             })
           }
+          isFirstSession={useDiagnostic}
         />
         {corpus.status === "error" && (
           <p className="kerf-corpus-error" role="alert" aria-live="polite">
