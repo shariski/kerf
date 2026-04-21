@@ -16,6 +16,12 @@
  *   4. KeystrokeEvent emitted for every target-key attempt (correct or error),
  *      never for backspace. Shape matches computeStats's consumer contract.
  *   5. prevChar resets to undefined across word boundaries (spaces).
+ *   6. `startedAt` is null between "start" and the first character keystroke
+ *      — Monkeytype-style: the clock begins when the user actually types,
+ *      not when the session is primed. Idle time between "ready" and first
+ *      keypress must not inflate elapsed or deflate WPM.
+ *      Modifier-only keys (Shift, Caps Lock, Arrows, etc.) never reach the
+ *      reducer; useKeystrokeCapture filters them at `e.key.length === 1`.
  */
 
 import type {
@@ -37,8 +43,10 @@ export function keystrokeReducer(
         charStatus: Array.from({ length: action.target.length }, () => "pending"),
         activeError: null,
         events: [],
-        lastKeystrokeAt: action.now,
-        startedAt: action.now,
+        // Null until the first real keystroke lands — the "keypress" branch
+        // sets both on demand. See invariant #6.
+        lastKeystrokeAt: null,
+        startedAt: null,
         completedAt: null,
         status: "active",
       };
@@ -55,6 +63,11 @@ export function keystrokeReducer(
 
     case "keypress": {
       if (state.status !== "active") return state;
+
+      // First real keystroke starts the clock (invariant #6). `??` covers
+      // both "fresh session, startedAt still null" and "already started"
+      // in one line.
+      const sessionStartedAt = state.startedAt ?? action.now;
 
       const targetChar = state.target[state.position]!;
       // Error latches until backspace: once we're in an error state, any
@@ -80,6 +93,7 @@ export function keystrokeReducer(
           activeError: { expected: targetChar, actual: action.char },
           events: [...state.events, event],
           lastKeystrokeAt: action.now,
+          startedAt: sessionStartedAt,
         };
       }
 
@@ -95,6 +109,7 @@ export function keystrokeReducer(
         position: nextPosition,
         events: [...state.events, event],
         lastKeystrokeAt: action.now,
+        startedAt: sessionStartedAt,
         completedAt: isComplete ? action.now : state.completedAt,
         status: isComplete ? "complete" : "active",
       };
