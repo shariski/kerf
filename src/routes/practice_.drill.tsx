@@ -28,7 +28,12 @@ import {
 } from "#/domain/adaptive/drillGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { summarizeDrill } from "#/domain/session/drillSummary";
-import { persistSession } from "#/server/persistSession";
+import {
+  flushSessionQueue,
+  persistSessionWithRetry,
+} from "#/lib/persistSessionWithRetry";
+import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
+import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import type { Corpus } from "#/domain/corpus/types";
 
 type LoadedProfile = {
@@ -228,6 +233,16 @@ function DrillPage() {
   // Idle auto-pause watchdog — same threshold (2s) as /practice.
   useIdleAutoPause(status === "active" || status === "paused");
 
+  // Task 4.2 safeguards — warn before close/reload while mid-drill,
+  // detect other tabs, drain retry backlog on mount. Same semantics as
+  // /practice: the sessionInFlight flag gates both signals.
+  const sessionInFlight = status === "active" || status === "paused";
+  useBeforeUnloadWarning(sessionInFlight);
+  const otherTabActive = useOtherTabActive(sessionInFlight);
+  useEffect(() => {
+    void flushSessionQueue();
+  }, []);
+
   // Enter on the complete screen runs the drill again.
   useEffect(() => {
     if (status !== "complete") return;
@@ -266,27 +281,23 @@ function DrillPage() {
         ? { drillPreset: search.preset }
         : {};
 
-    persistSession({
-      data: {
-        sessionId: crypto.randomUUID(),
-        keyboardProfileId: profile.id,
-        mode: "targeted_drill",
-        target: state.target,
-        events: state.events.map((e) => ({
-          targetChar: e.targetChar,
-          actualChar: e.actualChar,
-          isError: e.isError,
-          keystrokeMs: e.keystrokeMs,
-          prevChar: e.prevChar,
-          timestamp: e.timestamp.toISOString(),
-        })),
-        startedAt: startedAt.toISOString(),
-        endedAt: endedAt.toISOString(),
-        phase: profile.transitionPhase,
-        filterConfig,
-      },
-    }).catch((err) => {
-      console.error("persistSession failed:", err);
+    void persistSessionWithRetry({
+      sessionId: crypto.randomUUID(),
+      keyboardProfileId: profile.id,
+      mode: "targeted_drill",
+      target: state.target,
+      events: state.events.map((e) => ({
+        targetChar: e.targetChar,
+        actualChar: e.actualChar,
+        isError: e.isError,
+        keystrokeMs: e.keystrokeMs,
+        prevChar: e.prevChar,
+        timestamp: e.timestamp.toISOString(),
+      })),
+      startedAt: startedAt.toISOString(),
+      endedAt: endedAt.toISOString(),
+      phase: profile.transitionPhase,
+      filterConfig,
     });
   }, [status, activeDrill, profile.id, profile.transitionPhase, search]);
 
@@ -402,6 +413,16 @@ function DrillPage() {
         ) : (
           <p className="kerf-drill-loading" aria-live="polite">
             Building drill…
+          </p>
+        )}
+        {otherTabActive && (
+          <p
+            className="kerf-multitab-banner"
+            role="status"
+            aria-live="polite"
+          >
+            Another tab has an active practice session. Starting here will
+            save as a separate session alongside it.
           </p>
         )}
         {corpus.status === "error" && (

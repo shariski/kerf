@@ -731,6 +731,18 @@ body {
   color: var(--color-kerf-error-base);
 }
 
+.kerf-multitab-banner {
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-kerf-text-primary);
+  background: var(--color-kerf-info-subtle);
+  border-left: 2px solid var(--color-kerf-info-base);
+  border-radius: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kerf-pre-cta-primary,
   .kerf-mode-card,
