@@ -236,6 +236,28 @@ function PracticePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [status]);
 
+  // Tab → restart current exercise. Only bound while the session is
+  // live and the pause overlay is closed; when the overlay is open,
+  // native Tab focus-walking owns the key.
+  useEffect(() => {
+    if (status !== "active" && status !== "paused") return;
+    if (paused) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      e.preventDefault();
+      const state = sessionStore.getState();
+      if (!state.target) return;
+      state.dispatch({
+        type: "start",
+        target: state.target,
+        now: performance.now(),
+      });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [status, paused]);
+
   // Idle auto-pause watchdog (see useIdleAutoPause.ts). Active whenever
   // we are mid-session, including while the pause overlay is open (the
   // reducer's pause action is a no-op if already paused).

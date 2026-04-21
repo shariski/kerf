@@ -274,7 +274,7 @@ Wireframe: `design/settings-wireframe.html`
 **Practice Mode**:
 
 - `Esc` — pause + reveal settings
-- `Tab + Enter` — restart current exercise
+- `Tab` — restart current exercise
 - `Ctrl + Enter` — end session early
 - `Ctrl + Shift + D` — toggle distraction-free mode
 
