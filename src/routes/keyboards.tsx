@@ -67,9 +67,11 @@ function KeyboardsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [toast, setToast] = useState<SwitchToast | null>(null);
 
-  const addedTypes = new Set(profiles.map((p) => p.keyboardType));
-  const canAdd = addedTypes.size < Object.keys(KEYBOARD_META).length;
   const currentlyActive = profiles.find((p) => p.isActive);
+  // No artificial cap on profile count — users can have multiple
+  // profiles of the same keyboard type (e.g. home + office Sofle).
+  // The modal still marks already-added types with an "added"
+  // hint for orientation, but doesn't block selection.
 
   const handleSwitched = (toName: string, fromId: string) => {
     setToast({ toName, fromId });
@@ -87,18 +89,16 @@ function KeyboardsPage() {
               and exercises are independent per profile.
             </p>
           </div>
-          {canAdd ? (
-            <button
-              type="button"
-              className="kerf-keyboards-add-btn"
-              onClick={() => setAddOpen(true)}
-            >
-              <span className="kerf-keyboards-add-btn-icon" aria-hidden>
-                +
-              </span>
-              Add keyboard
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="kerf-keyboards-add-btn"
+            onClick={() => setAddOpen(true)}
+          >
+            <span className="kerf-keyboards-add-btn-icon" aria-hidden>
+              +
+            </span>
+            Add keyboard
+          </button>
         </div>
       </header>
 
@@ -111,18 +111,16 @@ function KeyboardsPage() {
             onSwitched={handleSwitched}
           />
         ))}
-        {canAdd ? (
-          <button
-            type="button"
-            className="kerf-keyboards-add-card"
-            onClick={() => setAddOpen(true)}
-          >
-            <span className="kerf-keyboards-add-card-icon" aria-hidden>
-              +
-            </span>
-            <span className="kerf-keyboards-add-card-label">Add keyboard</span>
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="kerf-keyboards-add-card"
+          onClick={() => setAddOpen(true)}
+        >
+          <span className="kerf-keyboards-add-card-icon" aria-hidden>
+            +
+          </span>
+          <span className="kerf-keyboards-add-card-label">Add keyboard</span>
+        </button>
       </div>
 
       {profiles.length === 1 ? (
@@ -138,7 +136,7 @@ function KeyboardsPage() {
         </aside>
       ) : null}
 
-      {addOpen && canAdd ? (
+      {addOpen ? (
         <AddKeyboardModal
           profiles={profiles}
           onClose={() => setAddOpen(false)}
@@ -178,17 +176,20 @@ function ProfileCard({
     try {
       await switchActiveProfile({ data: { profileId: profile.id } });
       await router.invalidate();
-      // Card will unmount/re-render here (isActive flipped on
-      // different row). Notify the page before that so the toast
-      // captures the pre-switch active-profile id.
+      // Capture the pre-switch active-profile id for the toast's
+      // Undo target. The card persists across `router.invalidate()`
+      // (same `key={p.id}`), so `switching` stays true unless we
+      // reset it — otherwise the "Switching…" caption sticks
+      // forever and comes back to haunt any subsequent undo.
       if (previousActive) {
         onSwitched(meta.name, previousActive.id);
       }
     } catch (err) {
-      setSwitching(false);
       setError(
         err instanceof Error ? err.message : "Could not switch — try again.",
       );
+    } finally {
+      setSwitching(false);
     }
   };
 
@@ -342,12 +343,13 @@ function AddKeyboardModal({
   const router = useRouter();
   const addedTypes = new Set(profiles.map((p) => p.keyboardType));
   const allTypes = Object.keys(KEYBOARD_META) as KeyboardType[];
-  const availableTypes = allTypes.filter((t) => !addedTypes.has(t));
+  // Default the selection to an un-added type when one exists; when
+  // the user already has every type, default to the first type so
+  // they can add a duplicate (e.g. home + office Sofle).
+  const defaultType = allTypes.find((t) => !addedTypes.has(t)) ?? allTypes[0]!;
   const prefilledHand = profiles[0]?.dominantHand;
 
-  const [keyboardType, setKeyboardType] = useState<KeyboardType>(
-    availableTypes[0]!,
-  );
+  const [keyboardType, setKeyboardType] = useState<KeyboardType>(defaultType);
   const [dominantHand, setDominantHand] = useState<DominantHand>(
     prefilledHand ?? "right",
   );
@@ -434,15 +436,19 @@ function AddKeyboardModal({
                 {allTypes.map((t) => {
                   const already = addedTypes.has(t);
                   const selected = keyboardType === t;
+                  // Already-added types are still selectable — the
+                  // schema doesn't enforce uniqueness on
+                  // (user, keyboard_type) and users may want
+                  // multiple profiles of the same keyboard (home
+                  // vs office). The "added" label stays as an
+                  // orientation cue, but no longer blocks clicks.
                   return (
                     <button
                       key={t}
                       type="button"
                       className="kerf-keyboards-mini-card"
                       data-selected={selected ? "true" : undefined}
-                      data-disabled={already ? "true" : undefined}
-                      disabled={already}
-                      onClick={() => !already && setKeyboardType(t)}
+                      onClick={() => setKeyboardType(t)}
                     >
                       <span className="kerf-keyboards-mini-card-thumb">
                         ⊞⊞
@@ -456,7 +462,7 @@ function AddKeyboardModal({
                         </span>
                       </span>
                       <span className="kerf-keyboards-mini-card-status">
-                        {already ? "added" : selected ? "✓" : ""}
+                        {selected ? "✓" : already ? "added" : ""}
                       </span>
                     </button>
                   );

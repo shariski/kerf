@@ -3439,18 +3439,13 @@ body {
   box-sizing: border-box;
 }
 
-.kerf-keyboards-mini-card:hover:not([data-disabled="true"]) {
+.kerf-keyboards-mini-card:hover {
   border-color: var(--color-kerf-border-strong);
 }
 
 .kerf-keyboards-mini-card[data-selected="true"] {
   border-color: var(--color-kerf-amber-base);
   background: var(--color-kerf-amber-faint);
-}
-
-.kerf-keyboards-mini-card[data-disabled="true"] {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .kerf-keyboards-mini-card-thumb {
