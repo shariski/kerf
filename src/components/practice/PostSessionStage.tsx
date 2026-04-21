@@ -70,7 +70,16 @@ export function PostSessionStage({
         setShowScrollHint(false);
         return;
       }
-      const threshold = Math.round(window.innerHeight * 0.5);
+      // Threshold scales to both viewport and actual scroll range so
+      // the hint hides at a sensible point on short pages too (e.g.
+      // post-session with just a bit of overflow). `max * 0.5` means
+      // "hint visible in the top half of scroll range"; capping at
+      // innerHeight * 0.5 keeps very tall pages from requiring an
+      // unreasonable amount of scrolling to dismiss.
+      const threshold = Math.min(
+        Math.round(window.innerHeight * 0.5),
+        Math.round(max * 0.5),
+      );
       setShowScrollHint(scrolled < threshold);
     };
     window.addEventListener("scroll", onScroll, { passive: true });

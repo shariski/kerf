@@ -186,7 +186,10 @@ function DashboardPage() {
         setShowScrollHint(false);
         return;
       }
-      const threshold = Math.round(window.innerHeight * 0.5);
+      const threshold = Math.min(
+        Math.round(window.innerHeight * 0.5),
+        Math.round(max * 0.5),
+      );
       setShowScrollHint(scrolled < threshold);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
