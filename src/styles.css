@@ -3208,15 +3208,21 @@ body {
 
 /* --- add-keyboard modal (wireframe §.add-modal) --- */
 
+/* Values match wireframe-CSS 1:1:
+   - backdrop alpha 0.65 + blur(4px) (I had 0.7 and no blur)
+   - z-index 200 (I had 100)
+   - modal max-width 720 + border-radius 12 (I had 640 + 10). */
 .kerf-keyboards-modal-bg {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  z-index: 100;
+  z-index: 200;
   animation: kerf-keyboards-modal-fade 120ms ease-out;
 }
 
@@ -3232,8 +3238,9 @@ body {
 .kerf-keyboards-modal {
   background: var(--color-kerf-bg-surface);
   border: 1px solid var(--color-kerf-border-default);
-  border-radius: 10px;
-  width: min(640px, 100%);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 720px;
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
@@ -3314,7 +3321,6 @@ body {
   font-size: 9px;
   font-family: var(--font-mono);
   font-weight: 700;
-  letter-spacing: 0.05em;
 }
 
 /* --- mini-keyboard cards (step 1) --- */
@@ -3393,13 +3399,6 @@ body {
   color: var(--color-kerf-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  min-width: 32px;
-  text-align: right;
-}
-
-.kerf-keyboards-mini-card[data-selected="true"] .kerf-keyboards-mini-card-status {
-  color: var(--color-kerf-amber-base);
-  font-size: 14px;
 }
 
 /* --- dominant-hand pill (step 2) --- */
@@ -3420,7 +3419,6 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  text-transform: capitalize;
 }
 
 .kerf-keyboards-hand-initial {
@@ -3460,7 +3458,6 @@ body {
   font-size: 13px;
   color: var(--color-kerf-text-primary);
   transition: border-color 150ms ease, background 150ms ease;
-  text-transform: capitalize;
 }
 
 .kerf-keyboards-hand-choice:hover {

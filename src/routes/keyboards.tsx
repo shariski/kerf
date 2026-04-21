@@ -210,12 +210,16 @@ function MiniKeyboardHalf() {
     <div className="kerf-keyboards-card-photo-half">
       <div className="kerf-keyboards-card-photo-grid">
         {Array.from({ length: 24 }, (_, i) => (
-          <span key={i} className="kerf-keyboards-card-photo-key" />
+          // `<div>` (not `<span>`) — spans are inline by default and
+          // `aspect-ratio` doesn't apply consistently in inline contexts
+          // even when they're grid items; the wireframe HTML uses divs
+          // and we follow it.
+          <div key={i} className="kerf-keyboards-card-photo-key" />
         ))}
       </div>
       <div className="kerf-keyboards-card-photo-thumbs">
-        <span className="kerf-keyboards-card-photo-thumb" />
-        <span className="kerf-keyboards-card-photo-thumb kerf-keyboards-card-photo-thumb--large" />
+        <div className="kerf-keyboards-card-photo-thumb" />
+        <div className="kerf-keyboards-card-photo-thumb kerf-keyboards-card-photo-thumb--large" />
       </div>
     </div>
   );
@@ -381,7 +385,11 @@ function AddKeyboardModal({
                       <span className="kerf-keyboards-hand-initial" aria-hidden>
                         {h === "right" ? "R" : "L"}
                       </span>
-                      <span>{h}-handed</span>
+                      {/* Literal casing (sentence-case), not CSS
+                          capitalize — `text-transform: capitalize`
+                          capitalizes after the hyphen in most
+                          browsers, rendering as "Right-Handed". */}
+                      <span>{h === "right" ? "Right-handed" : "Left-handed"}</span>
                     </button>
                   ))}
                 </div>
@@ -391,7 +399,7 @@ function AddKeyboardModal({
                     <span className="kerf-keyboards-hand-initial" aria-hidden>
                       {handInitial}
                     </span>
-                    {dominantHand}-handed
+                    {dominantHand === "right" ? "Right-handed" : "Left-handed"}
                   </span>
                   <button
                     type="button"
