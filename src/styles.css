@@ -2831,6 +2831,846 @@ body {
   color: var(--color-kerf-text-secondary);
 }
 
+/* --- /keyboards page (Task 3.5) — ported 1:1 from
+   design/keyboards-wireframe.html --- */
+
+.kerf-keyboards-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 32px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* --- header --- */
+
+.kerf-keyboards-breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.kerf-keyboards-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.kerf-keyboards-title {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-kerf-text-secondary);
+  max-width: 640px;
+}
+
+.kerf-keyboards-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.kerf-keyboards-add-btn:hover {
+  background: var(--color-kerf-amber-hover);
+}
+
+.kerf-keyboards-add-btn-icon {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* --- keyboard-cards grid (wireframe §.keyboards-grid) --- */
+
+.kerf-keyboards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.kerf-keyboards-card {
+  position: relative;
+  background: var(--color-kerf-bg-surface);
+  border: 2px solid var(--color-kerf-border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.kerf-keyboards-card:hover {
+  border-color: var(--color-kerf-border-strong);
+  transform: translateY(-2px);
+}
+
+.kerf-keyboards-card[data-active="true"] {
+  border-color: var(--color-kerf-amber-base);
+}
+
+.kerf-keyboards-card[data-active="true"]:hover {
+  /* Active card stays put on hover — it's not a switch target. */
+  transform: none;
+}
+
+/* Locked while a switch is in flight or the undo toast is still
+   visible. Inactive cards dim so the user can see the whole grid
+   is paused, without a glitchy "Switching…" text flash that
+   appears and disappears in < 100ms. Active cards stay full
+   opacity — they're the one the user can see is current. */
+.kerf-keyboards-grid[data-locked="true"] .kerf-keyboards-card:not([data-active="true"]) {
+  opacity: 0.55;
+  transition: opacity 180ms ease;
+}
+
+.kerf-keyboards-card-tap {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  cursor: pointer;
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.kerf-keyboards-card[data-active="true"] .kerf-keyboards-card-tap,
+.kerf-keyboards-card-tap:disabled {
+  cursor: default;
+}
+
+/* --- card image area — the 16:10 photo box --- */
+
+.kerf-keyboards-card-visual {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--color-kerf-bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--color-kerf-border-subtle);
+  overflow: hidden;
+}
+
+/* Active badge — top-right amber pill with inverse-colored dot
+   (wireframe §.active-badge). */
+.kerf-keyboards-card-active-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kerf-keyboards-card-active-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--color-kerf-text-inverse);
+  border-radius: 50%;
+}
+
+/* Hover-revealed 3-dot menu (wireframe §.card-menu). Visual only —
+   no dropdown. Positioned opposite the active badge so the two
+   never overlap. */
+.kerf-keyboards-card-menu {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--color-kerf-border-default);
+  color: var(--color-kerf-text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.kerf-keyboards-card:hover .kerf-keyboards-card-menu {
+  opacity: 1;
+}
+
+.kerf-keyboards-card[data-active="true"] .kerf-keyboards-card-menu {
+  /* Active card's badge takes top-right — move the menu to top-left. */
+  right: auto;
+  left: 12px;
+}
+
+/* Photo placeholder — two halves, each with 4×6 key grid and a
+   thumb row. Matches the wireframe's visual language. */
+.kerf-keyboards-card-photo {
+  width: 80%;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  opacity: 0.6;
+}
+
+.kerf-keyboards-card-photo-half {
+  flex: 1;
+  aspect-ratio: 5 / 3;
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-default);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.kerf-keyboards-card-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+}
+
+.kerf-keyboards-card-photo-key {
+  aspect-ratio: 1;
+  background: var(--color-kerf-bg-overlay);
+  border-radius: 1px;
+}
+
+.kerf-keyboards-card-photo-thumbs {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.kerf-keyboards-card-photo-thumb {
+  width: 12px;
+  height: 8px;
+  background: var(--color-kerf-bg-overlay);
+  border-radius: 1px;
+}
+
+.kerf-keyboards-card-photo-thumb--large {
+  width: 18px;
+}
+
+.kerf-keyboards-card-photo-label {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--color-kerf-text-tertiary);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+
+/* --- card body --- */
+
+.kerf-keyboards-card-body {
+  padding: 16px 20px;
+}
+
+.kerf-keyboards-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-card-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kerf-keyboards-error {
+  margin: 0;
+  padding: 10px 16px;
+  background: var(--color-kerf-error-subtle);
+  border: 1px solid var(--color-kerf-error-base);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+}
+
+/* --- add-card (dashed placeholder at end of grid) --- */
+
+/* Matches the sibling keyboard-card height: the grid already lays
+   items out at equal heights via default `align-items: stretch`, so
+   removing the `aspect-ratio` and adding `height: 100%` lets the
+   dashed card inherit whichever neighboring card is tallest rather
+   than shrinking to 4/3 and pulling its bottom edge up. A minimum
+   height guards the "add is the only item" case, where there's no
+   sibling to align to. */
+.kerf-keyboards-add-card {
+  all: unset;
+  cursor: pointer;
+  background: transparent;
+  border: 2px dashed var(--color-kerf-border-default);
+  border-radius: 10px;
+  height: 100%;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-kerf-text-tertiary);
+  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
+  box-sizing: border-box;
+}
+
+.kerf-keyboards-add-card:hover:not(:disabled) {
+  border-color: var(--color-kerf-amber-base);
+  color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-faint);
+}
+
+.kerf-keyboards-add-card:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.kerf-keyboards-add-card-icon {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.kerf-keyboards-add-card-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* --- empty-state nudge (wireframe §.empty-message) --- */
+
+.kerf-keyboards-nudge {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--color-kerf-text-secondary);
+  font-size: 13px;
+}
+
+.kerf-keyboards-nudge-icon {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-size: 18px;
+}
+
+.kerf-keyboards-nudge-text {
+  margin: 0;
+  flex: 1;
+  line-height: 1.6;
+}
+
+.kerf-keyboards-nudge-text strong {
+  color: var(--color-kerf-text-primary);
+  font-weight: 500;
+}
+
+/* --- switch-toast (wireframe §.toast) — 5s undo window --- */
+
+.kerf-keyboards-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-kerf-bg-overlay);
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 8px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 150;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 480px;
+  overflow: hidden;
+  animation: kerf-keyboards-toast-slide 200ms ease-out;
+}
+
+@keyframes kerf-keyboards-toast-slide {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.kerf-keyboards-toast-icon {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-size: 16px;
+}
+
+.kerf-keyboards-toast-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-toast-text strong {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.kerf-keyboards-toast-undo {
+  all: unset;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-kerf-border-default);
+  color: var(--color-kerf-text-primary);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kerf-keyboards-toast-undo:hover:not(:disabled) {
+  background: var(--color-kerf-bg-surface);
+}
+
+.kerf-keyboards-toast-undo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 5-second countdown bar. Shrinks from 100% to 0% width using an
+   animation so the user gets a visible "you have X seconds" signal. */
+.kerf-keyboards-toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--color-kerf-amber-base);
+  border-radius: 0 0 8px 8px;
+  width: 100%;
+  transform-origin: left;
+  animation: kerf-keyboards-toast-shrink 5s linear forwards;
+}
+
+@keyframes kerf-keyboards-toast-shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* --- add-keyboard modal (wireframe §.add-modal) --- */
+
+/* Values match wireframe-CSS 1:1:
+   - backdrop alpha 0.65 + blur(4px) (I had 0.7 and no blur)
+   - z-index 200 (I had 100)
+   - modal max-width 720 + border-radius 12 (I had 640 + 10). */
+.kerf-keyboards-modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 200;
+  animation: kerf-keyboards-modal-fade 120ms ease-out;
+}
+
+@keyframes kerf-keyboards-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.kerf-keyboards-modal {
+  background: var(--color-kerf-bg-surface);
+  border: 1px solid var(--color-kerf-border-default);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+}
+
+.kerf-keyboards-modal-head {
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--color-kerf-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.kerf-keyboards-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-modal-hint {
+  margin: 4px 0 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-keyboards-modal-hint strong {
+  color: var(--color-kerf-amber-base);
+  font-weight: 700;
+}
+
+.kerf-keyboards-modal-close {
+  all: unset;
+  cursor: pointer;
+  color: var(--color-kerf-text-tertiary);
+  font-size: 18px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.kerf-keyboards-modal-close:hover {
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-modal-body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.kerf-keyboards-modal-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kerf-keyboards-modal-step-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kerf-keyboards-prefilled-tag {
+  background: var(--color-kerf-success-base);
+  color: var(--color-kerf-text-inverse);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* --- mini-keyboard cards (step 1) --- */
+
+.kerf-keyboards-mini-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.kerf-keyboards-mini-card {
+  all: unset;
+  cursor: pointer;
+  background: var(--color-kerf-bg-elevated);
+  border: 2px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 150ms ease, background 150ms ease;
+  box-sizing: border-box;
+}
+
+.kerf-keyboards-mini-card:hover {
+  border-color: var(--color-kerf-border-strong);
+}
+
+.kerf-keyboards-mini-card[data-selected="true"] {
+  border-color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-faint);
+}
+
+.kerf-keyboards-mini-card-thumb {
+  width: 60px;
+  height: 36px;
+  background: var(--color-kerf-bg-base);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--color-kerf-text-tertiary);
+  flex-shrink: 0;
+}
+
+.kerf-keyboards-mini-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kerf-keyboards-mini-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-mini-card-meta {
+  font-size: 11px;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-keyboards-mini-card-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --- dominant-hand pill (step 2) --- */
+
+.kerf-keyboards-hand-pill {
+  background: var(--color-kerf-bg-elevated);
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kerf-keyboards-hand-pill-label {
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kerf-keyboards-hand-initial {
+  font-family: var(--font-mono);
+  color: var(--color-kerf-amber-base);
+  font-weight: 700;
+}
+
+.kerf-keyboards-hand-change {
+  all: unset;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: lowercase;
+}
+
+.kerf-keyboards-hand-change:hover {
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-hand-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kerf-keyboards-hand-choice {
+  all: unset;
+  cursor: pointer;
+  background: var(--color-kerf-bg-elevated);
+  border: 2px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.kerf-keyboards-hand-choice:hover {
+  border-color: var(--color-kerf-border-strong);
+}
+
+.kerf-keyboards-hand-choice[data-selected="true"] {
+  border-color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-faint);
+}
+
+/* --- level cards (step 3) --- */
+
+.kerf-keyboards-level-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.kerf-keyboards-level-card {
+  all: unset;
+  cursor: pointer;
+  background: var(--color-kerf-bg-elevated);
+  border: 2px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  align-items: center;
+  transition: border-color 150ms ease, background 150ms ease;
+  box-sizing: border-box;
+}
+
+.kerf-keyboards-level-card:hover {
+  border-color: var(--color-kerf-border-strong);
+}
+
+.kerf-keyboards-level-card[data-selected="true"] {
+  border-color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-faint);
+}
+
+.kerf-keyboards-level-card-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-kerf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kerf-keyboards-level-card[data-selected="true"] .kerf-keyboards-level-card-label {
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-keyboards-level-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+
+/* --- modal error + footer --- */
+
+.kerf-keyboards-modal-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-kerf-error-base);
+}
+
+.kerf-keyboards-modal-footer {
+  padding: 16px 28px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.kerf-keyboards-modal-cancel {
+  all: unset;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-kerf-text-secondary);
+  border: 1px solid var(--color-kerf-border-default);
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.kerf-keyboards-modal-cancel:hover:not(:disabled) {
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-modal-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kerf-keyboards-modal-submit {
+  all: unset;
+  cursor: pointer;
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-text-inverse);
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 120ms ease, opacity 120ms ease;
+}
+
+.kerf-keyboards-modal-submit:hover:not(:disabled) {
+  background: var(--color-kerf-amber-hover);
+}
+
+.kerf-keyboards-modal-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* --- temporal patterns (Task 3.4c) --- */
 
 .kerf-dash-temporal {

@@ -77,4 +77,4 @@ npm run lint        # linter
   - [x] 3.4a: Phase-transition suggestion banner (top-of-dashboard, dismissible per session, wires the existing `phaseSuggestion.ts` advisory + new `updateTransitionPhase` write path)
   - [x] 3.4b: Weekly insight aggregation + narrative card (`generateWeeklyInsight` pure domain with 6-frame classification including honest `stagnant` per Core Value 2.2, rolling 7d-vs-7d comparison, phase-aware template recommendations; new "This week vs last" dashboard section)
   - [x] 3.4c: Temporal patterns chart — mean WPM by hour-of-day (24 bars) and day-of-week (7 bars), last 30 days, client-side bucketing in local tz via `computeTemporalPatterns`, peak-bucket plain-language caption ("fastest around 14:00 — Sat is your strongest day")
-- [ ] Phase 3 / Task 3.5: Multi-keyboard switcher
+- [x] Phase 3 / Task 3.5: Multi-keyboard switcher — `/keyboards` page with card grid + active badge, inline add-profile form (only un-added keyboard types offered), transactional `switchActiveProfile` server fn that atomically deactivates siblings, `createKeyboardProfile` updated to deactivate existing profiles when a user adds their second keyboard
