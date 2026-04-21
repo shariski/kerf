@@ -51,12 +51,29 @@ const LEVEL_META: Record<
 
 // --- page -----------------------------------------------------------------
 
+/** State for the bottom "Switched to X" toast (Task 3.5 wireframe
+ * §.toast). `fromId` is the previously-active profile's id — Undo
+ * switches back to it. We stash the previous profile here instead of
+ * re-reading it from the latest loader data at Undo time because the
+ * loader already invalidated past it; this component is now the only
+ * place that remembers what was active before the switch. */
+type SwitchToast = {
+  toName: string;
+  fromId: string;
+};
+
 function KeyboardsPage() {
   const { profiles } = Route.useLoaderData();
   const [addOpen, setAddOpen] = useState(false);
+  const [toast, setToast] = useState<SwitchToast | null>(null);
 
   const addedTypes = new Set(profiles.map((p) => p.keyboardType));
   const canAdd = addedTypes.size < Object.keys(KEYBOARD_META).length;
+  const currentlyActive = profiles.find((p) => p.isActive);
+
+  const handleSwitched = (toName: string, fromId: string) => {
+    setToast({ toName, fromId });
+  };
 
   return (
     <main className="kerf-keyboards-page">
@@ -87,7 +104,12 @@ function KeyboardsPage() {
 
       <div className="kerf-keyboards-grid">
         {profiles.map((p) => (
-          <ProfileCard key={p.id} profile={p} />
+          <ProfileCard
+            key={p.id}
+            profile={p}
+            previousActive={currentlyActive ?? null}
+            onSwitched={handleSwitched}
+          />
         ))}
         {canAdd ? (
           <button
@@ -122,13 +144,28 @@ function KeyboardsPage() {
           onClose={() => setAddOpen(false)}
         />
       ) : null}
+
+      {toast ? (
+        <SwitchToast toast={toast} onDismiss={() => setToast(null)} />
+      ) : null}
     </main>
   );
 }
 
 // --- profile card ---------------------------------------------------------
 
-function ProfileCard({ profile }: { profile: ProfileListEntry }) {
+function ProfileCard({
+  profile,
+  previousActive,
+  onSwitched,
+}: {
+  profile: ProfileListEntry;
+  /** Currently-active profile at click-time, i.e. the one we'd
+   * revert to on Undo. `null` only in the degenerate "no active
+   * profile" case, which the server rules out via transaction. */
+  previousActive: ProfileListEntry | null;
+  onSwitched: (toName: string, fromId: string) => void;
+}) {
   const router = useRouter();
   const [switching, setSwitching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +178,12 @@ function ProfileCard({ profile }: { profile: ProfileListEntry }) {
     try {
       await switchActiveProfile({ data: { profileId: profile.id } });
       await router.invalidate();
+      // Card will unmount/re-render here (isActive flipped on
+      // different row). Notify the page before that so the toast
+      // captures the pre-switch active-profile id.
+      if (previousActive) {
+        onSwitched(meta.name, previousActive.id);
+      }
     } catch (err) {
       setSwitching(false);
       setError(
@@ -210,10 +253,6 @@ function MiniKeyboardHalf() {
     <div className="kerf-keyboards-card-photo-half">
       <div className="kerf-keyboards-card-photo-grid">
         {Array.from({ length: 24 }, (_, i) => (
-          // `<div>` (not `<span>`) — spans are inline by default and
-          // `aspect-ratio` doesn't apply consistently in inline contexts
-          // even when they're grid items; the wireframe HTML uses divs
-          // and we follow it.
           <div key={i} className="kerf-keyboards-card-photo-key" />
         ))}
       </div>
@@ -221,6 +260,72 @@ function MiniKeyboardHalf() {
         <div className="kerf-keyboards-card-photo-thumb" />
         <div className="kerf-keyboards-card-photo-thumb kerf-keyboards-card-photo-thumb--large" />
       </div>
+    </div>
+  );
+}
+
+// --- switch-toast (wireframe §.toast) -------------------------------------
+
+/** Bottom-centered "Switched to X" toast with a 5-second Undo
+ * window. Matches the wireframe's auto-dismiss + progress-bar
+ * pattern. Click Undo within 5s and the previous profile is
+ * re-activated; otherwise the toast just fades. */
+const TOAST_TTL_MS = 5000;
+
+function SwitchToast({
+  toast,
+  onDismiss,
+}: {
+  toast: SwitchToast;
+  onDismiss: () => void;
+}) {
+  const router = useRouter();
+  const [undoing, setUndoing] = useState(false);
+
+  useEffect(() => {
+    if (undoing) return;
+    const t = window.setTimeout(onDismiss, TOAST_TTL_MS);
+    return () => window.clearTimeout(t);
+  }, [onDismiss, undoing, toast]);
+
+  const handleUndo = async () => {
+    if (undoing) return;
+    setUndoing(true);
+    try {
+      await switchActiveProfile({ data: { profileId: toast.fromId } });
+      await router.invalidate();
+      onDismiss();
+    } catch {
+      // Undo failed — keep the toast visible so the user can retry
+      // rather than silently dropping them on the post-switch state.
+      setUndoing(false);
+    }
+  };
+
+  return (
+    <div
+      className="kerf-keyboards-toast"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="kerf-keyboards-toast-icon" aria-hidden>
+        →
+      </span>
+      <span className="kerf-keyboards-toast-text">
+        Switched to <strong>{toast.toName}</strong>
+      </span>
+      <button
+        type="button"
+        className="kerf-keyboards-toast-undo"
+        onClick={handleUndo}
+        disabled={undoing}
+      >
+        {undoing ? "Undoing…" : "Undo"}
+      </button>
+      {/* Animated 5s countdown bar. `key` on the toast fixture means
+          this element re-mounts per toast, so the animation always
+          plays from 100% for each new switch. */}
+      <span className="kerf-keyboards-toast-progress" aria-hidden />
     </div>
   );
 }
@@ -251,7 +356,6 @@ function AddKeyboardModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Escape closes, body scroll locked while open.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -322,7 +426,6 @@ function AddKeyboardModal({
           </header>
 
           <div className="kerf-keyboards-modal-body">
-            {/* Step 1 — which keyboard */}
             <section className="kerf-keyboards-modal-step">
               <div className="kerf-keyboards-modal-step-label">
                 <span>which keyboard?</span>
@@ -361,7 +464,6 @@ function AddKeyboardModal({
               </div>
             </section>
 
-            {/* Step 2 — dominant hand */}
             <section className="kerf-keyboards-modal-step">
               <div className="kerf-keyboards-modal-step-label">
                 <span>dominant hand</span>
@@ -385,10 +487,6 @@ function AddKeyboardModal({
                       <span className="kerf-keyboards-hand-initial" aria-hidden>
                         {h === "right" ? "R" : "L"}
                       </span>
-                      {/* Literal casing (sentence-case), not CSS
-                          capitalize — `text-transform: capitalize`
-                          capitalizes after the hyphen in most
-                          browsers, rendering as "Right-Handed". */}
                       <span>{h === "right" ? "Right-handed" : "Left-handed"}</span>
                     </button>
                   ))}
@@ -412,7 +510,6 @@ function AddKeyboardModal({
               )}
             </section>
 
-            {/* Step 3 — level */}
             <section className="kerf-keyboards-modal-step">
               <div className="kerf-keyboards-modal-step-label">
                 <span>how comfortable on this keyboard?</span>

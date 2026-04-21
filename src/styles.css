@@ -3206,6 +3206,100 @@ body {
   font-weight: 500;
 }
 
+/* --- switch-toast (wireframe §.toast) — 5s undo window --- */
+
+.kerf-keyboards-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-kerf-bg-overlay);
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 8px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 150;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 480px;
+  overflow: hidden;
+  animation: kerf-keyboards-toast-slide 200ms ease-out;
+}
+
+@keyframes kerf-keyboards-toast-slide {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.kerf-keyboards-toast-icon {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-size: 16px;
+}
+
+.kerf-keyboards-toast-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-keyboards-toast-text strong {
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.kerf-keyboards-toast-undo {
+  all: unset;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-kerf-border-default);
+  color: var(--color-kerf-text-primary);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kerf-keyboards-toast-undo:hover:not(:disabled) {
+  background: var(--color-kerf-bg-surface);
+}
+
+.kerf-keyboards-toast-undo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 5-second countdown bar. Shrinks from 100% to 0% width using an
+   animation so the user gets a visible "you have X seconds" signal. */
+.kerf-keyboards-toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--color-kerf-amber-base);
+  border-radius: 0 0 8px 8px;
+  width: 100%;
+  transform-origin: left;
+  animation: kerf-keyboards-toast-shrink 5s linear forwards;
+}
+
+@keyframes kerf-keyboards-toast-shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 /* --- add-keyboard modal (wireframe §.add-modal) --- */
 
 /* Values match wireframe-CSS 1:1:
