@@ -19,6 +19,15 @@ import type { InitialLevel } from "#/domain/profile/initialPhase";
  * active profile per user. Switch + add both run inside Postgres
  * transactions on the server so the dashboard can't observe a torn
  * "zero or two active" state. See `profile.ts`.
+ *
+ * Switch lock — all profile clicks are gated on a single page-level
+ * lock that's held while a switch is in flight AND while the undo
+ * toast is visible. Without it, rapid clicks race on a stale
+ * `previousActive` and the undo ends up reverting to the wrong
+ * profile. The lock also removes the "Switching…" flash that
+ * caused the glitchy feel — server calls in dev are fast enough
+ * that the brief disabled state is barely perceptible, which is
+ * what we want.
  */
 
 export const Route = createFileRoute("/keyboards")({
@@ -51,12 +60,6 @@ const LEVEL_META: Record<
 
 // --- page -----------------------------------------------------------------
 
-/** State for the bottom "Switched to X" toast (Task 3.5 wireframe
- * §.toast). `fromId` is the previously-active profile's id — Undo
- * switches back to it. We stash the previous profile here instead of
- * re-reading it from the latest loader data at Undo time because the
- * loader already invalidated past it; this component is now the only
- * place that remembers what was active before the switch. */
 type SwitchToast = {
   toName: string;
   fromId: string;
@@ -64,17 +67,53 @@ type SwitchToast = {
 
 function KeyboardsPage() {
   const { profiles } = Route.useLoaderData();
+  const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
   const [toast, setToast] = useState<SwitchToast | null>(null);
+  const [switchInFlight, setSwitchInFlight] = useState(false);
+  const [switchError, setSwitchError] = useState<string | null>(null);
 
   const currentlyActive = profiles.find((p) => p.isActive);
-  // No artificial cap on profile count — users can have multiple
-  // profiles of the same keyboard type (e.g. home + office Sofle).
-  // The modal still marks already-added types with an "added"
-  // hint for orientation, but doesn't block selection.
+  // Locked while: (a) a server call is in flight, or (b) the 5s
+  // undo window is still open. (b) is the real fix for the
+  // rapid-click race — if we let new switches through while the
+  // toast was visible, the Undo's `fromId` would point to whatever
+  // was active *before* the first of several queued switches,
+  // which is rarely what the user expects.
+  const locked = switchInFlight || toast !== null;
 
-  const handleSwitched = (toName: string, fromId: string) => {
-    setToast({ toName, fromId });
+  const handleSwitch = async (target: ProfileListEntry) => {
+    if (locked || target.isActive || !currentlyActive) return;
+    setSwitchInFlight(true);
+    setSwitchError(null);
+    try {
+      await switchActiveProfile({ data: { profileId: target.id } });
+      await router.invalidate();
+      setToast({
+        toName: KEYBOARD_META[target.keyboardType].name,
+        fromId: currentlyActive.id,
+      });
+    } catch (err) {
+      setSwitchError(
+        err instanceof Error ? err.message : "Could not switch — try again.",
+      );
+    } finally {
+      setSwitchInFlight(false);
+    }
+  };
+
+  const handleUndo = async () => {
+    if (!toast) return;
+    setSwitchInFlight(true);
+    try {
+      await switchActiveProfile({ data: { profileId: toast.fromId } });
+      await router.invalidate();
+      setToast(null);
+    } catch {
+      // Keep the toast visible on undo failure so the user can retry.
+    } finally {
+      setSwitchInFlight(false);
+    }
   };
 
   return (
@@ -102,13 +141,19 @@ function KeyboardsPage() {
         </div>
       </header>
 
-      <div className="kerf-keyboards-grid">
+      {switchError ? (
+        <div className="kerf-keyboards-error" role="alert">
+          {switchError}
+        </div>
+      ) : null}
+
+      <div className="kerf-keyboards-grid" data-locked={locked ? "true" : undefined}>
         {profiles.map((p) => (
           <ProfileCard
             key={p.id}
             profile={p}
-            previousActive={currentlyActive ?? null}
-            onSwitched={handleSwitched}
+            locked={locked}
+            onSwitch={() => handleSwitch(p)}
           />
         ))}
         <button
@@ -144,7 +189,12 @@ function KeyboardsPage() {
       ) : null}
 
       {toast ? (
-        <SwitchToast toast={toast} onDismiss={() => setToast(null)} />
+        <SwitchToast
+          toast={toast}
+          undoing={switchInFlight}
+          onUndo={handleUndo}
+          onDismiss={() => setToast(null)}
+        />
       ) : null}
     </main>
   );
@@ -154,45 +204,18 @@ function KeyboardsPage() {
 
 function ProfileCard({
   profile,
-  previousActive,
-  onSwitched,
+  locked,
+  onSwitch,
 }: {
   profile: ProfileListEntry;
-  /** Currently-active profile at click-time, i.e. the one we'd
-   * revert to on Undo. `null` only in the degenerate "no active
-   * profile" case, which the server rules out via transaction. */
-  previousActive: ProfileListEntry | null;
-  onSwitched: (toName: string, fromId: string) => void;
+  /** Page-level lock — true while a switch is in flight OR the
+   * undo toast is visible. Prevents rapid re-clicks from queueing
+   * extra switches. */
+  locked: boolean;
+  onSwitch: () => void;
 }) {
-  const router = useRouter();
-  const [switching, setSwitching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const meta = KEYBOARD_META[profile.keyboardType];
-
-  const handleClick = async () => {
-    if (profile.isActive || switching) return;
-    setSwitching(true);
-    setError(null);
-    try {
-      await switchActiveProfile({ data: { profileId: profile.id } });
-      await router.invalidate();
-      // Capture the pre-switch active-profile id for the toast's
-      // Undo target. The card persists across `router.invalidate()`
-      // (same `key={p.id}`), so `switching` stays true unless we
-      // reset it — otherwise the "Switching…" caption sticks
-      // forever and comes back to haunt any subsequent undo.
-      if (previousActive) {
-        onSwitched(meta.name, previousActive.id);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not switch — try again.",
-      );
-    } finally {
-      setSwitching(false);
-    }
-  };
-
+  const clickable = !profile.isActive && !locked;
   const label = profile.isActive
     ? `${meta.name} — active profile`
     : `Switch to ${meta.name}`;
@@ -201,13 +224,12 @@ function ProfileCard({
     <article
       className="kerf-keyboards-card"
       data-active={profile.isActive ? "true" : undefined}
-      data-switching={switching ? "true" : undefined}
     >
       <button
         type="button"
         className="kerf-keyboards-card-tap"
-        onClick={handleClick}
-        disabled={profile.isActive || switching}
+        onClick={onSwitch}
+        disabled={!clickable}
         aria-label={label}
       >
         <div className="kerf-keyboards-card-visual" aria-hidden>
@@ -232,19 +254,6 @@ function ProfileCard({
           </div>
         </div>
       </button>
-      {switching ? (
-        <p className="kerf-keyboards-card-status" role="status">
-          Switching…
-        </p>
-      ) : null}
-      {error ? (
-        <p
-          className="kerf-keyboards-card-status kerf-keyboards-card-status--error"
-          role="alert"
-        >
-          {error}
-        </p>
-      ) : null}
     </article>
   );
 }
@@ -267,41 +276,24 @@ function MiniKeyboardHalf() {
 
 // --- switch-toast (wireframe §.toast) -------------------------------------
 
-/** Bottom-centered "Switched to X" toast with a 5-second Undo
- * window. Matches the wireframe's auto-dismiss + progress-bar
- * pattern. Click Undo within 5s and the previous profile is
- * re-activated; otherwise the toast just fades. */
 const TOAST_TTL_MS = 5000;
 
 function SwitchToast({
   toast,
+  undoing,
+  onUndo,
   onDismiss,
 }: {
   toast: SwitchToast;
+  undoing: boolean;
+  onUndo: () => void;
   onDismiss: () => void;
 }) {
-  const router = useRouter();
-  const [undoing, setUndoing] = useState(false);
-
   useEffect(() => {
     if (undoing) return;
     const t = window.setTimeout(onDismiss, TOAST_TTL_MS);
     return () => window.clearTimeout(t);
   }, [onDismiss, undoing, toast]);
-
-  const handleUndo = async () => {
-    if (undoing) return;
-    setUndoing(true);
-    try {
-      await switchActiveProfile({ data: { profileId: toast.fromId } });
-      await router.invalidate();
-      onDismiss();
-    } catch {
-      // Undo failed — keep the toast visible so the user can retry
-      // rather than silently dropping them on the post-switch state.
-      setUndoing(false);
-    }
-  };
 
   return (
     <div
@@ -318,14 +310,11 @@ function SwitchToast({
       <button
         type="button"
         className="kerf-keyboards-toast-undo"
-        onClick={handleUndo}
+        onClick={onUndo}
         disabled={undoing}
       >
         {undoing ? "Undoing…" : "Undo"}
       </button>
-      {/* Animated 5s countdown bar. `key` on the toast fixture means
-          this element re-mounts per toast, so the animation always
-          plays from 100% for each new switch. */}
       <span className="kerf-keyboards-toast-progress" aria-hidden />
     </div>
   );
@@ -343,9 +332,6 @@ function AddKeyboardModal({
   const router = useRouter();
   const addedTypes = new Set(profiles.map((p) => p.keyboardType));
   const allTypes = Object.keys(KEYBOARD_META) as KeyboardType[];
-  // Default the selection to an un-added type when one exists; when
-  // the user already has every type, default to the first type so
-  // they can add a duplicate (e.g. home + office Sofle).
   const defaultType = allTypes.find((t) => !addedTypes.has(t)) ?? allTypes[0]!;
   const prefilledHand = profiles[0]?.dominantHand;
 
@@ -436,12 +422,6 @@ function AddKeyboardModal({
                 {allTypes.map((t) => {
                   const already = addedTypes.has(t);
                   const selected = keyboardType === t;
-                  // Already-added types are still selectable — the
-                  // schema doesn't enforce uniqueness on
-                  // (user, keyboard_type) and users may want
-                  // multiple profiles of the same keyboard (home
-                  // vs office). The "added" label stays as an
-                  // orientation cue, but no longer blocks clicks.
                   return (
                     <button
                       key={t}

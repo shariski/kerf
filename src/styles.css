@@ -2935,8 +2935,14 @@ body {
   transform: none;
 }
 
-.kerf-keyboards-card[data-switching="true"] {
-  opacity: 0.6;
+/* Locked while a switch is in flight or the undo toast is still
+   visible. Inactive cards dim so the user can see the whole grid
+   is paused, without a glitchy "Switching…" text flash that
+   appears and disappears in < 100ms. Active cards stay full
+   opacity — they're the one the user can see is current. */
+.kerf-keyboards-grid[data-locked="true"] .kerf-keyboards-card:not([data-active="true"]) {
+  opacity: 0.55;
+  transition: opacity 180ms ease;
 }
 
 .kerf-keyboards-card-tap {
@@ -3113,16 +3119,14 @@ body {
   letter-spacing: 0.05em;
 }
 
-.kerf-keyboards-card-status {
+.kerf-keyboards-error {
   margin: 0;
-  padding: 8px 20px 12px;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  color: var(--color-kerf-text-secondary);
-}
-
-.kerf-keyboards-card-status--error {
-  color: var(--color-kerf-error-base);
+  padding: 10px 16px;
+  background: var(--color-kerf-error-subtle);
+  border: 1px solid var(--color-kerf-error-base);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
 }
 
 /* --- add-card (dashed placeholder at end of grid) --- */
