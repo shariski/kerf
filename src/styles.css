@@ -4991,3 +4991,56 @@ body {
   }
 }
 
+/* =================================================================
+   Mobile gate — Task 4.3
+   Below 768px: hide the app, show the gate. Both trees render on
+   every device; the CSS media query picks which is visible. No JS,
+   no SSR hydration swap.
+   ================================================================= */
+
+.kerf-mobile-gate {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .kerf-app-root {
+    display: none;
+  }
+  .kerf-mobile-gate {
+    display: flex;
+    min-height: 100svh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    background: var(--color-kerf-bg-base);
+    color: var(--color-kerf-text-primary);
+  }
+  .kerf-mobile-gate-inner {
+    max-width: 320px;
+    text-align: center;
+  }
+  .kerf-mobile-gate-logo {
+    font-family: var(--font-brand, "Fraunces", Georgia, serif);
+    font-size: 24px;
+    color: var(--color-kerf-amber-base);
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+  .kerf-mobile-gate-headline {
+    font-family: var(--font-sans, "Inter", sans-serif);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 12px;
+    color: var(--color-kerf-text-primary);
+  }
+  .kerf-mobile-gate-body {
+    font-family: var(--font-sans, "Inter", sans-serif);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-kerf-text-secondary);
+    margin: 0;
+  }
+}
+
