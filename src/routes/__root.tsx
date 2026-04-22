@@ -15,6 +15,15 @@ import { MobileGate } from '#/components/MobileGate'
 //   - /login is a centered full-screen card
 const CHROMELESS_PATHS = ['/onboarding', '/login']
 
+// Routes where the global AppFooter is suppressed because the route
+// owns its own bottom chrome (hint strip) or manages footer visibility
+// internally per stage.
+//   - /dashboard always shows .kerf-post-hint-strip at viewport bottom
+//   - /practice renders its own <AppFooter /> only in pre-session;
+//     active and post-session stages have their own bottom affordances.
+//   - /practice/drill matches via prefix; same rule applies.
+const NO_GLOBAL_FOOTER_PATHS = ['/dashboard', '/practice']
+
 import appCss from '../styles.css?url'
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
@@ -46,6 +55,8 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const chromeless = CHROMELESS_PATHS.some((p) => pathname.startsWith(p))
+  const noGlobalFooter =
+    chromeless || NO_GLOBAL_FOOTER_PATHS.some((p) => pathname.startsWith(p))
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -60,7 +71,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div className="kerf-app-root">
           {!chromeless && <AppNav />}
           {children}
-          {!chromeless && <AppFooter />}
+          {!noGlobalFooter && <AppFooter />}
           {import.meta.env.DEV && <DevtoolsLazy />}
           <Scripts />
         </div>

@@ -468,7 +468,10 @@ body {
    ================================================================ */
 
 .kerf-practice-main {
-  min-height: 100vh;
+  /* No explicit min-height — root-level flex layout
+     (.kerf-app-root > main { flex: 1 0 auto }) makes this element fill
+     the remaining viewport height so the page doesn't scroll when
+     pre-session + footer together would otherwise overflow 100vh. */
   background: var(--color-kerf-bg-base);
   padding: 48px 24px;
 }
@@ -852,7 +855,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 32px;
-  min-height: 100vh;
+  /* No explicit min-height — root flex fills this to the remaining
+     viewport height so justify-content:center centers the typing area
+     within the available space without forcing a scroll. */
 }
 
 .kerf-active-session {
