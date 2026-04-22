@@ -35,6 +35,7 @@ const baseline: UserBaseline = {
   meanErrorRate: 0.05,
   meanKeystrokeTime: 200,
   meanHesitationRate: 0.1,
+  journey: "conventional",
 };
 
 const zeroSplitMetrics: SplitMetricsSnapshot = {

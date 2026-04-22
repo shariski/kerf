@@ -12,6 +12,7 @@ const baseline = (over: Partial<UserBaseline> = {}): UserBaseline => ({
   meanErrorRate: 0.08,
   meanKeystrokeTime: 280,
   meanHesitationRate: 0.1,
+  journey: "conventional",
   ...over,
 });
 

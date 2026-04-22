@@ -12,6 +12,7 @@ const baseline: UserBaseline = {
   meanErrorRate: 0.08,
   meanKeystrokeTime: 280,
   meanHesitationRate: 0.1,
+  journey: "conventional",
 };
 
 const makeChar = (over: Partial<CharacterStat> = {}): CharacterStat => ({
@@ -165,6 +166,7 @@ describe("computeWeaknessBreakdown — edge cases", () => {
       meanErrorRate: 0,
       meanKeystrokeTime: 0,
       meanHesitationRate: 0,
+      journey: "conventional",
     };
     const unit = makeChar();
     const b = computeWeaknessBreakdown(unit, zeroBaseline, "transitioning", 0);
