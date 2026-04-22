@@ -48,6 +48,14 @@ describe("computeBaseline — cold start (insufficient data)", () => {
     const r = computeBaseline(stats, "refining", "conventional");
     expect(t).not.toEqual(r);
   });
+
+  it("cold-start path preserves the caller-supplied journey (not PHASE_BASELINES default)", () => {
+    const cold = computeBaseline(emptyStats, "transitioning", "columnar");
+    expect(cold.journey).toBe("columnar");
+
+    const coldUnsure = computeBaseline(emptyStats, "transitioning", "unsure");
+    expect(coldUnsure.journey).toBe("unsure");
+  });
 });
 
 describe("computeBaseline — empirical mean (sufficient data)", () => {

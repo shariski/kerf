@@ -32,7 +32,7 @@ export function computeBaseline(
   );
 
   if (totals.attempts < MIN_ATTEMPTS_FOR_PERSONAL_BASELINE) {
-    return PHASE_BASELINES[phase];
+    return { ...PHASE_BASELINES[phase], journey };
   }
 
   return {
