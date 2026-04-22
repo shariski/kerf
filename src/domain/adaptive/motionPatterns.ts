@@ -5,9 +5,16 @@ import type { CharacterStat, UserBaseline } from "../stats/types";
  *
  * Each candidate aggregates error data across a group of keys that share a
  * motion pattern (vertical column, inner column, thumb cluster). Score is
- * aggregate error rate normalized against the user's baseline error rate —
- * so candidates are comparable against character/bigram candidates that
- * use the same normalized-error convention.
+ * aggregate error rate normalized against the user's baseline error rate
+ * (so a user-relative magnitude, not an absolute one).
+ *
+ * Scale note: these scores are NOT directly comparable with computeWeaknessScore
+ * output — that function additionally applies ALPHA/BETA/GAMMA/DELTA phase
+ * coefficients and a journey bonus. Motion-pattern scores here are ~1/ALPHA
+ * times larger than character scores in transitioning phase (unweighted). Target
+ * Selection (Task 8) handles the cross-candidate rebalancing via
+ * TARGET_JOURNEY_WEIGHTS, which are hand-tuned per ADR-003 §6 Option C — those
+ * weights will be revisited with beta feedback.
  */
 
 export type VerticalColumnId =
