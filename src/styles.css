@@ -5258,7 +5258,7 @@ body {
 
 .kerf-app-footer-copyright {
   margin-top: 6px;
-  color: var(--color-kerf-text-tertiary);
+  color: var(--color-kerf-text-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {
