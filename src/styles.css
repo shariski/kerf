@@ -109,6 +109,43 @@ html, body {
   box-sizing: border-box;
 }
 
+/* ── a11y: global focus baseline (Task 4.4) ──
+   Any interactive element without a custom :focus-visible rule picks
+   up an amber outline. Per-component overrides can replace it with
+   equivalents (e.g. background flips on menu items). */
+:focus-visible {
+  outline: 2px solid var(--color-kerf-amber-base);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Skip-to-main-content link — first focusable element on every page.
+   Visually hidden until focused, then slides into the top-left. */
+.kerf-skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 8px 14px;
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-bg-base);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  border-radius: 4px;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 120ms ease;
+  z-index: 100;
+}
+.kerf-skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--color-kerf-bg-base);
+}
+@media (prefers-reduced-motion: reduce) {
+  .kerf-skip-link {
+    transition-duration: 1ms;
+  }
+}
+
 html,
 body,
 #app {
@@ -204,10 +241,13 @@ body {
   cursor: pointer;
 }
 
-.kb-key-clickable:focus {
+.kb-key-clickable:focus,
+.kb-key-clickable:focus-visible {
   outline: none;
 }
 
+/* The key's visible focus indicator is the amber stroke on its face,
+   not an outline box — outlines on SVG groups render awkwardly. */
 .kb-key-clickable:focus-visible > .kb-key-face {
   stroke: var(--color-kerf-amber-base);
   stroke-width: 2;
@@ -1761,7 +1801,10 @@ body {
   transition: border-color 120ms ease;
 }
 
-.kerf-drill-target-input:focus {
+/* Border flip is the visible focus indicator; the global :focus-visible
+   outline would double up awkwardly so we suppress it here. */
+.kerf-drill-target-input:focus,
+.kerf-drill-target-input:focus-visible {
   outline: none;
   border-color: var(--color-kerf-amber-base);
 }
