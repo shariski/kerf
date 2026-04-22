@@ -6,6 +6,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { AppNav } from '#/components/nav/AppNav'
+import { MobileGate } from '#/components/MobileGate'
 
 // Routes that own their full viewport chrome and should not render the
 // global AppNav:
@@ -51,10 +52,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {!chromeless && <AppNav />}
-        {children}
-        {import.meta.env.DEV && <DevtoolsLazy />}
-        <Scripts />
+        <MobileGate />
+        <div className="kerf-app-root">
+          {!chromeless && <AppNav />}
+          {children}
+          {import.meta.env.DEV && <DevtoolsLazy />}
+          <Scripts />
+        </div>
       </body>
     </html>
   )
