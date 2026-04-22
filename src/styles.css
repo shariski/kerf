@@ -491,6 +491,20 @@ body {
   font-weight: 600;
   text-transform: lowercase;
 }
+.kerf-pill-switch {
+  margin-left: 8px;
+  padding-left: 10px;
+  border-left: 1px solid var(--color-kerf-border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-kerf-text-tertiary);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+.kerf-pill-switch:hover,
+.kerf-pill-switch:focus-visible {
+  color: var(--color-kerf-text-secondary);
+}
 
 /* Phase badge */
 .kerf-phase-badge {
