@@ -516,7 +516,8 @@ body {
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 11px;
-  text-transform: lowercase;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--color-kerf-text-secondary);
   background: var(--color-kerf-bg-surface);
 }
