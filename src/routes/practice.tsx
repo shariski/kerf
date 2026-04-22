@@ -23,7 +23,12 @@ import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
 import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
-import { persistSession } from "#/server/persistSession";
+import {
+  flushSessionQueue,
+  persistSessionWithRetry,
+} from "#/lib/persistSessionWithRetry";
+import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
+import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 
 /**
  * Drizzle types the profile columns as `string` (the schema uses `text()`
@@ -263,6 +268,24 @@ function PracticePage() {
   // reducer's pause action is a no-op if already paused).
   useIdleAutoPause(status === "active" || status === "paused");
 
+  // Task 4.2 — warn before accidental close/reload while mid-session.
+  // Browsers only honor this after user interaction, which the in-progress
+  // session implies by definition.
+  const sessionInFlight = status === "active" || status === "paused";
+  useBeforeUnloadWarning(sessionInFlight);
+
+  // Task 4.2 — cross-tab detection. Soft signal only: we surface a
+  // banner on the pre-session stage, not a hard lock, because the user
+  // may have abandoned the other tab.
+  const otherTabActive = useOtherTabActive(sessionInFlight);
+
+  // Task 4.2 — drain any retry backlog on mount. Fire-and-forget; the
+  // in-flight guard inside the wrapper coalesces this with flushes
+  // triggered by successful saves.
+  useEffect(() => {
+    void flushSessionQueue();
+  }, []);
+
   // Post-session keyboard shortcuts — see docs/06-design-summary.md
   // §Keyboard Shortcuts. TypingArea's capture is off when status=complete,
   // so this listener does not collide with it.
@@ -382,8 +405,11 @@ function PracticePage() {
     // list it to avoid re-subscribing on every keystroke-induced filter change.
   }, [status, corpus.status, filters, navigate, profile.keyboardType, profile.transitionPhase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fire-and-forget session persistence (Task 2.8). Dedup by completedAt
-  // so Strict Mode's double-invoked effect doesn't produce two rows.
+  // Fire-and-forget session persistence (Task 2.8 / 4.2). Dedup by
+  // completedAt so Strict Mode's double-invoked effect doesn't produce
+  // two rows. `persistSessionWithRetry` swallows errors (queueing the
+  // payload for later), so the summary UI stands on its own regardless
+  // of network outcome.
   const lastPersistedAt = useRef<number | null>(null);
   useEffect(() => {
     if (status !== "complete") return;
@@ -398,31 +424,26 @@ function PracticePage() {
     const endedAt = new Date();
     const startedAt = new Date(endedAt.getTime() - elapsedMs);
 
-    persistSession({
-      data: {
-        sessionId: crypto.randomUUID(),
-        keyboardProfileId: profile.id,
-        mode: sessionModeRef.current,
-        target: state.target,
-        events: state.events.map((e) => ({
-          targetChar: e.targetChar,
-          actualChar: e.actualChar,
-          isError: e.isError,
-          keystrokeMs: e.keystrokeMs,
-          prevChar: e.prevChar,
-          timestamp: e.timestamp.toISOString(),
-        })),
-        startedAt: startedAt.toISOString(),
-        endedAt: endedAt.toISOString(),
-        phase: profile.transitionPhase,
-        filterConfig: {
-          handIsolation: filters.handIsolation,
-          maxWordLength: filters.maxWordLength,
-        },
+    void persistSessionWithRetry({
+      sessionId: crypto.randomUUID(),
+      keyboardProfileId: profile.id,
+      mode: sessionModeRef.current,
+      target: state.target,
+      events: state.events.map((e) => ({
+        targetChar: e.targetChar,
+        actualChar: e.actualChar,
+        isError: e.isError,
+        keystrokeMs: e.keystrokeMs,
+        prevChar: e.prevChar,
+        timestamp: e.timestamp.toISOString(),
+      })),
+      startedAt: startedAt.toISOString(),
+      endedAt: endedAt.toISOString(),
+      phase: profile.transitionPhase,
+      filterConfig: {
+        handIsolation: filters.handIsolation,
+        maxWordLength: filters.maxWordLength,
       },
-    }).catch((err) => {
-      // Summary UI is already rendered — log only per §2.8 decision.
-      console.error("persistSession failed:", err);
     });
   }, [status, profile.id, profile.transitionPhase, filters]);
 
@@ -512,6 +533,16 @@ function PracticePage() {
           }
           isFirstSession={useDiagnostic}
         />
+        {otherTabActive && (
+          <p
+            className="kerf-multitab-banner"
+            role="status"
+            aria-live="polite"
+          >
+            Another tab has an active practice session. Starting here will
+            save as a separate session alongside it.
+          </p>
+        )}
         {corpus.status === "error" && (
           <p className="kerf-corpus-error" role="alert" aria-live="polite">
             Could not load the word list. Refresh the page to try again.
