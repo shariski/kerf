@@ -5,8 +5,6 @@
 > Estimated total timeline: 12–18 weeks for Phase A MVP (solo developer, part-time)
 > Last updated: 2026-04-22
 
-<!-- 2026-04-22 (second bump): Task 4.4 merged -->
-
 
 ## Phase A / Phase B Context
 
