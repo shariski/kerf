@@ -5022,10 +5022,16 @@ body {
   }
   .kerf-mobile-gate-logo {
     font-family: var(--font-brand, "Fraunces", Georgia, serif);
-    font-size: 24px;
-    color: var(--color-kerf-amber-base);
+    font-weight: 700;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--color-kerf-text-primary);
     margin-bottom: 24px;
     letter-spacing: -0.01em;
+  }
+  .kerf-mobile-gate-logo-accent {
+    color: var(--color-kerf-amber-base);
   }
   .kerf-mobile-gate-headline {
     font-family: var(--font-sans, "Inter", sans-serif);

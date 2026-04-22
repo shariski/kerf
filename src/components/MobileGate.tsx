@@ -16,7 +16,7 @@ export function MobileGate() {
     >
       <div className="kerf-mobile-gate-inner">
         <div className="kerf-mobile-gate-logo" aria-hidden>
-          kerf.
+          kerf<span className="kerf-mobile-gate-logo-accent">.</span>
         </div>
         <h1
           id="kerf-mobile-gate-headline"
