@@ -463,7 +463,7 @@ function PracticePage() {
     });
     const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
     return (
-      <main className="kerf-practice-main">
+      <main id="main-content" className="kerf-practice-main">
         <div className="kerf-practice-container kerf-stage-fade-in">
           <PostSessionStage
             target={state.target}
@@ -483,7 +483,7 @@ function PracticePage() {
     // visual "the clock is paused, type to resume" signal.
     const idleAutoPaused = status === "paused" && !paused;
     return (
-      <main className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
+      <main id="main-content" className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
           showKeyboard={pauseSettings.showKeyboard}
@@ -514,7 +514,7 @@ function PracticePage() {
   }
 
   return (
-    <main className="kerf-practice-main">
+    <main id="main-content" className="kerf-practice-main">
       <div className="kerf-practice-container kerf-stage-fade-in">
         <PreSessionStage
           keyboardType={profile.keyboardType}

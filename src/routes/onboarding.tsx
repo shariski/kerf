@@ -148,7 +148,7 @@ export function OnboardingPage() {
   }, [stage, goPractice]);
 
   return (
-    <main className="min-h-screen bg-kerf-bg-base text-kerf-text-primary flex flex-col">
+    <main id="main-content" className="min-h-screen bg-kerf-bg-base text-kerf-text-primary flex flex-col">
       <TopBar stage={stage} />
 
       <section className="flex-1 flex flex-col items-center justify-center px-8 py-12 max-w-[1100px] w-full mx-auto">

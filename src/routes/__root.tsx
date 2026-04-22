@@ -52,6 +52,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a href="#main-content" className="kerf-skip-link">
+          Skip to main content
+        </a>
         <MobileGate />
         <div className="kerf-app-root">
           {!chromeless && <AppNav />}

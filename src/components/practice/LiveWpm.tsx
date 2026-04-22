@@ -94,6 +94,7 @@ export function LiveWpm({ visible }: Props) {
       className="kerf-live-wpm"
       data-visible={visible || undefined}
       aria-label={`Live speed: ${wpm} words per minute`}
+      aria-live="off"
     >
       <span className="kerf-live-wpm-value">{wpm}</span>
       <span className="kerf-live-wpm-unit"> wpm</span>

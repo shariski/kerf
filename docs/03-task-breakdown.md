@@ -5,6 +5,7 @@
 > Estimated total timeline: 12–18 weeks for Phase A MVP (solo developer, part-time)
 > Last updated: 2026-04-22
 
+
 ## Phase A / Phase B Context
 
 This document covers **Phase A only** — the first shippable MVP that validates the transition-focused positioning with real users. Phase A deliberately does NOT include:

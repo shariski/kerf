@@ -40,7 +40,7 @@ function LoginPage() {
 
   if (submitted) {
     return (
-      <main className="min-h-screen bg-kerf-bg-base flex items-center justify-center">
+      <main id="main-content" className="min-h-screen bg-kerf-bg-base flex items-center justify-center">
         <div className="max-w-sm w-full px-6 text-center space-y-3">
           <p
             className="text-kerf-text-primary"
@@ -60,7 +60,7 @@ function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-kerf-bg-base flex items-center justify-center">
+    <main id="main-content" className="min-h-screen bg-kerf-bg-base flex items-center justify-center">
       <div className="max-w-sm w-full px-6 space-y-6">
         <h1
           className="text-kerf-text-primary tracking-tight"

@@ -20,6 +20,7 @@ See `docs/01-product-spec.md §9` for the full rationale. Quick list:
 
 - **Node.js** 22 LTS (`node --version` should show `v22.x.x`)
 - **Docker** (for Task 0.2 local database setup)
+- **Playwright Chromium** (one-time, for `npm run test:a11y`) — `npx playwright install chromium`
 
 ## Local development
 
@@ -81,3 +82,4 @@ npm run lint        # linter
 - [x] Phase 4 / Task 4.1: First-session experience — curated diagnostic exercise for zero-data profiles, `hasAnySessionOnActiveProfile` gate on `/practice`, mode `'diagnostic'` plumbed through `persistSession`, dismissible onboarding tooltip above `TypingArea` (auto-fades after ~1 word), accuracy-first pre-session copy, plus the Home/lobby page at `/` (both zero-data and returning-user states per `home-wireframe.html`) since no other numbered task covered it
 - [x] Phase 4 / Task 4.2: Error handling & edge cases — network failure during save retries via localStorage-backed queue (`persistSessionWithRetry` + `sessionRetryQueue`, capped at 10 entries, FIFO with `sessionId` dedup, drained on mount + after any successful save), `beforeunload` warning hook while a session is in flight, cross-tab detection via `BroadcastChannel` (`useOtherTabActive`) with a quiet banner on the pre-session stage in both `/practice` and `/practice/drill`. No partial-session restore — Phase A scope stays "warn, then accept whatever you typed" per §B6.
 - [x] Phase 4 / Task 4.3: Responsive design — full-screen `<MobileGate />` at viewports below 768px via CSS media query; desktop/tablet UI (≥768px) unchanged. Pure CSS swap in `__root.tsx`, no JS viewport detection, no SSR hydration swap. Gate applies uniformly to every route.
+- [x] Phase 4 / Task 4.4: Accessibility basics — WCAG 2.1 AA via `@axe-core/playwright` sweep (`npm run test:a11y`) across 8 routes/states, all green. Global `:focus-visible` amber ring, skip-to-main-content link, `<main id="main-content">` landmark on every route, explicit `aria-live="off"` on LiveWpm, contract + keyboard ref + contrast table documented in `docs/a11y.md`.

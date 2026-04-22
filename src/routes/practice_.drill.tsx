@@ -344,7 +344,7 @@ function DrillPage() {
       targetChars: activeDrill.targetChars,
     });
     return (
-      <main className="kerf-practice-main">
+      <main id="main-content" className="kerf-practice-main">
         <div className="kerf-practice-container kerf-stage-fade-in">
           <DrillPostSessionStage
             drillLabel={activeDrill.label}
@@ -362,7 +362,7 @@ function DrillPage() {
   if (status === "active" || status === "paused") {
     const idleAutoPaused = status === "paused" && !paused;
     return (
-      <main className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
+      <main id="main-content" className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
         {activeDrill && <DrillActiveHeader label={activeDrill.label} />}
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
@@ -396,7 +396,7 @@ function DrillPage() {
   // waiting for the corpus load before auto-starting.
   const showPicker = !hasRouteDrill;
   return (
-    <main className="kerf-practice-main">
+    <main id="main-content" className="kerf-practice-main">
       <div className="kerf-practice-container kerf-stage-fade-in">
         {showPicker ? (
           <DrillPreSessionStage
