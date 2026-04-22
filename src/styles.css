@@ -5093,3 +5093,120 @@ body {
   }
 }
 
+/* =================================================================
+   Doc pages (Task 4.5)
+   Shared layout for /how-it-works, /why-split-is-hard, /faq,
+   /privacy, /terms. 720px reading column, generous line-height.
+   ================================================================= */
+
+.kerf-doc-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 120px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-title {
+  font-family: var(--font-sans);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+
+.kerf-doc-lede {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-kerf-text-secondary);
+  margin: 0 0 24px;
+}
+
+.kerf-doc-effective-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+  margin: 0 0 24px;
+}
+
+.kerf-doc-body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-body h2 {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 36px 0 12px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-body h3 {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 28px 0 8px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-body p {
+  margin: 0 0 16px;
+}
+
+.kerf-doc-body ul,
+.kerf-doc-body ol {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+
+.kerf-doc-body li {
+  margin-bottom: 8px;
+}
+
+.kerf-doc-body code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-doc-body strong {
+  color: var(--color-kerf-text-primary);
+  font-weight: 700;
+}
+
+.kerf-doc-body a {
+  color: var(--color-kerf-amber-base);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.kerf-doc-body a:hover,
+.kerf-doc-body a:focus-visible {
+  color: var(--color-kerf-amber-hover);
+}
+
+.kerf-doc-template-banner {
+  max-width: 720px;
+  margin: 32px auto 0;
+  padding: 12px 18px;
+  border-left: 3px solid var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-subtle);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+  border-radius: 0 4px 4px 0;
+}
+
+.kerf-doc-placeholder {
+  background: var(--color-kerf-bg-base);
+  color: var(--color-kerf-amber-hover);
+  padding: 1px 4px;
+}
+
