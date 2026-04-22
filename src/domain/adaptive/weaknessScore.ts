@@ -4,22 +4,19 @@ import type {
   TransitionPhase,
   UserBaseline,
 } from "../stats/types";
+import type { JourneyCode } from "./journey";
 
 /**
- * Weakness scoring per 02-architecture.md §4.1. Phase-aware coefficients
- * shift weight from errors (transitioning — "can't find the key") to
- * hesitation and slowness (refining — "know it, not fluent yet").
+ * Weakness scoring per 02-architecture.md §4.1. Two branching axes:
  *
- * Two design choices the doc leaves implicit:
+ *   - phase (transitioning | refining) — controls ALPHA/BETA/GAMMA mix.
+ *     Errors dominate in transitioning; hesitation/slowness take over in refining.
+ *   - journey (conventional | columnar | unsure) — controls which character
+ *     classes get a bonus. conventional: vertical-reach (off-home-row) chars.
+ *     columnar: inner-column (B/G/T, H/N/Y) chars. unsure: same as conventional.
  *
- * 1. The doc snippet's `unit.character?.toLowerCase()` returns undefined
- *    for bigrams (which carry `bigram`, not `character`), so the
- *    inner-column transition bonus naturally applies only to single
- *    characters. We preserve that behavior — bigrams never get the bonus.
- *
- * 2. The doc references `unit.frequencyInLanguage`, but stat records
- *    don't carry corpus frequency. The caller (typically the exercise
- *    generator with the corpus loaded) supplies it as a separate arg.
+ * Both bonuses apply only in 'transitioning' phase. In 'refining' the pure
+ * weakness profile takes over. ADR-003 §2 & §5.
  */
 
 export const COEFFICIENTS: Record<
@@ -30,6 +27,18 @@ export const COEFFICIENTS: Record<
   refining: { ALPHA: 0.3, BETA: 0.35, GAMMA: 0.25, DELTA: 0.1 },
 };
 
+export const JOURNEY_BONUSES: Record<
+  JourneyCode,
+  { INNER_COLUMN_BONUS: number; VERTICAL_REACH_BONUS: number }
+> = {
+  conventional: { INNER_COLUMN_BONUS: 0, VERTICAL_REACH_BONUS: 0.3 },
+  columnar: { INNER_COLUMN_BONUS: 0.3, VERTICAL_REACH_BONUS: 0 },
+  unsure: { INNER_COLUMN_BONUS: 0, VERTICAL_REACH_BONUS: 0.3 },
+};
+
+/** Backward-compat: former single-journey constant. Equals conventional default. */
+export const INNER_COLUMN_BONUS = 0.3;
+
 export const INNER_COLUMN: ReadonlySet<string> = new Set([
   "b",
   "g",
@@ -39,7 +48,23 @@ export const INNER_COLUMN: ReadonlySet<string> = new Set([
   "y",
 ]);
 
-export const INNER_COLUMN_BONUS = 0.3;
+/**
+ * Home-row membership per the base layer (Sofle + Lily58 share home-row keys).
+ * Keys off home row (row 1 top, row 3 bottom) are eligible for the
+ * VERTICAL_REACH_BONUS under the conventional journey. Thumb cluster (row 4)
+ * is not "vertical reach" — thumbs get their own drill category.
+ */
+const HOME_ROW_KEYS: ReadonlySet<string> = new Set([
+  "a", "s", "d", "f", "g",
+  "h", "j", "k", "l", ";",
+]);
+
+function isOffHomeRow(unit: CharacterStat | BigramStat): boolean {
+  if (!isCharacter(unit)) return false;
+  const ch = unit.character.toLowerCase();
+  if (!/^[a-z]$/.test(ch)) return false; // letters only
+  return !HOME_ROW_KEYS.has(ch);
+}
 
 /** Per 02-architecture.md §4.1 edge cases: units with fewer than this
  * many attempts are low-confidence and should be excluded from ranking
@@ -73,12 +98,16 @@ export function computeWeaknessScore(
   );
 
   const c = COEFFICIENTS[phase];
+  const j = JOURNEY_BONUSES[baseline.journey];
 
-  const transitionBonus =
-    phase === "transitioning" &&
-    isCharacter(unit) &&
-    INNER_COLUMN.has(unit.character.toLowerCase())
-      ? INNER_COLUMN_BONUS
+  // Journey bonus applies in transitioning phase only, and only to single
+  // characters (bigrams are diffuse — they don't belong to one column).
+  const journeyBonus =
+    phase === "transitioning" && isCharacter(unit)
+      ? (INNER_COLUMN.has(unit.character.toLowerCase())
+          ? j.INNER_COLUMN_BONUS
+          : 0) +
+        (isOffHomeRow(unit) ? j.VERTICAL_REACH_BONUS : 0)
       : 0;
 
   return (
@@ -86,7 +115,7 @@ export function computeWeaknessScore(
     c.BETA * normalizedHesitation +
     c.GAMMA * normalizedSlowness -
     c.DELTA * frequencyInLanguage +
-    transitionBonus
+    journeyBonus
   );
 }
 
