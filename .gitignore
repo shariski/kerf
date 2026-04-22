@@ -21,3 +21,14 @@ todos.json
 .serena/
 docs/superpowers/
 .playwright-mcp/
+
+# Playwright a11y test artifacts
+test-results/
+playwright-report/
+audit-*.png
+t2-*.png
+t3-*.png
+t4-*.png
+t6-*.png
+t7-*.png
+logo-fix-verify.png
