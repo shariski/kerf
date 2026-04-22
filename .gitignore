@@ -32,3 +32,6 @@ t4-*.png
 t6-*.png
 t7-*.png
 logo-fix-verify.png
+
+# Added by code-review-graph
+.code-review-graph/
