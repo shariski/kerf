@@ -1,9 +1,11 @@
 # kerf: Task Breakdown for Claude Code
 
-> Status: v0.2 — transition-aware MVP (Phase A)
+> Status: v0.3 — deliberate-practice architecture (ADR-003)
 > Strategy: build incrementally with shippable milestones. Every phase produces something demo-able.
-> Estimated total timeline: 12–18 weeks for Phase A MVP (solo developer, part-time)
+> Estimated total timeline: 18–26 weeks for Phase A MVP (solo developer, part-time). ADR-003 added ~6–9 calendar weeks on top of the original 12–18 week estimate.
 > Last updated: 2026-04-22
+> Major revision (v0.3): ADR-003 accepted. New Phase 5 (Deliberate-Practice Architecture) inserted between polish and launch prep; Tasks 4.5, 4.6, 4.7 sequenced after Phase 5. Former Phase 5 (MVP Phase B) renumbered to Phase 6; Phase 6+ Post-MVP renumbered to Phase 7+. See `docs/00-design-evolution.md` ADR-003 §6 for work-stream estimates.
+> Prior revisions: v0.2 (transition-aware MVP, 2026-04-18).
 
 
 ## Phase A / Phase B Context
@@ -14,7 +16,7 @@ This document covers **Phase A only** — the first shippable MVP that validates
 - LLM-based content generation (V2, separate roadmap)
 - Additional keyboards beyond Sofle and Lily58 (V2+)
 
-Phase A ships a working transition-aware adaptive engine, split-specific metrics, error review, and phase detection. Phase B is committed to only after Phase A beta validates the positioning works.
+Phase A ships a working transition-aware adaptive engine, split-specific metrics, error review, phase detection, and — per ADR-003 — a setup-aware journey model, three-stage deliberate-practice session loop, and columnar-motion drill library. Phase B is committed to only after Phase A beta validates the positioning works.
 
 See `01-product-spec.md` §5 and §7 for full Phase A scope definition.
 
@@ -157,14 +159,14 @@ This means Claude Code never needs SSH access or VPS credentials.
 
 ### Task 1.3: Adaptive engine (transition-aware, word-picker)
 
-**Content generation strategy for MVP: word-picker (see 02-architecture.md §4.2).** The engine selects from a static English word corpus, not LLM-generated content. LLM-based content generation is a V2 feature.
+**Content generation strategy for MVP: word-picker (see 02-architecture.md §4.3).** The engine selects from a static English word corpus, not LLM-generated content. LLM-based content generation is a V2 feature. Phase 5 (ADR-003) adds a second content source — the pre-authored columnar-motion drill library — for motion-pattern targets.
 
 **Claude Code scope:**
 
 - Curate English word corpus (target ~10,000 words): source from a permissively-licensed frequency list (e.g., Google 10000 English, or Peter Norvig's corpus), filter out offensive/profane words manually
 - Precompute corpus metadata: for each word compute length, constituent characters, bigrams, frequency rank, hand distribution (per Sofle and Lily58 finger assignment tables), **columnar complexity score** (how much inner-column content does this word have)
 - Store corpus as static JSON file (target <300KB) loaded client-side
-- Implement `weaknessScore.ts` with **phase-aware coefficients** per 02-architecture.md §4.1 (COEFFICIENTS object with `transitioning` and `refining` variants + inner-column transition bonus)
+- Implement `weaknessScore.ts` with **phase-aware coefficients** per 02-architecture.md §4.1 (COEFFICIENTS object with `transitioning` and `refining` variants + inner-column transition bonus). _Phase 5 (ADR-003) extends this to phase- and journey-aware with JOURNEY_BONUSES._
 - Implement `exerciseGenerator.ts` (adaptive mode, word-picker) with **phase-aware content weighting** — transitioning phase biases toward columnar-heavy words, refining phase uses pure weakness profile
 - Implement `drillGenerator.ts` (targeted drill) with synthetic string generation
 - Implement preset drill modes: "inner column" (B, G, H, N, T, Y focus), "thumb cluster" (space + thumb keys), "cross-hand bigrams" (th, he, in, etc.)
@@ -186,7 +188,7 @@ This means Claude Code never needs SSH access or VPS credentials.
 
 **Claude Code scope:**
 
-- Implement `computeSplitMetrics.ts` per 02-architecture.md §4.5
+- Implement `computeSplitMetrics.ts` per 02-architecture.md §4.6
 - Compute 4 metrics from keystroke events:
   - Inner column error rate (B, G, H, N, T, Y)
   - Thumb cluster decision time (time to press thumb keys)
@@ -219,7 +221,7 @@ This means Claude Code never needs SSH access or VPS credentials.
 
 **Claude Code scope:**
 
-- Implement `phaseSuggestion.ts` per 02-architecture.md §4.6
+- Implement `phaseSuggestion.ts` per 02-architecture.md §4.7
 - Logic: detect when user should transition from `transitioning` → `refining` (10+ sessions with >95% accuracy AND <8% inner column error), or vice versa (return after 2+ weeks break with accuracy drop)
 - Output: `PhaseTransitionSignal` with suggested phase, reason (plain language), and confidence level
 - Unit tests covering both directions and edge cases (insufficient sessions, mixed signals)
@@ -483,11 +485,13 @@ Task 2.5 implements the inline post-session summary. This section documents it a
 
 ---
 
-## Phase 4: Polish & Launch Prep (Estimate: 1.5–2 weeks)
+## Phase 4: Polish & Launch Prep (Estimate: 1.5–2 weeks; 4.1–4.5 shipped, 4.6–4.7 sequenced after Phase 5)
 
 **Goal**: ready to deploy to your VPS and open to beta users.
 
 **This is where infra work begins.** Significant split between Claude Code scope (artifacts) and your scope (deployment).
+
+**Sequencing note (ADR-003).** Tasks 4.1–4.5 (first-session UX, error handling, responsive design, accessibility, docs page) have shipped. Tasks 4.6 (deployment artifacts) and 4.7 (beta launch) are **sequenced after Phase 5 (Deliberate-Practice Architecture)** — beta ships the ADR-003 product, not the v0.4 product. Deploying before Phase 5 lands would mean a near-immediate second deploy; docs page content will also need light updates post-Phase-5 but that's in-scope for Phase 5 Task 5.8 integration work.
 
 ### Task 4.1: First-session experience
 
@@ -573,11 +577,122 @@ Task 2.5 implements the inline post-session summary. This section documents it a
 - Engage with feedback
 - Track Phase 1 success metrics from product spec
 
-**Phase 4 milestone**: live at your domain. First beta users using it.
+**Phase 4 milestone**: live at your domain. First beta users using it. (Achieved only after Phase 5 lands — see sequencing note above.)
 
 ---
 
-## Phase 5: MVP Phase B (Gated — Post-Beta Validation Only)
+## Phase 5: Deliberate-Practice Architecture (ADR-003 — Estimate: 6–9 calendar weeks / ~5–7 weeks Claude Code work)
+
+**Goal**: implement ADR-003. Shift the product from "adaptive typing for split" to "deliberate practice for your split-keyboard transition." Ship the setup-aware journey model, three-stage session loop, and columnar-motion drill library.
+
+**Context:** `docs/00-design-evolution.md` ADR-003 is the canonical spec. `01-product-spec.md` v0.5 and `02-architecture.md` v0.3 reflect ADR-003 at spec level. Phase 5 tasks turn spec into code.
+
+**Scope boundaries reminder (CLAUDE.md §B6, §B9, §B10):**
+
+- Phase A only. No week-by-week curriculum (Phase 6), no inferred-style diagnostic (Phase 6), no alternative layouts beyond Sofle/Lily58.
+- Claude Code produces code + tests + migrations committed to repo; developer executes production deployment.
+- When a task tempts toward "just a little more," pause and ask. ADR-003's scope is fixed.
+
+### Task 5.1: Journey capture at onboarding
+
+**Claude Code scope:**
+
+- Add `finger_assignment` nullable column to `keyboard_profiles` (Drizzle migration, backward-compatible)
+- Add `JourneyCode` type (`"conventional" | "columnar" | "unsure"`) to domain types
+- Extend onboarding flow with the finger-assignment question per ADR-003 §2 wording (three-option radio with explanatory microcopy)
+- Write one-time selection card shown on `/practice` entry for pre-ADR-003 users (no journey recorded)
+- Settings page: journey selector (reuses same three-option input; persists on save)
+- Tests: migration up/down; onboarding flow captures journey; Settings toggle persists
+
+**Your scope:**
+
+- Apply migration to production after Phase 5 lands (DEPLOYMENT.md will document this)
+
+### Task 5.2: Columnar-motion drill library
+
+**Claude Code scope:**
+
+- Implement `src/domain/adaptive/motionPatterns.ts` — candidate scoring for vertical-column, inner-column, thumb-cluster targets per 02-architecture.md §4.2
+- Implement `src/domain/adaptive/drillLibrary.ts` — loader + `lookupDrill(target, journey)` function
+- Author `src/domain/adaptive/drillLibraryData.ts` — ~33 entries across 5 categories per ADR-003 §3 (vertical-column ~20, inner-column ~8, thumb-cluster ~5; hand-isolation and cross-hand-bigram reuse existing generators)
+- Exercise strings authored mechanically from finger table; briefing copy stubs initially (V1 template placeholders — final copy in Task 5.6)
+- Tests: every drill entry validates against schema; `lookupDrill` returns the expected entry for each target type; unit tests for `motionPatterns` scoring
+
+### Task 5.3: Target Selection engine layer
+
+**Claude Code scope:**
+
+- Implement `src/domain/adaptive/targetSelection.ts` per 02-architecture.md §4.2
+- `selectTarget(stats, baseline, phase, journey)` returning `SessionTarget`
+- Journey weighting via `TARGET_JOURNEY_WEIGHTS` constant
+- Low-confidence fallback → `diagnostic` target
+- Extend `weaknessScore.ts` with `JOURNEY_BONUSES` and the journey parameter per updated 02-architecture.md §4.1
+- Tests: exhaustive unit tests per CLAUDE.md §B8 — target selection for each journey × phase combo, low-confidence fallback, tie-breaking, seeded determinism
+
+### Task 5.4: generateSession refactor + session_targets persistence
+
+**Claude Code scope:**
+
+- Drizzle migration: new `session_targets` table per 02-architecture.md §2
+- Implement `src/domain/adaptive/sessionGenerator.ts` — `generateSession({ stats, baseline, phase, journey, corpus, options, targetOverride })` returning `SessionOutput`
+- Existing `generateExercise` becomes a subroutine called when target type is character/bigram
+- Extend `persistSession` to write one `session_targets` row per session (declared_at at start, outcome fields at end)
+- Extend `useKeystrokeCapture` / `sessionStore` with a `target_attempts` / `target_errors` accumulator scoped to `target.keys`
+- Tests: `generateSession` returns the expected shape for each target type; session_targets row created + updated end-to-end; accumulator counts keystrokes correctly
+
+**Your scope:**
+
+- Apply migration to production after Phase 5 lands
+
+### Task 5.5: Briefing UI + during-session target ribbon + post-session intent echo
+
+**Claude Code scope:**
+
+- Briefing screen (new state in `/practice` flow): target name, 2–3 lines of motion/reason copy, compact target-keys diagram, explicit Start button (per ADR-003 §4 Stage 1)
+- Same-day compact variant: target name + 1 line (per ADR-003 §4 re-show behavior)
+- Target ribbon component: static strip above `TypingArea` (`◎ Target: {label} — {keys}`). Neutral color, no live counter, no color change (per ADR-003 §4 Stage 2 load-bearing constraints)
+- `KeyboardSVG`: accept optional `targetKeys` prop; render subtle ivory ring on those keys (per 01-product-spec.md §5.2)
+- Post-session: intent-echo block above existing summary ("You targeted: …"); per-target-key breakdown table (e.g. `W · 94% accuracy · 18 attempts`); soft next-session preview line (per ADR-003 §4 Stage 3)
+- Zero verdict language anywhere. Self-check against CLAUDE.md §B3 no-verdict rule for every string
+- Tests: ribbon does not update mid-session; briefing screen renders correct keys/label; post-session breakdown computes correct counts from keystrokes
+
+**Design reference:** `design/practice-page-wireframe.html` — updates here are Pass 2 scope (separate session). Task 5.5 may land the implementation ahead of the wireframe; use ADR-003 §4 as the canonical visual spec in the meantime.
+
+### Task 5.6: Briefing copy templates (V1–V7)
+
+**Claude Code scope:**
+
+- Implement `src/domain/adaptive/briefingTemplates.ts` — V1–V7 templates from ADR-003 §4, with `{braces}` placeholders filled from drill metadata / engine output
+- Per-journey variants for V1 (vertical-column) and V2 (inner-column)
+- `buildBriefing(target, journey, phase)` returning `{ text, keys }`
+- Review pass: every template string self-checks against CLAUDE.md §B3 (no hype, no verdict, quietly affirming, phase-aware tone)
+- Tests: every template produces valid output for the full target × journey × phase grid
+
+### Task 5.7: Transparency reframe (copy-only, no code removal)
+
+**Claude Code scope:**
+
+- Phase coefficients transparency panel: replace label/copy with honest framing — "hand-tuned starting values, not derived from your data — we'll revisit with beta feedback" (per ADR-003 §6 Option C)
+- Columnar stability metric label → "Columnar stability (experimental)" with explanatory footnote (per 02-architecture.md §4.6)
+- Phase-transition suggestion banner → "engine hypothesis, you decide" framing (per 02-architecture.md §4.7)
+- No code deleted; no metrics removed; no thresholds changed. Copy-only.
+- Self-check against CLAUDE.md §B3
+
+### Task 5.8: Integration, QA, and beta-readiness
+
+**Claude Code scope:**
+
+- End-to-end manual test of the full flow: onboarding → journey capture → first session → briefing → execution with ribbon → post-session intent echo → dashboard target history
+- Run every domain-logic unit test; fix regressions
+- Reconcile any inconsistencies between wireframes and implementation (wireframes lag; implementation is canonical)
+- Update `README.md` `## Status` checklist with Phase 5 task ticks as they land (per CLAUDE.md §B11)
+- Verify no Phase 6 (former Phase B) features slipped in
+
+**Phase 5 milestone:** local dev environment shows a user onboarding with journey capture, completing a briefed session with a static target ribbon, and seeing a non-verdict post-session breakdown. No production deploy yet; Tasks 4.6 and 4.7 follow.
+
+---
+
+## Phase 6: MVP Phase B (Gated — Post-Beta Validation Only)
 
 **Important**: Do NOT start Phase B until Phase A beta validates the transition-focused positioning (see 01-product-spec.md §8 "Phase A → Phase B transition gate").
 
@@ -591,7 +706,7 @@ Task 2.5 implements the inline post-session summary. This section documents it a
 
 Phase B tasks will be specced in detail only after Phase A beta provides clear feedback. Don't pre-scope this.
 
-## Phase 6+: Post-MVP (Reactive)
+## Phase 7+: Post-MVP (Reactive)
 
 Driven by beta feedback. Candidates from product spec:
 

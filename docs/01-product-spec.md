@@ -1,21 +1,22 @@
 # kerf: MVP Product Specification
 
-> Status: v0.2 — transition-focused positioning
-> Last updated: 2026-04-18
-> Major revision: pivoted from "adaptive typing for split" to "structured transition program". Added core values, split-specific metrics, Phase A/B split.
+> Status: v0.5 — deliberate-practice architecture
+> Last updated: 2026-04-22
+> Major revision (v0.5): ADR-003 accepted. Repositioned as "deliberate practice for split-keyboard transition". Added setup-aware journey model (conventional vs columnar finger assignment), three-stage session loop (briefing → attention → evaluation), columnar-motion drill library. Updated Core Value 2.2 with skill-engineered vs reward-engineered distinction. Replaced Differentiator #4. See `docs/00-design-evolution.md` ADR-003.
+> Prior revisions: v0.4 (tech stack finalized, 2026-04-18), v0.3 (rebrand to kerf, 2026-04-18), v0.2 (transition-focused positioning, 2026-04-18), v0.1 (initial consolidation, 2026-04-17).
 
 ## 1. Product Positioning
 
 kerf is a **transition-focused typing platform** specifically designed for people migrating from row-staggered QWERTY keyboards to split columnar keyboards (Sofle and Lily58 in MVP). The platform treats split keyboard adoption as a distinct learning journey with its own pain points, not as a generic "learn to type faster" program.
 
-**Core positioning statement**: "Structured transition program for QWERTY-to-split keyboards. Adaptive engine. Accuracy first."
+**Core positioning statement**: "Deliberate practice for your split-keyboard transition. Setup-aware. Attention-driven. Accuracy-first."
 
 **Key differentiators from existing platforms** (TypingClub, Typerfast, Keybr, Monkeytype, etc.):
 
-1. **Transition-aware engine**: Platform recognizes two distinct user phases — early transition (building columnar muscle memory) vs refinement (polishing speed and flow). Content selection, metrics, and feedback adapt to the phase.
+1. **Transition-aware, setup-aware engine**: Platform recognizes two distinct user phases — `transitioning` (building columnar muscle memory) vs `refining` (polishing speed and flow) — and two distinct finger-assignment journeys (conventional-mapping vs strict-columnar) captured at onboarding. Content selection, metrics, and feedback adapt to both.
 2. **Split-specific metrics**: Instead of generic "mastered 22/26 letters", metrics surface what actually matters for transitioners — inner column (B, G, H, N, T, Y) error rate, thumb cluster decision time, cross-hand bigram timing.
 3. **Accurate visual representation** of the user's specific split keyboard with correct columnar finger assignments (not standard QWERTY assignments).
-4. **Meta-cognitive transparency**: Users see what they're learning, why, and how progress is measured. No black-box gamification.
+4. **Deliberate-practice session architecture**: every session is an explicit intent-attention-evaluation cycle. You know what you're working on before you start, it stays present while you practice, and you see exactly how you did on that thing afterward. The platform surfaces clear numbers; you judge yourself.
 5. **Accuracy-first values**: Content, copy, and feedback consistently reward accuracy improvement over speed. Platform does not celebrate speed gains at the cost of accuracy.
 
 ## 2. Core Values (Product Principles)
@@ -34,12 +35,20 @@ Typing fast is only meaningful if typing accurately. Muscle memory forms through
 
 ### 2.2 Deliberate practice, not addictive practice
 
-The platform is a tool for learning, not a slot machine. Consequences:
+The platform is a tool for focused skill acquisition, not a slot machine.
 
+Deliberate practice requires structural attention: explicit target, persistent focus during execution, honest evaluation after. kerf embraces this — every session is built around it.
+
+What kerf rejects is *reward-engineered* engagement: streaks that punish, FOMO timers, celebratory verdicts, dopamine loops. These are engagement mechanisms dressed as pedagogy. kerf distinguishes the two: **skill-engineered attention is a learning accelerator; reward-engineered engagement is a retention tactic.** The first, we build into every session. The second, we refuse.
+
+Specific consequences:
+
+- No leaderboards or speed competitions
 - No streak-break anxiety. Streak counter exists but missing a day doesn't reset everything or trigger alerts
 - No artificial urgency, countdown timers, or FOMO mechanics
+- **No session pass/fail verdicts.** The platform surfaces target performance numbers; the user evaluates themselves
+- Engine insight stays honest: if the user hasn't improved in 2 weeks, the platform says so
 - Platform encourages breaks when users show signs of fatigue (declining accuracy late in sessions)
-- Engine insight is honest: if user hasn't improved in 2 weeks, platform says so, not "you're doing great!"
 
 ### 2.3 Transition is the primary journey
 
@@ -89,14 +98,16 @@ Onboarding collects:
 - Keyboard choice (Sofle or Lily58)
 - Dominant hand (left or right)
 - Self-reported transition phase (first day / few weeks in / comfortable)
+- **Finger-assignment journey** (new — ADR-003 §2): "Like QWERTY, just on a split board" (conventional-mapping) / "One finger per column" (strict-columnar) / "I'm not sure" (defaults to conventional, flagged internally as `unsure`)
 
 Internally maps to:
 
-- Finger assignment table per layout
-- Initial transition phase (affects engine behavior — see §5.5)
+- Finger assignment table per layout (shared across both Phase A journeys — per ADR-003 §2)
+- Initial transition phase (affects engine behavior — see §5.3)
+- Journey code on `keyboard_profile.finger_assignment` (affects Target Selection and weakness-score bonuses — see §5.3)
 - Initial baseline assumptions (new transitioner starts with higher expected error rate than comfortable user)
 
-Profile can be changed at any time (multi-keyboard support).
+Profile (including journey) can be changed at any time via Settings. Multi-keyboard support preserved.
 
 **First-session diagnostic** (Phase A lightweight version): The first practice session after onboarding is a curated 3-minute exercise covering home row, inner column (B, G, H, N, T, Y), and thumb cluster basics. Engine captures baseline error rates per area. This informs adaptive weighting for subsequent sessions.
 
@@ -108,41 +119,57 @@ Real-time SVG render of both halves matching the user's chosen layout:
 - Highlighted target key (next key to press)
 - Highlighted expected finger (visual hint in the finger guide area)
 - Per-keypress visual feedback (correct = green flash, error = red flash, hesitation > 2σ = yellow)
+- **Session target outline** (ADR-003 §4): keys declared as this session's target get a subtle ivory ring (border only, fill reserved for cursor amber and error red). Static for the duration of the session.
 - Visual keyboard is generated as SVG by the design tooling (not sourced from photos)
 
-### 5.3 Adaptive Practice Mode (Primary Mode, Transition-Aware)
+### 5.3 Adaptive Practice Mode (Primary Mode)
 
-The default mode covering ~80% of expected user time.
+The default mode covering ~80% of expected user time. Each session follows the three-stage deliberate-practice loop below (also used by the targeted drill submode, §5.5).
 
-**Engine behavior adapts to user's transition phase:**
+**Three-stage session loop:**
+
+1. **Briefing (pre-session)** — declares this session's target (e.g. "Left-ring column vertical reach", "Inner-column reach — B, G, T", "Your weakness: G"). Engine-selected in adaptive mode; user-selected in drill mode. Shows target name, 2–3 lines of motion/reason copy, and a compact view of the target keys. Explicit start action to proceed. **No numerical threshold, no "target met / missed" framing, no duration challenge.**
+2. **Execution with persistent attention** — static target ribbon above the typing area (e.g. `◎ Target: left-ring column — W S X`) reminds the user what this session is about. Ribbon is neutral-colored, small, and static — does not update per keystroke. Target keys also get a subtle outline on the keyboard SVG. **No live accuracy percentage, no live progress bar, no color change based on performance** — these would be verdicts-in-progress.
+3. **Evaluation (post-session)** — surfaces the numbers; user evaluates themselves. Adds three blocks above the existing session summary: intent echo ("You targeted: …"), per-target-key accuracy breakdown as plain numbers (e.g. `W · 94% accuracy · 18 attempts`), and a soft next-session preview ("Next session will likely focus on: X"). Retains existing emergent-weaknesses, error-patterns, and WPM/accuracy summary. **No verdict badges, no celebratory language, no concerning language. Low accuracy is data, not failure.**
+
+Full briefing copy templates and load-bearing constraints: `docs/00-design-evolution.md` ADR-003 §4.
+
+**Target Selection (adaptive mode).** The engine's Target Selection layer picks the highest-scoring candidate from: character targets, bigram targets, vertical-column targets, inner-column targets, and thumb-cluster targets. Selection is modulated by the user's journey (below). See `docs/02-architecture.md` §4.1 for algorithm.
+
+**Engine behavior adapts to phase AND journey:**
 
 _Phase: Transitioning_ (new user, self-reported "first day" / "few weeks in"):
 
-- Content weighted toward columnar-specific pain points: inner column (B, G, H, N, T, Y), thumb cluster-adjacent keys
+- Content weighted toward columnar-specific pain points, per journey
 - Shorter exercises (~30 words) to avoid fatigue
 - Higher accuracy baseline expected — errors weighted heavier in weakness score
-- Encouraging copy emphasizing "you're building new muscle memory"
+- Briefing copy emphasizes "building muscle memory"
 
 _Phase: Refining_ (user self-reports "comfortable" or platform detects stable accuracy above 95% for 10+ sessions):
 
-- Content weighted toward pure weakness profile (any character/bigram that still has elevated error rate)
+- Content weighted toward pure weakness profile (any character/bigram still elevated)
 - Standard exercise length (~50 words)
-- Speed starts to factor into weakness score (hesitation component weighted higher)
-- Tone shifts to peer rather than teacher ("push your speed on this bigram")
+- Speed factors into weakness score (hesitation component weighted higher)
+- Briefing copy shifts to "polishing flow"
 
-**MVP content generation strategy: word-picker approach.** The engine uses a static English word corpus (target ~10,000 words) and selects words via weighted random sampling based on the user's weakness profile + transition phase weighting. Words with more occurrences of weak characters/bigrams get higher selection probability.
+_Journey_ — captured at onboarding (`keyboard_profile.finger_assignment`):
 
-Output format: disjoint word sequences (no narrative flow). Example output when user is in Transitioning phase weak in B/N/T: "bench better beneath button bottom bond never bend bin bet bait". This is **functionally effective for muscle memory training** but does not attempt to produce coherent prose.
+- **Conventional-mapping** (fingers reach diagonally as on QWERTY; F and J home): Target Selection promotes vertical-column targets. Weakness score applies `VERTICAL_REACH_BONUS`; `INNER_COLUMN_BONUS` = 0.
+- **Strict-columnar** (each finger on its own column): Target Selection promotes inner-column targets. Weakness score applies `INNER_COLUMN_BONUS`; `VERTICAL_REACH_BONUS` = 0.
 
-**Known trade-off vs. competitor platforms:** Some adaptive typing platforms (notably Typerfast) generate coherent prose themed around target characters — text that reads like an article while stealth-embedding weakness-relevant letters. This produces a more engaging "smart" feel. We deliberately do not pursue this in MVP because:
+**MVP content generation strategy: word-picker + pre-authored drills.** Character/bigram targets sample from a static English word corpus (~10,000 words) via weighted random sampling based on the user's weakness profile and phase weighting. Motion-pattern targets (vertical-column, inner-column, thumb-cluster) pull from a pre-authored columnar-motion drill library (~33 entries, static JSON, client-side bundled — see `docs/00-design-evolution.md` ADR-003 §3).
+
+Output format: word sequences for character/bigram targets (e.g. "bench better beneath button"); curated key sequences for motion targets (e.g. "wsx xsw wsxwsx"). Neither attempts coherent prose — this is muscle-memory training.
+
+**Known trade-off vs. competitor platforms:** Some adaptive typing platforms (notably Typerfast) generate coherent prose themed around target characters. We deliberately do not pursue this in MVP because:
 
 - Real-time content generation requires LLM integration (latency, cost, reliability burdens)
-- Word-picker approach proves the adaptive engine works before investing in content-quality upgrade
-- LLM-based content generation is queued as a V2 feature (see §8 Tier 2)
+- Word-picker + pre-authored drills prove the engine works before investing in content-quality upgrade
+- LLM-based content generation is queued as a V2 feature (see §7 Tier 2)
 
 **Available filters:**
 
-- Hand isolation: restrict to words using only one side
+- Hand isolation: restrict to words using only one side (also a first-class briefable target in drill mode — §5.5)
 - Difficulty cap: max word length or max difficulty score
 
 ### 5.4 Split-Specific Metrics
@@ -158,24 +185,33 @@ These coexist with generic metrics (WPM, accuracy) but take priority in the user
 
 ### 5.5 Targeted Drill Submode
 
-On-demand mode for attacking specific weaknesses. The user can:
+On-demand mode for attacking specific weaknesses or motion patterns. The user picks the target; the same three-stage session loop from §5.3 applies (briefing → attention ribbon → evaluation).
 
-- Pick a specific character/bigram to drill
-- Or let the engine auto-recommend the top weakness
-- Or pick a transition-specific drill preset (inner column, thumb cluster, cross-hand bigrams)
+Target presets available:
 
-Output: synthetic strings heavy in the target unit (e.g., "bab beb bib bob bub bba bbe bbi"). Unnatural to read but effective for muscle memory.
+- **Drill weakness** — engine auto-recommends the top character/bigram weakness
+- **Inner column** — B, G, T (left hand) or H, N, Y (right hand) focus
+- **Vertical reach** (new) — user picks a column (e.g. left-ring); session drills top-home-bottom motion on that column
+- **Thumb cluster** (new) — space-heavy short-word sequences; trains thumb activation without hand displacement
+- **Hand isolation** — restrict to one-hand-only words; first-class briefable target
+- **Cross-hand bigrams** — key pairs spanning both hands (e.g. `gh bn ty`)
+- **Custom** — pick a specific character or bigram to drill
+
+Output: pre-authored curated key sequences for motion presets (from the drill library); synthetic strings heavy in the target unit for custom character/bigram drills (e.g. "bab beb bib bob bub bba bbe bbi"). Unnatural to read, effective for muscle memory.
 
 ### 5.6 Adaptive Engine (full detail in 02-architecture.md)
 
-Four layers:
+Five layers:
 
 1. Data collection (per keystroke event)
-2. Weakness identification (weakness score per character & bigram, weighted by transition phase)
-3. Exercise generation (weighted word selection + synthetic drill, with transition-phase content weighting)
-4. Insight surface (meta-cognition reporting with split-specific metrics)
+2. Weakness identification (weakness score per character & bigram, weighted by phase and journey)
+3. Target Selection (NEW — picks this session's target: character/bigram vs motion-pattern, modulated by journey weighting)
+4. Exercise generation (weighted word selection for character/bigram targets; drill library lookup for motion targets)
+5. Insight surface (meta-cognition reporting with split-specific metrics)
 
 ### 5.7 Meta-Cognition Dashboard (Power-User Style)
+
+The dashboard is a longitudinal deepening of the in-session deliberate-practice loop from §5.3 — the session loop tells the user what they're working on *right now*; the dashboard tells them what they've been working on over days and weeks. Both surface clear numbers; neither pronounces pass/fail.
 
 User opted for "show everything explicitly". The dashboard displays:
 
@@ -185,6 +221,8 @@ User opted for "show everything explicitly". The dashboard displays:
 - Decision rationale: why the next exercise contains specific words
 - End-of-session report with plain-language explanation
 - Weekly insight: temporal patterns, skill trajectory, actionable recommendations
+
+Transparency copy is honest about which values are hand-tuned (phase coefficients, journey bonuses) and which are learned from user data (weakness scores). See `docs/00-design-evolution.md` ADR-003 §6 Option C.
 
 ### 5.8 Authentication & Persistence
 

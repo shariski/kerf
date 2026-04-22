@@ -1,9 +1,10 @@
 # kerf: Technical Architecture
 
-> Companion to 01-product-spec.md (v0.2 — transition-focused)
-> Status: v0.2 — transition-phase aware
-> Last updated: 2026-04-18
-> Major revision: added transition_phase to keyboard_profiles, split_metrics_snapshots table, phase-aware weakness scoring, split-specific metrics computation, phase transition auto-suggestion
+> Companion to 01-product-spec.md (v0.5 — deliberate-practice architecture)
+> Status: v0.3 — phase- and journey-aware
+> Last updated: 2026-04-22
+> Major revision (v0.3): ADR-003 accepted. Added `finger_assignment` column on `keyboard_profiles`, new `session_targets` table, new §4.2 Target Selection engine layer, journey-aware weakness scoring (`JOURNEY_BONUSES`), `generateSession` wrapper, new modules `targetSelection.ts` / `motionPatterns.ts` / `drillLibrary.ts`. Existing §4.2–§4.6 renumbered to §4.3–§4.7. See `docs/00-design-evolution.md` ADR-003.
+> Prior revisions: v0.2 (transition-phase aware, 2026-04-18).
 > Audience: the developer (you) building this with Claude Code
 
 ## 1. High-Level Architecture
@@ -81,6 +82,7 @@ dominant_hand       text NOT NULL  -- 'left' | 'right'
 initial_level       text NOT NULL  -- 'first_day' | 'few_weeks' | 'comfortable' (at onboarding)
 transition_phase    text NOT NULL DEFAULT 'transitioning'  -- 'transitioning' | 'refining'
 phase_changed_at    timestamptz                           -- when phase last changed (null = never changed)
+finger_assignment   text                                  -- 'conventional' | 'columnar' | 'unsure' | NULL (pre-ADR-003 users)
 is_active           boolean NOT NULL DEFAULT true
 created_at          timestamptz NOT NULL DEFAULT now()
 ```
@@ -90,6 +92,14 @@ created_at          timestamptz NOT NULL DEFAULT now()
 - `transitioning`: user still building columnar muscle memory. Engine weights columnar-specific pain points heavier, exercises are shorter, copy emphasizes "building new habits". Initial phase derived from `initial_level`: `first_day` and `few_weeks` → `transitioning`; `comfortable` → `refining`.
 - `refining`: user past the transition struggle, now polishing speed and flow. Engine uses pure weakness profile, standard exercise length, copy shifts to peer tone.
 - Phase changes triggered by: (a) user manually toggles in settings; (b) platform suggests change when stable accuracy >95% for 10+ sessions OR when user returns from 2+ weeks away (may have regressed).
+
+**Journey semantics** (ADR-003 §2):
+
+- `conventional`: fingers reach diagonally as on QWERTY; F and J home. Primary pain = vertical motion per column. Target Selection promotes vertical-column targets; `VERTICAL_REACH_BONUS` applies in weakness score.
+- `columnar`: each finger on its own column; user has retrained. Primary pain = inner-column reach (B/G/T, H/N/Y are new territory). Target Selection promotes inner-column targets; `INNER_COLUMN_BONUS` applies.
+- `unsure`: defaults to `conventional` behavior; flag preserved for Phase B inferred-style diagnostic.
+- `NULL`: pre-ADR-003 users without a captured journey. One-time selection card before `/practice` on next login; then persists.
+- Journey is a profile-level property (not session-level). Changeable via Settings.
 
 ### sessions
 
@@ -109,6 +119,44 @@ accuracy            real
 ```
 
 **Note on `phase_at_session`**: this snapshots which phase the user was in when the session happened. Important because engine behavior differs by phase, and we want to compare "my transitioning-phase performance" vs "my refining-phase performance" without mutating historical data when the user switches phases.
+
+### session_targets (ADR-003 §5)
+
+One row per session in Phase A (1:1 with `sessions`). Table structure does not enforce 1:1 — it permits Phase B multi-target sessions without a migration.
+
+```sql
+id                  uuid PRIMARY KEY
+session_id          uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE
+
+-- What was declared (at session start)
+target_type         text NOT NULL         -- see SessionTarget.type in §4.2
+target_value        text NOT NULL         -- e.g. 'G', 'th', 'left-ring', 'left'
+target_keys         text[] NOT NULL       -- actual keys involved (powers post-session per-key breakdown)
+target_label        text NOT NULL         -- human-readable (e.g. 'Left-ring column vertical reach')
+selection_score     numeric               -- engine score × journey weight; NULL for user-picked (drill mode)
+declared_at         timestamptz NOT NULL
+
+-- Measured outcome (filled at session end)
+target_attempts     integer               -- keystroke count on target_keys
+target_errors       integer
+target_accuracy     real                  -- 0–1; NULL until session_ends
+
+created_at          timestamptz NOT NULL DEFAULT now()
+```
+
+Indexes:
+
+```sql
+CREATE INDEX idx_session_targets_session ON session_targets(session_id);
+CREATE INDEX idx_session_targets_type_value ON session_targets(target_type, target_value);
+```
+
+**Rationale for separate table (not a JSONB column on `sessions`):** target history is queryable (powers soft next-target preview and dashboard target-history panel), indexable by type+value for future analysis, and keeps sessions table stable. Historical sessions (pre-ADR-003) have no row here — post-session intent-echo block simply doesn't render for those.
+
+**Target-performance capture at session time:**
+
+- **During session:** `useKeystrokeCapture` already captures every keystroke with correct/incorrect flag. An accumulator in `sessionStore` increments `target_attempts` (and `target_errors`) each time a keystroke's character falls in `target_keys`. Client-side only; no network round-trip per keystroke.
+- **At session end:** accumulated counts persisted as part of the existing `persistSession` transaction. Single write, no new round-trip.
 
 ### keystroke_events
 
@@ -266,14 +314,16 @@ The full mapping for Sofle and Lily58 must be sourced from official specs or you
 
 ## 4. Adaptive Engine: Algorithm Detail
 
-### 4.1 Weakness Score Computation (Transition-Phase Aware)
+### 4.1 Weakness Score Computation (Phase- and Journey-Aware)
 
-The weakness score formula uses different coefficients depending on the user's transition phase. During transition, errors (the proxy for "can't find the key yet") are weighted most heavily. During refining, hesitation and slowness (the proxy for "know the key, not fluent yet") take over.
+The weakness score formula branches on two axes: **phase** (`transitioning` | `refining`) and **journey** (`conventional` | `columnar` | `unsure`). Phase controls the coefficient mix (errors heavy in transition, hesitation/slowness in refining). Journey controls which character classes get a bonus — conventional-mapping users get a vertical-reach bonus, strict-columnar users get an inner-column bonus. Both bonuses apply in `transitioning` phase only; in `refining` phase the pure weakness profile takes over. See ADR-003 §2 & §5.
 
 ```typescript
 type TransitionPhase = "transitioning" | "refining";
+type JourneyCode = "conventional" | "columnar" | "unsure";
 
-// Phase-specific coefficients
+// Phase-specific coefficients (ADR-003 §6 Option C: hand-tuned starting values;
+// transparency panel states this honestly; revisit with beta feedback).
 const COEFFICIENTS = {
   transitioning: {
     ALPHA: 0.6, // error weight — heavy during transition
@@ -289,10 +339,29 @@ const COEFFICIENTS = {
   },
 };
 
+// Journey-specific bonuses (ADR-003 §2, §5). Applied only in 'transitioning'
+// phase. `unsure` mirrors `conventional` (lower-friction default for QWERTY
+// converts; flag preserved for Phase B inferred-style diagnostic).
+const JOURNEY_BONUSES = {
+  conventional: {
+    INNER_COLUMN_BONUS: 0, // not the pain point for QWERTY-mapping users
+    VERTICAL_REACH_BONUS: 0.3, // row-staggered → columnar vertical motion
+  },
+  columnar: {
+    INNER_COLUMN_BONUS: 0.3, // B/G/T, H/N/Y are new finger territory
+    VERTICAL_REACH_BONUS: 0, // less primary for strict-columnar users
+  },
+  unsure: {
+    INNER_COLUMN_BONUS: 0,
+    VERTICAL_REACH_BONUS: 0.3,
+  },
+};
+
 function computeWeaknessScore(
   unit: CharacterStat | BigramStat,
   userBaseline: UserBaseline,
   phase: TransitionPhase,
+  journey: JourneyCode,
 ): number {
   const errorRate = unit.errors / Math.max(unit.attempts, 1);
   const meanTime = unit.sumTime / Math.max(unit.attempts, 1);
@@ -306,14 +375,19 @@ function computeWeaknessScore(
   const frequencyPenalty = unit.frequencyInLanguage; // 0–1, normalized
 
   const c = COEFFICIENTS[phase];
+  const j = JOURNEY_BONUSES[journey];
 
-  // Transition bonus: during 'transitioning' phase, add extra weight to
-  // inner-column characters (B, G, H, N, T, Y) since these are the primary
-  // columnar pain points.
+  // Journey bonus applies only in transitioning phase. Which character classes
+  // get the bonus depends on journey (see JOURNEY_BONUSES above).
   const INNER_COLUMN = new Set(["b", "g", "h", "n", "t", "y"]);
-  const transitionBonus =
-    phase === "transitioning" && INNER_COLUMN.has(unit.character?.toLowerCase())
-      ? 0.3
+  const ch = unit.character?.toLowerCase();
+  const isInnerColumn = ch !== undefined && INNER_COLUMN.has(ch);
+  const isVerticalReach = isOffHomeRow(unit); // row 1 (top) or row 3 (bottom) on the user's layout
+
+  const journeyBonus =
+    phase === "transitioning"
+      ? (isInnerColumn ? j.INNER_COLUMN_BONUS : 0) +
+        (isVerticalReach ? j.VERTICAL_REACH_BONUS : 0)
       : 0;
 
   return (
@@ -321,7 +395,7 @@ function computeWeaknessScore(
     c.BETA * normalizedHesitation +
     c.GAMMA * normalizedSlowness -
     c.DELTA * frequencyPenalty +
-    transitionBonus
+    journeyBonus
   );
 }
 ```
@@ -334,7 +408,160 @@ function computeWeaknessScore(
 - Decay: discount events older than 30 days
 - Phase switching: when user switches phase, keep their stats but recompute baseline for the new phase's defaults. Do NOT reset historical stats.
 
-### 4.2 Exercise Generation: Adaptive Mode (Word-Picker Approach)
+### 4.2 Target Selection (ADR-003)
+
+**New engine layer.** Given current stats, phase, and journey, picks this session's target. Feeds into exercise generation (§4.3 for character/bigram targets; drill-library lookup for motion-pattern targets).
+
+```
+┌──────────────────┐
+│ Weakness scoring │  (§4.1 — per character / bigram)
+└────────┬─────────┘
+         ↓
+┌────────────────────┐
+│ Target Selection   │  (§4.2 — picks this session's target)
+└────────┬───────────┘
+         ↓
+┌──────────────────────────────────────┐
+│ Exercise generation                  │
+│  character/bigram → word-picker      │  (§4.3)
+│  motion/column   → drill library     │  (§4.4 / lookup)
+└──────────────────────────────────────┘
+```
+
+**Candidate types:**
+
+| Candidate | Score derivation |
+|---|---|
+| `character` | `computeWeaknessScore(charStat, baseline, phase, journey)`; highest-scoring char wins |
+| `bigram` | `computeWeaknessScore(bigramStat, baseline, phase, journey)`; highest-scoring bigram (includes cross-hand bigrams) |
+| `vertical-column` | Aggregate error rate across the 3 keys in a column (top/home/bottom), normalized against baseline. 10 candidates (5 columns × 2 hands); best one wins |
+| `inner-column` | Aggregate error rate across B/G/T (left) or H/N/Y (right), normalized. 2 candidates |
+| `thumb-cluster` | Space-key error rate (Phase A MVP — enter/backspace deferred). Above threshold → eligible |
+
+Hand-isolation and cross-hand-bigram are **drill-mode-only** targets (user-initiated, not engine-selected). Hand-isolation weakness is too diffuse to diagnose automatically; cross-hand bigrams are already represented in the bigram candidate path.
+
+**Journey-aware selection weighting:**
+
+```typescript
+type TargetType =
+  | "character"
+  | "bigram"
+  | "vertical-column"
+  | "inner-column"
+  | "thumb-cluster"
+  | "hand-isolation"
+  | "cross-hand-bigram"
+  | "diagnostic";
+
+type SessionTarget = {
+  type: TargetType;
+  value: string;           // e.g. 'G', 'th', 'left-ring', 'left'
+  keys: string[];          // actual keys involved (powers ribbon + SVG outline + post-session breakdown)
+  label: string;           // human-readable (e.g. 'Left-ring column vertical reach')
+  score?: number;          // debugging/transparency; null for user-picked (drill mode)
+};
+
+// ADR-003 §5: weights are hand-tuned starting values; transparency panel
+// states this honestly; revisit with beta feedback.
+const TARGET_JOURNEY_WEIGHTS = {
+  conventional: {
+    character: 1.0,
+    bigram: 1.0,
+    "vertical-column": 1.2, // promoted — primary pain
+    "inner-column": 0.6,    // demoted — not the pain point
+    "thumb-cluster": 1.0,
+  },
+  columnar: {
+    character: 1.0,
+    bigram: 1.0,
+    "vertical-column": 0.8,
+    "inner-column": 1.2,    // promoted — primary pain
+    "thumb-cluster": 1.0,
+  },
+  unsure: {
+    // mirrors conventional
+    character: 1.0,
+    bigram: 1.0,
+    "vertical-column": 1.2,
+    "inner-column": 0.6,
+    "thumb-cluster": 1.0,
+  },
+};
+
+function selectTarget(
+  stats: UserStats,
+  baseline: UserBaseline,
+  phase: TransitionPhase,
+  journey: JourneyCode,
+): SessionTarget {
+  if (isLowConfidence(stats)) {
+    return diagnosticTarget(); // Template V7 briefing; covers first sessions / cold start
+  }
+
+  const candidates = [
+    ...characterCandidates(stats, baseline, phase, journey),
+    ...bigramCandidates(stats, baseline, phase, journey),
+    ...verticalColumnCandidates(stats, baseline),
+    ...innerColumnCandidates(stats, baseline),
+    thumbClusterCandidate(stats, baseline),
+  ].filter(Boolean);
+
+  const weights = TARGET_JOURNEY_WEIGHTS[journey];
+  return candidates.reduce((best, c) =>
+    (c.score ?? 0) * weights[c.type] > (best.score ?? 0) * weights[best.type] ? c : best,
+  );
+}
+```
+
+**Low-confidence fallback.** `isLowConfidence(stats)` from current weakness logic → default target = `diagnostic` (Template V7 briefing — "Capturing your baseline"). Covers first sessions and cold-start scenarios.
+
+**Drill-mode integration.** Drill mode skips `selectTarget` and feeds a user-provided `SessionTarget` directly into session construction. Same `SessionOutput` shape (below); `score` is null and the briefing template is chosen by target type.
+
+**`generateSession` — orchestrates target selection + exercise generation:**
+
+```typescript
+type SessionOutput = {
+  target: SessionTarget;
+  exercise: Word[]; // drill strings treated as 'words' for uniform word-boundary UI
+  briefing: {
+    text: string;    // filled from briefing templates (ADR-003 §4)
+    keys: string[];  // target keys for ribbon + SVG outline
+  };
+  estimatedSeconds: number;
+};
+
+function generateSession({
+  stats,
+  baseline,
+  phase,
+  journey,
+  corpus,
+  options,
+  targetOverride, // drill mode provides user-picked target
+}: GenerateSessionInput): SessionOutput {
+  const target =
+    targetOverride ?? selectTarget(stats, baseline, phase, journey);
+
+  const exercise =
+    target.type === "character" || target.type === "bigram"
+      ? generateExercise(corpus, baseline, options, { focusUnit: target.value }) // §4.3
+      : lookupDrill(target, journey); // drill library (ADR-003 §3)
+
+  const briefing = buildBriefing(target, journey, phase); // templates — ADR-003 §4
+  return {
+    target,
+    exercise,
+    briefing,
+    estimatedSeconds: estimate(target, options),
+  };
+}
+```
+
+`generateExercise` becomes a subroutine under `generateSession` — backward-compatible refactor. Existing callers get a shim that fills `target` from the result.
+
+### 4.3 Exercise Generation: Adaptive Mode (Word-Picker Approach)
+
+Invoked by `generateSession` (§4.2) when `target.type === 'character' | 'bigram'`. For motion-pattern targets, session content comes from the drill library (ADR-003 §3) instead — see `lookupDrill` above.
 
 **MVP strategy: static corpus + weighted random sampling.** The engine does NOT generate content; it selects from a pre-built English word corpus. Output is a sequence of disjoint words, not coherent prose.
 
@@ -374,7 +601,7 @@ Algorithm:
 - Output is functional for muscle memory training — target characters appear more frequently in the selected words than in baseline English text
 - Output does NOT read as coherent prose — words are disjoint, chosen for character distribution not narrative
 - User experience is "drill-like" rather than "reading-like"
-- This is a deliberate MVP trade-off documented in 01-product-spec.md §4.3
+- This is a deliberate MVP trade-off documented in 01-product-spec.md §5.3
 
 **V2 upgrade path (NOT in MVP scope):**
 
@@ -388,7 +615,7 @@ Future versions may replace or supplement this with LLM-generated content, where
 
 For MVP, all LLM integration is explicitly out of scope. The word-picker approach must prove the adaptive engine delivers value before investing in content-quality upgrade.
 
-### 4.3 Exercise Generation: Targeted Drill
+### 4.4 Exercise Generation: Targeted Drill
 
 ```
 Input: target unit (character or bigram)
@@ -406,7 +633,7 @@ Example for target 'b':
 "bab beb bib bob bub bba bbe bbi bbo bbu the bay big boy bub bench better"
 ```
 
-### 4.4 Insight Generation (Meta-Cognition Layer)
+### 4.5 Insight Generation (Meta-Cognition Layer)
 
 ```typescript
 function generateSessionInsight(
@@ -443,7 +670,7 @@ Example plain-language summary output:
 
 > "Today you focused on the letter B. Error rate dropped from 18% to 9% (significant improvement), but speed is still at 60% of your target. The next session will keep B included with more emphasis on speed. Separately, the bigram 'er' is starting to emerge as a new weakness — it'll be added to your practice set."
 
-### 4.5 Split-Specific Metrics Computation
+### 4.6 Split-Specific Metrics Computation
 
 At the end of each session, compute 4 metrics from the session's keystroke_events and persist as a row in `split_metrics_snapshots`. These feed dashboard visualizations and phase-transition suggestions.
 
@@ -531,12 +758,12 @@ function computeSplitMetrics(
 **Accuracy caveats** (as noted in 01-product-spec.md §5.4 and §10 risks):
 
 - Metrics 1-3 are directly measurable and accurate
-- Metric 4 (columnar stability) is inferred from error patterns; accuracy is moderate. UI should communicate this with soft language ("likely drift") rather than certain language ("wrong finger used")
+- Metric 4 (columnar stability) is inferred from error patterns; accuracy is moderate. UI should communicate this with soft language ("likely drift") rather than certain language ("wrong finger used"). **Dashboard label reads "Columnar stability (experimental)"** with a brief explanatory footnote — per ADR-003 §6 Option C (honest reframe, no code removal).
 - All metrics compute reliably only when sample size is meaningful. For sessions < 50 keystrokes, metrics are shown as "insufficient data"
 
-### 4.6 Transition Phase Auto-Suggestion
+### 4.7 Transition Phase Auto-Suggestion
 
-The platform suggests phase changes but does not enforce them. The user retains control in settings.
+The platform suggests phase changes but does not enforce them. The user retains control in settings. UI framing follows **ADR-003 §6 Option C**: these are **engine hypotheses, not declarations** — copy reads "the engine thinks you might be ready to shift focus — you decide" rather than "time to switch phases." No celebratory or coercive tone on either direction of suggestion.
 
 ```typescript
 type PhaseTransitionSignal = {
@@ -605,10 +832,16 @@ src/
 │   │   ├── computeSplitMetrics.ts  # NEW: 4 split-specific metrics per session
 │   │   └── decayStats.ts
 │   ├── adaptive/
-│   │   ├── weaknessScore.ts        # Transition-phase-aware coefficients
-│   │   ├── exerciseGenerator.ts    # Transition-phase content weighting
+│   │   ├── weaknessScore.ts        # Phase- and journey-aware coefficients (§4.1)
+│   │   ├── targetSelection.ts      # NEW (ADR-003 §4.2): picks session target
+│   │   ├── motionPatterns.ts       # NEW (ADR-003 §3): vertical/inner/thumb candidate scoring
+│   │   ├── drillLibrary.ts         # NEW (ADR-003 §3): loader + lookupDrill() for motion targets
+│   │   ├── drillLibraryData.ts     # NEW: static ~33-entry drill content (client-bundled JSON)
+│   │   ├── sessionGenerator.ts     # NEW (ADR-003 §4.2): generateSession() wrapper
+│   │   ├── briefingTemplates.ts    # NEW (ADR-003 §4): V1–V7 copy templates
+│   │   ├── exerciseGenerator.ts    # Word-picker, now a subroutine of generateSession
 │   │   ├── drillGenerator.ts
-│   │   └── phaseSuggestion.ts      # NEW: detect when to suggest phase change
+│   │   └── phaseSuggestion.ts      # Detects when to suggest phase change (§4.7)
 │   ├── insight/
 │   │   ├── sessionInsight.ts
 │   │   └── weeklyInsight.ts

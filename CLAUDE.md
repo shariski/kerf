@@ -103,15 +103,15 @@ src/
 
 If a task tempts you to put domain logic in a React component or a server route, stop and ask.
 
-## B2. Transition-Phase Awareness
+## B2. Transition-Phase and Journey Awareness
 
-The adaptive engine has two phases: `transitioning` and `refining`. Every engine-derived output (exercise content, weakness score, copy tone, metric interpretation) may behave differently per phase. See `docs/02-architecture.md` §4.1 and §4.6.
+The adaptive engine branches on two axes: **phase** (`transitioning` | `refining`) and **journey** (`conventional` | `columnar`). Every engine-derived output (exercise content, weakness score, target selection, copy tone, metric interpretation) may behave differently per phase and per journey. See `docs/02-architecture.md` §4.1, §4.2 (Target Selection), and §4.7.
 
 **Rules:**
 
-- Functions that compute weakness score, exercise content, or user-facing insights must accept `phase: TransitionPhase` as a parameter.
-- Do not hardcode coefficients or thresholds. Use the `COEFFICIENTS[phase]` pattern from §4.1.
-- When unsure which phase a piece of logic should behave under, ask.
+- Functions that compute weakness score, target selection, exercise content, or user-facing insights must accept `phase: TransitionPhase` and (where journey-relevant) `journey: JourneyCode` as parameters.
+- Do not hardcode coefficients, bonuses, or thresholds. Use the `COEFFICIENTS[phase]` and `JOURNEY_BONUSES[journey]` map patterns from §4.1.
+- When unsure which (phase, journey) combination a piece of logic should behave under, ask.
 
 ## B3. Accuracy-First Copy Guidelines
 
@@ -121,6 +121,7 @@ All user-facing strings (buttons, labels, summaries, error messages, insights, t
 - Frame "speed up + accuracy drop" as concern, not win. Example: "Your speed ticked up, but accuracy slipped. Slowing down will pay off" — NOT "62 WPM! New personal best!"
 - Frame "speed down + accuracy up" as the right trajectory. Example: "Slower, tighter, stronger. This is how muscle memory forms."
 - No hyped language. Banned words/phrases: "amazing!", "crushing it!", "nailed it!", "incredible!", multiple exclamation marks.
+- **No session pass/fail verdicts.** The platform surfaces target performance numbers; the user evaluates themselves. No badges, no scores, no "target met / missed" copy, no celebratory animations on high accuracy, no concerning language on low accuracy. Low accuracy is data, not failure. See `docs/00-design-evolution.md` ADR-003 §4.
 - Tone: quietly affirming, not cheerleading. Like a calm mentor, not a hype coach.
 - When user hasn't improved, say so honestly. Do not sugarcoat.
 - Phase-aware framing: transitioning phase uses "building muscle memory" language; refining phase uses "polishing flow" language.
