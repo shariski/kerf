@@ -286,7 +286,7 @@ describe("OnboardingPage", () => {
       );
       fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
       await vi.waitFor(() => {
-        const call = createKeyboardProfile.mock.calls[0][0] as {
+        const call = createKeyboardProfile.mock.calls[0]![0] as {
           data: Record<string, unknown>;
         };
         expect(call.data.fingerAssignment).toBe("conventional");
@@ -301,7 +301,7 @@ describe("OnboardingPage", () => {
       );
       fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
       await vi.waitFor(() => {
-        const call = createKeyboardProfile.mock.calls[0][0] as {
+        const call = createKeyboardProfile.mock.calls[0]![0] as {
           data: Record<string, unknown>;
         };
         expect(call.data.fingerAssignment).toBe("columnar");
@@ -314,7 +314,7 @@ describe("OnboardingPage", () => {
       // "I'm not sure" is pre-selected; no extra click needed.
       fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
       await vi.waitFor(() => {
-        const call = createKeyboardProfile.mock.calls[0][0] as {
+        const call = createKeyboardProfile.mock.calls[0]![0] as {
           data: Record<string, unknown>;
         };
         expect(call.data.fingerAssignment).toBe("unsure");
