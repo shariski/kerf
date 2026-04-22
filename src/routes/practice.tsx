@@ -464,16 +464,19 @@ function PracticePage() {
     });
     const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
     return (
-      <main id="main-content" className="kerf-practice-main">
-        <div className="kerf-practice-container kerf-stage-fade-in">
-          <PostSessionStage
-            target={state.target}
-            title={title}
-            summary={summary}
-            onPracticeAgain={startAdaptive}
-          />
-        </div>
-      </main>
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <PostSessionStage
+              target={state.target}
+              title={title}
+              summary={summary}
+              onPracticeAgain={startAdaptive}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
     );
   }
 

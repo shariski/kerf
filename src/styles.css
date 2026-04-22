@@ -5275,6 +5275,15 @@ body {
   color: var(--color-kerf-amber-base);
 }
 
+/* Hint-strip clearance. On routes that render .kerf-post-hint-strip
+   (dashboard, post-session, post-drill) the strip is position:fixed at
+   bottom:0 with ~48px height. Without clearance, the footer lands under
+   the strip at scroll-bottom. Adding margin-bottom pushes the footer up
+   enough that its text sits above the strip when fully scrolled. */
+.kerf-app-root:has(.kerf-post-hint-strip) .kerf-app-footer {
+  margin-bottom: 56px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kerf-app-footer-link {
     transition-duration: 1ms;

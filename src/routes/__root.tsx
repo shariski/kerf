@@ -15,14 +15,13 @@ import { MobileGate } from '#/components/MobileGate'
 //   - /login is a centered full-screen card
 const CHROMELESS_PATHS = ['/onboarding', '/login']
 
-// Routes where the global AppFooter is suppressed because the route
-// owns its own bottom chrome (hint strip) or manages footer visibility
-// internally per stage.
-//   - /dashboard always shows .kerf-post-hint-strip at viewport bottom
-//   - /practice renders its own <AppFooter /> only in pre-session;
-//     active and post-session stages have their own bottom affordances.
-//   - /practice/drill matches via prefix; same rule applies.
-const NO_GLOBAL_FOOTER_PATHS = ['/dashboard', '/practice']
+// Routes that manage footer visibility per-stage rather than letting
+// the root render it unconditionally. /practice and /practice/drill
+// (matched via prefix) hide the footer while the user is actively
+// typing and render it inline in pre-/post-session stages. Every other
+// non-chromeless route gets the global footer — including /dashboard,
+// where CSS handles hint-strip clearance.
+const NO_GLOBAL_FOOTER_PATHS = ['/practice']
 
 import appCss from '../styles.css?url'
 

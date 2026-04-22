@@ -345,18 +345,21 @@ function DrillPage() {
       targetChars: activeDrill.targetChars,
     });
     return (
-      <main id="main-content" className="kerf-practice-main">
-        <div className="kerf-practice-container kerf-stage-fade-in">
-          <DrillPostSessionStage
-            drillLabel={activeDrill.label}
-            target={state.target}
-            summary={summary}
-            drillDelta={drillDelta}
-            onRunAgain={runAgain}
-            onMoveToAdaptive={moveToAdaptive}
-          />
-        </div>
-      </main>
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <DrillPostSessionStage
+              drillLabel={activeDrill.label}
+              target={state.target}
+              summary={summary}
+              drillDelta={drillDelta}
+              onRunAgain={runAgain}
+              onMoveToAdaptive={moveToAdaptive}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
     );
   }
 
