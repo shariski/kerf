@@ -441,13 +441,15 @@ body {
 .kerf-pre-session {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 16px;
 }
 
 .kerf-pre-session-topline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
 }
 
@@ -458,6 +460,7 @@ body {
   letter-spacing: -0.02em;
   color: var(--color-kerf-text-primary);
   margin: 24px 0 0;
+  text-align: center;
 }
 
 .kerf-pre-subtitle {
@@ -465,6 +468,7 @@ body {
   font-size: 15px;
   color: var(--color-kerf-text-secondary);
   margin: 0 0 16px;
+  text-align: center;
 }
 
 /* Keyboard context pill */
@@ -620,6 +624,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
+  width: 100%;
 }
 
 .kerf-mode-card {
@@ -683,6 +688,7 @@ body {
   border-radius: 8px;
   background: var(--color-kerf-bg-surface);
   overflow: hidden;
+  width: 100%;
 }
 .kerf-pre-filters-header {
   display: flex;
