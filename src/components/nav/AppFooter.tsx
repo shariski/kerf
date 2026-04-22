@@ -1,9 +1,9 @@
 /**
- * Global footer — explainer + legal link strip. Rendered in __root.tsx
- * below the main app content on every non-chromeless route.
+ * Global footer — thin explainer + legal link strip, rendered in
+ * __root.tsx below the main app content on every non-chromeless route.
  *
- * Intentionally compact. Copy tone is quiet per CLAUDE.md §B3 — no
- * newsletter sign-up, no "built with love in ___", no hype.
+ * Intentionally minimal per CLAUDE.md §B3: no copyright, no newsletter,
+ * no "built with love in ___". One row of dotted links, nothing more.
  */
 
 import { Link } from "@tanstack/react-router";
@@ -17,7 +17,6 @@ const LINKS = [
 ] as const;
 
 export function AppFooter() {
-  const year = new Date().getFullYear();
   return (
     <footer className="kerf-app-footer" role="contentinfo">
       <div className="kerf-app-footer-row">
@@ -34,7 +33,6 @@ export function AppFooter() {
           </span>
         ))}
       </div>
-      <div className="kerf-app-footer-copyright">© {year} kerf</div>
     </footer>
   );
 }

@@ -47,9 +47,8 @@ describe("AppFooter", () => {
     }
   });
 
-  it("renders copyright line with current year", () => {
+  it("renders exactly five links and no other textual content", () => {
     render(<AppFooter />);
-    const year = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(`${year}`))).toBeTruthy();
+    expect(screen.getAllByRole("link")).toHaveLength(5);
   });
 });
