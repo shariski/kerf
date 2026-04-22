@@ -74,8 +74,8 @@ describe("lookupDrill", () => {
       keys: ["w", "s", "x"],
       label: "Left ring",
     }, "columnar");
-    expect([validEntry, other]).toContain(chosen);
-    // Both apply to columnar — either is acceptable; stability not required.
+    // Both apply to columnar; Array.find returns the first match → validEntry.
+    expect(chosen).toBe(validEntry);
   });
 
   it("throws if no entry matches the target", () => {

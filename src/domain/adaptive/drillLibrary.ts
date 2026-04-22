@@ -42,8 +42,8 @@ export type DrillLibraryEntry = {
  *   - appliesTo non-empty
  */
 export function isValidDrillEntry(e: DrillLibraryEntry): boolean {
-  if (!e.id || e.id.length === 0) return false;
-  if (!e.exercise || e.exercise.length === 0) return false;
+  if (!e.id) return false;
+  if (!e.exercise) return false;
   const lowerExercise = e.exercise.toLowerCase();
   const hasTargetKey = e.target.keys.some((k) => lowerExercise.includes(k.toLowerCase()));
   if (!hasTargetKey) return false;
