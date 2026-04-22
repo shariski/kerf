@@ -1,0 +1,134 @@
+import type { DrillLibraryEntry } from "./drillLibrary";
+
+const v = (
+  id: string,
+  value: string,
+  keys: string[],
+  label: string,
+  exercise: string,
+  seconds: number,
+): DrillLibraryEntry => ({
+  id,
+  category: "vertical-column",
+  target: { type: "vertical-column", value, label, keys },
+  exercise,
+  briefing: {
+    conventional: "{V1 conventional}",
+    columnar: "{V1 columnar}",
+  },
+  appliesTo: ["conventional", "columnar", "unsure"],
+  estimatedSeconds: seconds,
+});
+
+const i = (
+  id: string,
+  value: string,
+  keys: string[],
+  label: string,
+  exercise: string,
+  seconds: number,
+): DrillLibraryEntry => ({
+  id,
+  category: "inner-column",
+  target: { type: "inner-column", value, label, keys },
+  exercise,
+  briefing: {
+    conventional: "{V2 conventional}",
+    columnar: "{V2 columnar}",
+  },
+  appliesTo: ["conventional", "columnar", "unsure"],
+  estimatedSeconds: seconds,
+});
+
+const t = (
+  id: string,
+  exercise: string,
+  seconds: number,
+): DrillLibraryEntry => ({
+  id,
+  category: "thumb-cluster",
+  target: {
+    type: "thumb-cluster",
+    value: "space",
+    label: "Thumb cluster — space activation",
+    keys: [" "],
+  },
+  exercise,
+  briefing: {
+    conventional: "{V3 shared}",
+    columnar: "{V3 shared}",
+  },
+  appliesTo: ["conventional", "columnar", "unsure"],
+  estimatedSeconds: seconds,
+});
+
+export const DRILL_LIBRARY: DrillLibraryEntry[] = [
+  // Vertical-column — left hand (5 columns × 2 = 10 entries)
+  v("left-pinky-vert-basic", "left-pinky", ["q", "a", "z"],
+    "Left pinky column vertical reach", "qaz zaq qazqaz aza qaq", 30),
+  v("left-pinky-vert-ext",   "left-pinky", ["q", "a", "z"],
+    "Left pinky column vertical reach", "qaz qaz qaz zaq zaq zaq qazqaz qazqaz", 45),
+  v("left-ring-vert-basic",  "left-ring",  ["w", "s", "x"],
+    "Left ring column vertical reach", "wsx xsw wsxwsx sxs wsw", 30),
+  v("left-ring-vert-ext",    "left-ring",  ["w", "s", "x"],
+    "Left ring column vertical reach", "wsx wsx wsx xsw xsw xsw wsxwsx", 45),
+  v("left-middle-vert-basic","left-middle",["e", "d", "c"],
+    "Left middle column vertical reach", "edc cde edcedc dcd ede", 30),
+  v("left-middle-vert-ext",  "left-middle",["e", "d", "c"],
+    "Left middle column vertical reach", "edc edc edc cde cde cde edcedc", 45),
+  v("left-idx-outer-vert-basic", "left-index-outer", ["r", "f", "v"],
+    "Left index (outer) column vertical reach", "rfv vfr rfvrfv fvf rfr", 30),
+  v("left-idx-outer-vert-ext",   "left-index-outer", ["r", "f", "v"],
+    "Left index (outer) column vertical reach", "rfv rfv rfv vfr vfr vfr rfvrfv", 45),
+  v("left-idx-inner-vert-basic", "left-index-inner", ["t", "g", "b"],
+    "Left index (inner) column vertical reach", "tgb bgt tgbtgb gbg tgt", 30),
+  v("left-idx-inner-vert-ext",   "left-index-inner", ["t", "g", "b"],
+    "Left index (inner) column vertical reach", "tgb tgb tgb bgt bgt bgt tgbtgb", 45),
+
+  // Vertical-column — right hand (mirror)
+  v("right-idx-inner-vert-basic","right-index-inner", ["y", "h", "n"],
+    "Right index (inner) column vertical reach", "yhn nhy yhnyhn hnh yhy", 30),
+  v("right-idx-inner-vert-ext",  "right-index-inner", ["y", "h", "n"],
+    "Right index (inner) column vertical reach", "yhn yhn yhn nhy nhy nhy yhnyhn", 45),
+  v("right-idx-outer-vert-basic","right-index-outer", ["u", "j", "m"],
+    "Right index (outer) column vertical reach", "ujm mju ujmujm jmj uju", 30),
+  v("right-idx-outer-vert-ext",  "right-index-outer", ["u", "j", "m"],
+    "Right index (outer) column vertical reach", "ujm ujm ujm mju mju mju ujmujm", 45),
+  v("right-middle-vert-basic",   "right-middle", ["i", "k", ","],
+    "Right middle column vertical reach", "ik, ,ki ik,ik, k,k iki", 30),
+  v("right-middle-vert-ext",     "right-middle", ["i", "k", ","],
+    "Right middle column vertical reach", "ik, ik, ik, ,ki ,ki ,ki ik,ik,", 45),
+  v("right-ring-vert-basic",     "right-ring", ["o", "l", "."],
+    "Right ring column vertical reach", "ol. .lo ol.ol. l.l olo", 30),
+  v("right-ring-vert-ext",       "right-ring", ["o", "l", "."],
+    "Right ring column vertical reach", "ol. ol. ol. .lo .lo .lo ol.ol.", 45),
+  v("right-pinky-vert-basic",    "right-pinky", ["p", ";", "/"],
+    "Right pinky column vertical reach", "p;/ /;p p;/p;/ ;/; p;p", 30),
+  v("right-pinky-vert-ext",      "right-pinky", ["p", ";", "/"],
+    "Right pinky column vertical reach", "p;/ p;/ p;/ /;p /;p /;p p;/p;/", 45),
+
+  // Inner-column — left (4 entries) + right (4 entries)
+  i("inner-left-basic",        "inner-left",  ["b", "g", "t"],
+    "Inner-column reach — B, G, T (left)", "bgt tgb bgtbgt gtg btb", 30),
+  i("inner-left-bigrams",      "inner-left",  ["b", "g", "t"],
+    "Inner-column reach — B, G, T (left)", "bt tb gt tg bg gb btb tgt", 45),
+  i("inner-left-words",        "inner-left",  ["b", "g", "t"],
+    "Inner-column reach — B, G, T (left)", "bet gut big got bag tug bit beg tab bog", 45),
+  i("inner-left-mixed",        "inner-left",  ["b", "g", "t"],
+    "Inner-column reach — B, G, T (left)", "bgt gtb tgb bet tug big bgt gtb tgb", 45),
+  i("inner-right-basic",       "inner-right", ["h", "n", "y"],
+    "Inner-column reach — H, N, Y (right)", "hny ynh hnyhny nhn hyh", 30),
+  i("inner-right-bigrams",     "inner-right", ["h", "n", "y"],
+    "Inner-column reach — H, N, Y (right)", "hn nh hy yh ny yn hnh yny", 45),
+  i("inner-right-words",       "inner-right", ["h", "n", "y"],
+    "Inner-column reach — H, N, Y (right)", "hen hay new ivy any yen shy any why the", 45),
+  i("inner-right-mixed",       "inner-right", ["h", "n", "y"],
+    "Inner-column reach — H, N, Y (right)", "hny ynh nyh hen new any hny ynh nyh", 45),
+
+  // Thumb-cluster — space-heavy short-word sequences (5 entries)
+  t("thumb-space-basic",       "a an the of is it at on or by", 30),
+  t("thumb-space-short-words", "it is at on or an be to do go he me we up us if", 45),
+  t("thumb-space-alternating", "he me we be go do it is at no so my by hi", 45),
+  t("thumb-space-sentence",    "a cat and a dog are on the rug by the door", 45),
+  t("thumb-space-staccato",    "at it in is on or up us be me we go do no", 45),
+];
