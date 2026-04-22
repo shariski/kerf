@@ -9,6 +9,7 @@ describe("validateCreateProfileInput", () => {
     keyboardType: "sofle",
     dominantHand: "right",
     initialLevel: "first_day",
+    fingerAssignment: "conventional",
   };
 
   it("accepts a well-formed input and returns the typed shape", () => {
@@ -29,6 +30,23 @@ describe("validateCreateProfileInput", () => {
         }
       }
     }
+  });
+
+  it("falls back to 'unsure' when fingerAssignment is absent or unrecognised", () => {
+    const without = validateCreateProfileInput({
+      keyboardType: "sofle",
+      dominantHand: "right",
+      initialLevel: "first_day",
+    });
+    expect(without.fingerAssignment).toBe("unsure");
+
+    const unknown = validateCreateProfileInput({
+      keyboardType: "sofle",
+      dominantHand: "right",
+      initialLevel: "first_day",
+      fingerAssignment: "diagonal",
+    });
+    expect(unknown.fingerAssignment).toBe("unsure");
   });
 
   it("rejects non-object input", () => {

@@ -3,6 +3,7 @@ import {
   PHASE_BASELINES,
 } from "./baselines";
 import type { ComputedStats, TransitionPhase, UserBaseline } from "./types";
+import type { JourneyCode } from "#/domain/adaptive/journey";
 
 /**
  * Returns the user's empirical baseline (mean error rate, keystroke
@@ -18,6 +19,7 @@ import type { ComputedStats, TransitionPhase, UserBaseline } from "./types";
 export function computeBaseline(
   stats: ComputedStats,
   phase: TransitionPhase,
+  journey: JourneyCode,
 ): UserBaseline {
   const totals = stats.characters.reduce(
     (acc, c) => ({
@@ -30,12 +32,13 @@ export function computeBaseline(
   );
 
   if (totals.attempts < MIN_ATTEMPTS_FOR_PERSONAL_BASELINE) {
-    return PHASE_BASELINES[phase];
+    return { ...PHASE_BASELINES[phase], journey };
   }
 
   return {
     meanErrorRate: totals.errors / totals.attempts,
     meanKeystrokeTime: totals.sumTime / totals.attempts,
     meanHesitationRate: totals.hesitations / totals.attempts,
+    journey,
   };
 }

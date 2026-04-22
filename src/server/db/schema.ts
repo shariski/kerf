@@ -46,6 +46,7 @@ export const keyboardProfiles = pgTable("keyboard_profiles", {
   initialLevel: text("initial_level").notNull(), // 'first_day' | 'few_weeks' | 'comfortable'
   transitionPhase: text("transition_phase").notNull().default("transitioning"), // 'transitioning' | 'refining'
   phaseChangedAt: timestamp("phase_changed_at", { withTimezone: true }),
+  fingerAssignment: text("finger_assignment"), // 'conventional' | 'columnar' | 'unsure' | NULL (pre-ADR-003 users)
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

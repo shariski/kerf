@@ -13,6 +13,8 @@ import {
   getActiveProfile,
 } from "#/server/profile";
 import type { InitialLevel } from "#/domain/profile/initialPhase";
+import type { JourneyCode } from "#/domain/adaptive/journey";
+import { JourneyQuestion } from "#/components/onboarding/JourneyQuestion";
 import { getAuthSession } from "#/lib/require-auth";
 
 export const Route = createFileRoute("/onboarding")({
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-type Stage = "step1" | "step2" | "step3" | "landing";
+type Stage = "step1" | "step2" | "step3" | "step4" | "landing";
 
 const LEVELS: ReadonlyArray<{
   value: InitialLevel;
@@ -79,13 +81,15 @@ export function OnboardingPage() {
   const [initialLevel, setInitialLevel] = useState<InitialLevel | null>(
     "first_day",
   );
+  const [fingerAssignment, setFingerAssignment] = useState<JourneyCode>("unsure");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const canAdvance =
     (stage === "step1" && keyboardType !== null) ||
     (stage === "step2" && dominantHand !== null) ||
-    (stage === "step3" && initialLevel !== null);
+    (stage === "step3" && initialLevel !== null) ||
+    stage === "step4"; // fingerAssignment always has a value (defaults to "unsure")
 
   const goPractice = useCallback(() => {
     router.navigate({ to: "/practice" });
@@ -101,12 +105,16 @@ export function OnboardingPage() {
       return;
     }
     if (stage === "step3") {
+      if (initialLevel) setStage("step4");
+      return;
+    }
+    if (stage === "step4") {
       if (!keyboardType || !dominantHand || !initialLevel) return;
       setSubmitting(true);
       setError(null);
       try {
         await createKeyboardProfile({
-          data: { keyboardType, dominantHand, initialLevel },
+          data: { keyboardType, dominantHand, initialLevel, fingerAssignment },
         });
         setStage("landing");
       } catch {
@@ -115,11 +123,12 @@ export function OnboardingPage() {
         setSubmitting(false);
       }
     }
-  }, [stage, keyboardType, dominantHand, initialLevel]);
+  }, [stage, keyboardType, dominantHand, initialLevel, fingerAssignment]);
 
   const handleBack = useCallback(() => {
     if (stage === "step2") setStage("step1");
     else if (stage === "step3") setStage("step2");
+    else if (stage === "step4") setStage("step3");
   }, [stage]);
 
   // Enter key: advance on steps 1-3, fire redirect on landing.
@@ -161,6 +170,9 @@ export function OnboardingPage() {
         {stage === "step3" && (
           <Step3Level selected={initialLevel} onSelect={setInitialLevel} />
         )}
+        {stage === "step4" && (
+          <JourneyQuestion selected={fingerAssignment} onSelect={setFingerAssignment} />
+        )}
         {stage === "landing" && (
           <Landing
             keyboardType={keyboardType}
@@ -198,7 +210,13 @@ export function OnboardingPage() {
 
 function TopBar({ stage }: { stage: Stage }) {
   const stepNum =
-    stage === "step1" ? 1 : stage === "step2" ? 2 : stage === "step3" ? 3 : 3;
+    stage === "step1"
+      ? 1
+      : stage === "step2"
+      ? 2
+      : stage === "step3"
+      ? 3
+      : 4; // step4 or landing
 
   return (
     <div className="px-12 py-6 flex items-center justify-between gap-8">
@@ -218,12 +236,12 @@ function TopBar({ stage }: { stage: Stage }) {
       <div
         role="progressbar"
         aria-valuemin={1}
-        aria-valuemax={3}
-        aria-valuenow={stage === "landing" ? 3 : stepNum}
+        aria-valuemax={4}
+        aria-valuenow={stage === "landing" ? 4 : stepNum}
         aria-label="onboarding progress"
         className="flex items-center gap-3 flex-1 max-w-[400px] mx-auto"
       >
-        {[1, 2, 3].map((n) => {
+        {[1, 2, 3, 4].map((n) => {
           const done = stage === "landing" || n < stepNum;
           const active = stage !== "landing" && n === stepNum;
           return (
@@ -244,7 +262,7 @@ function TopBar({ stage }: { stage: Stage }) {
         className="text-kerf-text-tertiary text-right min-w-[48px]"
         style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}
       >
-        {stage === "landing" ? "all set" : `step ${stepNum} of 3`}
+        {stage === "landing" ? "all set" : `step ${stepNum} of 4`}
       </span>
     </div>
   );
@@ -826,7 +844,7 @@ function BottomActions({
   onBack: () => void;
   onNext: () => void;
 }) {
-  const isFinalStep = stage === "step3";
+  const isFinalStep = stage === "step4";
   const backHidden = stage === "step1";
   const nextLabel = submitting
     ? "Saving…"

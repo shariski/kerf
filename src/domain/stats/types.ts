@@ -5,6 +5,8 @@
  * module when the adaptive engine (Task 1.3) also needs it.
  */
 
+import type { JourneyCode } from "#/domain/adaptive/journey";
+
 export type TransitionPhase = "transitioning" | "refining";
 
 export type KeystrokeEvent = {
@@ -58,6 +60,8 @@ export type UserBaseline = {
   meanKeystrokeTime: number;
   /** 0..1 — fraction of attempts flagged as hesitations. */
   meanHesitationRate: number;
+  /** ADR-003 §2: finger-assignment journey, sourced from keyboard_profile. */
+  journey: JourneyCode;
 };
 
 /** A KeystrokeEvent annotated with a decay weight in [0, 1]. Produced by

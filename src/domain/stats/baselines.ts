@@ -17,11 +17,13 @@ export const PHASE_BASELINES: Record<TransitionPhase, UserBaseline> = {
     meanErrorRate: 0.08,
     meanKeystrokeTime: 280,
     meanHesitationRate: 0.1,
+    journey: "conventional",
   },
   refining: {
     meanErrorRate: 0.03,
     meanKeystrokeTime: 180,
     meanHesitationRate: 0.05,
+    journey: "conventional",
   },
 };
 

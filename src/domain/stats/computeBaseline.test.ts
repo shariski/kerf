@@ -18,13 +18,13 @@ const charStat = (overrides: Partial<CharacterStat> = {}): CharacterStat => ({
 
 describe("computeBaseline — cold start (insufficient data)", () => {
   it("returns the transitioning default for an empty stats bundle", () => {
-    expect(computeBaseline(emptyStats, "transitioning")).toEqual(
+    expect(computeBaseline(emptyStats, "transitioning", "conventional")).toEqual(
       PHASE_BASELINES.transitioning,
     );
   });
 
   it("returns the refining default for an empty stats bundle", () => {
-    expect(computeBaseline(emptyStats, "refining")).toEqual(
+    expect(computeBaseline(emptyStats, "refining", "conventional")).toEqual(
       PHASE_BASELINES.refining,
     );
   });
@@ -34,7 +34,7 @@ describe("computeBaseline — cold start (insufficient data)", () => {
       characters: [charStat({ attempts: 50, errors: 5, sumTime: 10000 })],
       bigrams: [],
     };
-    expect(computeBaseline(stats, "transitioning")).toEqual(
+    expect(computeBaseline(stats, "transitioning", "conventional")).toEqual(
       PHASE_BASELINES.transitioning,
     );
   });
@@ -44,9 +44,17 @@ describe("computeBaseline — cold start (insufficient data)", () => {
       characters: [charStat({ attempts: 10 })],
       bigrams: [],
     };
-    const t = computeBaseline(stats, "transitioning");
-    const r = computeBaseline(stats, "refining");
+    const t = computeBaseline(stats, "transitioning", "conventional");
+    const r = computeBaseline(stats, "refining", "conventional");
     expect(t).not.toEqual(r);
+  });
+
+  it("cold-start path preserves the caller-supplied journey (not PHASE_BASELINES default)", () => {
+    const cold = computeBaseline(emptyStats, "transitioning", "columnar");
+    expect(cold.journey).toBe("columnar");
+
+    const coldUnsure = computeBaseline(emptyStats, "transitioning", "unsure");
+    expect(coldUnsure.journey).toBe("unsure");
   });
 });
 
@@ -65,7 +73,7 @@ describe("computeBaseline — empirical mean (sufficient data)", () => {
       ],
       bigrams: [],
     };
-    const baseline = computeBaseline(stats, "transitioning");
+    const baseline = computeBaseline(stats, "transitioning", "conventional");
     expect(baseline.meanErrorRate).toBeCloseTo(0.05, 5);
     expect(baseline.meanKeystrokeTime).toBeCloseTo(200, 5);
     expect(baseline.meanHesitationRate).toBeCloseTo(0.07, 5);
@@ -79,7 +87,7 @@ describe("computeBaseline — empirical mean (sufficient data)", () => {
       ],
       bigrams: [],
     };
-    const baseline = computeBaseline(stats, "refining");
+    const baseline = computeBaseline(stats, "refining", "conventional");
     expect(baseline.meanErrorRate).toBeCloseTo(6 / 120, 5);
     expect(baseline.meanKeystrokeTime).toBeCloseTo(36000 / 120, 5);
   });
@@ -96,8 +104,8 @@ describe("computeBaseline — empirical mean (sufficient data)", () => {
       ],
       bigrams: [],
     };
-    expect(computeBaseline(stats, "transitioning")).toEqual(
-      computeBaseline(stats, "refining"),
+    expect(computeBaseline(stats, "transitioning", "conventional")).toEqual(
+      computeBaseline(stats, "refining", "conventional"),
     );
   });
 });

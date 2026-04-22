@@ -7,6 +7,7 @@ import {
   type InitialLevel,
   type TransitionPhase,
 } from "#/domain/profile/initialPhase";
+import { toJourneyCode, type JourneyCode } from "#/domain/adaptive/journey";
 import { auth } from "./auth";
 import { db } from "./db";
 import { keyboardProfiles, sessions } from "./db/schema";
@@ -18,6 +19,7 @@ export type CreateProfileInput = {
   keyboardType: KeyboardType;
   dominantHand: DominantHand;
   initialLevel: InitialLevel;
+  fingerAssignment: JourneyCode;
 };
 
 export function validateCreateProfileInput(input: unknown): CreateProfileInput {
@@ -44,6 +46,9 @@ export function validateCreateProfileInput(input: unknown): CreateProfileInput {
     keyboardType: i.keyboardType,
     dominantHand: i.dominantHand,
     initialLevel: i.initialLevel,
+    fingerAssignment: toJourneyCode(
+      typeof i.fingerAssignment === "string" ? i.fingerAssignment : null,
+    ),
   };
 }
 
@@ -75,6 +80,7 @@ export const createKeyboardProfile = createServerFn({ method: "POST" })
           dominantHand: data.dominantHand,
           initialLevel: data.initialLevel,
           transitionPhase: phase,
+          fingerAssignment: data.fingerAssignment,
           isActive: true,
         })
         .returning();
