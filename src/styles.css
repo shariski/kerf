@@ -592,6 +592,18 @@ body {
   font-size: 11px;
   line-height: 1;
 }
+.kerf-kbd--with-label {
+  gap: 6px;
+  padding: 3px 8px;
+}
+.kerf-kbd--with-label .kerf-kbd-icon {
+  font-size: 12px;
+}
+.kerf-kbd--with-label .kerf-kbd-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
 
 /* Mode cards */
 .kerf-pre-modes-label {
