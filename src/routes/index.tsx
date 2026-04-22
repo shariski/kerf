@@ -70,7 +70,7 @@ function HomePage() {
   }, [navigate]);
 
   return (
-    <main className="kerf-home-page">
+    <main id="main-content" className="kerf-home-page">
       <div className="kerf-home-container">
         {home.hasAnySession ? (
           <ReturningState home={home} />

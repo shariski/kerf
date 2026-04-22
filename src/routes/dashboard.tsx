@@ -238,7 +238,7 @@ function DashboardPage() {
   const meta = `all-time on ${keyboardName} · ${hero.totalSessions} ${sessionSuffix}`;
 
   return (
-    <main className="kerf-dash-page">
+    <main id="main-content" className="kerf-dash-page">
       <PhaseSuggestionBanner
         signal={phaseSuggestion.signal}
         currentPhase={phaseSuggestion.currentPhase}
@@ -349,7 +349,7 @@ function DashboardPage() {
 
 function EmptyState() {
   return (
-    <main className="kerf-dash-page">
+    <main id="main-content" className="kerf-dash-page">
       <div className="kerf-dash-empty">
         <h1 className="kerf-dash-empty-title">No practice yet</h1>
         <p className="kerf-dash-empty-body">

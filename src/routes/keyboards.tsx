@@ -117,7 +117,7 @@ function KeyboardsPage() {
   };
 
   return (
-    <main className="kerf-keyboards-page">
+    <main id="main-content" className="kerf-keyboards-page">
       <header className="kerf-keyboards-header">
         <div className="kerf-keyboards-breadcrumb">Manage profiles</div>
         <div className="kerf-keyboards-title-row">
