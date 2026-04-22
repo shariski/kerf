@@ -1,0 +1,102 @@
+import { describe, expect, it } from "vitest";
+import {
+  selectTarget,
+  TARGET_JOURNEY_WEIGHTS,
+  diagnosticTarget,
+} from "./targetSelection";
+import type { CharacterStat, BigramStat, UserBaseline } from "../stats/types";
+
+const baseline = (over: Partial<UserBaseline> = {}): UserBaseline => ({
+  meanErrorRate: 0.08,
+  meanKeystrokeTime: 280,
+  meanHesitationRate: 0.1,
+  journey: "conventional",
+  ...over,
+});
+
+const freq = (_: string) => 0.5;
+
+const statsWith = (
+  chars: CharacterStat[] = [],
+  bigrams: BigramStat[] = [],
+) => ({ characters: chars, bigrams });
+
+describe("diagnosticTarget", () => {
+  it("returns a diagnostic-type target with empty keys", () => {
+    const d = diagnosticTarget();
+    expect(d.type).toBe("diagnostic");
+    expect(d.keys).toEqual([]);
+    expect(d.score).toBeUndefined();
+  });
+});
+
+describe("selectTarget — low-confidence fallback", () => {
+  it("returns diagnostic when stats are empty", () => {
+    const chosen = selectTarget(statsWith(), baseline(), "transitioning", freq);
+    expect(chosen.type).toBe("diagnostic");
+  });
+
+  it("returns diagnostic when all character attempts < LOW_CONFIDENCE_THRESHOLD", () => {
+    const chosen = selectTarget(
+      statsWith([
+        { character: "g", attempts: 2, errors: 1, sumTime: 500, hesitationCount: 0 },
+      ]),
+      baseline(),
+      "transitioning",
+      freq,
+    );
+    expect(chosen.type).toBe("diagnostic");
+  });
+});
+
+describe("selectTarget — journey weighting (ADR-003 §4.2)", () => {
+  const richStats = (): CharacterStat[] => [
+    { character: "g", attempts: 100, errors: 20, sumTime: 30_000, hesitationCount: 5 },
+    { character: "q", attempts: 100, errors: 15, sumTime: 30_000, hesitationCount: 3 },
+    { character: "a", attempts: 100, errors: 2, sumTime: 28_000, hesitationCount: 0 },
+  ];
+
+  it("columnar journey promotes inner-column target", () => {
+    const chosen = selectTarget(
+      statsWith(richStats()),
+      baseline({ journey: "columnar" }),
+      "transitioning",
+      freq,
+    );
+    expect(chosen.type).toBe("inner-column");
+  });
+
+  it("conventional journey promotes vertical-column target", () => {
+    const chosen = selectTarget(
+      statsWith(richStats()),
+      baseline({ journey: "conventional" }),
+      "transitioning",
+      freq,
+    );
+    expect(["vertical-column", "character"]).toContain(chosen.type);
+  });
+
+  it("weights table sanity", () => {
+    expect(TARGET_JOURNEY_WEIGHTS.conventional["vertical-column"]).toBe(1.2);
+    expect(TARGET_JOURNEY_WEIGHTS.conventional["inner-column"]).toBe(0.6);
+    expect(TARGET_JOURNEY_WEIGHTS.columnar["inner-column"]).toBe(1.2);
+    expect(TARGET_JOURNEY_WEIGHTS.columnar["vertical-column"]).toBe(0.8);
+    expect(TARGET_JOURNEY_WEIGHTS.unsure).toEqual(TARGET_JOURNEY_WEIGHTS.conventional);
+  });
+});
+
+describe("selectTarget — returns SessionTarget with correct shape", () => {
+  it("includes label, keys, and score", () => {
+    const chosen = selectTarget(
+      statsWith([
+        { character: "g", attempts: 100, errors: 20, sumTime: 30_000, hesitationCount: 5 },
+      ]),
+      baseline(),
+      "transitioning",
+      freq,
+    );
+    expect(chosen.keys.length).toBeGreaterThan(0);
+    expect(chosen.label).toMatch(/\S/);
+    expect(typeof chosen.score).toBe("number");
+  });
+});
