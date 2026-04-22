@@ -159,6 +159,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Sticky-bottom footer layout. When a route's content is shorter than
+   the viewport, <main> grows to fill the remaining height and the
+   footer naturally sits at the bottom — no scrolling. Long routes
+   (dashboard, doc pages) still scroll because flex-grow doesn't clamp
+   natural content height. 100svh keeps mobile Safari's dynamic chrome
+   from pushing the footer below the visible viewport. */
+.kerf-app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+.kerf-app-root > main {
+  flex: 1 0 auto;
+}
+
 /* ── keyboard SVG (Sofle / Lily58) ── */
 
 .kb-svg {
@@ -452,7 +468,10 @@ body {
    ================================================================ */
 
 .kerf-practice-main {
-  min-height: 100vh;
+  /* No explicit min-height — root-level flex layout
+     (.kerf-app-root > main { flex: 1 0 auto }) makes this element fill
+     the remaining viewport height so the page doesn't scroll when
+     pre-session + footer together would otherwise overflow 100vh. */
   background: var(--color-kerf-bg-base);
   padding: 48px 24px;
 }
@@ -836,7 +855,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 32px;
-  min-height: 100vh;
+  /* No explicit min-height — root flex fills this to the remaining
+     viewport height so justify-content:center centers the typing area
+     within the available space without forcing a scroll. */
 }
 
 .kerf-active-session {
@@ -5090,6 +5111,182 @@ body {
     line-height: 1.5;
     color: var(--color-kerf-text-secondary);
     margin: 0;
+  }
+}
+
+/* =================================================================
+   Doc pages (Task 4.5)
+   Shared layout for /how-it-works, /why-split-is-hard, /faq,
+   /privacy, /terms. 720px reading column, generous line-height.
+   ================================================================= */
+
+.kerf-doc-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 120px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-title {
+  font-family: var(--font-sans);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+
+.kerf-doc-lede {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-kerf-text-secondary);
+  margin: 0 0 24px;
+}
+
+.kerf-doc-effective-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+  margin: 0 0 24px;
+}
+
+.kerf-doc-body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-body h2 {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 36px 0 12px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-body h3 {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 28px 0 8px;
+  color: var(--color-kerf-text-primary);
+}
+
+.kerf-doc-body p {
+  margin: 0 0 16px;
+}
+
+.kerf-doc-body ul,
+.kerf-doc-body ol {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+
+.kerf-doc-body li {
+  margin-bottom: 8px;
+}
+
+.kerf-doc-body code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-doc-body strong {
+  color: var(--color-kerf-text-primary);
+  font-weight: 700;
+}
+
+.kerf-doc-body a {
+  color: var(--color-kerf-amber-base);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.kerf-doc-body a:hover,
+.kerf-doc-body a:focus-visible {
+  color: var(--color-kerf-amber-hover);
+}
+
+.kerf-doc-template-banner {
+  max-width: 720px;
+  margin: 32px auto 0;
+  padding: 12px 18px;
+  border-left: 3px solid var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-subtle);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+  border-radius: 0 4px 4px 0;
+}
+
+.kerf-doc-placeholder {
+  background: var(--color-kerf-bg-base);
+  color: var(--color-kerf-amber-hover);
+  padding: 1px 4px;
+}
+
+/* =================================================================
+   Global footer (Task 4.5)
+   ================================================================= */
+
+.kerf-app-footer {
+  max-width: 960px;
+  margin: 24px auto 0;
+  padding: 12px 24px 16px;
+  display: flex;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-app-footer-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.kerf-app-footer-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kerf-app-footer-sep {
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-app-footer-link {
+  color: var(--color-kerf-text-secondary);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.kerf-app-footer-link:hover,
+.kerf-app-footer-link:focus-visible {
+  color: var(--color-kerf-amber-base);
+}
+
+/* Hint-strip clearance. On routes that render .kerf-post-hint-strip
+   (dashboard, post-session, post-drill) the strip is position:fixed at
+   bottom:0 with ~48px height. Without clearance, the footer lands under
+   the strip at scroll-bottom. Adding margin-bottom pushes the footer up
+   enough that its text sits above the strip when fully scrolled. */
+.kerf-app-root:has(.kerf-post-hint-strip) .kerf-app-footer {
+  margin-bottom: 56px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-app-footer-link {
+    transition-duration: 1ms;
   }
 }
 

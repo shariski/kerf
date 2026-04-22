@@ -35,6 +35,7 @@ import {
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
 import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import type { Corpus } from "#/domain/corpus/types";
+import { AppFooter } from "#/components/nav/AppFooter";
 
 type LoadedProfile = {
   id: string;
@@ -344,18 +345,21 @@ function DrillPage() {
       targetChars: activeDrill.targetChars,
     });
     return (
-      <main id="main-content" className="kerf-practice-main">
-        <div className="kerf-practice-container kerf-stage-fade-in">
-          <DrillPostSessionStage
-            drillLabel={activeDrill.label}
-            target={state.target}
-            summary={summary}
-            drillDelta={drillDelta}
-            onRunAgain={runAgain}
-            onMoveToAdaptive={moveToAdaptive}
-          />
-        </div>
-      </main>
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <DrillPostSessionStage
+              drillLabel={activeDrill.label}
+              target={state.target}
+              summary={summary}
+              drillDelta={drillDelta}
+              onRunAgain={runAgain}
+              onMoveToAdaptive={moveToAdaptive}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
     );
   }
 
@@ -396,42 +400,45 @@ function DrillPage() {
   // waiting for the corpus load before auto-starting.
   const showPicker = !hasRouteDrill;
   return (
-    <main id="main-content" className="kerf-practice-main">
-      <div className="kerf-practice-container kerf-stage-fade-in">
-        {showPicker ? (
-          <DrillPreSessionStage
-            keyboardType={profile.keyboardType}
-            dominantHand={profile.dominantHand}
-            phase={profile.transitionPhase}
-            onSelectTarget={(target) =>
-              navigate({ to: "/practice/drill", search: { target } })
-            }
-            onSelectPreset={(preset) =>
-              navigate({ to: "/practice/drill", search: { preset } })
-            }
-          />
-        ) : (
-          <p className="kerf-drill-loading" aria-live="polite">
-            Building drill…
-          </p>
-        )}
-        {otherTabActive && (
-          <p
-            className="kerf-multitab-banner"
-            role="status"
-            aria-live="polite"
-          >
-            Another tab has an active practice session. Starting here will
-            save as a separate session alongside it.
-          </p>
-        )}
-        {corpus.status === "error" && (
-          <p className="kerf-corpus-error" role="alert" aria-live="polite">
-            Could not load the word list. Refresh the page to try again.
-          </p>
-        )}
-      </div>
-    </main>
+    <>
+      <main id="main-content" className="kerf-practice-main">
+        <div className="kerf-practice-container kerf-stage-fade-in">
+          {showPicker ? (
+            <DrillPreSessionStage
+              keyboardType={profile.keyboardType}
+              dominantHand={profile.dominantHand}
+              phase={profile.transitionPhase}
+              onSelectTarget={(target) =>
+                navigate({ to: "/practice/drill", search: { target } })
+              }
+              onSelectPreset={(preset) =>
+                navigate({ to: "/practice/drill", search: { preset } })
+              }
+            />
+          ) : (
+            <p className="kerf-drill-loading" aria-live="polite">
+              Building drill…
+            </p>
+          )}
+          {otherTabActive && (
+            <p
+              className="kerf-multitab-banner"
+              role="status"
+              aria-live="polite"
+            >
+              Another tab has an active practice session. Starting here will
+              save as a separate session alongside it.
+            </p>
+          )}
+          {corpus.status === "error" && (
+            <p className="kerf-corpus-error" role="alert" aria-live="polite">
+              Could not load the word list. Refresh the page to try again.
+            </p>
+          )}
+        </div>
+      </main>
+      {showPicker && <AppFooter />}
+    </>
   );
 }
 

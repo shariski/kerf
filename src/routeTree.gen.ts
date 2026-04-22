@@ -9,15 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhySplitIsHardRouteImport } from './routes/why-split-is-hard'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KeyboardsRouteImport } from './routes/keyboards'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PracticeDrillRouteImport } from './routes/practice_.drill'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const WhySplitIsHardRoute = WhySplitIsHardRouteImport.update({
+  id: '/why-split-is-hard',
+  path: '/why-split-is-hard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PracticeRoute = PracticeRouteImport.update({
   id: '/practice',
   path: '/practice',
@@ -36,6 +56,16 @@ const LoginRoute = LoginRouteImport.update({
 const KeyboardsRoute = KeyboardsRouteImport.update({
   id: '/keyboards',
   path: '/keyboards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -62,20 +92,30 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/keyboards': typeof KeyboardsRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/practice': typeof PracticeRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/why-split-is-hard': typeof WhySplitIsHardRoute
   '/practice/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/keyboards': typeof KeyboardsRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/practice': typeof PracticeRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/why-split-is-hard': typeof WhySplitIsHardRoute
   '/practice/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -83,10 +123,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/keyboards': typeof KeyboardsRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/practice': typeof PracticeRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/why-split-is-hard': typeof WhySplitIsHardRoute
   '/practice_/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -95,30 +140,45 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/faq'
+    | '/how-it-works'
     | '/keyboards'
     | '/login'
     | '/onboarding'
     | '/practice'
+    | '/privacy'
+    | '/terms'
+    | '/why-split-is-hard'
     | '/practice/drill'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
+    | '/faq'
+    | '/how-it-works'
     | '/keyboards'
     | '/login'
     | '/onboarding'
     | '/practice'
+    | '/privacy'
+    | '/terms'
+    | '/why-split-is-hard'
     | '/practice/drill'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/faq'
+    | '/how-it-works'
     | '/keyboards'
     | '/login'
     | '/onboarding'
     | '/practice'
+    | '/privacy'
+    | '/terms'
+    | '/why-split-is-hard'
     | '/practice_/drill'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -126,16 +186,42 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  FaqRoute: typeof FaqRoute
+  HowItWorksRoute: typeof HowItWorksRoute
   KeyboardsRoute: typeof KeyboardsRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PracticeRoute: typeof PracticeRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
+  WhySplitIsHardRoute: typeof WhySplitIsHardRoute
   PracticeDrillRoute: typeof PracticeDrillRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/why-split-is-hard': {
+      id: '/why-split-is-hard'
+      path: '/why-split-is-hard'
+      fullPath: '/why-split-is-hard'
+      preLoaderRoute: typeof WhySplitIsHardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/practice': {
       id: '/practice'
       path: '/practice'
@@ -162,6 +248,20 @@ declare module '@tanstack/react-router' {
       path: '/keyboards'
       fullPath: '/keyboards'
       preLoaderRoute: typeof KeyboardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -198,10 +298,15 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  FaqRoute: FaqRoute,
+  HowItWorksRoute: HowItWorksRoute,
   KeyboardsRoute: KeyboardsRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PracticeRoute: PracticeRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
+  WhySplitIsHardRoute: WhySplitIsHardRoute,
   PracticeDrillRoute: PracticeDrillRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

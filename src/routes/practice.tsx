@@ -29,6 +29,7 @@ import {
 } from "#/lib/persistSessionWithRetry";
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
 import { useOtherTabActive } from "#/hooks/useOtherTabActive";
+import { AppFooter } from "#/components/nav/AppFooter";
 
 /**
  * Drizzle types the profile columns as `string` (the schema uses `text()`
@@ -463,16 +464,19 @@ function PracticePage() {
     });
     const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
     return (
-      <main id="main-content" className="kerf-practice-main">
-        <div className="kerf-practice-container kerf-stage-fade-in">
-          <PostSessionStage
-            target={state.target}
-            title={title}
-            summary={summary}
-            onPracticeAgain={startAdaptive}
-          />
-        </div>
-      </main>
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <PostSessionStage
+              target={state.target}
+              title={title}
+              summary={summary}
+              onPracticeAgain={startAdaptive}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
     );
   }
 
@@ -514,42 +518,45 @@ function PracticePage() {
   }
 
   return (
-    <main id="main-content" className="kerf-practice-main">
-      <div className="kerf-practice-container kerf-stage-fade-in">
-        <PreSessionStage
-          keyboardType={profile.keyboardType}
-          phase={profile.transitionPhase}
-          filterValues={filters}
-          onFilterChange={setFilters}
-          onStartAdaptive={startAdaptive}
-          onDrillWeakness={() =>
-            navigate({ to: "/practice/drill", search: {} })
-          }
-          onDrillInnerColumn={() =>
-            navigate({
-              to: "/practice/drill",
-              search: { preset: "innerColumn" },
-            })
-          }
-          isFirstSession={useDiagnostic}
-        />
-        {otherTabActive && (
-          <p
-            className="kerf-multitab-banner"
-            role="status"
-            aria-live="polite"
-          >
-            Another tab has an active practice session. Starting here will
-            save as a separate session alongside it.
-          </p>
-        )}
-        {corpus.status === "error" && (
-          <p className="kerf-corpus-error" role="alert" aria-live="polite">
-            Could not load the word list. Refresh the page to try again.
-          </p>
-        )}
-      </div>
-    </main>
+    <>
+      <main id="main-content" className="kerf-practice-main">
+        <div className="kerf-practice-container kerf-stage-fade-in">
+          <PreSessionStage
+            keyboardType={profile.keyboardType}
+            phase={profile.transitionPhase}
+            filterValues={filters}
+            onFilterChange={setFilters}
+            onStartAdaptive={startAdaptive}
+            onDrillWeakness={() =>
+              navigate({ to: "/practice/drill", search: {} })
+            }
+            onDrillInnerColumn={() =>
+              navigate({
+                to: "/practice/drill",
+                search: { preset: "innerColumn" },
+              })
+            }
+            isFirstSession={useDiagnostic}
+          />
+          {otherTabActive && (
+            <p
+              className="kerf-multitab-banner"
+              role="status"
+              aria-live="polite"
+            >
+              Another tab has an active practice session. Starting here will
+              save as a separate session alongside it.
+            </p>
+          )}
+          {corpus.status === "error" && (
+            <p className="kerf-corpus-error" role="alert" aria-live="polite">
+              Could not load the word list. Refresh the page to try again.
+            </p>
+          )}
+        </div>
+      </main>
+      <AppFooter />
+    </>
   );
 }
 

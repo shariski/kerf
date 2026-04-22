@@ -6,6 +6,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { AppNav } from '#/components/nav/AppNav'
+import { AppFooter } from '#/components/nav/AppFooter'
 import { MobileGate } from '#/components/MobileGate'
 
 // Routes that own their full viewport chrome and should not render the
@@ -13,6 +14,14 @@ import { MobileGate } from '#/components/MobileGate'
 //   - /onboarding has its own logo + progress bar
 //   - /login is a centered full-screen card
 const CHROMELESS_PATHS = ['/onboarding', '/login']
+
+// Routes that manage footer visibility per-stage rather than letting
+// the root render it unconditionally. /practice and /practice/drill
+// (matched via prefix) hide the footer while the user is actively
+// typing and render it inline in pre-/post-session stages. Every other
+// non-chromeless route gets the global footer — including /dashboard,
+// where CSS handles hint-strip clearance.
+const NO_GLOBAL_FOOTER_PATHS = ['/practice']
 
 import appCss from '../styles.css?url'
 
@@ -45,6 +54,8 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const chromeless = CHROMELESS_PATHS.some((p) => pathname.startsWith(p))
+  const noGlobalFooter =
+    chromeless || NO_GLOBAL_FOOTER_PATHS.some((p) => pathname.startsWith(p))
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -59,6 +70,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div className="kerf-app-root">
           {!chromeless && <AppNav />}
           {children}
+          {!noGlobalFooter && <AppFooter />}
           {import.meta.env.DEV && <DevtoolsLazy />}
           <Scripts />
         </div>

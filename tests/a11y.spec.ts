@@ -28,6 +28,11 @@ const pageCases: PageCase[] = [
   { name: 'dashboard', path: '/dashboard' },
   { name: 'keyboards', path: '/keyboards' },
   { name: 'mobile gate (home)', path: '/', viewport: MOBILE_VIEWPORT },
+  { name: 'how-it-works', path: '/how-it-works' },
+  { name: 'why-split-is-hard', path: '/why-split-is-hard' },
+  { name: 'faq', path: '/faq' },
+  { name: 'privacy', path: '/privacy' },
+  { name: 'terms', path: '/terms' },
   // Pause overlay (triggered mid-session) is covered by the
   // PauseOverlay.test.tsx unit test and a manual deferral noted in
   // docs/a11y.md — driving it from Playwright requires starting a
