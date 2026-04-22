@@ -2505,7 +2505,14 @@ body {
 }
 
 .kerf-dash-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 32px;
+}
+.kerf-dash-page-header-left {
+  min-width: 0;
 }
 
 .kerf-dash-page-breadcrumb {
