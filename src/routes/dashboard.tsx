@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  Link,
+  useRouter,
+} from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getDashboardActivity,
@@ -19,6 +24,15 @@ import {
   type DashboardWeaknessRankingData,
   type DashboardWeeklyInsightData,
 } from "#/server/dashboard";
+import {
+  listKeyboardProfiles,
+  switchActiveProfile,
+  type ProfileListEntry,
+} from "#/server/profile";
+import {
+  KeyboardSwitcherPill,
+  type KeyboardSwitcherProfile,
+} from "#/components/dashboard/KeyboardSwitcherPill";
 import { HeroStats } from "#/components/dashboard/HeroStats";
 import { SplitMetrics } from "#/components/dashboard/SplitMetrics";
 import { ActivityLog } from "#/components/dashboard/ActivityLog";
@@ -47,10 +61,12 @@ export const Route = createFileRoute("/dashboard")({
     phaseSuggestion: DashboardPhaseSuggestionData;
     weekly: DashboardWeeklyInsightData;
     temporal: DashboardTemporalPatternsData;
+    profiles: ProfileListEntry[];
   }> => {
-    // Seven independent queries against the same active profile —
+    // Eight independent queries against the same user —
     // parallel so the dashboard's first paint scales with the
-    // slowest single query, not the sum.
+    // slowest single query, not the sum. `profiles` powers the
+    // hero-side keyboard switcher pill.
     const [
       hero,
       activity,
@@ -60,6 +76,7 @@ export const Route = createFileRoute("/dashboard")({
       phaseSuggestion,
       weekly,
       temporal,
+      profiles,
     ] = await Promise.all([
       getDashboardHeroStats(),
       getDashboardActivity(),
@@ -69,6 +86,7 @@ export const Route = createFileRoute("/dashboard")({
       getDashboardPhaseSuggestion(),
       getDashboardWeeklyInsight(),
       getDashboardTemporalPatterns(),
+      listKeyboardProfiles(),
     ]);
     return {
       hero,
@@ -79,6 +97,7 @@ export const Route = createFileRoute("/dashboard")({
       phaseSuggestion,
       weekly,
       temporal,
+      profiles,
     };
   },
   component: DashboardPage,
@@ -94,7 +113,20 @@ function DashboardPage() {
     phaseSuggestion,
     weekly,
     temporal,
+    profiles,
   } = Route.useLoaderData();
+  const router = useRouter();
+
+  const switcherProfiles: KeyboardSwitcherProfile[] = profiles.map((p) => ({
+    id: p.id,
+    keyboardType: p.keyboardType,
+    isActive: p.isActive,
+  }));
+
+  const handleSwitchProfile = async (profileId: string) => {
+    await switchActiveProfile({ data: { profileId } });
+    await router.invalidate();
+  };
 
   // Vim-style scroll shortcuts: j / k nudge, gg jumps to top, G to
   // bottom. Step scales with viewport so it feels consistent on any
@@ -213,8 +245,14 @@ function DashboardPage() {
       />
 
       <header className="kerf-dash-page-header">
-        <div className="kerf-dash-page-breadcrumb">Your progress</div>
-        <h1 className="kerf-dash-page-title">Dashboard</h1>
+        <div className="kerf-dash-page-header-left">
+          <div className="kerf-dash-page-breadcrumb">Your progress</div>
+          <h1 className="kerf-dash-page-title">Dashboard</h1>
+        </div>
+        <KeyboardSwitcherPill
+          profiles={switcherProfiles}
+          onSwitchProfile={handleSwitchProfile}
+        />
       </header>
 
       <Section title="Where you are now" meta={meta}>

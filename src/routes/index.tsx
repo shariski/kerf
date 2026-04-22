@@ -117,7 +117,11 @@ function ZeroState({ home }: { home: HomeData }) {
             </span>
           </span>
           <span className="kerf-home-cta-primary-action" aria-hidden>
-            <kbd className="kerf-kbd">⏎</kbd>
+            <kbd className="kerf-kbd kerf-kbd--with-label">
+              <span className="kerf-kbd-icon">⏎</span>
+              <span className="kerf-kbd-label">enter</span>
+            </kbd>
+            <span className="kerf-home-cta-primary-arrow">→</span>
           </span>
         </Link>
       </div>
@@ -156,7 +160,10 @@ function ReturningState({ home }: { home: HomeData }) {
             </span>
           </span>
           <span className="kerf-home-cta-primary-action" aria-hidden>
-            <kbd className="kerf-kbd">⏎</kbd>
+            <kbd className="kerf-kbd kerf-kbd--with-label">
+              <span className="kerf-kbd-icon">⏎</span>
+              <span className="kerf-kbd-label">enter</span>
+            </kbd>
             <span className="kerf-home-cta-primary-arrow">→</span>
           </span>
         </Link>

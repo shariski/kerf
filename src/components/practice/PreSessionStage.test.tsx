@@ -8,6 +8,26 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render } from "@testing-library/react";
+
+// `KeyboardContextPill` now renders a `<Link to="/keyboards">`, which
+// needs router context. Stub the Link to a plain anchor so this unit
+// test stays focused on the pre-session composite's own contract.
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({
+    to,
+    children,
+    className,
+  }: {
+    to: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  ),
+}));
+
 import { PreSessionStage } from "./PreSessionStage";
 import type { PreSessionFilterValues } from "./PreSessionFilters";
 
