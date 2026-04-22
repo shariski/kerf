@@ -8,13 +8,10 @@
 
 import { Link } from "@tanstack/react-router";
 
-const PRIMARY_LINKS = [
+const LINKS = [
   { to: "/how-it-works", label: "how it works" },
   { to: "/why-split-is-hard", label: "why split is hard" },
   { to: "/faq", label: "faq" },
-] as const;
-
-const LEGAL_LINKS = [
   { to: "/privacy", label: "privacy" },
   { to: "/terms", label: "terms" },
 ] as const;
@@ -24,26 +21,12 @@ export function AppFooter() {
   return (
     <footer className="kerf-app-footer" role="contentinfo">
       <div className="kerf-app-footer-row">
-        {PRIMARY_LINKS.map((link, i) => (
+        {LINKS.map((link, i) => (
           <span key={link.to} className="kerf-app-footer-cell">
             <Link to={link.to} className="kerf-app-footer-link">
               {link.label}
             </Link>
-            {i < PRIMARY_LINKS.length - 1 && (
-              <span className="kerf-app-footer-sep" aria-hidden>
-                ·
-              </span>
-            )}
-          </span>
-        ))}
-      </div>
-      <div className="kerf-app-footer-row">
-        {LEGAL_LINKS.map((link, i) => (
-          <span key={link.to} className="kerf-app-footer-cell">
-            <Link to={link.to} className="kerf-app-footer-link">
-              {link.label}
-            </Link>
-            {i < LEGAL_LINKS.length - 1 && (
+            {i < LINKS.length - 1 && (
               <span className="kerf-app-footer-sep" aria-hidden>
                 ·
               </span>

@@ -159,6 +159,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Sticky-bottom footer layout. When a route's content is shorter than
+   the viewport, <main> grows to fill the remaining height and the
+   footer naturally sits at the bottom — no scrolling. Long routes
+   (dashboard, doc pages) still scroll because flex-grow doesn't clamp
+   natural content height. 100svh keeps mobile Safari's dynamic chrome
+   from pushing the footer below the visible viewport. */
+.kerf-app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+.kerf-app-root > main {
+  flex: 1 0 auto;
+}
+
 /* ── keyboard SVG (Sofle / Lily58) ── */
 
 .kb-svg {
@@ -5216,13 +5232,13 @@ body {
 
 .kerf-app-footer {
   max-width: 960px;
-  margin: 48px auto 24px;
-  padding: 24px;
+  margin: 32px auto 0;
+  padding: 16px 24px 20px;
   border-top: 1px solid var(--color-kerf-border-subtle);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-kerf-text-secondary);
@@ -5257,7 +5273,7 @@ body {
 }
 
 .kerf-app-footer-copyright {
-  margin-top: 6px;
+  margin-top: 2px;
   color: var(--color-kerf-text-secondary);
 }
 
