@@ -22,6 +22,13 @@
       "when": 1776514439222,
       "tag": "0002_illegal_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776874448562,
+      "tag": "0003_wild_proudstar",
+      "breakpoints": true
     }
   ]
 }
