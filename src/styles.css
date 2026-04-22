@@ -5210,3 +5210,60 @@ body {
   padding: 1px 4px;
 }
 
+/* =================================================================
+   Global footer (Task 4.5)
+   ================================================================= */
+
+.kerf-app-footer {
+  max-width: 960px;
+  margin: 48px auto 24px;
+  padding: 24px;
+  border-top: 1px solid var(--color-kerf-border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-text-secondary);
+}
+
+.kerf-app-footer-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.kerf-app-footer-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kerf-app-footer-sep {
+  color: var(--color-kerf-text-tertiary);
+}
+
+.kerf-app-footer-link {
+  color: var(--color-kerf-text-secondary);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.kerf-app-footer-link:hover,
+.kerf-app-footer-link:focus-visible {
+  color: var(--color-kerf-amber-base);
+}
+
+.kerf-app-footer-copyright {
+  margin-top: 6px;
+  color: var(--color-kerf-text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-app-footer-link {
+    transition-duration: 1ms;
+  }
+}
+

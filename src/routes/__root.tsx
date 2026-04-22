@@ -6,6 +6,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { AppNav } from '#/components/nav/AppNav'
+import { AppFooter } from '#/components/nav/AppFooter'
 import { MobileGate } from '#/components/MobileGate'
 
 // Routes that own their full viewport chrome and should not render the
@@ -59,6 +60,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div className="kerf-app-root">
           {!chromeless && <AppNav />}
           {children}
+          {!chromeless && <AppFooter />}
           {import.meta.env.DEV && <DevtoolsLazy />}
           <Scripts />
         </div>
