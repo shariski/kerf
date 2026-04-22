@@ -286,6 +286,7 @@ describe("OnboardingPage", () => {
       );
       fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
       await vi.waitFor(() => {
+        expect(createKeyboardProfile).toHaveBeenCalledTimes(1);
         const call = createKeyboardProfile.mock.calls[0]![0] as {
           data: Record<string, unknown>;
         };
@@ -301,6 +302,7 @@ describe("OnboardingPage", () => {
       );
       fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
       await vi.waitFor(() => {
+        expect(createKeyboardProfile).toHaveBeenCalledTimes(1);
         const call = createKeyboardProfile.mock.calls[0]![0] as {
           data: Record<string, unknown>;
         };
@@ -314,6 +316,7 @@ describe("OnboardingPage", () => {
       // "I'm not sure" is pre-selected; no extra click needed.
       fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
       await vi.waitFor(() => {
+        expect(createKeyboardProfile).toHaveBeenCalledTimes(1);
         const call = createKeyboardProfile.mock.calls[0]![0] as {
           data: Record<string, unknown>;
         };

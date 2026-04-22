@@ -73,6 +73,7 @@ export function JourneyQuestion({
         <legend className="sr-only">Finger assignment style</legend>
         {JOURNEY_OPTIONS.map((opt) => {
           const isSelected = selected === opt.value;
+          const descId = `journey-desc-${opt.value}`;
           return (
             <label
               key={opt.value}
@@ -90,7 +91,7 @@ export function JourneyQuestion({
                 value={opt.value}
                 checked={isSelected}
                 onChange={() => onSelect(opt.value)}
-                aria-label={opt.label}
+                aria-describedby={descId}
                 className="mt-1 flex-shrink-0 accent-kerf-amber-base"
                 style={{ width: "16px", height: "16px" }}
               />
@@ -102,6 +103,7 @@ export function JourneyQuestion({
                   {opt.label}
                 </p>
                 <p
+                  id={descId}
                   className="text-kerf-text-secondary"
                   style={{ fontSize: "13px", lineHeight: 1.6 }}
                 >
