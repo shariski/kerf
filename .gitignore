@@ -19,7 +19,7 @@ todos.json
 
 # Local tooling artifacts (Serena MCP cache, Superpowers skill docs, Playwright MCP session files)
 .serena/
-docs/superpowers/
+# docs/superpowers/
 .playwright-mcp/
 
 # Playwright a11y test artifacts
