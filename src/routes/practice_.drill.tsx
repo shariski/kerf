@@ -483,18 +483,117 @@ function DrillPage() {
     void flushSessionQueue();
   }, []);
 
-  // Enter on the complete screen runs the drill again.
+  // Tab → restart current drill exercise. Mirrors the adaptive route's
+  // Tab handler. Only bound while the session is live and the pause
+  // overlay is closed; when the overlay is open, native Tab focus-walking
+  // owns the key. Inlines the dispatch (rather than calling
+  // restartSameExercise) to keep the deps array clean.
   useEffect(() => {
-    if (status !== "complete") return;
+    if (status !== "active" && status !== "paused") return;
+    if (paused) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Enter") return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key !== "Tab") return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       e.preventDefault();
-      runAgain();
+      const state = sessionStore.getState();
+      if (!state.target) return;
+      state.dispatch({
+        type: "start",
+        target: state.target,
+        now: performance.now(),
+        targetKeys: currentSessionTargetRef.current?.keys ?? [],
+      });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [status, paused]);
+
+  // Post-session keyboard shortcuts — mirrors the adaptive route's
+  // post-session handler for parity (j/k/gg/G scrolls + ⌘D dashboard +
+  // Enter run-again). Gated on `pendingSession === null` so the listener
+  // cleans up when the briefing renders (status still "complete" while
+  // pendingSession is staged).
+  useEffect(() => {
+    if (status !== "complete") return;
+    if (pendingSession !== null) return;
+    let gPending = false;
+    let gTimer: ReturnType<typeof setTimeout> | null = null;
+    const clearGPending = () => {
+      gPending = false;
+      if (gTimer) {
+        clearTimeout(gTimer);
+        gTimer = null;
+      }
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      const targetEl = e.target as HTMLElement | null;
+      const tag = targetEl?.tagName;
+      const inField = tag === "INPUT" || tag === "TEXTAREA" || targetEl?.isContentEditable === true;
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
+        if (e.altKey || e.shiftKey) return;
+        clearGPending();
+        e.preventDefault();
+        void navigate({ to: "/dashboard" });
+        return;
+      }
+
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (inField) return;
+
+      const isKeyG = e.code === "KeyG";
+      if (!isKeyG) clearGPending();
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runAgainRef.current();
+        return;
+      }
+
+      if (isKeyG && e.shiftKey) {
+        e.preventDefault();
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: "smooth",
+        });
+        return;
+      }
+      if (isKeyG && !e.shiftKey) {
+        if (gPending) {
+          clearGPending();
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          gPending = true;
+          gTimer = setTimeout(() => {
+            gPending = false;
+            gTimer = null;
+          }, 600);
+        }
+        return;
+      }
+
+      if (e.shiftKey) return;
+
+      const step = Math.round(window.innerHeight * 0.4);
+      if (e.key === "j") {
+        e.preventDefault();
+        window.scrollBy({ top: step, behavior: "smooth" });
+        return;
+      }
+      if (e.key === "k") {
+        e.preventDefault();
+        window.scrollBy({ top: -step, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (gTimer) clearTimeout(gTimer);
+    };
+    // runAgainRef is a stable ref — no need to list it.
+  }, [status, pendingSession, navigate]);
 
   // Session persistence on complete.
   const lastPersistedAt = useRef<number | null>(null);
@@ -570,6 +669,11 @@ function DrillPage() {
     setPaused(false);
   };
 
+  // Stable ref so the post-session keydown effect doesn't have to re-bind
+  // every render (runAgain closes over corpus/search/profile).
+  const runAgainRef = useRef(runAgain);
+  runAgainRef.current = runAgain;
+
   const moveToAdaptive = () => {
     sessionStore.getState().dispatch({ type: "reset" });
     navigate({ to: "/practice" });
@@ -617,60 +721,6 @@ function DrillPage() {
 
   // --- render branches -------------------------------------------------------
 
-  if (status === "complete" && activeDrill) {
-    const state = sessionStore.getState();
-    const summary = summarizeSession({
-      target: state.target,
-      events: state.events,
-      keyboardType: profile.keyboardType,
-      startedAt: state.startedAt,
-      completedAt: state.completedAt,
-      pausedMs: state.pausedMs,
-      phase: profile.transitionPhase,
-    });
-    const drillDelta = summarizeDrill({
-      events: state.events,
-      targetChars: activeDrill.targetChars,
-    });
-    return (
-      <>
-        <main id="main-content" className="kerf-practice-main">
-          <div className="kerf-practice-container kerf-stage-fade-in">
-            <DrillPostSessionStage
-              drillLabel={activeDrill.label}
-              target={state.target}
-              summary={summary}
-              drillDelta={drillDelta}
-              onRunAgain={runAgain}
-              onMoveToAdaptive={moveToAdaptive}
-              sessionTarget={activeDrill.sessionTarget ?? undefined}
-              perKeyBreakdown={perKeyBreakdown}
-            />
-          </div>
-        </main>
-        <AppFooter />
-      </>
-    );
-  }
-
-  // Briefing stage — pending session waiting for user to confirm start.
-  if (status === "idle" && pendingSession !== null) {
-    return (
-      <>
-        <main id="main-content" className="kerf-practice-main">
-          <div className="kerf-practice-container kerf-stage-fade-in">
-            <SessionBriefing
-              target={pendingSession.target}
-              briefingText={pendingSession.briefing.text}
-              onStart={() => startFromPending(pendingSession)}
-            />
-          </div>
-        </main>
-        <AppFooter />
-      </>
-    );
-  }
-
   if (status === "active" || status === "paused") {
     const idleAutoPaused = status === "paused" && !paused;
     return (
@@ -708,6 +758,64 @@ function DrillPage() {
           />
         )}
       </main>
+    );
+  }
+
+  // Briefing stage — pending session waiting for user to confirm start.
+  // Checked before the `complete` branch so "Run again" from the drill
+  // post-session page (which sets `pendingSession` without resetting the
+  // store's `status`) transitions into the briefing instead of re-rendering
+  // the same DrillPostSessionStage.
+  if (pendingSession !== null) {
+    return (
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <SessionBriefing
+              target={pendingSession.target}
+              briefingText={pendingSession.briefing.text}
+              onStart={() => startFromPending(pendingSession)}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
+    );
+  }
+
+  if (status === "complete" && activeDrill) {
+    const state = sessionStore.getState();
+    const summary = summarizeSession({
+      target: state.target,
+      events: state.events,
+      keyboardType: profile.keyboardType,
+      startedAt: state.startedAt,
+      completedAt: state.completedAt,
+      pausedMs: state.pausedMs,
+      phase: profile.transitionPhase,
+    });
+    const drillDelta = summarizeDrill({
+      events: state.events,
+      targetChars: activeDrill.targetChars,
+    });
+    return (
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <DrillPostSessionStage
+              drillLabel={activeDrill.label}
+              target={state.target}
+              summary={summary}
+              drillDelta={drillDelta}
+              onRunAgain={runAgain}
+              onMoveToAdaptive={moveToAdaptive}
+              sessionTarget={activeDrill.sessionTarget ?? undefined}
+              perKeyBreakdown={perKeyBreakdown}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
     );
   }
 

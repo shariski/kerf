@@ -15,6 +15,7 @@
  * Truthful-but-dull beats confident-but-fabricated per CLAUDE.md §B3.
  */
 
+import { useEffect } from "react";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import type { KeyboardType } from "#/server/profile";
 import { KeyboardContextPill } from "./KeyboardContextPill";
@@ -58,6 +59,25 @@ export function PreSessionStage({
   onDrillInnerColumn,
   isFirstSession = false,
 }: Props) {
+  // Enter triggers the primary CTA — matches the affordance promised by
+  // the <kbd>⏎</kbd> chip on the button. Skip when focus is in a text
+  // field (e.g. the filter panel's numeric inputs) or a modifier is held,
+  // so native form interactions aren't hijacked.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const targetEl = e.target as HTMLElement | null;
+      const tag = targetEl?.tagName;
+      const inField = tag === "INPUT" || tag === "TEXTAREA" || targetEl?.isContentEditable === true;
+      if (inField) return;
+      e.preventDefault();
+      onStartAdaptive();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onStartAdaptive]);
+
   const approxSeconds = TARGET_WORD_COUNT * APPROX_SECONDS_PER_WORD;
   const metaLine = isFirstSession
     ? `baseline capture · ~${FIRST_SESSION_SECONDS} sec`
