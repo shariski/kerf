@@ -23,6 +23,12 @@ type Props = {
   fingerTable: FingerTable;
   /** Char to render with amber "target" fill (e.g. the next expected key). */
   targetKey?: string;
+  /**
+   * Array of chars that are declared session targets. Renders a subtle ivory
+   * ring on each — persists for session duration. Orthogonal to `targetKey`
+   * (singular) which is the current cursor.
+   */
+  targetKeys?: string[];
   /** Render left-edge colored finger bars on chars that have a finger assignment. */
   showFingerBars?: boolean;
   /** Making keys focusable + clickable. Used in onboarding for "click this key". */
@@ -68,6 +74,7 @@ export const KeyboardSVG = forwardRef<KeyboardSVGHandle, Props>(function Keyboar
     geometry,
     fingerTable,
     targetKey,
+    targetKeys,
     showFingerBars = false,
     onKeyClick,
     heatLevels,
@@ -108,9 +115,15 @@ export const KeyboardSVG = forwardRef<KeyboardSVGHandle, Props>(function Keyboar
 
   const renderKey = (k: KeyGeometry) => {
     const isTarget = targetKey !== undefined && k.char === targetKey;
+    const isTargetRing = targetKeys?.includes(k.char) ?? false;
     const assignment = fingerTable[k.char];
     const showBar = showFingerBars && assignment !== undefined;
-    const classes = ["kb-key", isTarget ? "kb-key-target" : "", clickable ? "kb-key-clickable" : ""]
+    const classes = [
+      "kb-key",
+      isTarget ? "kb-key-target" : "",
+      isTargetRing ? "kb-key-target-ring" : "",
+      clickable ? "kb-key-clickable" : "",
+    ]
       .filter(Boolean)
       .join(" ");
 

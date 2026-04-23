@@ -218,6 +218,16 @@ body {
   pointer-events: none;
 }
 
+/* Ivory ring for declared session-target keys (ADR-003 §4 Stage 2).
+   Must appear BEFORE .kb-key-target so the amber cursor stroke wins when
+   both classes are present on the same key (later rule = higher cascade
+   priority). Color: --color-kerf-text-primary (#F2EAE0 = rgb(242,234,224))
+   at 0.6 opacity — no new design token per §B5. */
+.kb-key-target-ring > .kb-key-face {
+  stroke: rgba(242, 234, 224, 0.6);
+  stroke-width: 1.5;
+}
+
 .kb-key-target > .kb-key-face {
   fill: var(--color-kerf-amber-base);
   stroke: var(--color-kerf-amber-hover);
