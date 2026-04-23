@@ -325,8 +325,14 @@ function PracticePage() {
   // Post-session keyboard shortcuts — see docs/06-design-summary.md
   // §Keyboard Shortcuts. TypingArea's capture is off when status=complete,
   // so this listener does not collide with it.
+  //
+  // Also gated on `pendingSession === null`: after "Practice again" sets a
+  // pending session, the render flips to SessionBriefing while status is
+  // still "complete". Without this guard, the post-session listener would
+  // stay attached and fight the briefing's own Enter listener.
   useEffect(() => {
     if (status !== "complete") return;
+    if (pendingSession !== null) return;
     let gPending = false;
     let gTimer: ReturnType<typeof setTimeout> | null = null;
     const clearGPending = () => {
@@ -435,7 +441,7 @@ function PracticePage() {
     // generateSessionRef is a stable ref — no need to list the function
     // itself. corpus/filters are read through the ref closure, not captured
     // directly here, so they don't belong in deps.
-  }, [status, navigate, profile.keyboardType, profile.transitionPhase]);
+  }, [status, pendingSession, navigate, profile.keyboardType, profile.transitionPhase]);
 
   // Fire-and-forget session persistence (Task 2.8 / 4.2). Dedup by
   // completedAt so Strict Mode's double-invoked effect doesn't produce
@@ -536,41 +542,6 @@ function PracticePage() {
     }
   }, [status, engineData]);
 
-  if (status === "complete") {
-    // Pull the values the summary depends on straight from the store.
-    // Only read inside the branch so active-session renders aren't
-    // tied to state that only matters post-complete.
-    const state = sessionStore.getState();
-    const summary = summarizeSession({
-      target: state.target,
-      events: state.events,
-      keyboardType: profile.keyboardType,
-      startedAt: state.startedAt,
-      completedAt: state.completedAt,
-      pausedMs: state.pausedMs,
-      phase: profile.transitionPhase,
-    });
-    const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
-    return (
-      <>
-        <main id="main-content" className="kerf-practice-main">
-          <div className="kerf-practice-container kerf-stage-fade-in">
-            <PostSessionStage
-              target={state.target}
-              title={title}
-              summary={summary}
-              onPracticeAgain={startAdaptive}
-              sessionTarget={currentSessionTargetRef.current ?? undefined}
-              perKeyBreakdown={perKeyBreakdown}
-              nextTargetPreview={nextTargetPreview}
-            />
-          </div>
-        </main>
-        <AppFooter />
-      </>
-    );
-  }
-
   if (status === "active" || status === "paused") {
     // `idleAutoPaused` = clock is frozen by the watchdog but the user
     // hasn't opened the manual overlay. Capture stays on so their next
@@ -613,7 +584,11 @@ function PracticePage() {
   }
 
   // Briefing stage: generateSession ran, waiting for user to confirm start.
-  if (status === "idle" && pendingSession !== null) {
+  // Checked before the `complete` branch so "Practice again" from the
+  // post-session page (which sets `pendingSession` without resetting the
+  // store's `status`) transitions into the briefing instead of re-rendering
+  // the same PostSessionStage.
+  if (pendingSession !== null) {
     const handleBriefingStart = () => {
       currentSessionTargetRef.current = pendingSession.target;
       sessionStore.getState().dispatch({
@@ -632,6 +607,41 @@ function PracticePage() {
               target={pendingSession.target}
               briefingText={pendingSession.briefing.text}
               onStart={handleBriefingStart}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
+    );
+  }
+
+  if (status === "complete") {
+    // Pull the values the summary depends on straight from the store.
+    // Only read inside the branch so active-session renders aren't
+    // tied to state that only matters post-complete.
+    const state = sessionStore.getState();
+    const summary = summarizeSession({
+      target: state.target,
+      events: state.events,
+      keyboardType: profile.keyboardType,
+      startedAt: state.startedAt,
+      completedAt: state.completedAt,
+      pausedMs: state.pausedMs,
+      phase: profile.transitionPhase,
+    });
+    const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
+    return (
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <PostSessionStage
+              target={state.target}
+              title={title}
+              summary={summary}
+              onPracticeAgain={startAdaptive}
+              sessionTarget={currentSessionTargetRef.current ?? undefined}
+              perKeyBreakdown={perKeyBreakdown}
+              nextTargetPreview={nextTargetPreview}
             />
           </div>
         </main>

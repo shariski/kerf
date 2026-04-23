@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import type { DrillSummary } from "#/domain/session/drillSummary";
 import type { PatternDetection } from "#/domain/insight/types";
@@ -55,6 +56,35 @@ export function DrillPostSessionStage({
     patterns,
     insightText,
   } = summary;
+
+  // Mirror PostSessionStage: start at the top and focus the primary CTA
+  // without scrolling (the old autoFocus pulled the viewport to the
+  // bottom of the page on mount, skipping past the stats hero).
+  const runAgainRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    runAgainRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  // Floating scroll hint — visible only near the top when there's
+  // enough content below to warrant scrolling. Same heuristic as
+  // PostSessionStage.
+  const [showScrollHint, setShowScrollHint] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const scrolled = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (max < 40) {
+        setShowScrollHint(false);
+        return;
+      }
+      const threshold = Math.min(Math.round(window.innerHeight * 0.5), Math.round(max * 0.5));
+      setShowScrollHint(scrolled < threshold);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <div className="kerf-post-session">
@@ -129,7 +159,12 @@ export function DrillPostSessionStage({
       </div>
 
       <div className="kerf-post-actions">
-        <button type="button" className="kerf-post-btn primary" onClick={onRunAgain} autoFocus>
+        <button
+          type="button"
+          className="kerf-post-btn primary"
+          onClick={onRunAgain}
+          ref={runAgainRef}
+        >
           Run again
           <span className="kerf-post-btn-shortcut" aria-hidden="true">
             ⏎
@@ -141,6 +176,50 @@ export function DrillPostSessionStage({
             P
           </span>
         </button>
+      </div>
+
+      <div
+        className="kerf-post-floating-scroll-hint"
+        data-visible={showScrollHint || undefined}
+        aria-hidden="true"
+      >
+        <span className="kerf-post-floating-scroll-hint-chevron">↓</span>
+      </div>
+
+      <ShortcutHintStrip />
+    </div>
+  );
+}
+
+function ShortcutHintStrip() {
+  return (
+    <div className="kerf-post-hint-strip" aria-hidden="true">
+      <div className="kerf-post-hint-item">
+        <kbd>j</kbd>
+        <span>scroll down</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>k</kbd>
+        <span>scroll up</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>gg</kbd>
+        <span>top</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>G</kbd>
+        <span>bottom</span>
+      </div>
+      <div className="kerf-post-hint-divider" />
+      <div className="kerf-post-hint-item">
+        <kbd>↵</kbd>
+        <span>run again</span>
+      </div>
+      <div className="kerf-post-hint-item">
+        <kbd>⌘</kbd>
+        <span className="sep">+</span>
+        <kbd>D</kbd>
+        <span>dashboard</span>
       </div>
     </div>
   );
