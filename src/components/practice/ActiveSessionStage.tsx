@@ -58,7 +58,12 @@ export function ActiveSessionStage({
     <div className="kerf-active-session" data-typing-size={typingSize}>
       <div className="kerf-active-session-typing">
         {isFirstSession && <FirstSessionTooltip />}
-        <TypingArea target={target} expectedLetterHint={expectedLetterHint} capture={capture} />
+        <TypingArea
+          target={target}
+          expectedLetterHint={expectedLetterHint}
+          capture={capture}
+          targetKeys={targetKeys}
+        />
       </div>
 
       {showKeyboard && (

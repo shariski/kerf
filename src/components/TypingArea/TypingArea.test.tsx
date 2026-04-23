@@ -116,6 +116,44 @@ describe("TypingArea — expectedLetterHint preference", () => {
   });
 });
 
+describe("TypingArea — targetKeys highlight", () => {
+  it("adds kerf-typing-target class to upcoming chars that are in targetKeys", () => {
+    const { container } = render(<TypingArea target="abc" targetKeys={["b"]} />);
+    const chars = container.querySelectorAll(".kerf-typing-char");
+    // Position 0 is 'a' — upcoming, NOT a target. Position 1 is 'b' — upcoming target.
+    expect(chars[1]?.classList.contains("kerf-typing-target")).toBe(true);
+    expect(chars[2]?.classList.contains("kerf-typing-target")).toBe(false);
+  });
+
+  it("adds kerf-typing-target to the current-position char when it is a target", () => {
+    const { container } = render(<TypingArea target="bcd" targetKeys={["b"]} />);
+    // Position 0 ('b') is the current cursor AND a target — both classes stack.
+    const current = container.querySelector(".kerf-typing-current");
+    expect(current?.classList.contains("kerf-typing-target")).toBe(true);
+  });
+
+  it("does NOT add kerf-typing-target to chars already typed past the cursor", () => {
+    const { container } = render(<TypingArea target="bcd" targetKeys={["b"]} />);
+    fireEvent.keyDown(window, { key: "b" });
+    // 'b' is now typed — typed state wins; no target class retroactively.
+    const typed = container.querySelector(".kerf-typing-typed");
+    expect(typed?.textContent).toBe("b");
+    expect(typed?.classList.contains("kerf-typing-target")).toBe(false);
+  });
+
+  it("is a no-op when targetKeys is undefined (no class on any char)", () => {
+    const { container } = render(<TypingArea target="abc" />);
+    const targets = container.querySelectorAll(".kerf-typing-target");
+    expect(targets).toHaveLength(0);
+  });
+
+  it("is a no-op when targetKeys is an empty array", () => {
+    const { container } = render(<TypingArea target="abc" targetKeys={[]} />);
+    const targets = container.querySelectorAll(".kerf-typing-target");
+    expect(targets).toHaveLength(0);
+  });
+});
+
 describe("TypingArea — accessibility", () => {
   it("exposes a labeled textbox role for screen readers", () => {
     render(<TypingArea target="abc" />);

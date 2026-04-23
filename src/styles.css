@@ -432,6 +432,16 @@ body {
   padding: 2px 0;
 }
 
+/* Session target-key highlight — subtle lift for chars in the adaptive
+   engine's declared target set that haven't been typed yet. Stacks on top
+   of .kerf-typing-current (amber cursor) and .kerf-typing-upcoming (muted
+   tertiary). Once typed, the typed/error state colors take precedence
+   (the TSX never adds this class to chars past the cursor). */
+.kerf-typing-target {
+  color: var(--color-kerf-text-primary);
+  font-weight: 500;
+}
+
 .kerf-typing-expected {
   position: absolute;
   top: -24px;
