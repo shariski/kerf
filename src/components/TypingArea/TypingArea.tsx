@@ -22,6 +22,13 @@ type Props = {
   expectedLetterHint?: boolean;
   /** When false, the keystroke hook unbinds (e.g. during pause overlay). */
   capture?: boolean;
+  /** Session target-key set (from `generateSession`). Chars in this list that
+   *  are still pending (not yet typed) render with a subtle color lift +
+   *  font-weight bump, so the user can see upcoming focus letters in the
+   *  flow of text. Orthogonal to the keyboard-SVG ivory ring — same signal,
+   *  different attention surface. Typed chars never get this treatment
+   *  (typed/error state colors take precedence). */
+  targetKeys?: string[];
 };
 
 /**
@@ -49,7 +56,16 @@ function chunkTarget(target: string): Chunk[] {
   return chunks;
 }
 
-export function TypingArea({ target, expectedLetterHint = true, capture = true }: Props) {
+export function TypingArea({
+  target,
+  expectedLetterHint = true,
+  capture = true,
+  targetKeys,
+}: Props) {
+  const targetKeySet = useMemo(
+    () => (targetKeys && targetKeys.length > 0 ? new Set(targetKeys) : null),
+    [targetKeys],
+  );
   const dispatch = useSessionStore((s) => s.dispatch);
   const position = useSessionStore((s) => s.position);
   const charStatus = useSessionStore((s) => s.charStatus);
@@ -109,11 +125,12 @@ export function TypingArea({ target, expectedLetterHint = true, capture = true }
       {chunks.map((chunk, ci) => {
         const charElements = chunk.chars.map((ch, offset) => {
           const index = chunk.start + offset;
+          const isTargetKey = targetKeySet?.has(ch) ?? false;
           return (
             <CharSpan
               key={index}
               char={ch}
-              className={classFor(index, position, charStatus[index] ?? "pending")}
+              className={classFor(index, position, charStatus[index] ?? "pending", isTargetKey)}
               expectedBadge={
                 index === position && activeError && expectedLetterHint ? activeError : null
               }
@@ -168,12 +185,21 @@ function resolveLineHeightPx(styles: CSSStyleDeclaration): number {
   return parseFloat(lh) * fontSize;
 }
 
-function classFor(index: number, position: number, status: CharStatus): string {
+function classFor(
+  index: number,
+  position: number,
+  status: CharStatus,
+  isTargetKey: boolean,
+): string {
   const base = "kerf-typing-char";
+  // Target-key highlight only applies to chars that haven't been typed yet.
+  // Once typed (typed/error state), the status color takes precedence — we
+  // don't want retrospective decoration.
+  const targetClass = isTargetKey ? " kerf-typing-target" : "";
   if (index < position) return `${base} kerf-typing-typed`;
   if (index === position) {
     if (status === "error") return `${base} kerf-typing-error`;
-    return `${base} kerf-typing-current`;
+    return `${base} kerf-typing-current${targetClass}`;
   }
-  return `${base} kerf-typing-upcoming`;
+  return `${base} kerf-typing-upcoming${targetClass}`;
 }
