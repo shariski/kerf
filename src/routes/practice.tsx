@@ -140,7 +140,9 @@ function PracticePage() {
       if (!target) return;
       sessionModeRef.current = "diagnostic";
       diagnosticConsumedRef.current = true;
-      sessionStore.getState().dispatch({ type: "start", target, now: performance.now() });
+      sessionStore
+        .getState()
+        .dispatch({ type: "start", target, now: performance.now(), targetKeys: [] });
       return;
     }
 
@@ -160,14 +162,16 @@ function PracticePage() {
     const target = words.join(" ");
     if (!target) return;
     sessionModeRef.current = "adaptive";
-    sessionStore.getState().dispatch({ type: "start", target, now: performance.now() });
+    sessionStore
+      .getState()
+      .dispatch({ type: "start", target, now: performance.now(), targetKeys: [] });
   };
 
   const restartSameExercise = () => {
     if (!currentTarget) return;
     sessionStore
       .getState()
-      .dispatch({ type: "start", target: currentTarget, now: performance.now() });
+      .dispatch({ type: "start", target: currentTarget, now: performance.now(), targetKeys: [] });
     setPaused(false);
   };
 
@@ -248,6 +252,7 @@ function PracticePage() {
         type: "start",
         target: state.target,
         now: performance.now(),
+        targetKeys: [],
       });
     };
     window.addEventListener("keydown", onKey);

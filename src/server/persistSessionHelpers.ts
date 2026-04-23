@@ -20,6 +20,19 @@ export type KeystrokeEventDto = {
   timestamp: string;
 };
 
+export type PersistSessionInputTarget = {
+  type: string;
+  value: string;
+  keys: string[];
+  label: string;
+  selectionScore: number | null;
+  /** ISO-8601 */
+  declaredAt: string;
+  attempts: number | null;
+  errors: number | null;
+  accuracy: number | null;
+};
+
 export type PersistSessionInput = {
   /** Client-generated UUID — makes the call idempotent if the client
    * retries (we ON CONFLICT DO NOTHING on the sessions table). */
@@ -39,6 +52,9 @@ export type PersistSessionInput = {
    * for adaptive sessions, or `{ drillTarget: "b" }` / `{ drillPreset:
    * "innerColumn" }` for drill sessions. */
   filterConfig: Record<string, unknown>;
+  /** The adaptive-engine target that generated this session. Optional
+   * for backward compat — Task 17 will update callers to always pass it. */
+  sessionTarget?: PersistSessionInputTarget;
 };
 
 // --- validator -------------------------------------------------------------
@@ -128,6 +144,68 @@ export function validatePersistSessionInput(input: unknown): PersistSessionInput
       ? (i.filterConfig as Record<string, unknown>)
       : {};
 
+  let sessionTarget: PersistSessionInputTarget | undefined;
+  if (i.sessionTarget !== undefined) {
+    if (typeof i.sessionTarget !== "object" || i.sessionTarget === null) {
+      throw new Error(`persistSession: "sessionTarget" must be an object`);
+    }
+    const st = i.sessionTarget as Record<string, unknown>;
+
+    const requireStString = (key: string): string => {
+      const v = st[key];
+      if (typeof v !== "string" || v.length === 0) {
+        throw new Error(`persistSession: "sessionTarget.${key}" must be a non-empty string`);
+      }
+      return v;
+    };
+    const requireNullableNumber = (key: string): number | null => {
+      const v = st[key];
+      if (v === null || v === undefined) return null;
+      if (typeof v !== "number") {
+        throw new Error(`persistSession: "sessionTarget.${key}" must be null or a number`);
+      }
+      return v;
+    };
+
+    const stType = requireStString("type");
+    const stValue = requireStString("value");
+    const stLabel = requireStString("label");
+
+    if (!Array.isArray(st.keys) || !st.keys.every((k) => typeof k === "string")) {
+      throw new Error(`persistSession: "sessionTarget.keys" must be an array of strings`);
+    }
+    const stKeys: string[] = st.keys;
+
+    // reuse the top-level requireIso for the nested field
+    const stDeclaredAt = (() => {
+      const v = st.declaredAt;
+      if (typeof v !== "string" || v.length === 0) {
+        throw new Error(`persistSession: "sessionTarget.declaredAt" must be a non-empty string`);
+      }
+      if (Number.isNaN(new Date(v).getTime())) {
+        throw new Error(`persistSession: "sessionTarget.declaredAt" must be an ISO-8601 date`);
+      }
+      return v;
+    })();
+
+    const stSelectionScore = requireNullableNumber("selectionScore");
+    const stAttempts = requireNullableNumber("attempts");
+    const stErrors = requireNullableNumber("errors");
+    const stAccuracy = requireNullableNumber("accuracy");
+
+    sessionTarget = {
+      type: stType,
+      value: stValue,
+      keys: stKeys,
+      label: stLabel,
+      selectionScore: stSelectionScore,
+      declaredAt: stDeclaredAt,
+      attempts: stAttempts,
+      errors: stErrors,
+      accuracy: stAccuracy,
+    };
+  }
+
   return {
     sessionId,
     keyboardProfileId,
@@ -138,6 +216,7 @@ export function validatePersistSessionInput(input: unknown): PersistSessionInput
     endedAt,
     phase: phase as TransitionPhase,
     filterConfig,
+    ...(sessionTarget !== undefined ? { sessionTarget } : {}),
   };
 }
 

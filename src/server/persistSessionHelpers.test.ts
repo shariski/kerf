@@ -6,6 +6,7 @@ import {
   validatePersistSessionInput,
   type KeystrokeEventDto,
   type PersistSessionInput,
+  type PersistSessionInputTarget,
 } from "./persistSessionHelpers";
 
 const ts = "2026-04-19T12:00:00.000Z";
@@ -244,5 +245,134 @@ describe("toDomainEvents", () => {
     const [out] = toDomainEvents([ev({ targetChar: "a", timestamp: ts })]);
     expect(out!.timestamp).toBeInstanceOf(Date);
     expect(out!.timestamp.toISOString()).toBe(ts);
+  });
+});
+
+// --- sessionTarget validator (ADR-003 §5) ------------------------------------
+
+const validTarget = (over: Partial<PersistSessionInputTarget> = {}): PersistSessionInputTarget => ({
+  type: over.type ?? "character",
+  value: over.value ?? "b",
+  keys: over.keys ?? ["KeyB"],
+  label: over.label ?? "b — right index",
+  selectionScore: over.selectionScore !== undefined ? over.selectionScore : 0.72,
+  declaredAt: over.declaredAt ?? ts,
+  attempts: over.attempts !== undefined ? over.attempts : 14,
+  errors: over.errors !== undefined ? over.errors : 3,
+  accuracy: over.accuracy !== undefined ? over.accuracy : 0.85,
+});
+
+describe("validatePersistSessionInput — sessionTarget (ADR-003 §5)", () => {
+  it("without sessionTarget — result omits the field", () => {
+    const out = validatePersistSessionInput(validInput());
+    expect(out.sessionTarget).toBeUndefined();
+  });
+
+  it("with full sessionTarget — result includes all fields exactly", () => {
+    const st = validTarget();
+    const out = validatePersistSessionInput({ ...(validInput() as object), sessionTarget: st });
+    expect(out.sessionTarget).toEqual(st);
+  });
+
+  it("with partial sessionTarget (nulls) — preserves nulls on nullable fields", () => {
+    const st = validTarget({ selectionScore: null, attempts: null, errors: null, accuracy: null });
+    const out = validatePersistSessionInput({ ...(validInput() as object), sessionTarget: st });
+    expect(out.sessionTarget?.selectionScore).toBeNull();
+    expect(out.sessionTarget?.attempts).toBeNull();
+    expect(out.sessionTarget?.errors).toBeNull();
+    expect(out.sessionTarget?.accuracy).toBeNull();
+  });
+
+  it("with empty keys array — accepted (diagnostic targets may have no key binding)", () => {
+    const st = validTarget({ keys: [] });
+    const out = validatePersistSessionInput({ ...(validInput() as object), sessionTarget: st });
+    expect(out.sessionTarget?.keys).toEqual([]);
+  });
+
+  it("rejects non-object sessionTarget", () => {
+    expect(() =>
+      validatePersistSessionInput({ ...(validInput() as object), sessionTarget: "b" }),
+    ).toThrow(/sessionTarget/);
+    expect(() =>
+      validatePersistSessionInput({ ...(validInput() as object), sessionTarget: 42 }),
+    ).toThrow(/sessionTarget/);
+  });
+
+  it("rejects missing or empty type", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), type: "" },
+      }),
+    ).toThrow(/sessionTarget\.type/);
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), type: undefined },
+      }),
+    ).toThrow(/sessionTarget\.type/);
+  });
+
+  it("rejects missing or empty value", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), value: "" },
+      }),
+    ).toThrow(/sessionTarget\.value/);
+  });
+
+  it("rejects missing or empty label", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), label: "" },
+      }),
+    ).toThrow(/sessionTarget\.label/);
+  });
+
+  it("rejects non-array keys", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), keys: "KeyB" },
+      }),
+    ).toThrow(/sessionTarget\.keys/);
+  });
+
+  it("rejects keys array containing non-strings", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), keys: ["KeyB", 42] },
+      }),
+    ).toThrow(/sessionTarget\.keys/);
+  });
+
+  it("rejects non-ISO declaredAt", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), declaredAt: "not-a-date" },
+      }),
+    ).toThrow(/sessionTarget\.declaredAt/);
+  });
+
+  it("rejects non-number selectionScore (when not null)", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), selectionScore: "high" },
+      }),
+    ).toThrow(/sessionTarget\.selectionScore/);
+  });
+
+  it("rejects non-number attempts (when not null)", () => {
+    expect(() =>
+      validatePersistSessionInput({
+        ...(validInput() as object),
+        sessionTarget: { ...validTarget(), attempts: "many" },
+      }),
+    ).toThrow(/sessionTarget\.attempts/);
   });
 });

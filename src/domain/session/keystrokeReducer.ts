@@ -44,6 +44,9 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
         status: "active",
         pausedAt: null,
         pausedMs: 0,
+        targetKeys: action.targetKeys,
+        targetAttempts: 0,
+        targetErrors: 0,
       };
 
     case "reset":
@@ -112,6 +115,7 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
       const sessionStartedAt = working.startedAt ?? action.now;
 
       const targetChar = working.target[working.position]!;
+      const isTargetKey = working.targetKeys.includes(targetChar);
       // Error latches until backspace: once we're in an error state, any
       // further keypress stays an error even if it matches the target char.
       const isError = action.char !== targetChar || working.activeError !== null;
@@ -136,6 +140,8 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
           events: [...working.events, event],
           lastKeystrokeAt: action.now,
           startedAt: sessionStartedAt,
+          targetAttempts: isTargetKey ? working.targetAttempts + 1 : working.targetAttempts,
+          targetErrors: isTargetKey ? working.targetErrors + 1 : working.targetErrors,
         };
       }
 
@@ -154,6 +160,8 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
         startedAt: sessionStartedAt,
         completedAt: isComplete ? action.now : working.completedAt,
         status: isComplete ? "complete" : "active",
+        targetAttempts: isTargetKey ? working.targetAttempts + 1 : working.targetAttempts,
+        targetErrors: working.targetErrors,
       };
     }
   }

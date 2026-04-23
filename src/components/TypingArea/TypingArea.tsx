@@ -58,7 +58,7 @@ export function TypingArea({ target, expectedLetterHint = true, capture = true }
 
   useEffect(() => {
     if (sessionTarget !== target) {
-      dispatch({ type: "start", target, now: performance.now() });
+      dispatch({ type: "start", target, now: performance.now(), targetKeys: [] });
     }
   }, [target, sessionTarget, dispatch]);
 

@@ -66,10 +66,19 @@ export type SessionState = {
    * typing time, not wall time including idle gaps.
    */
   pausedMs: number;
+  /**
+   * The set of key characters this session is targeting (e.g. ["f", "j"]).
+   * Empty when no specific key is being tracked (free-practice sessions).
+   */
+  targetKeys: string[];
+  /** Total keystrokes at positions whose expected char is in targetKeys. */
+  targetAttempts: number;
+  /** Subset of targetAttempts that were errors. */
+  targetErrors: number;
 };
 
 export type SessionAction =
-  | { type: "start"; target: string; now: number }
+  | { type: "start"; target: string; now: number; targetKeys: string[] }
   | { type: "keypress"; char: string; now: number }
   | { type: "backspace" }
   | { type: "pause"; now: number }
@@ -88,4 +97,7 @@ export const idleSessionState = (): SessionState => ({
   status: "idle",
   pausedAt: null,
   pausedMs: 0,
+  targetKeys: [],
+  targetAttempts: 0,
+  targetErrors: 0,
 });

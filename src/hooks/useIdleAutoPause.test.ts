@@ -36,7 +36,7 @@ describe("useIdleAutoPause", () => {
   }
 
   it("pauses the session after the idle threshold elapses without input", () => {
-    sessionStore.getState().dispatch({ type: "start", target: "hello", now });
+    sessionStore.getState().dispatch({ type: "start", target: "hello", now, targetKeys: [] });
     sessionStore.getState().dispatch({ type: "keypress", char: "h", now });
     renderHook(() => useIdleAutoPause(true));
 
@@ -52,7 +52,7 @@ describe("useIdleAutoPause", () => {
   });
 
   it("does not pause before the threshold", () => {
-    sessionStore.getState().dispatch({ type: "start", target: "hello", now });
+    sessionStore.getState().dispatch({ type: "start", target: "hello", now, targetKeys: [] });
     sessionStore.getState().dispatch({ type: "keypress", char: "h", now });
     renderHook(() => useIdleAutoPause(true));
 
@@ -61,7 +61,7 @@ describe("useIdleAutoPause", () => {
   });
 
   it("does nothing before the first keystroke (clock unarmed)", () => {
-    sessionStore.getState().dispatch({ type: "start", target: "hello", now });
+    sessionStore.getState().dispatch({ type: "start", target: "hello", now, targetKeys: [] });
     renderHook(() => useIdleAutoPause(true));
 
     advance(IDLE_THRESHOLD_MS * 3);
@@ -70,7 +70,7 @@ describe("useIdleAutoPause", () => {
   });
 
   it("is a no-op when disabled", () => {
-    sessionStore.getState().dispatch({ type: "start", target: "hello", now });
+    sessionStore.getState().dispatch({ type: "start", target: "hello", now, targetKeys: [] });
     sessionStore.getState().dispatch({ type: "keypress", char: "h", now });
     renderHook(() => useIdleAutoPause(false));
 
@@ -79,7 +79,7 @@ describe("useIdleAutoPause", () => {
   });
 
   it("does not re-pause an already-paused session", () => {
-    sessionStore.getState().dispatch({ type: "start", target: "hello", now });
+    sessionStore.getState().dispatch({ type: "start", target: "hello", now, targetKeys: [] });
     sessionStore.getState().dispatch({ type: "keypress", char: "h", now });
     renderHook(() => useIdleAutoPause(true));
 
@@ -92,7 +92,7 @@ describe("useIdleAutoPause", () => {
   });
 
   it("resumes transparently when the user types again", () => {
-    sessionStore.getState().dispatch({ type: "start", target: "hello", now });
+    sessionStore.getState().dispatch({ type: "start", target: "hello", now, targetKeys: [] });
     sessionStore.getState().dispatch({ type: "keypress", char: "h", now });
     renderHook(() => useIdleAutoPause(true));
 
