@@ -173,4 +173,46 @@ describe("rankTargets — full candidate ranking for diagnostics", () => {
     );
     expect(ranked).toEqual([]);
   });
+
+  it("applies decay to bigrams whose corpus support is 0, letting next-ranked practicable targets win", () => {
+    // Construct stats where "xw" is the top bigram weakness and "yd" is
+    // second. With the penalty (0.5×), xw's score should drop below yd's.
+    const stats = statsWith(
+      [{ character: "a", attempts: 100, errors: 1, sumTime: 28_000, hesitationCount: 0 }],
+      [
+        { bigram: "xw", attempts: 40, errors: 22, sumTime: 18_000 },
+        { bigram: "yd", attempts: 40, errors: 20, sumTime: 17_000 },
+      ],
+    );
+    const support = new Map<string, number>([
+      ["xw", 0],
+      ["yd", 8],
+    ]);
+    const ranked = rankTargets(stats, baseline(), "transitioning", freq, {
+      corpusBigramSupport: support,
+    });
+    const [top] = ranked;
+    expect(top?.type).toBe("bigram");
+    expect(top?.value).toBe("yd");
+  });
+
+  it("does not apply decay when the bigram has non-zero corpus support", () => {
+    const stats = statsWith(
+      [{ character: "a", attempts: 100, errors: 1, sumTime: 28_000, hesitationCount: 0 }],
+      [
+        { bigram: "xw", attempts: 40, errors: 22, sumTime: 18_000 },
+        { bigram: "yd", attempts: 40, errors: 20, sumTime: 17_000 },
+      ],
+    );
+    // Both bigrams have positive support — xw should keep its lead.
+    const support = new Map<string, number>([
+      ["xw", 2],
+      ["yd", 8],
+    ]);
+    const ranked = rankTargets(stats, baseline(), "transitioning", freq, {
+      corpusBigramSupport: support,
+    });
+    const [top] = ranked;
+    expect(top?.value).toBe("xw");
+  });
 });
