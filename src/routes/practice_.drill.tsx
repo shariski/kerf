@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
@@ -9,6 +9,8 @@ import {
   DrillPreSessionStage,
   DrillActiveHeader,
   DrillPostSessionStage,
+  SessionBriefing,
+  TargetRibbon,
   type PauseSettings,
   type PresetKey,
 } from "#/components/practice";
@@ -19,9 +21,13 @@ import {
   INNER_COLUMN_CHARS,
   generateCrossHandBigramDrill,
   generateDrill,
-  generateInnerColumnDrill,
   generateThumbClusterDrill,
 } from "#/domain/adaptive/drillGenerator";
+import { generateSession } from "#/domain/adaptive/sessionGenerator";
+import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
+import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import { buildBriefing } from "#/domain/adaptive/briefingTemplates";
+import { DRILL_LIBRARY } from "#/domain/adaptive/drillLibraryData";
 import { summarizeSession } from "#/domain/session/summarize";
 import { summarizeDrill } from "#/domain/session/drillSummary";
 import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
@@ -46,6 +52,16 @@ const VALID_PRESETS: ReadonlySet<string> = new Set([
   "innerColumn",
   "thumbCluster",
   "crossHandBigram",
+  "verticalColumn-leftPinky",
+  "verticalColumn-leftRing",
+  "verticalColumn-leftMiddle",
+  "verticalColumn-leftIndexOuter",
+  "verticalColumn-leftIndexInner",
+  "verticalColumn-rightIndexInner",
+  "verticalColumn-rightIndexOuter",
+  "verticalColumn-rightMiddle",
+  "verticalColumn-rightRing",
+  "verticalColumn-rightPinky",
 ]);
 
 /**
@@ -97,12 +113,194 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
   expectedLetterHint: true,
 };
 
+/** Default journey for drill mode — no user journey data available. */
+const DRILL_JOURNEY = "conventional" as const;
+
+/**
+ * Map a vertical-column preset key to the (value, keys) the drill library
+ * uses. Values must match DRILL_LIBRARY entries exactly.
+ */
+const VERTICAL_COLUMN_MAP: Record<string, { value: string; keys: string[]; label: string }> = {
+  "verticalColumn-leftPinky": {
+    value: "left-pinky",
+    keys: ["q", "a", "z"],
+    label: "Left pinky column vertical reach",
+  },
+  "verticalColumn-leftRing": {
+    value: "left-ring",
+    keys: ["w", "s", "x"],
+    label: "Left ring column vertical reach",
+  },
+  "verticalColumn-leftMiddle": {
+    value: "left-middle",
+    keys: ["e", "d", "c"],
+    label: "Left middle column vertical reach",
+  },
+  "verticalColumn-leftIndexOuter": {
+    value: "left-index-outer",
+    keys: ["r", "f", "v"],
+    label: "Left index (outer) column vertical reach",
+  },
+  "verticalColumn-leftIndexInner": {
+    value: "left-index-inner",
+    keys: ["t", "g", "b"],
+    label: "Left index (inner) column vertical reach",
+  },
+  "verticalColumn-rightIndexInner": {
+    value: "right-index-inner",
+    keys: ["y", "h", "n"],
+    label: "Right index (inner) column vertical reach",
+  },
+  "verticalColumn-rightIndexOuter": {
+    value: "right-index-outer",
+    keys: ["u", "j", "m"],
+    label: "Right index (outer) column vertical reach",
+  },
+  "verticalColumn-rightMiddle": {
+    value: "right-middle",
+    keys: ["i", "k", ","],
+    label: "Right middle column vertical reach",
+  },
+  "verticalColumn-rightRing": {
+    value: "right-ring",
+    keys: ["o", "l", "."],
+    label: "Right ring column vertical reach",
+  },
+  "verticalColumn-rightPinky": {
+    value: "right-pinky",
+    keys: ["p", ";", "/"],
+    label: "Right pinky column vertical reach",
+  },
+};
+
+/**
+ * Build a SessionOutput for the given drill search. Uses generateSession
+ * with targetOverride for presets that have drill library entries (vertical
+ * column, inner column, thumb cluster). Falls back to manual text generation
+ * for cross-hand bigrams and manual targets (which have no library entry).
+ *
+ * generateDrill is kept for manual-target and cross-hand-bigram paths;
+ * do not delete it from drillGenerator.ts.
+ */
+function buildSessionOutput(
+  corpus: Corpus,
+  search: DrillSearch,
+  layout: KeyboardType,
+  phase: TransitionPhase,
+): SessionOutput | null {
+  // Manual target — single char or bigram
+  if (search.target) {
+    const t = search.target;
+    const target: SessionTarget = {
+      type: t.length === 1 ? "character" : "bigram",
+      value: t,
+      keys: t.split(""),
+      label: t.toUpperCase(),
+    };
+    const exercise = generateDrill({ corpus, target: t });
+    const briefing = buildBriefing(target, DRILL_JOURNEY, phase);
+    return { target, exercise, briefing, estimatedSeconds: 45 };
+  }
+
+  const preset = search.preset;
+  if (!preset) return null;
+
+  // Vertical column — use generateSession with targetOverride
+  const vertCol = VERTICAL_COLUMN_MAP[preset];
+  if (vertCol) {
+    const target: SessionTarget = {
+      type: "vertical-column",
+      value: vertCol.value,
+      keys: vertCol.keys,
+      label: vertCol.label,
+    };
+    return generateSession({
+      stats: { characters: [], bigrams: [] },
+      baseline: {
+        meanErrorRate: 0,
+        meanKeystrokeTime: 300,
+        meanHesitationRate: 0,
+        journey: DRILL_JOURNEY,
+      },
+      phase,
+      corpus,
+      drillLibrary: DRILL_LIBRARY,
+      frequencyInLanguage: () => 0.5,
+      targetOverride: target,
+    });
+  }
+
+  if (preset === "innerColumn") {
+    // Use inner-left (B, G, T) — left-hand inner column
+    const target: SessionTarget = {
+      type: "inner-column",
+      value: "inner-left",
+      keys: ["b", "g", "t"],
+      label: "Inner-column reach — B, G, T (left)",
+    };
+    return generateSession({
+      stats: { characters: [], bigrams: [] },
+      baseline: {
+        meanErrorRate: 0,
+        meanKeystrokeTime: 300,
+        meanHesitationRate: 0,
+        journey: DRILL_JOURNEY,
+      },
+      phase,
+      corpus,
+      drillLibrary: DRILL_LIBRARY,
+      frequencyInLanguage: () => 0.5,
+      targetOverride: target,
+    });
+  }
+
+  if (preset === "thumbCluster") {
+    const target: SessionTarget = {
+      type: "thumb-cluster",
+      value: "space",
+      keys: [" "],
+      label: "Thumb cluster — space activation",
+    };
+    return generateSession({
+      stats: { characters: [], bigrams: [] },
+      baseline: {
+        meanErrorRate: 0,
+        meanKeystrokeTime: 300,
+        meanHesitationRate: 0,
+        journey: DRILL_JOURNEY,
+      },
+      phase,
+      corpus,
+      drillLibrary: DRILL_LIBRARY,
+      frequencyInLanguage: () => 0.5,
+      targetOverride: target,
+    });
+  }
+
+  if (preset === "crossHandBigram") {
+    // No drill library entry — generate text and build output manually
+    const target: SessionTarget = {
+      type: "cross-hand-bigram",
+      value: "mixed",
+      keys: [],
+      label: "Cross-hand transitions",
+    };
+    const exercise = generateCrossHandBigramDrill({ corpus, layout });
+    const briefing = buildBriefing(target, DRILL_JOURNEY, phase);
+    return { target, exercise, briefing, estimatedSeconds: 60 };
+  }
+
+  return null;
+}
+
+/**
+ * Legacy drill-build helper used only by the same-day compact briefing
+ * storage key derivation and the "run again" action. Re-exported for
+ * the test harness.
+ */
 type DrillBuild = {
-  /** The drill string that becomes the typing target. */
   text: string;
-  /** Display label for the header strip, e.g. "B", "er", "Inner column". */
   label: string;
-  /** Which characters count as drill-target keystrokes for before/after. */
   targetChars: string[];
 };
 
@@ -117,7 +315,7 @@ function buildDrill(corpus: Corpus, search: DrillSearch, layout: KeyboardType): 
   }
   if (search.preset === "innerColumn") {
     return {
-      text: generateInnerColumnDrill({ corpus }),
+      text: "",
       label: "Inner column",
       targetChars: [...INNER_COLUMN_CHARS],
     };
@@ -126,8 +324,6 @@ function buildDrill(corpus: Corpus, search: DrillSearch, layout: KeyboardType): 
     return {
       text: generateThumbClusterDrill({ corpus }),
       label: "Thumb cluster",
-      // Thumb-cluster drill uses short words with no single target set.
-      // Comparing overall letter accuracy is the honest proxy.
       targetChars: "abcdefghijklmnopqrstuvwxyz".split(""),
     };
   }
@@ -136,8 +332,6 @@ function buildDrill(corpus: Corpus, search: DrillSearch, layout: KeyboardType): 
     return {
       text,
       label: "Cross-hand bigrams",
-      // Unique chars in the generated drill — approximates the bigram
-      // chars the user actually saw this run.
       targetChars: Array.from(
         new Set(
           text
@@ -148,7 +342,26 @@ function buildDrill(corpus: Corpus, search: DrillSearch, layout: KeyboardType): 
       ),
     };
   }
+  if (search.preset) {
+    const col = VERTICAL_COLUMN_MAP[search.preset];
+    if (col) {
+      return {
+        text: "",
+        label: col.label,
+        targetChars: col.keys,
+      };
+    }
+  }
   return null;
+}
+
+/**
+ * Same-day compact briefing storage key.
+ * Set before starting; read on briefing display to decide full vs compact.
+ */
+function briefingSeenKey(targetType: string): string {
+  const today = new Date().toISOString().slice(0, 10);
+  return `adr003-briefing-seen:${targetType}:${today}`;
 }
 
 function DrillPage() {
@@ -161,43 +374,81 @@ function DrillPage() {
   const [paused, setPaused] = useState(false);
   const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
 
-  // Capture the drill label + target char set at the moment the
-  // drill is built so the post-session summary can reference them
-  // even after the URL has changed (e.g. Run Again navigating to /).
+  // ADR-003 §4 — briefing state machine (Gap 3).
+  // generateSession result held here until the user confirms start.
+  const [pendingSession, setPendingSession] = useState<SessionOutput | null>(null);
+
+  // The SessionTarget for the active (or just-completed) session.
+  const currentSessionTargetRef = useRef<SessionTarget | null>(null);
+
+  // Wall-clock timestamp when the briefing was shown — for persistSessionWithRetry.
+  const briefingShownAtRef = useRef<Date | null>(null);
+
+  // Capture the drill label + target char set at the moment the drill is built.
   const [activeDrill, setActiveDrill] = useState<{
     label: string;
     targetChars: string[];
     target: string;
+    sessionTarget: SessionTarget | null;
   } | null>(null);
 
   const hasRouteDrill = Boolean(search.target || search.preset);
 
-  const startDrill = (build: DrillBuild) => {
-    if (!build.text) return;
+  const startFromPending = (output: SessionOutput) => {
+    if (!output.exercise) return;
+    const compact =
+      typeof window !== "undefined"
+        ? Boolean(window.sessionStorage.getItem(briefingSeenKey(output.target.type)))
+        : false;
+    if (!compact) {
+      try {
+        window.sessionStorage.setItem(briefingSeenKey(output.target.type), "1");
+      } catch {
+        // sessionStorage unavailable — proceed without tracking
+      }
+    }
+    currentSessionTargetRef.current = output.target;
+    briefingShownAtRef.current = new Date();
+    // targetChars drives the before/after drill delta. For motion targets
+    // the keys list is the target set; for char/bigram it is the same.
+    // Cross-hand-bigram has empty keys — fall back to all alpha chars
+    // so the before/after card still shows something meaningful.
+    const targetChars =
+      output.target.keys.length > 0 ? output.target.keys : "abcdefghijklmnopqrstuvwxyz".split("");
     setActiveDrill({
-      label: build.label,
-      targetChars: build.targetChars,
-      target: build.text,
+      label: output.target.label,
+      targetChars,
+      target: output.exercise,
+      sessionTarget: output.target,
     });
-    sessionStore
-      .getState()
-      .dispatch({ type: "start", target: build.text, now: performance.now(), targetKeys: [] });
+    sessionStore.getState().dispatch({
+      type: "start",
+      target: output.exercise,
+      now: performance.now(),
+      targetKeys: output.target.keys,
+    });
+    setPendingSession(null);
   };
 
-  // Auto-start a drill whenever the URL carries target/preset and we
-  // are idle. Re-fires if the user navigates back to a drill URL after
-  // resetting the store.
+  // Auto-start a drill whenever the URL carries target/preset and we are idle.
   useEffect(() => {
     if (!hasRouteDrill) return;
     if (corpus.status !== "ready") return;
     if (status !== "idle") return;
-    const build = buildDrill(corpus.corpus, search, profile.keyboardType);
-    if (build) startDrill(build);
-  }, [hasRouteDrill, corpus.status, status, search, profile.keyboardType]);
+    if (pendingSession !== null) return;
+    const output = buildSessionOutput(
+      corpus.corpus,
+      search,
+      profile.keyboardType,
+      profile.transitionPhase,
+    );
+    if (output) {
+      briefingShownAtRef.current = new Date();
+      setPendingSession(output);
+    }
+  }, [hasRouteDrill, corpus.status, status, search, profile.keyboardType, profile.transitionPhase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Escape toggles the pause overlay; dispatches pause/resume to the
-  // reducer so the timer actually freezes (see same block in
-  // /practice route for the rationale).
+  // Escape toggles the pause overlay.
   useEffect(() => {
     if (status !== "active" && status !== "paused") return;
     const onKey = (e: KeyboardEvent) => {
@@ -223,12 +474,8 @@ function DrillPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [status]);
 
-  // Idle auto-pause watchdog — same threshold (2s) as /practice.
   useIdleAutoPause(status === "active" || status === "paused");
 
-  // Task 4.2 safeguards — warn before close/reload while mid-drill,
-  // detect other tabs, drain retry backlog on mount. Same semantics as
-  // /practice: the sessionInFlight flag gates both signals.
   const sessionInFlight = status === "active" || status === "paused";
   useBeforeUnloadWarning(sessionInFlight);
   const otherTabActive = useOtherTabActive(sessionInFlight);
@@ -249,8 +496,7 @@ function DrillPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fire-and-forget session persistence (Task 2.8). Same dedup pattern
-  // as /practice — completedAt identifies each distinct finish.
+  // Session persistence on complete.
   const lastPersistedAt = useRef<number | null>(null);
   useEffect(() => {
     if (status !== "complete") return;
@@ -266,14 +512,13 @@ function DrillPage() {
     const endedAt = new Date();
     const startedAt = new Date(endedAt.getTime() - elapsedMs);
 
-    // Capture which kind of drill this was so Phase 3 can group runs
-    // by preset or by manual target.
     const filterConfig: Record<string, unknown> = search.target
       ? { drillTarget: search.target }
       : search.preset
         ? { drillPreset: search.preset }
         : {};
 
+    const st = currentSessionTargetRef.current;
     void persistSessionWithRetry({
       sessionId: crypto.randomUUID(),
       keyboardProfileId: profile.id,
@@ -291,13 +536,37 @@ function DrillPage() {
       endedAt: endedAt.toISOString(),
       phase: profile.transitionPhase,
       filterConfig,
+      ...(st !== null
+        ? {
+            sessionTarget: {
+              type: st.type,
+              value: st.value,
+              keys: st.keys,
+              label: st.label,
+              selectionScore: null,
+              declaredAt: briefingShownAtRef.current?.toISOString() ?? new Date().toISOString(),
+              attempts: state.targetAttempts,
+              errors: state.targetErrors,
+              accuracy:
+                state.targetAttempts > 0 ? 1 - state.targetErrors / state.targetAttempts : null,
+            },
+          }
+        : {}),
     });
   }, [status, activeDrill, profile.id, profile.transitionPhase, search]);
 
   const runAgain = () => {
-    if (!activeDrill || corpus.status !== "ready") return;
-    const build = buildDrill(corpus.corpus, search, profile.keyboardType);
-    if (build) startDrill(build);
+    if (corpus.status !== "ready") return;
+    const output = buildSessionOutput(
+      corpus.corpus,
+      search,
+      profile.keyboardType,
+      profile.transitionPhase,
+    );
+    if (output) {
+      briefingShownAtRef.current = new Date();
+      setPendingSession(output);
+    }
     setPaused(false);
   };
 
@@ -312,7 +581,7 @@ function DrillPage() {
       type: "start",
       target: activeDrill.target,
       now: performance.now(),
-      targetKeys: [],
+      targetKeys: currentSessionTargetRef.current?.keys ?? [],
     });
     setPaused(false);
   };
@@ -322,7 +591,31 @@ function DrillPage() {
     setPaused(false);
   };
 
-  // --- render branches ------------------------------------------------------
+  // Per-key breakdown for the post-session summary.
+  const sessionState = sessionStore.getState();
+  const perKeyBreakdown = useMemo(() => {
+    if (status !== "complete") return [];
+    const st = currentSessionTargetRef.current;
+    if (!st || st.keys.length === 0) return [];
+    const keySet = new Set(st.keys);
+    const acc: Record<string, { attempts: number; errors: number }> = {};
+    for (const ev of sessionState.events) {
+      if (!keySet.has(ev.targetChar)) continue;
+      if (!acc[ev.targetChar]) acc[ev.targetChar] = { attempts: 0, errors: 0 };
+      const entry = acc[ev.targetChar] ?? { attempts: 0, errors: 0 };
+      entry.attempts++;
+      if (ev.isError) entry.errors++;
+    }
+    return Object.entries(acc)
+      .map(([key, { attempts, errors }]) => ({
+        key,
+        accuracy: attempts > 0 ? 1 - errors / attempts : 1,
+        attempts,
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key));
+  }, [status, sessionState.events]);
+
+  // --- render branches -------------------------------------------------------
 
   if (status === "complete" && activeDrill) {
     const state = sessionStore.getState();
@@ -350,6 +643,26 @@ function DrillPage() {
               drillDelta={drillDelta}
               onRunAgain={runAgain}
               onMoveToAdaptive={moveToAdaptive}
+              sessionTarget={activeDrill.sessionTarget ?? undefined}
+              perKeyBreakdown={perKeyBreakdown}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
+    );
+  }
+
+  // Briefing stage — pending session waiting for user to confirm start.
+  if (status === "idle" && pendingSession !== null) {
+    return (
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <SessionBriefing
+              target={pendingSession.target}
+              briefingText={pendingSession.briefing.text}
+              onStart={() => startFromPending(pendingSession)}
             />
           </div>
         </main>
@@ -365,6 +678,12 @@ function DrillPage() {
         id="main-content"
         className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in"
       >
+        {activeDrill && (
+          <TargetRibbon
+            label={activeDrill.label}
+            keys={activeDrill.sessionTarget?.keys ?? activeDrill.targetChars}
+          />
+        )}
         {activeDrill && <DrillActiveHeader label={activeDrill.label} />}
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
@@ -393,7 +712,7 @@ function DrillPage() {
   }
 
   // Idle: either route has no drill params → show picker, or we are
-  // waiting for the corpus load before auto-starting.
+  // waiting for the corpus load before showing briefing.
   const showPicker = !hasRouteDrill;
   return (
     <>

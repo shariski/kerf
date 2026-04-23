@@ -1,6 +1,8 @@
 import type { ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import type { DrillSummary } from "#/domain/session/drillSummary";
 import type { PatternDetection } from "#/domain/insight/types";
+import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import { IntentEchoBlock } from "./IntentEchoBlock";
 
 /**
  * Post-drill summary — IA §4.3 "similar to practice summary but
@@ -27,6 +29,10 @@ type Props = {
   drillDelta: DrillSummary;
   onRunAgain: () => void;
   onMoveToAdaptive: () => void;
+  /** ADR-003 §4 Stage 3: intent echo — present when a preset was used. */
+  sessionTarget?: SessionTarget;
+  /** Per-key accuracy breakdown for the declared target keys. */
+  perKeyBreakdown?: { key: string; accuracy: number; attempts: number }[];
 };
 
 export function DrillPostSessionStage({
@@ -36,6 +42,8 @@ export function DrillPostSessionStage({
   drillDelta,
   onRunAgain,
   onMoveToAdaptive,
+  sessionTarget,
+  perKeyBreakdown,
 }: Props) {
   const {
     accuracyPct,
@@ -60,6 +68,8 @@ export function DrillPostSessionStage({
       <h1 className="kerf-post-title">
         Drill on <span className="kerf-post-title-target">{drillLabel}</span> finished.
       </h1>
+
+      <IntentEchoBlock sessionTarget={sessionTarget} perKeyBreakdown={perKeyBreakdown} />
 
       <div className="kerf-post-stats" role="list" aria-label="Drill results">
         <div className="kerf-post-stat" role="listitem">
