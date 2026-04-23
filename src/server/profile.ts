@@ -180,6 +180,39 @@ export const updateTransitionPhase = createServerFn({ method: "POST" })
     return updated;
   });
 
+// --- finger assignment update (ADR-003 §2) ----------------------------------
+
+export type UpdateFingerAssignmentInput = { journey: JourneyCode };
+
+export function validateUpdateFingerAssignmentInput(input: unknown): UpdateFingerAssignmentInput {
+  if (typeof input !== "object" || input === null) {
+    throw new Error("updateFingerAssignment: input must be an object");
+  }
+  const i = input as Record<string, unknown>;
+  return {
+    journey: toJourneyCode(typeof i.journey === "string" ? i.journey : null),
+  };
+}
+
+export const updateFingerAssignment = createServerFn({ method: "POST" })
+  .inputValidator(validateUpdateFingerAssignmentInput)
+  .handler(async ({ data }) => {
+    const request = getRequest();
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) throw redirect({ to: "/login" });
+
+    const [updated] = await db
+      .update(keyboardProfiles)
+      .set({ fingerAssignment: data.journey })
+      .where(and(eq(keyboardProfiles.userId, session.user.id), eq(keyboardProfiles.isActive, true)))
+      .returning({ id: keyboardProfiles.id, fingerAssignment: keyboardProfiles.fingerAssignment });
+
+    if (!updated) {
+      throw new Error("updateFingerAssignment: no active profile");
+    }
+    return updated;
+  });
+
 // --- multi-keyboard switcher (Task 3.5) ------------------------------------
 
 export type ProfileListEntry = {

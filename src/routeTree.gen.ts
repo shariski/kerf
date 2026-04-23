@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from "./routes/__root";
 import { Route as WhySplitIsHardRouteImport } from "./routes/why-split-is-hard";
 import { Route as TermsRouteImport } from "./routes/terms";
+import { Route as SettingsRouteImport } from "./routes/settings";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
 import { Route as PracticeRouteImport } from "./routes/practice";
 import { Route as OnboardingRouteImport } from "./routes/onboarding";
@@ -31,6 +32,11 @@ const WhySplitIsHardRoute = WhySplitIsHardRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: "/terms",
   path: "/terms",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SettingsRoute = SettingsRouteImport.update({
+  id: "/settings",
+  path: "/settings",
   getParentRoute: () => rootRouteImport,
 } as any);
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   "/onboarding": typeof OnboardingRoute;
   "/practice": typeof PracticeRoute;
   "/privacy": typeof PrivacyRoute;
+  "/settings": typeof SettingsRoute;
   "/terms": typeof TermsRoute;
   "/why-split-is-hard": typeof WhySplitIsHardRoute;
   "/practice/drill": typeof PracticeDrillRoute;
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   "/onboarding": typeof OnboardingRoute;
   "/practice": typeof PracticeRoute;
   "/privacy": typeof PrivacyRoute;
+  "/settings": typeof SettingsRoute;
   "/terms": typeof TermsRoute;
   "/why-split-is-hard": typeof WhySplitIsHardRoute;
   "/practice/drill": typeof PracticeDrillRoute;
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   "/onboarding": typeof OnboardingRoute;
   "/practice": typeof PracticeRoute;
   "/privacy": typeof PrivacyRoute;
+  "/settings": typeof SettingsRoute;
   "/terms": typeof TermsRoute;
   "/why-split-is-hard": typeof WhySplitIsHardRoute;
   "/practice_/drill": typeof PracticeDrillRoute;
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | "/onboarding"
     | "/practice"
     | "/privacy"
+    | "/settings"
     | "/terms"
     | "/why-split-is-hard"
     | "/practice/drill"
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | "/onboarding"
     | "/practice"
     | "/privacy"
+    | "/settings"
     | "/terms"
     | "/why-split-is-hard"
     | "/practice/drill"
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | "/onboarding"
     | "/practice"
     | "/privacy"
+    | "/settings"
     | "/terms"
     | "/why-split-is-hard"
     | "/practice_/drill"
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute;
   PracticeRoute: typeof PracticeRoute;
   PrivacyRoute: typeof PrivacyRoute;
+  SettingsRoute: typeof SettingsRoute;
   TermsRoute: typeof TermsRoute;
   WhySplitIsHardRoute: typeof WhySplitIsHardRoute;
   PracticeDrillRoute: typeof PracticeDrillRoute;
@@ -220,6 +233,13 @@ declare module "@tanstack/react-router" {
       path: "/privacy";
       fullPath: "/privacy";
       preLoaderRoute: typeof PrivacyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings": {
+      id: "/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof SettingsRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/practice": {
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PracticeRoute: PracticeRoute,
   PrivacyRoute: PrivacyRoute,
+  SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
   WhySplitIsHardRoute: WhySplitIsHardRoute,
   PracticeDrillRoute: PracticeDrillRoute,

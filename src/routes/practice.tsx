@@ -1,18 +1,21 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
   hasAnySessionOnActiveProfile,
+  updateFingerAssignment,
   type KeyboardType,
   type DominantHand,
 } from "#/server/profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import type { JourneyCode } from "#/domain/adaptive/journey";
 import {
   PreSessionStage,
   ActiveSessionStage,
   PauseOverlay,
   PostSessionStage,
+  JourneyCaptureCard,
   type PauseSettings,
   type PreSessionFilterValues,
 } from "#/components/practice";
@@ -39,6 +42,7 @@ type LoadedProfile = {
   keyboardType: KeyboardType;
   dominantHand: DominantHand;
   transitionPhase: TransitionPhase;
+  fingerAssignment: JourneyCode | null; // null = pre-ADR-003 profile
 };
 
 /**
@@ -77,6 +81,7 @@ export const Route = createFileRoute("/practice")({
         keyboardType: profile.keyboardType as KeyboardType,
         dominantHand: profile.dominantHand as DominantHand,
         transitionPhase: profile.transitionPhase as TransitionPhase,
+        fingerAssignment: (profile.fingerAssignment as JourneyCode | null) ?? null,
       },
       isFirstSession: !hasSession,
     };
@@ -103,6 +108,7 @@ function PracticePage() {
   const { profile, isFirstSession } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const status = useSessionStore((s) => s.status);
   const currentTarget = useSessionStore((s) => s.target);
   const corpus = useCorpus();
@@ -437,6 +443,26 @@ function PracticePage() {
       },
     });
   }, [status, profile.id, profile.transitionPhase, filters]);
+
+  // ADR-003 §2 — pre-ADR-003 profiles have NULL finger_assignment.
+  // Gate the entire practice flow until the user answers.
+  if (profile.fingerAssignment === null) {
+    return (
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <JourneyCaptureCard
+              onSubmit={async (journey) => {
+                await updateFingerAssignment({ data: { journey } });
+                void router.invalidate();
+              }}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
+    );
+  }
 
   if (status === "complete") {
     // Pull the values the summary depends on straight from the store.
