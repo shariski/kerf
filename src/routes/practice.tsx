@@ -1,9 +1,11 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
+  getEngineStatsAndBaseline,
   hasAnySessionOnActiveProfile,
+  type EngineStatsAndBaseline,
   type KeyboardType,
   type DominantHand,
 } from "#/server/profile";
@@ -13,13 +15,14 @@ import {
   ActiveSessionStage,
   PauseOverlay,
   PostSessionStage,
+  SessionBriefing,
+  TargetRibbon,
   type PauseSettings,
   type PreSessionFilterValues,
 } from "#/components/practice";
 import { useSessionStore, sessionStore } from "#/stores/sessionStore";
 import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
 import { useCorpus } from "#/hooks/useCorpus";
-import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
 import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
@@ -27,6 +30,11 @@ import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSession
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
 import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import { AppFooter } from "#/components/nav/AppFooter";
+import { generateSession } from "#/domain/adaptive/sessionGenerator";
+import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
+import { selectTarget } from "#/domain/adaptive/targetSelection";
+import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import { DRILL_LIBRARY } from "#/domain/adaptive/drillLibraryData";
 
 /**
  * Drizzle types the profile columns as `string` (the schema uses `text()`
@@ -65,10 +73,12 @@ export const Route = createFileRoute("/practice")({
   loader: async (): Promise<{
     profile: LoadedProfile;
     isFirstSession: boolean;
+    engineData: EngineStatsAndBaseline | null;
   }> => {
-    const [profile, hasSession] = await Promise.all([
+    const [profile, hasSession, engineData] = await Promise.all([
       getActiveProfile(),
       hasAnySessionOnActiveProfile(),
+      getEngineStatsAndBaseline(),
     ]);
     if (!profile) throw redirect({ to: "/onboarding" });
     return {
@@ -79,6 +89,7 @@ export const Route = createFileRoute("/practice")({
         transitionPhase: profile.transitionPhase as TransitionPhase,
       },
       isFirstSession: !hasSession,
+      engineData,
     };
   },
   validateSearch: validatePracticeSearch,
@@ -97,10 +108,8 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
   expectedLetterHint: true,
 };
 
-const TARGET_WORD_COUNT = 30;
-
 function PracticePage() {
-  const { profile, isFirstSession } = Route.useLoaderData();
+  const { profile, isFirstSession, engineData } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const status = useSessionStore((s) => s.status);
@@ -122,6 +131,19 @@ function PracticePage() {
   // adaptive, not another diagnostic.
   const diagnosticConsumedRef = useRef(false);
 
+  // ADR-003 §4 — briefing state machine (Gap 2).
+  // generateSession result is held here until the user confirms start.
+  const [pendingSession, setPendingSession] = useState<SessionOutput | null>(null);
+
+  // The SessionTarget for the active (or just-completed) session.
+  // Stored as a ref so it survives active → complete without triggering
+  // extra renders. Pattern mirrors sessionModeRef / diagnosticConsumedRef.
+  const currentSessionTargetRef = useRef<SessionTarget | null>(null);
+
+  // Wall-clock timestamp when the briefing was shown — included in the
+  // persistSession payload as `sessionTarget.declaredAt`.
+  const briefingShownAtRef = useRef<Date | null>(null);
+
   // Keep pre-session "Visual keyboard" toggle and pause-overlay toggle in sync:
   // flipping either updates the same source of truth the active stage reads.
   useEffect(() => {
@@ -130,7 +152,7 @@ function PracticePage() {
 
   const useDiagnostic = isFirstSession && !diagnosticConsumedRef.current;
 
-  const startAdaptive = () => {
+  const generateSessionAndShowBriefing = () => {
     // First-session gate — serve the curated diagnostic target in place
     // of adaptive sampling, so the first DB row is a comparable baseline
     // (Task 4.1). Adaptive sampling on an empty weakness profile is just
@@ -147,25 +169,40 @@ function PracticePage() {
     }
 
     if (corpus.status !== "ready") return;
-    const maxLength = filters.maxWordLength === "all" ? undefined : filters.maxWordLength;
 
-    // Cold-start weakness function: uniform weight until session history lands
-    // in Phase 3. Biases slightly toward longer words via matchScore — OK
-    // since longer words carry more transitions worth practicing.
-    const words = generateExercise({
+    const stats = engineData?.stats ?? { characters: [], bigrams: [] };
+    const baseline = engineData?.baseline ?? {
+      meanErrorRate: 0,
+      meanKeystrokeTime: 300,
+      meanHesitationRate: 0,
+      journey: "conventional" as const,
+    };
+    const phase = engineData?.phase ?? profile.transitionPhase;
+
+    // TODO: real frequency lookup — for Phase A, uniform stub is sufficient
+    // because weakness delta weights attempts more than language frequency.
+    const output = generateSession({
+      stats,
+      baseline,
+      phase,
       corpus: corpus.corpus,
-      weaknessScoreFor: () => 1,
-      filters: { handIsolation: filters.handIsolation, maxLength },
-      targetWordCount: TARGET_WORD_COUNT,
+      drillLibrary: DRILL_LIBRARY,
+      frequencyInLanguage: () => 0.5,
+      exerciseOptions: {
+        filters: {
+          handIsolation: filters.handIsolation,
+          maxLength: filters.maxWordLength === "all" ? undefined : filters.maxWordLength,
+        },
+      },
     });
 
-    const target = words.join(" ");
-    if (!target) return;
+    briefingShownAtRef.current = new Date();
     sessionModeRef.current = "adaptive";
-    sessionStore
-      .getState()
-      .dispatch({ type: "start", target, now: performance.now(), targetKeys: [] });
+    setPendingSession(output);
   };
+
+  // Kept for post-session Enter shortcut and post-complete keyboard handler.
+  const startAdaptive = generateSessionAndShowBriefing;
 
   const restartSameExercise = () => {
     if (!currentTarget) return;
@@ -184,18 +221,21 @@ function PracticePage() {
   // exactly once: the effect immediately clears the param via
   // `replace: true`, so on the subsequent render autostart is falsy and
   // a real "end session → back to pre-session" transition won't retrigger.
-  // We read startAdaptive through a ref so we don't have to thread its
-  // (transitively state-dependent) closure into the effect deps.
-  const startAdaptiveRef = useRef(startAdaptive);
-  startAdaptiveRef.current = startAdaptive;
+  // With the new briefing flow, autostart still shows the briefing — it just
+  // skips the PreSessionStage click and goes straight to the SessionBriefing.
+  // We read generateSessionAndShowBriefing through a ref so we don't have to
+  // thread its (transitively state-dependent) closure into the effect deps.
+  const generateSessionRef = useRef(generateSessionAndShowBriefing);
+  generateSessionRef.current = generateSessionAndShowBriefing;
   useEffect(() => {
     if (!search.autostart) return;
     if (status !== "idle") return;
+    if (pendingSession !== null) return;
     // Diagnostic doesn't need the corpus; adaptive does. Wait for it.
     if (!useDiagnostic && corpus.status !== "ready") return;
-    startAdaptiveRef.current();
+    generateSessionRef.current();
     void navigate({ to: "/practice", search: {}, replace: true });
-  }, [search.autostart, status, useDiagnostic, corpus.status, navigate]);
+  }, [search.autostart, status, pendingSession, useDiagnostic, corpus.status, navigate]);
 
   // Esc toggles the manual pause overlay during a live session. We
   // listen while active *or* paused — the latter because idle auto-
@@ -328,7 +368,7 @@ function PracticePage() {
 
       if (e.key === "Enter") {
         e.preventDefault();
-        startAdaptive();
+        generateSessionRef.current();
         return;
       }
 
@@ -392,9 +432,10 @@ function PracticePage() {
       window.removeEventListener("keydown", onKey);
       if (gTimer) clearTimeout(gTimer);
     };
-    // startAdaptive closes over corpus/filters/refs; we intentionally do not
-    // list it to avoid re-subscribing on every keystroke-induced filter change.
-  }, [status, corpus.status, filters, navigate, profile.keyboardType, profile.transitionPhase]); // eslint-disable-line react-hooks/exhaustive-deps
+    // generateSessionRef is a stable ref — no need to list the function
+    // itself. corpus/filters are read through the ref closure, not captured
+    // directly here, so they don't belong in deps.
+  }, [status, navigate, profile.keyboardType, profile.transitionPhase]);
 
   // Fire-and-forget session persistence (Task 2.8 / 4.2). Dedup by
   // completedAt so Strict Mode's double-invoked effect doesn't produce
@@ -415,6 +456,7 @@ function PracticePage() {
     const endedAt = new Date();
     const startedAt = new Date(endedAt.getTime() - elapsedMs);
 
+    const st = currentSessionTargetRef.current;
     void persistSessionWithRetry({
       sessionId: crypto.randomUUID(),
       keyboardProfileId: profile.id,
@@ -435,8 +477,64 @@ function PracticePage() {
         handIsolation: filters.handIsolation,
         maxWordLength: filters.maxWordLength,
       },
+      ...(st !== null
+        ? {
+            sessionTarget: {
+              type: st.type,
+              value: st.value,
+              keys: st.keys,
+              label: st.label,
+              selectionScore: st.score ?? null,
+              declaredAt: briefingShownAtRef.current?.toISOString() ?? new Date().toISOString(),
+              attempts: state.targetAttempts,
+              errors: state.targetErrors,
+              accuracy:
+                state.targetAttempts > 0 ? 1 - state.targetErrors / state.targetAttempts : null,
+            },
+          }
+        : {}),
     });
   }, [status, profile.id, profile.transitionPhase, filters]);
+
+  // Per-key breakdown for the post-session summary — computed once on complete.
+  // useMemo re-runs if status flips (idle → complete → idle), which is fine.
+  const sessionState = sessionStore.getState();
+  const perKeyBreakdown = useMemo(() => {
+    if (status !== "complete") return [];
+    const st = currentSessionTargetRef.current;
+    if (!st || st.keys.length === 0) return [];
+    const keySet = new Set(st.keys);
+    const acc: Record<string, { attempts: number; errors: number }> = {};
+    for (const ev of sessionState.events) {
+      if (!keySet.has(ev.targetChar)) continue;
+      if (!acc[ev.targetChar]) acc[ev.targetChar] = { attempts: 0, errors: 0 };
+      const entry = acc[ev.targetChar]!;
+      entry.attempts++;
+      if (ev.isError) entry.errors++;
+    }
+    return Object.entries(acc)
+      .map(([key, { attempts, errors }]) => ({
+        key,
+        accuracy: attempts > 0 ? 1 - errors / attempts : 1,
+        attempts,
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key));
+  }, [status, sessionState.events]);
+
+  // Soft next-target preview — use current (pre-session) stats to show
+  // what the engine would pick if run right now. Pre-session stats are
+  // close enough for Phase A; post-session stats would require a DB
+  // round-trip we don't have. Returns null when no confident data.
+  const nextTargetPreview = useMemo(() => {
+    if (status !== "complete") return null;
+    if (!engineData) return null;
+    try {
+      const next = selectTarget(engineData.stats, engineData.baseline, engineData.phase, () => 0.5);
+      return next.type === "diagnostic" ? null : next.label;
+    } catch {
+      return null;
+    }
+  }, [status, engineData]);
 
   if (status === "complete") {
     // Pull the values the summary depends on straight from the store.
@@ -462,6 +560,9 @@ function PracticePage() {
               title={title}
               summary={summary}
               onPracticeAgain={startAdaptive}
+              sessionTarget={currentSessionTargetRef.current ?? undefined}
+              perKeyBreakdown={perKeyBreakdown}
+              nextTargetPreview={nextTargetPreview}
             />
           </div>
         </main>
@@ -476,11 +577,13 @@ function PracticePage() {
     // keystroke auto-resumes via the reducer — the chip is purely a
     // visual "the clock is paused, type to resume" signal.
     const idleAutoPaused = status === "paused" && !paused;
+    const activeTarget = currentSessionTargetRef.current;
     return (
       <main
         id="main-content"
         className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in"
       >
+        {activeTarget && <TargetRibbon label={activeTarget.label} keys={activeTarget.keys} />}
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
           showKeyboard={pauseSettings.showKeyboard}
@@ -488,6 +591,7 @@ function PracticePage() {
           capture={!paused}
           typingSize={pauseSettings.typingSize}
           isFirstSession={sessionModeRef.current === "diagnostic"}
+          targetKeys={activeTarget?.keys}
         />
         {idleAutoPaused && <IdlePauseChip />}
         {paused && (
@@ -508,6 +612,34 @@ function PracticePage() {
     );
   }
 
+  // Briefing stage: generateSession ran, waiting for user to confirm start.
+  if (status === "idle" && pendingSession !== null) {
+    const handleBriefingStart = () => {
+      currentSessionTargetRef.current = pendingSession.target;
+      sessionStore.getState().dispatch({
+        type: "start",
+        target: pendingSession.exercise,
+        now: performance.now(),
+        targetKeys: pendingSession.target.keys,
+      });
+      setPendingSession(null);
+    };
+    return (
+      <>
+        <main id="main-content" className="kerf-practice-main">
+          <div className="kerf-practice-container kerf-stage-fade-in">
+            <SessionBriefing
+              target={pendingSession.target}
+              briefingText={pendingSession.briefing.text}
+              onStart={handleBriefingStart}
+            />
+          </div>
+        </main>
+        <AppFooter />
+      </>
+    );
+  }
+
   return (
     <>
       <main id="main-content" className="kerf-practice-main">
@@ -517,7 +649,7 @@ function PracticePage() {
             phase={profile.transitionPhase}
             filterValues={filters}
             onFilterChange={setFilters}
-            onStartAdaptive={startAdaptive}
+            onStartAdaptive={generateSessionAndShowBriefing}
             onDrillWeakness={() => navigate({ to: "/practice/drill", search: {} })}
             onDrillInnerColumn={() =>
               navigate({

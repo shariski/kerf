@@ -32,6 +32,8 @@ type Props = {
   /** True only on the first-ever session for a profile — shows the
    * onboarding tooltip above the typing area (Task 4.1). */
   isFirstSession?: boolean;
+  /** Session target keys for the ivory ring on the keyboard SVG (ADR-003 §4). */
+  targetKeys?: string[];
 };
 
 export function ActiveSessionStage({
@@ -41,6 +43,7 @@ export function ActiveSessionStage({
   capture,
   typingSize,
   isFirstSession = false,
+  targetKeys,
 }: Props) {
   const target = useSessionStore((s) => s.target);
   const position = useSessionStore((s) => s.position);
@@ -60,7 +63,12 @@ export function ActiveSessionStage({
 
       {showKeyboard && (
         <div className="kerf-active-session-keyboard">
-          <KeyboardComponent ref={keyboardRef} targetKey={nextChar || undefined} showFingerBars />
+          <KeyboardComponent
+            ref={keyboardRef}
+            targetKey={nextChar || undefined}
+            targetKeys={targetKeys}
+            showFingerBars
+          />
         </div>
       )}
 

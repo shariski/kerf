@@ -8,9 +8,11 @@ import {
   type TransitionPhase,
 } from "#/domain/profile/initialPhase";
 import { toJourneyCode, type JourneyCode } from "#/domain/adaptive/journey";
+import { computeBaseline } from "#/domain/stats/computeBaseline";
+import type { ComputedStats, UserBaseline } from "#/domain/stats/types";
 import { auth } from "./auth";
 import { db } from "./db";
-import { keyboardProfiles, sessions } from "./db/schema";
+import { bigramStats, characterStats, keyboardProfiles, sessions } from "./db/schema";
 
 export type KeyboardType = "sofle" | "lily58";
 export type DominantHand = "left" | "right";
@@ -318,3 +320,75 @@ export const switchActiveProfile = createServerFn({ method: "POST" })
       return activated;
     });
   });
+
+// --- engine stats + baseline loader (ADR-003 Task 17) ----------------------
+
+export type EngineStatsAndBaseline = {
+  stats: ComputedStats;
+  baseline: UserBaseline;
+  phase: TransitionPhase;
+};
+
+/**
+ * Load the character_stats and bigram_stats rows for the active profile,
+ * compute the empirical baseline, and return the triple consumed by
+ * `generateSession`. Returns null when unauthenticated or when no active
+ * profile exists (loader will redirect in both cases).
+ */
+export const getEngineStatsAndBaseline = createServerFn({ method: "GET" }).handler(
+  async (): Promise<EngineStatsAndBaseline | null> => {
+    const request = getRequest();
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) return null;
+
+    const [profile] = await db
+      .select()
+      .from(keyboardProfiles)
+      .where(and(eq(keyboardProfiles.userId, session.user.id), eq(keyboardProfiles.isActive, true)))
+      .limit(1);
+    if (!profile) return null;
+
+    const [charRows, bigramRows] = await Promise.all([
+      db
+        .select()
+        .from(characterStats)
+        .where(
+          and(
+            eq(characterStats.userId, session.user.id),
+            eq(characterStats.keyboardProfileId, profile.id),
+          ),
+        ),
+      db
+        .select()
+        .from(bigramStats)
+        .where(
+          and(
+            eq(bigramStats.userId, session.user.id),
+            eq(bigramStats.keyboardProfileId, profile.id),
+          ),
+        ),
+    ]);
+
+    const stats: ComputedStats = {
+      characters: charRows.map((r) => ({
+        character: r.character,
+        attempts: r.totalAttempts,
+        errors: r.totalErrors,
+        sumTime: r.sumKeystrokeMs,
+        hesitationCount: r.hesitationCount,
+      })),
+      bigrams: bigramRows.map((r) => ({
+        bigram: r.bigram,
+        attempts: r.totalAttempts,
+        errors: r.totalErrors,
+        sumTime: r.sumKeystrokeMs,
+      })),
+    };
+
+    const journey = toJourneyCode(profile.fingerAssignment ?? null);
+    const phase = profile.transitionPhase as TransitionPhase;
+    const baseline = computeBaseline(stats, phase, journey);
+
+    return { stats, baseline, phase };
+  },
+);

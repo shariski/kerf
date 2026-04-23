@@ -5,6 +5,7 @@ import { LILY58_GEOMETRY } from "./geometry/lily58";
 
 type Props = {
   targetKey?: string;
+  targetKeys?: string[];
   showFingerBars?: boolean;
   onKeyClick?: (char: string) => void;
   heatLevels?: Record<string, number>;
