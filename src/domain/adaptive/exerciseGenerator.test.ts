@@ -394,4 +394,30 @@ describe("generateExercise — mustContainUnit emphasis floor", () => {
     });
     expect(explicitOff).toEqual(legacy);
   });
+
+  it("widens emphasis pool to component characters when bigram has zero corpus support", () => {
+    // 8 words containing 'x' or 'w' individually (none have 'xw' adjacent),
+    // 16 words containing neither. Target xw with zero corpus support
+    // should pull words with x or w instead of falling all the way to
+    // filler.
+    const withComponent = ["ax", "bx", "cx", "wa", "wb", "wc", "xo", "ow"].map((w) =>
+      word({ word: w }),
+    );
+    const neither = Array.from({ length: 16 }, (_, i) =>
+      word({ word: `bc${String(i).padStart(2, "0")}` }),
+    );
+    const support = new Map<string, number>([["xw", 0]]);
+    const out = generateExercise({
+      corpus: corpus([...withComponent, ...neither]),
+      weaknessScoreFor: (unit) => (unit === "xw" ? 10 : 0.5),
+      targetWordCount: 10,
+      mustContainUnit: "xw",
+      mustContainMinRatio: 0.8,
+      corpusBigramSupport: support,
+      rng: mulberry32(42),
+    });
+    const componentHits = out.filter((w) => w.includes("x") || w.includes("w")).length;
+    expect(out).toHaveLength(10);
+    expect(componentHits).toBeGreaterThanOrEqual(Math.ceil(10 * 0.8));
+  });
 });

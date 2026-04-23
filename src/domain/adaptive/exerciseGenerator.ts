@@ -69,6 +69,14 @@ export type ExerciseOptions = {
    *  Clamped to [0, 1]; values <= 0 disable the floor and fall through
    *  to the legacy weighted sampler. */
   mustContainMinRatio?: number;
+  /** Precomputed `bigram → corpus word count` map. If present and
+   *  `mustContainUnit` is a 2-char bigram whose entry is 0, the
+   *  emphasis pool widens to "words whose `chars` contains either
+   *  component character" — so a bigram with no direct corpus support
+   *  still produces a session biased toward the letters that drive it.
+   *  When the map is omitted or the bigram has support, the literal
+   *  `mustContainUnit` match is used (unchanged behavior). */
+  corpusBigramSupport?: ReadonlyMap<string, number>;
 };
 
 export const DEFAULT_TARGET_WORD_COUNT = 50;
@@ -144,6 +152,7 @@ export function generateExercise(options: ExerciseOptions): string[] {
     rng = Math.random,
     mustContainUnit,
     mustContainMinRatio,
+    corpusBigramSupport,
   } = options;
 
   const useFloor =
@@ -153,14 +162,28 @@ export function generateExercise(options: ExerciseOptions): string[] {
     const ratio = Math.min(1, mustContainMinRatio);
     const emphasisTarget = Math.min(targetWordCount, Math.ceil(targetWordCount * ratio));
 
+    // Widen to component-char match when the literal bigram has zero
+    // corpus support. `unit` is `mustContainUnit` narrowed by useFloor.
+    const unit = mustContainUnit;
+    const widenToComponentChars =
+      unit.length === 2 &&
+      corpusBigramSupport !== undefined &&
+      (corpusBigramSupport.get(unit) ?? 0) === 0;
+
+    const matches = (w: CorpusWord): boolean => {
+      if (widenToComponentChars) {
+        return w.chars.includes(unit[0]!) || w.chars.includes(unit[1]!);
+      }
+      return w.chars.includes(unit) || w.bigrams.includes(unit);
+    };
+
     const emphasisCandidates: { word: CorpusWord; weight: number }[] = [];
     const fillerCandidates: { word: CorpusWord; weight: number }[] = [];
     for (const w of corpus.words) {
       if (!passesFilters(w, filters)) continue;
       const score = matchScore(w, weaknessScoreFor);
       if (score <= 0) continue;
-      const contains = w.chars.includes(mustContainUnit) || w.bigrams.includes(mustContainUnit);
-      (contains ? emphasisCandidates : fillerCandidates).push({ word: w, weight: score });
+      (matches(w) ? emphasisCandidates : fillerCandidates).push({ word: w, weight: score });
     }
 
     const emphasisSample = weightedSampleWithoutReplacement(
