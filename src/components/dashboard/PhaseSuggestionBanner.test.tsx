@@ -25,7 +25,7 @@ import { PhaseSuggestionBanner } from "./PhaseSuggestionBanner";
 const GRADUATION_SIGNAL = {
   suggestedPhase: "refining" as const,
   reason:
-    "Your accuracy has been above 95% for 10 sessions, and inner column error rate is below 8%.",
+    "The engine thinks you might be ready to shift focus to refining, polishing your flow. You decide.",
   confidence: "high" as const,
 };
 
@@ -46,7 +46,7 @@ describe("PhaseSuggestionBanner", () => {
 
   it("renders the reason and direction-specific CTA when signal fires", () => {
     render(<PhaseSuggestionBanner signal={GRADUATION_SIGNAL} currentPhase="transitioning" />);
-    expect(screen.getByText(/inner column error rate/i)).toBeTruthy();
+    expect(screen.getByText(/might be ready/i)).toBeTruthy();
     // Graduation → primary button reads "Switch to refining".
     expect(screen.getByRole("button", { name: /switch to refining/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /not yet/i })).toBeTruthy();

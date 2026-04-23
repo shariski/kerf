@@ -70,7 +70,7 @@ function checkGraduation(input: PhaseSuggestionInput): PhaseTransitionSignal | n
   return {
     suggestedPhase: "refining",
     reason:
-      "Your accuracy has been above 95% for 10 sessions, and inner column error rate is below 8%. Ready to shift focus from muscle memory to speed & flow?",
+      "The engine thinks you might be ready to shift focus to refining, polishing your flow. You decide.",
     confidence: "high",
   };
 }
@@ -90,8 +90,7 @@ function checkBreakReturn(input: PhaseSuggestionInput): PhaseTransitionSignal | 
 
   return {
     suggestedPhase: "transitioning",
-    reason:
-      "You took a break, and your accuracy has dropped a bit. Want to go back to transition-mode focus for a few sessions?",
+    reason: "The engine thinks you might benefit from returning to transitioning mode. You decide.",
     confidence: "medium",
   };
 }

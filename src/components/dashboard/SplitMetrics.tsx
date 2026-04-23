@@ -46,10 +46,10 @@ export function SplitMetrics({ data }: Props) {
         caption="avg time for letter pairs that jump hands (th, he, in…)"
       />
       <Metric
-        label="columnar stability"
+        label="columnar stability (experimental)"
         value={m.columnarStabilityPct}
         format={(v) => `${Math.round(v)}%`}
-        caption="of your errors, the share that are NOT neighbouring-column drift — higher is better"
+        caption="inferred from cross-hand bigram timing patterns; we're still validating this signal against real user behavior. of your errors, the share that are NOT neighbouring-column drift — higher is better"
       />
     </div>
   );
