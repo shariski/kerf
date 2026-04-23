@@ -9,6 +9,7 @@ import {
   keyboardProfiles,
   keystrokeEvents,
   sessions,
+  sessionTargets,
   splitMetricsSnapshots,
 } from "./db/schema";
 import {
@@ -120,7 +121,24 @@ export const persistSession = createServerFn({ method: "POST" })
         return;
       }
 
-      // 2. Keystroke events. Bulk insert in one round trip.
+      // 2. Session target row — written only when the caller supplies one.
+      // Placed after the idempotency guard so retries never double-write.
+      if (data.sessionTarget) {
+        await tx.insert(sessionTargets).values({
+          sessionId: data.sessionId,
+          targetType: data.sessionTarget.type,
+          targetValue: data.sessionTarget.value,
+          targetKeys: data.sessionTarget.keys,
+          targetLabel: data.sessionTarget.label,
+          selectionScore: data.sessionTarget.selectionScore?.toString() ?? null,
+          declaredAt: new Date(data.sessionTarget.declaredAt),
+          targetAttempts: data.sessionTarget.attempts,
+          targetErrors: data.sessionTarget.errors,
+          targetAccuracy: data.sessionTarget.accuracy,
+        });
+      }
+
+      // 3. Keystroke events. Bulk insert in one round trip.
       // keystrokeMs is fractional (performance.now() is sub-ms) but the
       // schema stores it as integer — round at the DB boundary.
       if (enriched.length > 0) {
@@ -139,7 +157,7 @@ export const persistSession = createServerFn({ method: "POST" })
         );
       }
 
-      // 3. Character stats UPSERT. The (user, profile, character)
+      // 4. Character stats UPSERT. The (user, profile, character)
       // unique index powers additive aggregation across sessions.
       // EXCLUDED refers to the proposed new row's values.
       if (stats.characters.length > 0) {
@@ -172,7 +190,7 @@ export const persistSession = createServerFn({ method: "POST" })
           });
       }
 
-      // 4. Bigram stats UPSERT — same additive shape, no hesitation
+      // 5. Bigram stats UPSERT — same additive shape, no hesitation
       // column in this table.
       if (stats.bigrams.length > 0) {
         await tx
@@ -198,7 +216,7 @@ export const persistSession = createServerFn({ method: "POST" })
           });
       }
 
-      // 5. Split-metrics snapshot. Per-session, not per-user — these
+      // 6. Split-metrics snapshot. Per-session, not per-user — these
       // feed phase-transition detection and the dashboard's trend
       // charts, which need the time dimension.
       await tx.insert(splitMetricsSnapshots).values({
