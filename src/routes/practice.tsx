@@ -187,6 +187,7 @@ function PracticePage() {
       baseline,
       phase,
       corpus: corpus.corpus,
+      corpusBigramSupport: corpus.bigramSupport,
       drillLibrary: DRILL_LIBRARY,
       frequencyInLanguage: () => 0.5,
       exerciseOptions: {
@@ -201,7 +202,9 @@ function PracticePage() {
     // their weighted scores so it's easy to tell *why* a target was
     // picked (and, after a session, whether it's about to change).
     if (import.meta.env.DEV) {
-      const ranked = rankTargets(stats, baseline, phase, () => 0.5).slice(0, 3);
+      const ranked = rankTargets(stats, baseline, phase, () => 0.5, {
+        corpusBigramSupport: corpus.bigramSupport,
+      }).slice(0, 3);
       console.log(
         "[adaptive] top-3 weakness candidates:",
         ranked.map((t) => ({ type: t.type, value: t.value, score: t.score?.toFixed(3) })),
