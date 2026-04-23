@@ -308,14 +308,12 @@ function DrillPage() {
 
   const restartSameExercise = () => {
     if (!activeDrill) return;
-    sessionStore
-      .getState()
-      .dispatch({
-        type: "start",
-        target: activeDrill.target,
-        now: performance.now(),
-        targetKeys: [],
-      });
+    sessionStore.getState().dispatch({
+      type: "start",
+      target: activeDrill.target,
+      now: performance.now(),
+      targetKeys: [],
+    });
     setPaused(false);
   };
 
