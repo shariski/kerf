@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { keystrokeReducer } from "./keystrokeReducer";
 import { idleSessionState, type SessionState } from "./types";
 
-const start = (target: string, now = 1000): SessionState =>
-  keystrokeReducer(idleSessionState(), { type: "start", target, now });
+const start = (target: string, now = 1000, targetKeys: string[] = []): SessionState =>
+  keystrokeReducer(idleSessionState(), { type: "start", target, now, targetKeys });
 
 const type = (s: SessionState, chars: string, from = 1000, stepMs = 100) => {
   let state = s;
@@ -36,7 +36,7 @@ describe("keystrokeReducer — start", () => {
   it("resets prior state when restarted", () => {
     let s = start("ab");
     s = keystrokeReducer(s, { type: "keypress", char: "a", now: 1100 });
-    s = keystrokeReducer(s, { type: "start", target: "xy", now: 2000 });
+    s = keystrokeReducer(s, { type: "start", target: "xy", now: 2000, targetKeys: [] });
     expect(s.target).toBe("xy");
     expect(s.position).toBe(0);
     expect(s.events).toHaveLength(0);
@@ -259,6 +259,48 @@ describe("keystrokeReducer — purity", () => {
   });
 });
 
+describe("keystrokeReducer — target accumulator", () => {
+  it("start seeds targetKeys from the action and zeros counters", () => {
+    const s = keystrokeReducer(idleSessionState(), {
+      type: "start",
+      target: "wf",
+      now: 1000,
+      targetKeys: ["w", "f"],
+    });
+    expect(s.targetKeys).toEqual(["w", "f"]);
+    expect(s.targetAttempts).toBe(0);
+    expect(s.targetErrors).toBe(0);
+  });
+
+  it("increments targetAttempts on correct keypress at a target position", () => {
+    // target="wf", targetKeys=["w","f"]
+    let s = start("wf", 1000, ["w", "f"]);
+    s = keystrokeReducer(s, { type: "keypress", char: "w", now: 1100 });
+    expect(s.targetAttempts).toBe(1);
+    expect(s.targetErrors).toBe(0);
+  });
+
+  it("increments both targetAttempts and targetErrors on wrong keypress at target position", () => {
+    // expected 'w', typed 'q' — position IS a target key, so attempts AND errors tick
+    let s = start("wf", 1000, ["w", "f"]);
+    s = keystrokeReducer(s, { type: "keypress", char: "q", now: 1100 });
+    expect(s.targetAttempts).toBe(1);
+    expect(s.targetErrors).toBe(1);
+  });
+
+  it("does not change accumulator for keypress at a non-target position", () => {
+    // target="abc", targetKeys=["b"] — first position is 'a', not a target key
+    let s = start("abc", 1000, ["b"]);
+    s = keystrokeReducer(s, { type: "keypress", char: "a", now: 1100 });
+    expect(s.targetAttempts).toBe(0);
+    expect(s.targetErrors).toBe(0);
+    // Now at position 1 ('b') — target key; correct keystroke
+    s = keystrokeReducer(s, { type: "keypress", char: "b", now: 1200 });
+    expect(s.targetAttempts).toBe(1);
+    expect(s.targetErrors).toBe(0);
+  });
+});
+
 describe("keystrokeReducer — pause/resume", () => {
   it("pause is a no-op before the clock is armed", () => {
     // `start` sets status=active but leaves startedAt null until the
@@ -344,7 +386,7 @@ describe("keystrokeReducer — pause/resume", () => {
     s = keystrokeReducer(s, { type: "pause", now: 1300 });
     s = keystrokeReducer(s, { type: "resume", now: 2300 });
     expect(s.pausedMs).toBe(1000);
-    s = keystrokeReducer(s, { type: "start", target: "xy", now: 3000 });
+    s = keystrokeReducer(s, { type: "start", target: "xy", now: 3000, targetKeys: [] });
     expect(s.pausedMs).toBe(0);
     expect(s.pausedAt).toBeNull();
     expect(s.status).toBe("active");
