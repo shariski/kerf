@@ -1,20 +1,10 @@
 import type { Corpus } from "../corpus/types";
-import type {
-  ComputedStats,
-  TransitionPhase,
-  UserBaseline,
-} from "../stats/types";
+import type { ComputedStats, TransitionPhase, UserBaseline } from "../stats/types";
 import { buildBriefing, type Briefing } from "./briefingTemplates";
 import type { DrillLibraryEntry } from "./drillLibrary";
 import { lookupDrill } from "./drillLibrary";
-import {
-  generateExercise,
-  type ExerciseOptions,
-} from "./exerciseGenerator";
-import {
-  selectTarget,
-  type SessionTarget,
-} from "./targetSelection";
+import { generateExercise, type ExerciseOptions } from "./exerciseGenerator";
+import { selectTarget, type SessionTarget } from "./targetSelection";
 
 export type SessionOutput = {
   target: SessionTarget;
@@ -51,12 +41,7 @@ function estimate(target: SessionTarget, wordCount: number): number {
 export function generateSession(input: GenerateSessionInput): SessionOutput {
   const target =
     input.targetOverride ??
-    selectTarget(
-      input.stats,
-      input.baseline,
-      input.phase,
-      input.frequencyInLanguage,
-    );
+    selectTarget(input.stats, input.baseline, input.phase, input.frequencyInLanguage);
 
   let exerciseString: string;
   let estimatedSeconds: number;

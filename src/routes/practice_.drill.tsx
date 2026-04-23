@@ -179,7 +179,9 @@ function DrillPage() {
       targetChars: build.targetChars,
       target: build.text,
     });
-    sessionStore.getState().dispatch({ type: "start", target: build.text, now: performance.now(), targetKeys: [] });
+    sessionStore
+      .getState()
+      .dispatch({ type: "start", target: build.text, now: performance.now(), targetKeys: [] });
   };
 
   // Auto-start a drill whenever the URL carries target/preset and we
@@ -308,7 +310,12 @@ function DrillPage() {
     if (!activeDrill) return;
     sessionStore
       .getState()
-      .dispatch({ type: "start", target: activeDrill.target, now: performance.now(), targetKeys: [] });
+      .dispatch({
+        type: "start",
+        target: activeDrill.target,
+        now: performance.now(),
+        targetKeys: [],
+      });
     setPaused(false);
   };
 
