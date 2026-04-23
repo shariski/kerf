@@ -11,6 +11,7 @@ import {
   bigserial,
   index,
   uniqueIndex,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -61,6 +62,32 @@ export const sessions = pgTable("sessions", {
   wpm: real("wpm"),
   accuracy: real("accuracy"),
 });
+
+// ── session_targets ──────────────────────────────────────────────────────────
+
+export const sessionTargets = pgTable(
+  "session_targets",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    targetType: text("target_type").notNull(),
+    targetValue: text("target_value").notNull(),
+    targetKeys: text("target_keys").array().notNull(),
+    targetLabel: text("target_label").notNull(),
+    selectionScore: numeric("selection_score"),
+    declaredAt: timestamp("declared_at", { withTimezone: true }).notNull(),
+    targetAttempts: integer("target_attempts"),
+    targetErrors: integer("target_errors"),
+    targetAccuracy: real("target_accuracy"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("idx_session_targets_session").on(t.sessionId),
+    index("idx_session_targets_type_value").on(t.targetType, t.targetValue),
+  ],
+);
 
 // ── keystroke_events ──────────────────────────────────────────────────────────
 
