@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import type { EmergentWeakness, ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import type { PatternDetection } from "#/domain/insight/types";
 import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import { IntentEchoBlock } from "./IntentEchoBlock";
 
 /**
  * Post-session summary stage — 1:1 port of the `.post-session` block in
@@ -100,42 +101,11 @@ export function PostSessionStage({
 
       <h1 className="kerf-post-title">{title}</h1>
 
-      {sessionTarget && (
-        <section className="space-y-2 mb-6">
-          <p className="text-sm text-kerf-text-secondary">You targeted:</p>
-          <p className="text-lg text-kerf-text-primary">{sessionTarget.label}</p>
-        </section>
-      )}
-
-      {perKeyBreakdown && perKeyBreakdown.length > 0 && (
-        <section className="mb-6">
-          <h3 className="text-sm text-kerf-text-secondary mb-2">How it went on those keys</h3>
-          <table className="w-full text-sm">
-            <tbody>
-              {perKeyBreakdown.map((row) => (
-                <tr key={row.key}>
-                  <td className="font-mono text-kerf-text-primary pr-4">
-                    {row.key === " " ? "space" : row.key.toUpperCase()}
-                  </td>
-                  <td className="text-kerf-text-secondary">
-                    {(row.accuracy * 100).toFixed(0)}% accuracy · {row.attempts} attempts
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
-
-      {nextTargetPreview && (
-        <section className="mb-6">
-          <p className="text-sm text-kerf-text-secondary">
-            Next session will likely focus on:{" "}
-            <span className="text-kerf-text-primary">{nextTargetPreview}</span>. You can override by
-            picking a drill mode.
-          </p>
-        </section>
-      )}
+      <IntentEchoBlock
+        sessionTarget={sessionTarget}
+        perKeyBreakdown={perKeyBreakdown}
+        nextTargetPreview={nextTargetPreview}
+      />
 
       <div className="kerf-post-stats" role="list" aria-label="Session results">
         <div className="kerf-post-stat" role="listitem">

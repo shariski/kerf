@@ -3,7 +3,7 @@
 > Status: v0.3 — deliberate-practice architecture (ADR-003)
 > Strategy: build incrementally with shippable milestones. Every phase produces something demo-able.
 > Estimated total timeline: 18–26 weeks for Phase A MVP (solo developer, part-time). ADR-003 added ~6–9 calendar weeks on top of the original 12–18 week estimate.
-> Last updated: 2026-04-22
+> Last updated: 2026-04-23
 > Major revision (v0.3): ADR-003 accepted. New Phase 5 (Deliberate-Practice Architecture) inserted between polish and launch prep; Tasks 4.5, 4.6, 4.7 sequenced after Phase 5. Former Phase 5 (MVP Phase B) renumbered to Phase 6; Phase 6+ Post-MVP renumbered to Phase 7+. See `docs/00-design-evolution.md` ADR-003 §6 for work-stream estimates.
 > Prior revisions: v0.2 (transition-aware MVP, 2026-04-18).
 

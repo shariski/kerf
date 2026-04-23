@@ -194,6 +194,10 @@ function Formula({
           {phase} coefficients
         </span>
       </header>
+      <p className="kerf-dash-transparency-formula-note">
+        These coefficients are hand-tuned starting values, not derived from your data — we'll
+        revisit with beta feedback.
+      </p>
       <div className="kerf-dash-transparency-formula-body">
         <span className="kerf-dash-transparency-formula-var">score</span>
         <span className="kerf-dash-transparency-formula-op">=</span>

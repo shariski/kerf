@@ -9,3 +9,4 @@ export { DrillPostSessionStage } from "./DrillPostSessionStage";
 export type { PreSessionFilterValues } from "./PreSessionFilters";
 export { SessionBriefing } from "./SessionBriefing";
 export { TargetRibbon } from "./TargetRibbon";
+export { IntentEchoBlock } from "./IntentEchoBlock";

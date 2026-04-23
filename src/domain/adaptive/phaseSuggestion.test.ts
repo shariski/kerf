@@ -74,7 +74,7 @@ describe("suggestPhaseTransition — transitioning → refining", () => {
     expect(out).not.toBeNull();
     expect(out?.suggestedPhase).toBe("refining");
     expect(out?.confidence).toBe("high");
-    expect(out?.reason).toMatch(/95%|muscle memory|speed/i);
+    expect(out?.reason).toMatch(/engine thinks|might be ready|refining/i);
   });
 
   it("returns null when fewer than 10 sessions exist", () => {
@@ -187,7 +187,7 @@ describe("suggestPhaseTransition — refining → transitioning (break return)",
     expect(out).not.toBeNull();
     expect(out?.suggestedPhase).toBe("transitioning");
     expect(out?.confidence).toBe("medium");
-    expect(out?.reason.toLowerCase()).toMatch(/break|dropped/);
+    expect(out?.reason.toLowerCase()).toMatch(/engine thinks|might benefit|transitioning/);
   });
 
   it("returns null when the break is shorter than the threshold", () => {

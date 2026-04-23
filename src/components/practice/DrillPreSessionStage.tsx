@@ -25,7 +25,20 @@ type Props = {
   onSelectPreset: (preset: PresetKey) => void;
 };
 
-export type PresetKey = "innerColumn" | "thumbCluster" | "crossHandBigram";
+export type PresetKey =
+  | "innerColumn"
+  | "thumbCluster"
+  | "crossHandBigram"
+  | "verticalColumn-leftPinky"
+  | "verticalColumn-leftRing"
+  | "verticalColumn-leftMiddle"
+  | "verticalColumn-leftIndexOuter"
+  | "verticalColumn-leftIndexInner"
+  | "verticalColumn-rightIndexInner"
+  | "verticalColumn-rightIndexOuter"
+  | "verticalColumn-rightMiddle"
+  | "verticalColumn-rightRing"
+  | "verticalColumn-rightPinky";
 
 // Approx minutes to complete a 300-char drill at 40 wpm / ~5 chars per word.
 // Matches the DEFAULT_DRILL_LENGTH in drillGenerator.ts and the task-breakdown
@@ -33,6 +46,19 @@ export type PresetKey = "innerColumn" | "thumbCluster" | "crossHandBigram";
 // as "2–3 minutes", not the collapsed "3–3".
 const EST_MIN_LOW = 2;
 const EST_MIN_HIGH = 3;
+
+const VERTICAL_COLUMN_OPTIONS: { preset: PresetKey; label: string }[] = [
+  { preset: "verticalColumn-leftPinky", label: "Left pinky" },
+  { preset: "verticalColumn-leftRing", label: "Left ring" },
+  { preset: "verticalColumn-leftMiddle", label: "Left middle" },
+  { preset: "verticalColumn-leftIndexOuter", label: "Left index (outer)" },
+  { preset: "verticalColumn-leftIndexInner", label: "Left index (inner)" },
+  { preset: "verticalColumn-rightIndexInner", label: "Right index (inner)" },
+  { preset: "verticalColumn-rightIndexOuter", label: "Right index (outer)" },
+  { preset: "verticalColumn-rightMiddle", label: "Right middle" },
+  { preset: "verticalColumn-rightRing", label: "Right ring" },
+  { preset: "verticalColumn-rightPinky", label: "Right pinky" },
+];
 
 export function DrillPreSessionStage({
   keyboardType,
@@ -146,6 +172,28 @@ export function DrillPreSessionStage({
             Top bigrams that jump between hands — hardest on split layouts
           </span>
         </button>
+        <div className="kerf-mode-card kerf-mode-card--vertical-reach">
+          <span className="kerf-mode-card-icon" aria-hidden>
+            ↕
+          </span>
+          <span className="kerf-mode-card-name">Vertical reach</span>
+          <span className="kerf-mode-card-desc">
+            Top-to-bottom column reps — trains the reach from home row
+          </span>
+          <fieldset className="kerf-vertical-column-picker">
+            <legend className="sr-only">Pick a column</legend>
+            {VERTICAL_COLUMN_OPTIONS.map(({ preset, label }) => (
+              <button
+                key={preset}
+                type="button"
+                className="kerf-vertical-column-btn"
+                onClick={() => onSelectPreset(preset)}
+              >
+                {label}
+              </button>
+            ))}
+          </fieldset>
+        </div>
       </div>
     </div>
   );
