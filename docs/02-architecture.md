@@ -604,6 +604,29 @@ scoring weights. Default `TARGET_EMPHASIS_RATIO = 0.75` — hand-tuned,
 revisit with beta feedback. Motion targets bypass this entirely (they
 use curated drillLibrary content).
 
+**Zero-corpus bigram handling.** Rare bigrams like `xw` have zero
+corpus words containing them (the pre-built English word list doesn't
+include any word where `x` and `w` are adjacent). Without special
+handling, the adaptive loop gets stuck: the engine picks `xw` as the
+top weakness, the emphasis pool is empty, the user types a session
+with no `xw` in it, no new `xw` keystrokes land in `bigram_stats`,
+so the next ranking is identical — `xw` forever. Two coordinated
+mitigations, both triggered by `corpusBigramSupport.get(bigram) === 0`:
+
+1. **Widening** — `generateExercise` rebuilds the emphasis pool as
+   "words containing either component character" (for `xw`: words
+   with `x` or `w` in their `chars`). The user gets meaningful
+   muscle-memory practice on the letters driving the bigram weakness.
+2. **Decay** — `rankTargets` multiplies the weighted score of
+   zero-corpus bigrams by `ZERO_CORPUS_BIGRAM_PENALTY` (0.5, hand-
+   tuned). Practicable alternatives with slightly lower raw scores
+   surface, and the loop rotates.
+
+Both are stateless — the condition is a property of the corpus,
+identical for every user and session. `corpusBigramSupport` is a
+`ReadonlyMap<string, number>` precomputed once on corpus load in
+`useCorpus`, threaded through `generateSession`.
+
 **Performance characteristics:**
 
 - Generation time: <100ms (pure client-side computation on pre-loaded corpus)
