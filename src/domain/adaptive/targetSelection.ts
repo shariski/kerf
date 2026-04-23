@@ -168,7 +168,8 @@ export function selectTarget(
 
   if (candidates.length === 0) return diagnosticTarget();
 
-  return candidates.reduce((best, c) =>
+  const winner = candidates.reduce((best, c) =>
     (c.score ?? 0) * weights[c.type] > (best.score ?? 0) * weights[best.type] ? c : best,
   );
+  return { ...winner, score: (winner.score ?? 0) * weights[winner.type] };
 }
