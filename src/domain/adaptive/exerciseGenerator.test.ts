@@ -420,4 +420,36 @@ describe("generateExercise — mustContainUnit emphasis floor", () => {
     expect(out).toHaveLength(10);
     expect(componentHits).toBeGreaterThanOrEqual(Math.ceil(10 * 0.8));
   });
+
+  it("does not widen when bigram has non-zero corpus support (literal match still required)", () => {
+    // Same fixture as the widening test: 8 words with 'x' or 'w'
+    // individually, 16 with neither. BUT this time we claim the 'xw'
+    // bigram has non-zero support via the map — so widening must NOT
+    // trigger. Since no fixture word contains 'xw' as an adjacent pair,
+    // the literal-match emphasis pool is empty and the emphasis sample
+    // falls to 0; the session should be drawn entirely from filler.
+    const withComponent = ["ax", "bx", "cx", "wa", "wb", "wc", "xo", "ow"].map((w) =>
+      word({ word: w }),
+    );
+    const neither = Array.from({ length: 16 }, (_, i) =>
+      word({ word: `bc${String(i).padStart(2, "0")}` }),
+    );
+    const support = new Map<string, number>([["xw", 3]]);
+    const out = generateExercise({
+      corpus: corpus([...withComponent, ...neither]),
+      weaknessScoreFor: (unit) => (unit === "xw" ? 10 : 0.5),
+      targetWordCount: 10,
+      mustContainUnit: "xw",
+      mustContainMinRatio: 0.8,
+      corpusBigramSupport: support,
+      rng: mulberry32(42),
+    });
+    const componentHits = out.filter((w) => w.includes("x") || w.includes("w")).length;
+    expect(out).toHaveLength(10);
+    // With widening OFF, component words may still appear as filler (they are
+    // valid non-xw words). The discriminating assertion is that they do NOT
+    // saturate to the emphasis ratio — a stuck-true widenToComponentChars
+    // would produce componentHits >= ceil(10 * 0.8) = 8.
+    expect(componentHits).toBeLessThan(Math.ceil(10 * 0.8));
+  });
 });
