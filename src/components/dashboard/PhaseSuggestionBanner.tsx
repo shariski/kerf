@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
-import type {
-  PhaseTransitionSignal,
-} from "#/domain/adaptive/phaseSuggestion";
+import type { PhaseTransitionSignal } from "#/domain/adaptive/phaseSuggestion";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import { updateTransitionPhase } from "#/server/profile";
 
@@ -60,10 +58,7 @@ function writeDismissed(suggestedPhase: TransitionPhase): void {
   }
 }
 
-function verbForDirection(
-  current: TransitionPhase,
-  suggested: TransitionPhase,
-): string {
+function verbForDirection(current: TransitionPhase, suggested: TransitionPhase): string {
   if (current === "transitioning" && suggested === "refining") {
     return "Switch to refining";
   }
@@ -102,9 +97,7 @@ export function PhaseSuggestionBanner({ signal, currentPhase }: Props) {
     } catch (err) {
       setSubmitting(false);
       setSubmitError(
-        err instanceof Error
-          ? err.message
-          : "Could not switch phase — try again in a moment.",
+        err instanceof Error ? err.message : "Could not switch phase — try again in a moment.",
       );
     }
   };
@@ -115,15 +108,9 @@ export function PhaseSuggestionBanner({ signal, currentPhase }: Props) {
   };
 
   return (
-    <aside
-      className="kerf-dash-phase-banner"
-      role="region"
-      aria-label="Phase suggestion"
-    >
+    <aside className="kerf-dash-phase-banner" role="region" aria-label="Phase suggestion">
       <div className="kerf-dash-phase-banner-body">
-        <span className="kerf-dash-phase-banner-label">
-          Phase suggestion
-        </span>
+        <span className="kerf-dash-phase-banner-label">Phase suggestion</span>
         <p className="kerf-dash-phase-banner-reason">{signal.reason}</p>
         {submitError ? (
           <p className="kerf-dash-phase-banner-error" role="alert">
@@ -138,9 +125,7 @@ export function PhaseSuggestionBanner({ signal, currentPhase }: Props) {
           onClick={handleAccept}
           disabled={submitting}
         >
-          {submitting
-            ? "Switching…"
-            : verbForDirection(currentPhase, signal.suggestedPhase)}
+          {submitting ? "Switching…" : verbForDirection(currentPhase, signal.suggestedPhase)}
         </button>
         <button
           type="button"

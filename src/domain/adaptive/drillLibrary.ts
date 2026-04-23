@@ -67,9 +67,7 @@ export function lookupDrill(
     (e) => e.target.type === target.type && e.target.value === target.value,
   );
   if (matches.length === 0) {
-    throw new Error(
-      `lookupDrill: no drill for target ${target.type}/${target.value}`,
-    );
+    throw new Error(`lookupDrill: no drill for target ${target.type}/${target.value}`);
   }
   const journeyMatch = matches.find((e) => e.appliesTo.includes(journey));
   return journeyMatch ?? matches[0]!;

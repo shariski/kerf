@@ -1,7 +1,4 @@
-import type {
-  ErrorPosition,
-  SessionSummary,
-} from "#/domain/session/summarize";
+import type { ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import type { DrillSummary } from "#/domain/session/drillSummary";
 import type { PatternDetection } from "#/domain/insight/types";
 
@@ -61,15 +58,10 @@ export function DrillPostSessionStage({
       </div>
 
       <h1 className="kerf-post-title">
-        Drill on <span className="kerf-post-title-target">{drillLabel}</span>{" "}
-        finished.
+        Drill on <span className="kerf-post-title-target">{drillLabel}</span> finished.
       </h1>
 
-      <div
-        className="kerf-post-stats"
-        role="list"
-        aria-label="Drill results"
-      >
+      <div className="kerf-post-stats" role="list" aria-label="Drill results">
         <div className="kerf-post-stat" role="listitem">
           <div className="kerf-post-stat-label">accuracy</div>
           <div
@@ -86,20 +78,14 @@ export function DrillPostSessionStage({
         </div>
         <div className="kerf-post-stat" role="listitem">
           <div className="kerf-post-stat-label">speed</div>
-          <div
-            className="kerf-post-stat-value"
-            aria-label={`Speed ${wpm} words per minute`}
-          >
+          <div className="kerf-post-stat-value" aria-label={`Speed ${wpm} words per minute`}>
             {wpm}
           </div>
           <div className="kerf-post-stat-delta neutral">wpm</div>
         </div>
         <div className="kerf-post-stat" role="listitem">
           <div className="kerf-post-stat-label">time</div>
-          <div
-            className="kerf-post-stat-value"
-            aria-label={`Time ${elapsedLabel}`}
-          >
+          <div className="kerf-post-stat-value" aria-label={`Time ${elapsedLabel}`}>
             {elapsedLabel}
           </div>
           <div className="kerf-post-stat-delta neutral">
@@ -121,15 +107,10 @@ export function DrillPostSessionStage({
         <div className="kerf-error-review-text">
           <ErrorReviewText target={target} errors={errorPositions} />
         </div>
-        <ErrorPatterns
-          patterns={patterns}
-          uniqueErrorCount={uniqueErrorCount}
-        />
+        <ErrorPatterns patterns={patterns} uniqueErrorCount={uniqueErrorCount} />
       </div>
 
-      <div className="kerf-post-section-label">
-        Before vs. after — {drillLabel}
-      </div>
+      <div className="kerf-post-section-label">Before vs. after — {drillLabel}</div>
       <BeforeAfterCard drillDelta={drillDelta} drillLabel={drillLabel} />
 
       <div className="kerf-insight">
@@ -138,22 +119,17 @@ export function DrillPostSessionStage({
       </div>
 
       <div className="kerf-post-actions">
-        <button
-          type="button"
-          className="kerf-post-btn primary"
-          onClick={onRunAgain}
-          autoFocus
-        >
+        <button type="button" className="kerf-post-btn primary" onClick={onRunAgain} autoFocus>
           Run again
-          <span className="kerf-post-btn-shortcut" aria-hidden="true">⏎</span>
+          <span className="kerf-post-btn-shortcut" aria-hidden="true">
+            ⏎
+          </span>
         </button>
-        <button
-          type="button"
-          className="kerf-post-btn secondary"
-          onClick={onMoveToAdaptive}
-        >
+        <button type="button" className="kerf-post-btn secondary" onClick={onMoveToAdaptive}>
           Move to adaptive practice
-          <span className="kerf-post-btn-shortcut" aria-hidden="true">P</span>
+          <span className="kerf-post-btn-shortcut" aria-hidden="true">
+            P
+          </span>
         </button>
       </div>
     </div>
@@ -173,8 +149,8 @@ function BeforeAfterCard({
     return (
       <div className="kerf-drill-delta-card kerf-drill-delta-card--muted">
         <p className="kerf-drill-delta-note">
-          Too few reps on {drillLabel} to read a before/after shift. Run
-          the drill once more to get a clearer picture.
+          Too few reps on {drillLabel} to read a before/after shift. Run the drill once more to get
+          a clearer picture.
         </p>
       </div>
     );
@@ -194,9 +170,7 @@ function BeforeAfterCard({
       <div className="kerf-drill-delta-halves">
         <div className="kerf-drill-delta-half">
           <div className="kerf-drill-delta-half-label">first half</div>
-          <div className="kerf-drill-delta-half-value">
-            {before.errorRatePct}%
-          </div>
+          <div className="kerf-drill-delta-half-value">{before.errorRatePct}%</div>
           <div className="kerf-drill-delta-half-meta">
             {before.errors} of {before.attempts} wrong
           </div>
@@ -206,9 +180,7 @@ function BeforeAfterCard({
         </div>
         <div className="kerf-drill-delta-half">
           <div className="kerf-drill-delta-half-label">second half</div>
-          <div className="kerf-drill-delta-half-value">
-            {after.errorRatePct}%
-          </div>
+          <div className="kerf-drill-delta-half-value">{after.errorRatePct}%</div>
           <div className="kerf-drill-delta-half-meta">
             {after.errors} of {after.attempts} wrong
           </div>
@@ -231,13 +203,7 @@ function BeforeAfterCard({
 
 // --- shared presentational helpers (duplicated from PostSessionStage) ------
 
-function ErrorReviewText({
-  target,
-  errors,
-}: {
-  target: string;
-  errors: readonly ErrorPosition[];
-}) {
+function ErrorReviewText({ target, errors }: { target: string; errors: readonly ErrorPosition[] }) {
   if (errors.length === 0) {
     return <>{target}</>;
   }

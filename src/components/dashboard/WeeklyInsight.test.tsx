@@ -16,10 +16,7 @@ const FULL: WeeklyInsightData = {
   lastWeek: { sessions: 4, accuracyPct: 92, wpm: 40 },
   frame: "right-trajectory",
   narrative: "Accuracy climbed +2 pp this week to 94%. Muscle memory.",
-  recommendations: [
-    "Keep the accuracy-first rhythm.",
-    "Longer sessions help consolidate.",
-  ],
+  recommendations: ["Keep the accuracy-first rhythm.", "Longer sessions help consolidate."],
 };
 
 const BUILDING: WeeklyInsightData = {
@@ -34,18 +31,14 @@ const BUILDING: WeeklyInsightData = {
 describe("WeeklyInsight", () => {
   it("renders a dedicated empty caption when data is null", () => {
     render(<WeeklyInsight data={null} />);
-    expect(
-      screen.getByText(/no sessions logged yet/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/no sessions logged yet/i)).toBeTruthy();
   });
 
   it("renders narrative and all recommendations when data is present", () => {
     render(<WeeklyInsight data={FULL} />);
     expect(screen.getByText(/muscle memory/i)).toBeTruthy();
     expect(screen.getByText(/keep the accuracy-first rhythm/i)).toBeTruthy();
-    expect(
-      screen.getByText(/longer sessions help consolidate/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/longer sessions help consolidate/i)).toBeTruthy();
   });
 
   it("renders both comparison cells with their rounded stats", () => {

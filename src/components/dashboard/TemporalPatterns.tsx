@@ -44,10 +44,10 @@ export function TemporalPatterns({ data }: Props) {
   if (!patterns.hasMeaningfulData) {
     return (
       <p className="kerf-dash-temporal-empty">
-        Chart fills in after a few sessions repeat a time-of-day or
-        day-of-week. With {patterns.totalSessions} session
-        {patterns.totalSessions === 1 ? "" : "s"} in the last 30 days,
-        no bucket has enough samples yet to read without noise.
+        Chart fills in after a few sessions repeat a time-of-day or day-of-week. With{" "}
+        {patterns.totalSessions} session
+        {patterns.totalSessions === 1 ? "" : "s"} in the last 30 days, no bucket has enough samples
+        yet to read without noise.
       </p>
     );
   }
@@ -81,9 +81,7 @@ function PeakCaption({
 }) {
   const parts: string[] = [];
   if (peakHour) {
-    parts.push(
-      `fastest around ${formatHourLabel(peakHour.hour)} (${peakHour.meanWpm} WPM)`,
-    );
+    parts.push(`fastest around ${formatHourLabel(peakHour.hour)} (${peakHour.meanWpm} WPM)`);
   }
   if (peakDay) {
     parts.push(`${peakDay.dayLabel} is your strongest day (${peakDay.meanWpm} WPM)`);
@@ -92,9 +90,7 @@ function PeakCaption({
   return (
     <p className="kerf-dash-temporal-peak">
       <span className="kerf-dash-temporal-peak-label">Pattern</span>
-      <span className="kerf-dash-temporal-peak-body">
-        You type {parts.join(", and ")}.
-      </span>
+      <span className="kerf-dash-temporal-peak-body">You type {parts.join(", and ")}.</span>
     </p>
   );
 }

@@ -51,21 +51,13 @@ afterEach(() => cleanup());
 describe("PreSessionStage", () => {
   it("renders title, subtitle, keyboard pill, and phase badge", () => {
     const { container } = render(
-      <PreSessionStage
-        {...baseProps}
-        keyboardType="lily58"
-        phase="transitioning"
-      />,
+      <PreSessionStage {...baseProps} keyboardType="lily58" phase="transitioning" />,
     );
-    expect(container.querySelector(".kerf-pre-title")?.textContent).toBe(
-      "What will you practice?",
-    );
+    expect(container.querySelector(".kerf-pre-title")?.textContent).toBe("What will you practice?");
     expect(container.querySelector(".kerf-pre-subtitle")?.textContent).toBe(
       "Accuracy first. Speed follows.",
     );
-    expect(container.querySelector(".kerf-pill-name")?.textContent).toBe(
-      "lily58",
-    );
+    expect(container.querySelector(".kerf-pill-name")?.textContent).toBe("lily58");
     const badge = container.querySelector(".kerf-phase-badge");
     expect(badge?.getAttribute("data-phase")).toBe("transitioning");
     expect(badge?.textContent?.includes("transitioning")).toBe(true);
@@ -89,15 +81,9 @@ describe("PreSessionStage", () => {
 
   it("enables Drill and Inner-column mode cards, keeps Warm up disabled", () => {
     const { container } = render(
-      <PreSessionStage
-        {...baseProps}
-        keyboardType="sofle"
-        phase="transitioning"
-      />,
+      <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
     );
-    const cards = Array.from(
-      container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"),
-    );
+    const cards = Array.from(container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"));
     expect(cards).toHaveLength(3);
     const [drill, innerColumn, warmUp] = cards;
     expect(drill!.disabled).toBe(false);
@@ -128,11 +114,7 @@ describe("PreSessionStage", () => {
 
   it("toggles the filters panel open/closed via the header button", () => {
     const { container } = render(
-      <PreSessionStage
-        {...baseProps}
-        keyboardType="sofle"
-        phase="transitioning"
-      />,
+      <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
     );
     const header = container.querySelector(".kerf-pre-filters-header") as HTMLButtonElement;
     expect(header.getAttribute("aria-expanded")).toBe("false");
@@ -153,9 +135,7 @@ describe("PreSessionStage", () => {
       />,
     );
     fireEvent.click(container.querySelector(".kerf-pre-filters-header")!);
-    const pills = Array.from(
-      container.querySelectorAll<HTMLButtonElement>(".kerf-filter-pill"),
-    );
+    const pills = Array.from(container.querySelectorAll<HTMLButtonElement>(".kerf-filter-pill"));
     const leftOnly = pills.find((p) => p.textContent === "Left only");
     expect(leftOnly).toBeDefined();
     fireEvent.click(leftOnly!);

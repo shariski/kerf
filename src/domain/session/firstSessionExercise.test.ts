@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  FIRST_SESSION_WORDS,
-  getFirstSessionTarget,
-} from "./firstSessionExercise";
+import { FIRST_SESSION_WORDS, getFirstSessionTarget } from "./firstSessionExercise";
 
 describe("getFirstSessionTarget", () => {
   it("is deterministic across calls", () => {

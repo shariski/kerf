@@ -10,23 +10,16 @@
 
 export function MobileGate() {
   return (
-    <main
-      className="kerf-mobile-gate"
-      aria-labelledby="kerf-mobile-gate-headline"
-    >
+    <main className="kerf-mobile-gate" aria-labelledby="kerf-mobile-gate-headline">
       <div className="kerf-mobile-gate-inner">
         <div className="kerf-mobile-gate-logo" aria-hidden>
           kerf<span className="kerf-mobile-gate-logo-accent">.</span>
         </div>
-        <h1
-          id="kerf-mobile-gate-headline"
-          className="kerf-mobile-gate-headline"
-        >
+        <h1 id="kerf-mobile-gate-headline" className="kerf-mobile-gate-headline">
           kerf is a desktop experience.
         </h1>
         <p className="kerf-mobile-gate-body">
-          You'll need a split mechanical keyboard to practice — we'll see you
-          at your desk.
+          You'll need a split mechanical keyboard to practice — we'll see you at your desk.
         </p>
       </div>
     </main>

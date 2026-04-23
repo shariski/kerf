@@ -13,11 +13,7 @@
  */
 export type JourneyCode = "conventional" | "columnar" | "unsure";
 
-const KNOWN: ReadonlySet<string> = new Set<JourneyCode>([
-  "conventional",
-  "columnar",
-  "unsure",
-]);
+const KNOWN: ReadonlySet<string> = new Set<JourneyCode>(["conventional", "columnar", "unsure"]);
 
 /**
  * Narrow an unknown string (or null/undefined from the DB) into a

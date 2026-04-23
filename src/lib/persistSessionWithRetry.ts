@@ -16,15 +16,9 @@
 
 import { persistSession } from "#/server/persistSession";
 import type { PersistSessionInput } from "#/server/persistSessionHelpers";
-import {
-  enqueueSession,
-  readSessionQueue,
-  removeFromSessionQueue,
-} from "./sessionRetryQueue";
+import { enqueueSession, readSessionQueue, removeFromSessionQueue } from "./sessionRetryQueue";
 
-export async function persistSessionWithRetry(
-  payload: PersistSessionInput,
-): Promise<void> {
+export async function persistSessionWithRetry(payload: PersistSessionInput): Promise<void> {
   try {
     await persistSession({ data: payload });
     // Network just worked — good moment to drain any backlog from

@@ -1,8 +1,5 @@
 import type { SplitMetricsSnapshot } from "../metrics/types";
-import {
-  computeWeaknessScore,
-  isLowConfidence,
-} from "../adaptive/weaknessScore";
+import { computeWeaknessScore, isLowConfidence } from "../adaptive/weaknessScore";
 import type {
   BigramStat,
   CharacterStat,
@@ -11,12 +8,7 @@ import type {
   TransitionPhase,
   UserBaseline,
 } from "../stats/types";
-import type {
-  PatternDetection,
-  SessionInsight,
-  TrajectoryFrame,
-  UnitDelta,
-} from "./types";
+import type { PatternDetection, SessionInsight, TrajectoryFrame, UnitDelta } from "./types";
 
 /**
  * Session insight generation per 02-architecture.md §4.4 and
@@ -103,10 +95,7 @@ function rankedWeakUnits(
   phase: TransitionPhase,
   topN = 3,
 ): (CharacterStat | BigramStat)[] {
-  const all: (CharacterStat | BigramStat)[] = [
-    ...stats.characters,
-    ...stats.bigrams,
-  ];
+  const all: (CharacterStat | BigramStat)[] = [...stats.characters, ...stats.bigrams];
   const scored = all
     .filter((u) => !isLowConfidence(u))
     // Phase A: we don't have a frequency table wired in, so pass 0 — the
@@ -118,10 +107,7 @@ function rankedWeakUnits(
   return scored.slice(0, topN).map(({ u }) => u);
 }
 
-function findUnit(
-  stats: ComputedStats,
-  name: string,
-): CharacterStat | BigramStat | undefined {
+function findUnit(stats: ComputedStats, name: string): CharacterStat | BigramStat | undefined {
   return (
     stats.characters.find((c) => c.character === name) ??
     stats.bigrams.find((b) => b.bigram === name)
@@ -155,11 +141,7 @@ function buildNewWeaknesses(
 
 // --- pattern detection -----------------------------------------------------
 
-function countPair(
-  events: readonly KeystrokeEvent[],
-  a: string,
-  b: string,
-): number {
+function countPair(events: readonly KeystrokeEvent[], a: string, b: string): number {
   let n = 0;
   for (const e of events) {
     if (!e.isError) continue;
@@ -278,9 +260,7 @@ function composePlainLanguageSummary(
 
   // Accuracy-first: mention the accuracy movement on the improved units
   // before any speed framing.
-  const shrank = improvements.filter(
-    (d) => d.errorRateAfter < d.errorRateBefore,
-  );
+  const shrank = improvements.filter((d) => d.errorRateAfter < d.errorRateBefore);
   if (shrank.length > 0) {
     const names = shrank.map((d) => d.unit).join(", ");
     parts.push(`Error rate shrank on ${names}.`);
@@ -302,9 +282,7 @@ function composePlainLanguageSummary(
 
 // --- main ------------------------------------------------------------------
 
-export function generateSessionInsight(
-  input: SessionInsightInput,
-): SessionInsight {
+export function generateSessionInsight(input: SessionInsightInput): SessionInsight {
   const {
     events,
     splitMetrics,

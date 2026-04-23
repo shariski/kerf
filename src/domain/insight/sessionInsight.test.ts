@@ -26,10 +26,10 @@ const charStat = (over: Partial<CharacterStat>): CharacterStat => ({
   hesitationCount: over.hesitationCount ?? 0,
 });
 
-const stats = (
-  chars: CharacterStat[],
-  bigrams: BigramStat[] = [],
-): ComputedStats => ({ characters: chars, bigrams });
+const stats = (chars: CharacterStat[], bigrams: BigramStat[] = []): ComputedStats => ({
+  characters: chars,
+  bigrams,
+});
 
 const baseline: UserBaseline = {
   meanErrorRate: 0.05,
@@ -59,9 +59,7 @@ const event = (over: Partial<KeystrokeEvent> = {}): KeystrokeEvent => ({
   targetChar: over.targetChar ?? "a",
   actualChar: over.actualChar ?? over.targetChar ?? "a",
   isError:
-    over.isError ??
-    (over.actualChar !== undefined &&
-      over.actualChar !== (over.targetChar ?? "a")),
+    over.isError ?? (over.actualChar !== undefined && over.actualChar !== (over.targetChar ?? "a")),
   keystrokeMs: over.keystrokeMs ?? 180,
   prevChar: over.prevChar,
   timestamp: over.timestamp ?? ts,
@@ -149,9 +147,7 @@ describe("generateSessionInsight — trajectory framing", () => {
       }),
     );
     expect(out.trajectoryFrame).toBe("mixed");
-    expect(out.plainLanguageSummary.toLowerCase()).toMatch(
-      /break|shorter|dipped/,
-    );
+    expect(out.plainLanguageSummary.toLowerCase()).toMatch(/break|shorter|dipped/);
   });
 
   it("falls back to 'neutral' when there is no prior session", () => {
@@ -252,9 +248,7 @@ describe("generateSessionInsight — improvements + new weaknesses", () => {
       charStat({ character: "b", attempts: 100, errors: 10, sumTime: 100 * 220 }),
       charStat({ character: "a", attempts: 100, errors: 1 }),
     ]);
-    const out = generateSessionInsight(
-      makeInput({ beforeStats: before, afterStats: after }),
-    );
+    const out = generateSessionInsight(makeInput({ beforeStats: before, afterStats: after }));
     const bDelta = out.improvements.find((d) => d.unit === "b");
     expect(bDelta).toBeDefined();
     expect(bDelta?.errorRateBefore).toBeCloseTo(0.3, 5);
@@ -267,9 +261,7 @@ describe("generateSessionInsight — improvements + new weaknesses", () => {
       charStat({ character: "z", attempts: 3, errors: 3 }),
       charStat({ character: "b", attempts: 100, errors: 20 }),
     ]);
-    const out = generateSessionInsight(
-      makeInput({ beforeStats: before, afterStats: before }),
-    );
+    const out = generateSessionInsight(makeInput({ beforeStats: before, afterStats: before }));
     expect(out.improvements.some((d) => d.unit === "z")).toBe(false);
     expect(out.improvements.some((d) => d.unit === "b")).toBe(true);
   });
@@ -285,18 +277,14 @@ describe("generateSessionInsight — improvements + new weaknesses", () => {
       // 'e' was fine before, now is weak.
       charStat({ character: "e", attempts: 100, errors: 30 }),
     ]);
-    const out = generateSessionInsight(
-      makeInput({ beforeStats: before, afterStats: after }),
-    );
+    const out = generateSessionInsight(makeInput({ beforeStats: before, afterStats: after }));
     expect(out.newWeaknesses).toContain("e");
     expect(out.newWeaknesses).not.toContain("b");
   });
 
   it("returns empty arrays when there are no weak units", () => {
     const clean = stats([charStat({ character: "a", attempts: 100, errors: 1 })]);
-    const out = generateSessionInsight(
-      makeInput({ beforeStats: clean, afterStats: clean }),
-    );
+    const out = generateSessionInsight(makeInput({ beforeStats: clean, afterStats: clean }));
     expect(out.improvements).toEqual([]);
     expect(out.newWeaknesses).toEqual([]);
   });
@@ -332,9 +320,7 @@ describe("generateSessionInsight — phase-aware copy", () => {
   });
 
   it("next recommendation leans on accuracy during transitioning phase", () => {
-    const before = stats([
-      charStat({ character: "b", attempts: 100, errors: 25 }),
-    ]);
+    const before = stats([charStat({ character: "b", attempts: 100, errors: 25 })]);
     const out = generateSessionInsight(
       makeInput({ phase: "transitioning", beforeStats: before, afterStats: before }),
     );
@@ -342,9 +328,7 @@ describe("generateSessionInsight — phase-aware copy", () => {
   });
 
   it("next recommendation leans into speed during refining phase", () => {
-    const before = stats([
-      charStat({ character: "b", attempts: 100, errors: 25 }),
-    ]);
+    const before = stats([charStat({ character: "b", attempts: 100, errors: 25 })]);
     const out = generateSessionInsight(
       makeInput({ phase: "refining", beforeStats: before, afterStats: before }),
     );

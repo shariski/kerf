@@ -1,46 +1,49 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
-import { useState } from "react"
-import { authClient } from "../lib/auth-client"
-import { getAuthSession } from "../lib/require-auth"
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
+import { authClient } from "../lib/auth-client";
+import { getAuthSession } from "../lib/require-auth";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
-    const session = await getAuthSession()
-    if (session) throw redirect({ to: "/" })
+    const session = await getAuthSession();
+    if (session) throw redirect({ to: "/" });
     // no session — render login page
   },
   component: LoginPage,
-})
+});
 
 function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     const { error: authError } = await authClient.signIn.magicLink({
       email,
       callbackURL: "/",
-    })
+    });
 
-    setLoading(false)
+    setLoading(false);
 
     if (authError) {
-      setError("Something went wrong. Try again.")
-      return
+      setError("Something went wrong. Try again.");
+      return;
     }
 
-    setSubmitted(true)
+    setSubmitted(true);
   }
 
   if (submitted) {
     return (
-      <main id="main-content" className="min-h-screen bg-kerf-bg-base flex items-center justify-center">
+      <main
+        id="main-content"
+        className="min-h-screen bg-kerf-bg-base flex items-center justify-center"
+      >
         <div className="max-w-sm w-full px-6 text-center space-y-3">
           <p
             className="text-kerf-text-primary"
@@ -56,11 +59,14 @@ function LoginPage() {
           </p>
         </div>
       </main>
-    )
+    );
   }
 
   return (
-    <main id="main-content" className="min-h-screen bg-kerf-bg-base flex items-center justify-center">
+    <main
+      id="main-content"
+      className="min-h-screen bg-kerf-bg-base flex items-center justify-center"
+    >
       <div className="max-w-sm w-full px-6 space-y-6">
         <h1
           className="text-kerf-text-primary tracking-tight"
@@ -115,5 +121,5 @@ function LoginPage() {
         </form>
       </div>
     </main>
-  )
+  );
 }

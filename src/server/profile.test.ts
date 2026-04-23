@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  validateCreateProfileInput,
-  validateSwitchActiveProfileInput,
-} from "./profile";
+import { validateCreateProfileInput, validateSwitchActiveProfileInput } from "./profile";
 
 describe("validateCreateProfileInput", () => {
   const valid = {
@@ -56,27 +53,25 @@ describe("validateCreateProfileInput", () => {
   });
 
   it("rejects unknown keyboardType", () => {
-    expect(() =>
-      validateCreateProfileInput({ ...valid, keyboardType: "corne" }),
-    ).toThrow(/keyboardType/);
+    expect(() => validateCreateProfileInput({ ...valid, keyboardType: "corne" })).toThrow(
+      /keyboardType/,
+    );
   });
 
   it("rejects unknown dominantHand", () => {
-    expect(() =>
-      validateCreateProfileInput({ ...valid, dominantHand: "ambidextrous" }),
-    ).toThrow(/dominantHand/);
+    expect(() => validateCreateProfileInput({ ...valid, dominantHand: "ambidextrous" })).toThrow(
+      /dominantHand/,
+    );
   });
 
   it("rejects unknown initialLevel", () => {
-    expect(() =>
-      validateCreateProfileInput({ ...valid, initialLevel: "expert" }),
-    ).toThrow(/initialLevel/);
+    expect(() => validateCreateProfileInput({ ...valid, initialLevel: "expert" })).toThrow(
+      /initialLevel/,
+    );
   });
 
   it("rejects missing fields", () => {
-    expect(() =>
-      validateCreateProfileInput({ keyboardType: "sofle" }),
-    ).toThrow();
+    expect(() => validateCreateProfileInput({ keyboardType: "sofle" })).toThrow();
   });
 });
 
@@ -97,17 +92,11 @@ describe("validateSwitchActiveProfileInput", () => {
   });
 
   it("rejects non-string profileId", () => {
-    expect(() =>
-      validateSwitchActiveProfileInput({ profileId: 42 }),
-    ).toThrow(/profileId/);
-    expect(() =>
-      validateSwitchActiveProfileInput({ profileId: null }),
-    ).toThrow(/profileId/);
+    expect(() => validateSwitchActiveProfileInput({ profileId: 42 })).toThrow(/profileId/);
+    expect(() => validateSwitchActiveProfileInput({ profileId: null })).toThrow(/profileId/);
   });
 
   it("rejects empty-string profileId — guards against the 'switch to nothing' no-op", () => {
-    expect(() =>
-      validateSwitchActiveProfileInput({ profileId: "" }),
-    ).toThrow(/profileId/);
+    expect(() => validateSwitchActiveProfileInput({ profileId: "" })).toThrow(/profileId/);
   });
 });

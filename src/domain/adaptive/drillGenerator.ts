@@ -27,14 +27,7 @@ import type { Corpus } from "../corpus/types";
 
 export const VOWELS: readonly string[] = ["a", "e", "i", "o", "u"];
 
-export const INNER_COLUMN_CHARS: readonly string[] = [
-  "b",
-  "g",
-  "h",
-  "n",
-  "t",
-  "y",
-];
+export const INNER_COLUMN_CHARS: readonly string[] = ["b", "g", "h", "n", "t", "y"];
 
 export const DEFAULT_DRILL_LENGTH = 300;
 
@@ -67,9 +60,7 @@ function syntheticTokens(target: string): string[] {
     tokens.push(`${bg}${bg}`);
     return tokens;
   }
-  throw new Error(
-    `drill target must be a single char or bigram (got ${target.length} chars)`,
-  );
+  throw new Error(`drill target must be a single char or bigram (got ${target.length} chars)`);
 }
 
 /**
@@ -127,12 +118,7 @@ function sampleRealWords(
 }
 
 export function generateDrill(options: DrillOptions): string {
-  const {
-    corpus,
-    target,
-    targetLength = DEFAULT_DRILL_LENGTH,
-    rng = Math.random,
-  } = options;
+  const { corpus, target, targetLength = DEFAULT_DRILL_LENGTH, rng = Math.random } = options;
 
   const lowerTarget = target.toLowerCase();
   const synthetic = syntheticTokens(lowerTarget);
@@ -169,14 +155,8 @@ export type ThumbClusterDrillOptions = PresetDrillOptions & {
  * Inner-column drill — rotate per-character slices through b/g/h/n/t/y.
  * Each character gets roughly `targetLength / 6` chars of drill content.
  */
-export function generateInnerColumnDrill(
-  options: PresetDrillOptions,
-): string {
-  const {
-    corpus,
-    targetLength = DEFAULT_DRILL_LENGTH,
-    rng = Math.random,
-  } = options;
+export function generateInnerColumnDrill(options: PresetDrillOptions): string {
+  const { corpus, targetLength = DEFAULT_DRILL_LENGTH, rng = Math.random } = options;
 
   const perChar = Math.max(30, Math.floor(targetLength / INNER_COLUMN_CHARS.length));
   const slices = INNER_COLUMN_CHARS.map((ch) =>
@@ -191,9 +171,7 @@ export function generateInnerColumnDrill(
  * slices for each. A bigram is cross-hand if its two characters are
  * assigned to different hands in the finger table.
  */
-export function generateCrossHandBigramDrill(
-  options: CrossHandDrillOptions,
-): string {
+export function generateCrossHandBigramDrill(options: CrossHandDrillOptions): string {
   const {
     corpus,
     targetLength = DEFAULT_DRILL_LENGTH,
@@ -233,9 +211,7 @@ export function generateCrossHandBigramDrill(
  * user press Space frequently, which is the practical thumb-cluster
  * workout. Default cutoff is 4 chars.
  */
-export function generateThumbClusterDrill(
-  options: ThumbClusterDrillOptions,
-): string {
+export function generateThumbClusterDrill(options: ThumbClusterDrillOptions): string {
   const {
     corpus,
     targetLength = DEFAULT_DRILL_LENGTH,

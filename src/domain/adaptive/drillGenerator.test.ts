@@ -14,9 +14,7 @@ import { mulberry32 } from "./rng";
 
 const word = (w: string, over: Partial<CorpusWord> = {}): CorpusWord => {
   const chars = [...new Set(w.split(""))].sort();
-  const bigrams = Array.from({ length: w.length - 1 }, (_, i) =>
-    w.slice(i, i + 2),
-  );
+  const bigrams = Array.from({ length: w.length - 1 }, (_, i) => w.slice(i, i + 2));
   // Naive hand assignment for fixture words: left = {a-m}, right = {n-z}.
   // Fixtures override when we need specific hand balance.
   let left = 0;
@@ -79,9 +77,7 @@ describe("generateDrill — single character target", () => {
       rng: mulberry32(1),
     });
     const tokens = out.split(" ");
-    const realWords = tokens.filter((t: string) =>
-      ["bay", "big", "boy", "cat"].includes(t),
-    );
+    const realWords = tokens.filter((t: string) => ["bay", "big", "boy", "cat"].includes(t));
     expect(realWords.length).toBeGreaterThan(0);
     // 'cat' has no 'b' and must not appear.
     expect(out).not.toContain(" cat");
@@ -173,9 +169,7 @@ describe("generateDrill — bigram target", () => {
 
 describe("generateInnerColumnDrill", () => {
   it("exports the 6 inner-column characters", () => {
-    expect([...INNER_COLUMN_CHARS].sort()).toEqual(
-      ["b", "g", "h", "n", "t", "y"].sort(),
-    );
+    expect([...INNER_COLUMN_CHARS].sort()).toEqual(["b", "g", "h", "n", "t", "y"].sort());
   });
 
   it("includes synthetic content for every inner-column character", () => {

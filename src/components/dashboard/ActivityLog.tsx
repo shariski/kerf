@@ -21,9 +21,7 @@ export function ActivityLog({ data }: Props) {
     <div className="kerf-dash-activity">
       <ContributionGrid days={data.days} />
       <Legend />
-      {data.recentSessions.length > 0 ? (
-        <LatestSessions sessions={data.recentSessions} />
-      ) : null}
+      {data.recentSessions.length > 0 ? <LatestSessions sessions={data.recentSessions} /> : null}
     </div>
   );
 }
@@ -76,11 +74,7 @@ function Legend() {
 
 // --- latest sessions list -------------------------------------------------
 
-function LatestSessions({
-  sessions,
-}: {
-  sessions: DashboardActivityData["recentSessions"];
-}) {
+function LatestSessions({ sessions }: { sessions: DashboardActivityData["recentSessions"] }) {
   return (
     <div className="kerf-dash-latest">
       <div className="kerf-dash-latest-title">Latest {sessions.length} sessions</div>
@@ -89,13 +83,9 @@ function LatestSessions({
           <div key={s.id} className="kerf-dash-session-row" role="listitem">
             <span className="kerf-dash-session-time">{s.relativeTime}</span>
             <span className="kerf-dash-session-mode">
-              <span
-                className="kerf-dash-session-badge"
-                data-mode={s.mode}
-              >
+              <span className="kerf-dash-session-badge" data-mode={s.mode}>
                 {s.mode === "targeted_drill" ? "drill" : "adaptive"}
-              </span>
-              {" "}
+              </span>{" "}
               <span className="kerf-dash-session-desc">{s.description}</span>
             </span>
             <span className="kerf-dash-session-stat">{s.wpm} wpm</span>

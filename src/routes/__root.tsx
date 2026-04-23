@@ -1,19 +1,14 @@
-import { useEffect, useState } from 'react'
-import {
-  HeadContent,
-  Scripts,
-  createRootRoute,
-  useRouterState,
-} from '@tanstack/react-router'
-import { AppNav } from '#/components/nav/AppNav'
-import { AppFooter } from '#/components/nav/AppFooter'
-import { MobileGate } from '#/components/MobileGate'
+import { useEffect, useState } from "react";
+import { HeadContent, Scripts, createRootRoute, useRouterState } from "@tanstack/react-router";
+import { AppNav } from "#/components/nav/AppNav";
+import { AppFooter } from "#/components/nav/AppFooter";
+import { MobileGate } from "#/components/MobileGate";
 
 // Routes that own their full viewport chrome and should not render the
 // global AppNav:
 //   - /onboarding has its own logo + progress bar
 //   - /login is a centered full-screen card
-const CHROMELESS_PATHS = ['/onboarding', '/login']
+const CHROMELESS_PATHS = ["/onboarding", "/login"];
 
 // Routes that manage footer visibility per-stage rather than letting
 // the root render it unconditionally. /practice and /practice/drill
@@ -21,41 +16,40 @@ const CHROMELESS_PATHS = ['/onboarding', '/login']
 // typing and render it inline in pre-/post-session stages. Every other
 // non-chromeless route gets the global footer — including /dashboard,
 // where CSS handles hint-strip clearance.
-const NO_GLOBAL_FOOTER_PATHS = ['/practice']
+const NO_GLOBAL_FOOTER_PATHS = ["/practice"];
 
-import appCss from '../styles.css?url'
+import appCss from "../styles.css?url";
 
-const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
+const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`;
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       {
-        charSet: 'utf-8',
+        charSet: "utf-8",
       },
       {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
       },
       {
-        title: 'kerf',
+        title: "kerf",
       },
     ],
     links: [
       {
-        rel: 'stylesheet',
+        rel: "stylesheet",
         href: appCss,
       },
     ],
   }),
   shellComponent: RootDocument,
-})
+});
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const chromeless = CHROMELESS_PATHS.some((p) => pathname.startsWith(p))
-  const noGlobalFooter =
-    chromeless || NO_GLOBAL_FOOTER_PATHS.some((p) => pathname.startsWith(p))
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const chromeless = CHROMELESS_PATHS.some((p) => pathname.startsWith(p));
+  const noGlobalFooter = chromeless || NO_GLOBAL_FOOTER_PATHS.some((p) => pathname.startsWith(p));
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -76,7 +70,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </div>
       </body>
     </html>
-  )
+  );
 }
 
 /**
@@ -85,31 +79,30 @@ function RootDocument({ children }: { children: React.ReactNode }) {
  * don't bloat the server render path either.
  */
 function DevtoolsLazy() {
-  const [panel, setPanel] = useState<React.ReactNode>(null)
+  const [panel, setPanel] = useState<React.ReactNode>(null);
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     void (async () => {
-      const [{ TanStackDevtools }, { TanStackRouterDevtoolsPanel }] =
-        await Promise.all([
-          import('@tanstack/react-devtools'),
-          import('@tanstack/react-router-devtools'),
-        ])
-      if (cancelled) return
+      const [{ TanStackDevtools }, { TanStackRouterDevtoolsPanel }] = await Promise.all([
+        import("@tanstack/react-devtools"),
+        import("@tanstack/react-router-devtools"),
+      ]);
+      if (cancelled) return;
       setPanel(
         <TanStackDevtools
-          config={{ position: 'bottom-right' }}
+          config={{ position: "bottom-right" }}
           plugins={[
             {
-              name: 'Tanstack Router',
+              name: "Tanstack Router",
               render: <TanStackRouterDevtoolsPanel />,
             },
           ]}
         />,
-      )
-    })()
+      );
+    })();
     return () => {
-      cancelled = true
-    }
-  }, [])
-  return <>{panel}</>
+      cancelled = true;
+    };
+  }, []);
+  return <>{panel}</>;
 }

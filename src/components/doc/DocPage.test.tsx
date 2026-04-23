@@ -61,8 +61,6 @@ describe("DocPage", () => {
         <p>body</p>
       </DocPage>,
     );
-    expect(
-      screen.getByText("Frequently asked questions about kerf."),
-    ).toBeTruthy();
+    expect(screen.getByText("Frequently asked questions about kerf.")).toBeTruthy();
   });
 });

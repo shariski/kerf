@@ -17,27 +17,19 @@ import { sql } from "drizzle-orm";
 // ── users ────────────────────────────────────────────────────────────────────
 
 export const users = pgTable("users", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
   name: text("name"),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ── keyboard_profiles ────────────────────────────────────────────────────────
 
 export const keyboardProfiles = pgTable("keyboard_profiles", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -48,23 +40,17 @@ export const keyboardProfiles = pgTable("keyboard_profiles", {
   phaseChangedAt: timestamp("phase_changed_at", { withTimezone: true }),
   fingerAssignment: text("finger_assignment"), // 'conventional' | 'columnar' | 'unsure' | NULL (pre-ADR-003 users)
   isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ── sessions ─────────────────────────────────────────────────────────────────
 
 export const sessions = pgTable("sessions", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  keyboardProfileId: uuid("keyboard_profile_id").references(
-    () => keyboardProfiles.id,
-  ),
+  keyboardProfileId: uuid("keyboard_profile_id").references(() => keyboardProfiles.id),
   mode: text("mode").notNull(), // 'adaptive' | 'targeted_drill' | 'diagnostic'
   phaseAtSession: text("phase_at_session").notNull(), // 'transitioning' | 'refining'
   filterConfig: jsonb("filter_config"),
@@ -93,9 +79,7 @@ export const keystrokeEvents = pgTable(
     prevChar: text("prev_char"),
     positionInWord: integer("position_in_word"),
     isRetype: boolean("is_retype").notNull().default(false),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("keystroke_events_session_seq_idx").on(t.sessionId, t.sequence),
@@ -118,21 +102,11 @@ export const characterStats = pgTable(
     character: text("character").notNull(),
     totalAttempts: integer("total_attempts").notNull().default(0),
     totalErrors: integer("total_errors").notNull().default(0),
-    sumKeystrokeMs: bigint("sum_keystroke_ms", { mode: "number" })
-      .notNull()
-      .default(0),
+    sumKeystrokeMs: bigint("sum_keystroke_ms", { mode: "number" }).notNull().default(0),
     hesitationCount: integer("hesitation_count").notNull().default(0),
-    lastUpdated: timestamp("last_updated", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    lastUpdated: timestamp("last_updated", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    uniqueIndex("character_stats_unique_idx").on(
-      t.userId,
-      t.keyboardProfileId,
-      t.character,
-    ),
-  ],
+  (t) => [uniqueIndex("character_stats_unique_idx").on(t.userId, t.keyboardProfileId, t.character)],
 );
 
 // ── bigram_stats ──────────────────────────────────────────────────────────────
@@ -150,20 +124,10 @@ export const bigramStats = pgTable(
     bigram: text("bigram").notNull(),
     totalAttempts: integer("total_attempts").notNull().default(0),
     totalErrors: integer("total_errors").notNull().default(0),
-    sumKeystrokeMs: bigint("sum_keystroke_ms", { mode: "number" })
-      .notNull()
-      .default(0),
-    lastUpdated: timestamp("last_updated", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    sumKeystrokeMs: bigint("sum_keystroke_ms", { mode: "number" }).notNull().default(0),
+    lastUpdated: timestamp("last_updated", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    uniqueIndex("bigram_stats_unique_idx").on(
-      t.userId,
-      t.keyboardProfileId,
-      t.bigram,
-    ),
-  ],
+  (t) => [uniqueIndex("bigram_stats_unique_idx").on(t.userId, t.keyboardProfileId, t.bigram)],
 );
 
 // ── split_metrics_snapshots ───────────────────────────────────────────────────
@@ -187,14 +151,10 @@ export const splitMetricsSnapshots = pgTable(
     innerColErrorRate: real("inner_col_error_rate"),
     // Metric 2: Thumb cluster decision time
     thumbClusterCount: integer("thumb_cluster_count").notNull().default(0),
-    thumbClusterSumMs: bigint("thumb_cluster_sum_ms", { mode: "number" })
-      .notNull()
-      .default(0),
+    thumbClusterSumMs: bigint("thumb_cluster_sum_ms", { mode: "number" }).notNull().default(0),
     thumbClusterAvgMs: real("thumb_cluster_avg_ms"),
     // Metric 3: Cross-hand bigram timing
-    crossHandBigramCount: integer("cross_hand_bigram_count")
-      .notNull()
-      .default(0),
+    crossHandBigramCount: integer("cross_hand_bigram_count").notNull().default(0),
     crossHandBigramSumMs: bigint("cross_hand_bigram_sum_ms", {
       mode: "number",
     })
@@ -205,16 +165,10 @@ export const splitMetricsSnapshots = pgTable(
     columnarStableCount: integer("columnar_stable_count").notNull().default(0),
     columnarDriftCount: integer("columnar_drift_count").notNull().default(0),
     columnarStabilityPct: real("columnar_stability_pct"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    index("split_metrics_user_profile_date_idx").on(
-      t.userId,
-      t.keyboardProfileId,
-      t.createdAt,
-    ),
+    index("split_metrics_user_profile_date_idx").on(t.userId, t.keyboardProfileId, t.createdAt),
   ],
 );
 

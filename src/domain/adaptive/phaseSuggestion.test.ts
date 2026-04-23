@@ -15,15 +15,12 @@ import {
 
 const NOW = new Date("2026-04-18T12:00:00Z");
 
-const daysAgo = (n: number): Date =>
-  new Date(NOW.getTime() - n * 24 * 60 * 60 * 1000);
+const daysAgo = (n: number): Date => new Date(NOW.getTime() - n * 24 * 60 * 60 * 1000);
 
 const sessions = (count: number, accuracy: number): { accuracy: number }[] =>
   Array.from({ length: count }, () => ({ accuracy }));
 
-const snapshot = (
-  over: Partial<SplitMetricsSnapshot> = {},
-): SplitMetricsSnapshot => ({
+const snapshot = (over: Partial<SplitMetricsSnapshot> = {}): SplitMetricsSnapshot => ({
   innerColAttempts: 100,
   innerColErrors: 5,
   innerColErrorRate: 0.05,
@@ -120,10 +117,7 @@ describe("suggestPhaseTransition — transitioning → refining", () => {
     // Exactly 95% accuracy (>= threshold) and just below 8% inner-col → pass.
     const out = suggestPhaseTransition(
       makeInput({
-        recentSessions: sessions(
-          SESSION_HISTORY_REQUIRED,
-          ACCURACY_GRADUATION_THRESHOLD,
-        ),
+        recentSessions: sessions(SESSION_HISTORY_REQUIRED, ACCURACY_GRADUATION_THRESHOLD),
         recentSnapshots: snapshots(SESSION_HISTORY_REQUIRED, {
           innerColErrorRate: INNER_COL_ERROR_GRADUATION_THRESHOLD - 0.0001,
         }),
@@ -136,10 +130,7 @@ describe("suggestPhaseTransition — transitioning → refining", () => {
     // identical samples ((0.08 * 10) / 10 doesn't round-trip cleanly).
     const out2 = suggestPhaseTransition(
       makeInput({
-        recentSessions: sessions(
-          SESSION_HISTORY_REQUIRED,
-          ACCURACY_GRADUATION_THRESHOLD,
-        ),
+        recentSessions: sessions(SESSION_HISTORY_REQUIRED, ACCURACY_GRADUATION_THRESHOLD),
         recentSnapshots: snapshots(SESSION_HISTORY_REQUIRED, {
           innerColErrorRate: INNER_COL_ERROR_GRADUATION_THRESHOLD + 0.001,
         }),
@@ -183,8 +174,7 @@ describe("suggestPhaseTransition — transitioning → refining", () => {
 // --- refining → transitioning (break return) -------------------------------
 
 describe("suggestPhaseTransition — refining → transitioning (break return)", () => {
-  const refiningInput = (over: Overrides = {}) =>
-    makeInput({ currentPhase: "refining", ...over });
+  const refiningInput = (over: Overrides = {}) => makeInput({ currentPhase: "refining", ...over });
 
   it("suggests transitioning when the user returns after a long break with accuracy drop", () => {
     const out = suggestPhaseTransition(
@@ -261,10 +251,7 @@ describe("suggestPhaseTransition — refining → transitioning (break return)",
     const out = suggestPhaseTransition(
       refiningInput({
         lastSessionAt: daysAgo(BREAK_DAYS_THRESHOLD + 1),
-        recentSessions: sessions(
-          BREAK_RETURN_SESSION_COUNT,
-          BREAK_ACCURACY_DROP_THRESHOLD,
-        ),
+        recentSessions: sessions(BREAK_RETURN_SESSION_COUNT, BREAK_ACCURACY_DROP_THRESHOLD),
         recentSnapshots: snapshots(BREAK_RETURN_SESSION_COUNT),
       }),
     );
@@ -306,8 +293,6 @@ describe("suggestPhaseTransition — defensive", () => {
   });
 
   it("returns null for refining phase with completely empty history", () => {
-    expect(
-      suggestPhaseTransition(makeInput({ currentPhase: "refining" })),
-    ).toBeNull();
+    expect(suggestPhaseTransition(makeInput({ currentPhase: "refining" }))).toBeNull();
   });
 });

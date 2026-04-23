@@ -80,9 +80,7 @@ describe("pickSummaryTitle — phase-aware voice", () => {
     // Not every bucket needs to differ, but at least one must —
     // otherwise the function is ignoring the phase parameter.
     const differs = ACCURACIES.some(
-      (acc) =>
-        pickSummaryTitle(acc, "transitioning") !==
-        pickSummaryTitle(acc, "refining"),
+      (acc) => pickSummaryTitle(acc, "transitioning") !== pickSummaryTitle(acc, "refining"),
     );
     expect(differs).toBe(true);
   });

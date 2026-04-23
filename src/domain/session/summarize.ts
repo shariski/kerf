@@ -1,15 +1,9 @@
 import type { KeyboardLayout } from "#/domain/finger/types";
 import { computeSplitMetrics } from "#/domain/metrics/computeSplitMetrics";
 import { generateSessionInsight } from "#/domain/insight/sessionInsight";
-import {
-  HESITATION_MULTIPLIER,
-  PHASE_BASELINES,
-} from "#/domain/stats/baselines";
+import { HESITATION_MULTIPLIER, PHASE_BASELINES } from "#/domain/stats/baselines";
 import { computeStats } from "#/domain/stats/computeStats";
-import type {
-  KeystrokeEvent,
-  TransitionPhase,
-} from "#/domain/stats/types";
+import type { KeystrokeEvent, TransitionPhase } from "#/domain/stats/types";
 import type { PatternDetection } from "#/domain/insight/types";
 
 /**
@@ -110,22 +104,11 @@ export type SummarizeSessionInput = {
  * `previousSession` input and the frame/improvements become real.
  */
 export function summarizeSession(input: SummarizeSessionInput): SessionSummary {
-  const {
-    target,
-    events,
-    keyboardType,
-    startedAt,
-    completedAt,
-    pausedMs = 0,
-    phase,
-  } = input;
+  const { target, events, keyboardType, startedAt, completedAt, pausedMs = 0, phase } = input;
 
   const correctCount = events.filter((e) => !e.isError).length;
   const errorCount = events.length - correctCount;
-  const accuracyPct =
-    events.length === 0
-      ? 100
-      : Math.round((correctCount / events.length) * 100);
+  const accuracyPct = events.length === 0 ? 100 : Math.round((correctCount / events.length) * 100);
 
   const elapsedMs =
     startedAt !== null && completedAt !== null
@@ -136,9 +119,7 @@ export function summarizeSession(input: SummarizeSessionInput): SessionSummary {
       ? 0
       : Math.round(correctCount / CHARS_PER_WORD / (elapsedMs / 60000));
 
-  const wordCount = target.trim().length === 0
-    ? 0
-    : target.trim().split(/\s+/).length;
+  const wordCount = target.trim().length === 0 ? 0 : target.trim().split(/\s+/).length;
 
   const errorPositions = collectErrorPositions(events);
 
@@ -179,9 +160,7 @@ export function summarizeSession(input: SummarizeSessionInput): SessionSummary {
 
 // --- helpers ---------------------------------------------------------------
 
-function collectErrorPositions(
-  events: readonly KeystrokeEvent[],
-): ErrorPosition[] {
+function collectErrorPositions(events: readonly KeystrokeEvent[]): ErrorPosition[] {
   // Mirror the reducer's position semantics: a correct keystroke advances
   // position, an error does not. The first error at each position wins.
   let position = 0;
@@ -206,9 +185,7 @@ function pickEmergentWeaknesses(
   chars: ReturnType<typeof computeStats>["characters"],
 ): EmergentWeakness[] {
   return chars
-    .filter(
-      (c) => c.errors >= EMERGENT_MIN_ERRORS && c.attempts >= EMERGENT_MIN_ATTEMPTS,
-    )
+    .filter((c) => c.errors >= EMERGENT_MIN_ERRORS && c.attempts >= EMERGENT_MIN_ATTEMPTS)
     .map((c) => ({
       unit: c.character,
       // Keystroke-framed label: "mistyped 2 of 11 presses". The engine

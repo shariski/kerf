@@ -8,10 +8,7 @@
  * queries; tests call them with plain arrays.
  */
 
-import {
-  computeWeaknessScore,
-  isLowConfidence,
-} from "#/domain/adaptive/weaknessScore";
+import { computeWeaknessScore, isLowConfidence } from "#/domain/adaptive/weaknessScore";
 import type {
   BigramStat,
   CharacterStat,
@@ -148,10 +145,7 @@ export function computeMasteredCount(
  * history to give a meaningful trend (i.e. fewer than `baselineN + 1`
  * values), so the UI can render an empty state instead of a fake "+0".
  */
-export function computeTrendDelta(
-  values: readonly number[],
-  baselineN: number,
-): number | null {
+export function computeTrendDelta(values: readonly number[], baselineN: number): number | null {
   if (values.length < baselineN + 1) return null;
   const baseline = mean(values.slice(0, baselineN));
   const current = mean(values);
@@ -173,10 +167,7 @@ function mean(xs: readonly number[]): number {
  * fits, returns it unchanged. Preserves first and last points so the
  * trend shape is honest.
  */
-export function buildSparklineValues(
-  values: readonly number[],
-  maxPoints: number,
-): number[] {
+export function buildSparklineValues(values: readonly number[], maxPoints: number): number[] {
   if (values.length <= maxPoints) return [...values];
   const step = (values.length - 1) / (maxPoints - 1);
   const out: number[] = [];
@@ -215,9 +206,7 @@ export type AveragedSplitMetrics = {
  * short session doesn't drag the average the way an unweighted mean
  * would.
  */
-export function averageSplitMetrics(
-  snapshots: readonly SplitSnapshot[],
-): AveragedSplitMetrics {
+export function averageSplitMetrics(snapshots: readonly SplitSnapshot[]): AveragedSplitMetrics {
   // Inner-col error rate: weight by attempts, not by snapshot count.
   // A 100-attempt session carries more signal than a 4-attempt one.
   let innerAttempts = 0;
@@ -226,8 +215,7 @@ export function averageSplitMetrics(
     innerAttempts += s.innerColAttempts;
     innerErrors += s.innerColErrors;
   }
-  const innerColumnErrorRatePct =
-    innerAttempts > 0 ? (innerErrors / innerAttempts) * 100 : null;
+  const innerColumnErrorRatePct = innerAttempts > 0 ? (innerErrors / innerAttempts) * 100 : null;
 
   // Thumb cluster avg ms: weight by count. We don't have sumMs here
   // (not exposed in the snapshot shape), so we reconstruct from
@@ -252,8 +240,7 @@ export function averageSplitMetrics(
     drift += s.columnarDriftCount;
   }
   const totalClass = stable + drift;
-  const columnarStabilityPct =
-    totalClass > 0 ? (stable / totalClass) * 100 : null;
+  const columnarStabilityPct = totalClass > 0 ? (stable / totalClass) * 100 : null;
 
   return {
     innerColumnErrorRatePct,
@@ -514,8 +501,7 @@ export function computeWeaknessRanking(input: {
   const maxRaw = top.length > 0 ? top[0]!.rawScore : 0;
   return top.map(({ entry, rawScore }) => ({
     ...entry,
-    relativeWeightPct:
-      maxRaw > 0 ? Math.max(0, Math.round((rawScore / maxRaw) * 100)) : 0,
+    relativeWeightPct: maxRaw > 0 ? Math.max(0, Math.round((rawScore / maxRaw) * 100)) : 0,
   }));
 }
 

@@ -14,11 +14,7 @@
  * - concern: accuracy down, speed up — the anti-pattern to flag
  * - neutral: both up, OR no prior session to compare against
  * - mixed: both down — suggest a break or shorter session */
-export type TrajectoryFrame =
-  | "right-trajectory"
-  | "concern"
-  | "neutral"
-  | "mixed";
+export type TrajectoryFrame = "right-trajectory" | "concern" | "neutral" | "mixed";
 
 /** Before/after snapshot of a single weak unit — char or bigram. */
 export type UnitDelta = {
@@ -62,12 +58,12 @@ export type SessionInsight = {
  * (`stagnant`) honestly, per Core Value 2.2 ("if user hasn't improved
  * in 2 weeks, platform says so"). Task 3.4b. */
 export type WeeklyTrajectoryFrame =
-  | "building"          // not enough comparison data yet
-  | "stagnant"          // ≥2 weeks of meaningful data, neither metric moved
-  | "right-trajectory"  // accuracy climbed (regardless of speed)
-  | "concern"           // accuracy dropped while speed rose
-  | "mixed"             // both cooled
-  | "steady";           // within noise but comparison window is too short to call it a plateau
+  | "building" // not enough comparison data yet
+  | "stagnant" // ≥2 weeks of meaningful data, neither metric moved
+  | "right-trajectory" // accuracy climbed (regardless of speed)
+  | "concern" // accuracy dropped while speed rose
+  | "mixed" // both cooled
+  | "steady"; // within noise but comparison window is too short to call it a plateau
 
 /** Aggregate for a single week window. `accuracyPct` and `wpm` are
  * rounded for direct display and are `null` when the window was empty. */

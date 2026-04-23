@@ -24,8 +24,8 @@ export function WeeklyInsight({ data }: Props) {
   if (!data) {
     return (
       <p className="kerf-dash-weekly-empty">
-        No sessions logged yet. The week-over-week read lands once there's
-        data in both the current and prior 7-day windows.
+        No sessions logged yet. The week-over-week read lands once there's data in both the current
+        and prior 7-day windows.
       </p>
     );
   }
@@ -80,13 +80,7 @@ type ComparisonCellProps = {
   primary?: boolean;
 };
 
-function ComparisonCell({
-  label,
-  sessions,
-  accuracy,
-  wpm,
-  primary,
-}: ComparisonCellProps) {
+function ComparisonCell({ label, sessions, accuracy, wpm, primary }: ComparisonCellProps) {
   const empty = sessions === 0;
   return (
     <div
@@ -101,30 +95,16 @@ function ComparisonCell({
         <div className="kerf-dash-weekly-cell-stats">
           <Stat value={`${accuracy ?? 0}%`} label="accuracy" featured />
           <Stat value={`${wpm ?? 0}`} label="WPM" />
-          <Stat
-            value={`${sessions}`}
-            label={sessions === 1 ? "session" : "sessions"}
-          />
+          <Stat value={`${sessions}`} label={sessions === 1 ? "session" : "sessions"} />
         </div>
       )}
     </div>
   );
 }
 
-function Stat({
-  value,
-  label,
-  featured,
-}: {
-  value: string;
-  label: string;
-  featured?: boolean;
-}) {
+function Stat({ value, label, featured }: { value: string; label: string; featured?: boolean }) {
   return (
-    <div
-      className="kerf-dash-weekly-stat"
-      data-featured={featured ? "true" : undefined}
-    >
+    <div className="kerf-dash-weekly-stat" data-featured={featured ? "true" : undefined}>
       <span className="kerf-dash-weekly-stat-value">{value}</span>
       <span className="kerf-dash-weekly-stat-label">{label}</span>
     </div>

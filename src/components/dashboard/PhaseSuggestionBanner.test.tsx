@@ -45,12 +45,7 @@ describe("PhaseSuggestionBanner", () => {
   });
 
   it("renders the reason and direction-specific CTA when signal fires", () => {
-    render(
-      <PhaseSuggestionBanner
-        signal={GRADUATION_SIGNAL}
-        currentPhase="transitioning"
-      />,
-    );
+    render(<PhaseSuggestionBanner signal={GRADUATION_SIGNAL} currentPhase="transitioning" />);
     expect(screen.getByText(/inner column error rate/i)).toBeTruthy();
     // Graduation → primary button reads "Switch to refining".
     expect(screen.getByRole("button", { name: /switch to refining/i })).toBeTruthy();
@@ -60,10 +55,7 @@ describe("PhaseSuggestionBanner", () => {
   it("renders nothing if sessionStorage already has the dismissal flag for this direction", () => {
     window.sessionStorage.setItem("kerf_phase_banner_dismissed_refining", "1");
     const { container } = render(
-      <PhaseSuggestionBanner
-        signal={GRADUATION_SIGNAL}
-        currentPhase="transitioning"
-      />,
+      <PhaseSuggestionBanner signal={GRADUATION_SIGNAL} currentPhase="transitioning" />,
     );
     // The effect flips `dismissed` on mount, so the banner must not be
     // in the DOM after the first paint.
@@ -73,32 +65,15 @@ describe("PhaseSuggestionBanner", () => {
   it("still renders when the flag is set for a different direction", () => {
     // Dismissing "refining" must not silence a later "transitioning"
     // suggestion — they're independent advisories.
-    window.sessionStorage.setItem(
-      "kerf_phase_banner_dismissed_transitioning",
-      "1",
-    );
-    render(
-      <PhaseSuggestionBanner
-        signal={GRADUATION_SIGNAL}
-        currentPhase="transitioning"
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: /switch to refining/i }),
-    ).toBeTruthy();
+    window.sessionStorage.setItem("kerf_phase_banner_dismissed_transitioning", "1");
+    render(<PhaseSuggestionBanner signal={GRADUATION_SIGNAL} currentPhase="transitioning" />);
+    expect(screen.getByRole("button", { name: /switch to refining/i })).toBeTruthy();
   });
 
   it("writes the per-direction flag and hides itself when dismiss is clicked", () => {
-    render(
-      <PhaseSuggestionBanner
-        signal={GRADUATION_SIGNAL}
-        currentPhase="transitioning"
-      />,
-    );
+    render(<PhaseSuggestionBanner signal={GRADUATION_SIGNAL} currentPhase="transitioning" />);
     fireEvent.click(screen.getByRole("button", { name: /not yet/i }));
-    expect(
-      window.sessionStorage.getItem("kerf_phase_banner_dismissed_refining"),
-    ).toBe("1");
+    expect(window.sessionStorage.getItem("kerf_phase_banner_dismissed_refining")).toBe("1");
     expect(screen.queryByRole("button", { name: /switch to refining/i })).toBeNull();
   });
 
@@ -113,8 +88,6 @@ describe("PhaseSuggestionBanner", () => {
         currentPhase="refining"
       />,
     );
-    expect(
-      screen.getByRole("button", { name: /return to transitioning/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: /return to transitioning/i })).toBeTruthy();
   });
 });

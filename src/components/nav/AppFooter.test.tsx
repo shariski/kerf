@@ -32,17 +32,9 @@ describe("AppFooter", () => {
 
   it("links to all five doc routes", () => {
     render(<AppFooter />);
-    const hrefs = [
-      "/how-it-works",
-      "/why-split-is-hard",
-      "/faq",
-      "/privacy",
-      "/terms",
-    ];
+    const hrefs = ["/how-it-works", "/why-split-is-hard", "/faq", "/privacy", "/terms"];
     for (const href of hrefs) {
-      const link = screen.getAllByRole("link").find(
-        (el) => el.getAttribute("href") === href,
-      );
+      const link = screen.getAllByRole("link").find((el) => el.getAttribute("href") === href);
       expect(link, `missing footer link to ${href}`).toBeTruthy();
     }
   });

@@ -62,9 +62,7 @@ describe("PauseOverlay", () => {
         onEnd={() => {}}
       />,
     );
-    const pills = Array.from(
-      container.querySelectorAll<HTMLButtonElement>(".kerf-pill-option"),
-    );
+    const pills = Array.from(container.querySelectorAll<HTMLButtonElement>(".kerf-pill-option"));
     // typingSize pills are the first group: S, M, L, XL
     const lPill = pills.find((p) => p.textContent === "L");
     expect(lPill).toBeDefined();

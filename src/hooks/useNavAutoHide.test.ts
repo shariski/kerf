@@ -9,11 +9,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sessionStore } from "#/stores/sessionStore";
-import {
-  HIDE_AFTER_MS,
-  PAUSE_REVEAL_MS,
-  useNavAutoHide,
-} from "./useNavAutoHide";
+import { HIDE_AFTER_MS, PAUSE_REVEAL_MS, useNavAutoHide } from "./useNavAutoHide";
 
 function setStatus(status: "idle" | "active" | "complete") {
   sessionStore.setState((s) => ({ ...s, status }));

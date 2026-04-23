@@ -32,8 +32,8 @@ export function TrajectoryCharts({ data }: Props) {
     return (
       <div className="kerf-dash-trajectory kerf-dash-trajectory--empty">
         <p className="kerf-dash-trajectory-empty-note">
-          Charts appear after a few sessions land in your history. Keep
-          practicing and the trend lines fill in.
+          Charts appear after a few sessions land in your history. Keep practicing and the trend
+          lines fill in.
         </p>
       </div>
     );
@@ -118,10 +118,7 @@ function TrendCard({
       <div className="kerf-dash-trend-chart" style={{ height: 120 }}>
         {isClient ? (
           <ResponsiveContainer width="100%" height={120} minWidth={0}>
-            <AreaChart
-              data={[...series]}
-              margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
-            >
+            <AreaChart data={[...series]} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={colorHex} stopOpacity={0.3} />

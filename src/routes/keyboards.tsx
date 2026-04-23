@@ -49,10 +49,7 @@ const KEYBOARD_META: Record<KeyboardType, { name: string; keys: number }> = {
   lily58: { name: "Lily58", keys: 58 },
 };
 
-const LEVEL_META: Record<
-  InitialLevel,
-  { level: string; name: string }
-> = {
+const LEVEL_META: Record<InitialLevel, { level: string; name: string }> = {
   first_day: { level: "level 1", name: "First day" },
   few_weeks: { level: "level 2", name: "Few weeks in" },
   comfortable: { level: "level 3", name: "Comfortable" },
@@ -94,9 +91,7 @@ function KeyboardsPage() {
         fromId: currentlyActive.id,
       });
     } catch (err) {
-      setSwitchError(
-        err instanceof Error ? err.message : "Could not switch — try again.",
-      );
+      setSwitchError(err instanceof Error ? err.message : "Could not switch — try again.");
     } finally {
       setSwitchInFlight(false);
     }
@@ -124,15 +119,11 @@ function KeyboardsPage() {
           <div>
             <h1 className="kerf-keyboards-title">Your keyboards</h1>
             <p className="kerf-keyboards-subtitle">
-              Each keyboard is a separate journey — stats, weakness ranking,
-              and exercises are independent per profile.
+              Each keyboard is a separate journey — stats, weakness ranking, and exercises are
+              independent per profile.
             </p>
           </div>
-          <button
-            type="button"
-            className="kerf-keyboards-add-btn"
-            onClick={() => setAddOpen(true)}
-          >
+          <button type="button" className="kerf-keyboards-add-btn" onClick={() => setAddOpen(true)}>
             <span className="kerf-keyboards-add-btn-icon" aria-hidden>
               +
             </span>
@@ -149,18 +140,9 @@ function KeyboardsPage() {
 
       <div className="kerf-keyboards-grid" data-locked={locked ? "true" : undefined}>
         {profiles.map((p) => (
-          <ProfileCard
-            key={p.id}
-            profile={p}
-            locked={locked}
-            onSwitch={() => handleSwitch(p)}
-          />
+          <ProfileCard key={p.id} profile={p} locked={locked} onSwitch={() => handleSwitch(p)} />
         ))}
-        <button
-          type="button"
-          className="kerf-keyboards-add-card"
-          onClick={() => setAddOpen(true)}
-        >
+        <button type="button" className="kerf-keyboards-add-card" onClick={() => setAddOpen(true)}>
           <span className="kerf-keyboards-add-card-icon" aria-hidden>
             +
           </span>
@@ -174,19 +156,13 @@ function KeyboardsPage() {
             ⊞
           </span>
           <p className="kerf-keyboards-nudge-text">
-            <strong>You only have one profile.</strong> Add another keyboard if
-            you switch between split layouts — each gets its own independent
-            stats and weakness tracking.
+            <strong>You only have one profile.</strong> Add another keyboard if you switch between
+            split layouts — each gets its own independent stats and weakness tracking.
           </p>
         </aside>
       ) : null}
 
-      {addOpen ? (
-        <AddKeyboardModal
-          profiles={profiles}
-          onClose={() => setAddOpen(false)}
-        />
-      ) : null}
+      {addOpen ? <AddKeyboardModal profiles={profiles} onClose={() => setAddOpen(false)} /> : null}
 
       {toast ? (
         <SwitchToast
@@ -216,15 +192,10 @@ function ProfileCard({
 }) {
   const meta = KEYBOARD_META[profile.keyboardType];
   const clickable = !profile.isActive && !locked;
-  const label = profile.isActive
-    ? `${meta.name} — active profile`
-    : `Switch to ${meta.name}`;
+  const label = profile.isActive ? `${meta.name} — active profile` : `Switch to ${meta.name}`;
 
   return (
-    <article
-      className="kerf-keyboards-card"
-      data-active={profile.isActive ? "true" : undefined}
-    >
+    <article className="kerf-keyboards-card" data-active={profile.isActive ? "true" : undefined}>
       <button
         type="button"
         className="kerf-keyboards-card-tap"
@@ -243,15 +214,11 @@ function ProfileCard({
             <MiniKeyboardHalf />
             <MiniKeyboardHalf />
           </div>
-          <span className="kerf-keyboards-card-photo-label">
-            PHOTO PLACEHOLDER
-          </span>
+          <span className="kerf-keyboards-card-photo-label">PHOTO PLACEHOLDER</span>
         </div>
         <div className="kerf-keyboards-card-body">
           <div className="kerf-keyboards-card-name">{meta.name}</div>
-          <div className="kerf-keyboards-card-meta">
-            {meta.keys} keys · split columnar
-          </div>
+          <div className="kerf-keyboards-card-meta">{meta.keys} keys · split columnar</div>
         </div>
       </button>
     </article>
@@ -296,11 +263,7 @@ function SwitchToast({
   }, [onDismiss, undoing, toast]);
 
   return (
-    <div
-      className="kerf-keyboards-toast"
-      role="status"
-      aria-live="polite"
-    >
+    <div className="kerf-keyboards-toast" role="status" aria-live="polite">
       <span className="kerf-keyboards-toast-icon" aria-hidden>
         →
       </span>
@@ -336,9 +299,7 @@ function AddKeyboardModal({
   const prefilledHand = profiles[0]?.dominantHand;
 
   const [keyboardType, setKeyboardType] = useState<KeyboardType>(defaultType);
-  const [dominantHand, setDominantHand] = useState<DominantHand>(
-    prefilledHand ?? "right",
-  );
+  const [dominantHand, setDominantHand] = useState<DominantHand>(prefilledHand ?? "right");
   const [editingHand, setEditingHand] = useState(false);
   const [initialLevel, setInitialLevel] = useState<InitialLevel>("first_day");
   const [submitting, setSubmitting] = useState(false);
@@ -378,11 +339,7 @@ function AddKeyboardModal({
   const handInitial = dominantHand === "right" ? "R" : "L";
 
   return (
-    <div
-      className="kerf-keyboards-modal-bg"
-      onClick={onClose}
-      role="presentation"
-    >
+    <div className="kerf-keyboards-modal-bg" onClick={onClose} role="presentation">
       <div
         className="kerf-keyboards-modal"
         onClick={(e) => e.stopPropagation()}
@@ -430,9 +387,7 @@ function AddKeyboardModal({
                       data-selected={selected ? "true" : undefined}
                       onClick={() => setKeyboardType(t)}
                     >
-                      <span className="kerf-keyboards-mini-card-thumb">
-                        ⊞⊞
-                      </span>
+                      <span className="kerf-keyboards-mini-card-thumb">⊞⊞</span>
                       <span className="kerf-keyboards-mini-card-info">
                         <span className="kerf-keyboards-mini-card-name">
                           {KEYBOARD_META[t].name}
@@ -514,9 +469,7 @@ function AddKeyboardModal({
                       <span className="kerf-keyboards-level-card-label">
                         {LEVEL_META[lvl].level}
                       </span>
-                      <span className="kerf-keyboards-level-card-name">
-                        {LEVEL_META[lvl].name}
-                      </span>
+                      <span className="kerf-keyboards-level-card-name">{LEVEL_META[lvl].name}</span>
                     </button>
                   );
                 })}
@@ -539,11 +492,7 @@ function AddKeyboardModal({
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="kerf-keyboards-modal-submit"
-              disabled={submitting}
-            >
+            <button type="submit" className="kerf-keyboards-modal-submit" disabled={submitting}>
               {submitting ? "Adding…" : `Add ${selectedKeyboardName}`}
             </button>
           </footer>

@@ -33,25 +33,25 @@ const makeBigram = (over: Partial<BigramStat> = {}): BigramStat => ({
 });
 
 describe("computeWeaknessBreakdown — totals match engine", () => {
-  it.each(["transitioning", "refining"] as const)(
-    "matches computeWeaknessScore exactly for char in %s phase",
-    (phase: TransitionPhase) => {
-      const unit = makeChar();
-      const breakdown = computeWeaknessBreakdown(unit, baseline, phase, 0);
-      const engineScore = computeWeaknessScore(unit, baseline, phase, 0);
-      expect(breakdown.total).toBeCloseTo(engineScore, 10);
-    },
-  );
+  it.each([
+    "transitioning",
+    "refining",
+  ] as const)("matches computeWeaknessScore exactly for char in %s phase", (phase: TransitionPhase) => {
+    const unit = makeChar();
+    const breakdown = computeWeaknessBreakdown(unit, baseline, phase, 0);
+    const engineScore = computeWeaknessScore(unit, baseline, phase, 0);
+    expect(breakdown.total).toBeCloseTo(engineScore, 10);
+  });
 
-  it.each(["transitioning", "refining"] as const)(
-    "matches computeWeaknessScore exactly for bigram in %s phase",
-    (phase: TransitionPhase) => {
-      const unit = makeBigram();
-      const breakdown = computeWeaknessBreakdown(unit, baseline, phase, 0);
-      const engineScore = computeWeaknessScore(unit, baseline, phase, 0);
-      expect(breakdown.total).toBeCloseTo(engineScore, 10);
-    },
-  );
+  it.each([
+    "transitioning",
+    "refining",
+  ] as const)("matches computeWeaknessScore exactly for bigram in %s phase", (phase: TransitionPhase) => {
+    const unit = makeBigram();
+    const breakdown = computeWeaknessBreakdown(unit, baseline, phase, 0);
+    const engineScore = computeWeaknessScore(unit, baseline, phase, 0);
+    expect(breakdown.total).toBeCloseTo(engineScore, 10);
+  });
 
   it("includes non-zero frequency term in total", () => {
     const unit = makeChar();
@@ -113,9 +113,7 @@ describe("computeWeaknessBreakdown — inner-column bonus", () => {
     for (const ch of ["b", "g", "h", "n", "t", "y"]) {
       const unit = makeChar({ character: ch });
       const b = computeWeaknessBreakdown(unit, baseline, "transitioning", 0);
-      expect(b.innerColumnBonus, `expected bonus for ${ch}`).toBeGreaterThan(
-        0,
-      );
+      expect(b.innerColumnBonus, `expected bonus for ${ch}`).toBeGreaterThan(0);
     }
   });
 
@@ -131,9 +129,7 @@ describe("computeWeaknessBreakdown — inner-column bonus", () => {
     for (const ch of ["b", "g", "h", "n", "t", "y"]) {
       const unit = makeChar({ character: ch });
       const b = computeWeaknessBreakdown(unit, baseline, "refining", 0);
-      expect(b.innerColumnBonus, `bonus leaked into refining for ${ch}`).toBe(
-        0,
-      );
+      expect(b.innerColumnBonus, `bonus leaked into refining for ${ch}`).toBe(0);
     }
   });
 

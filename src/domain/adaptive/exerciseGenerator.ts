@@ -53,10 +53,7 @@ export type ExerciseOptions = {
 
 export const DEFAULT_TARGET_WORD_COUNT = 50;
 
-const passesFilters = (
-  w: CorpusWord,
-  filters: ExerciseFilters | undefined,
-): boolean => {
+const passesFilters = (w: CorpusWord, filters: ExerciseFilters | undefined): boolean => {
   if (!filters) return true;
   if (filters.maxLength !== undefined && w.length > filters.maxLength) {
     return false;
@@ -77,10 +74,7 @@ const passesFilters = (
   }
 };
 
-const matchScore = (
-  w: CorpusWord,
-  weaknessScoreFor: (unitId: string) => number,
-): number => {
+const matchScore = (w: CorpusWord, weaknessScoreFor: (unitId: string) => number): number => {
   let sum = 0;
   for (const c of w.chars) sum += weaknessScoreFor(c);
   for (const bg of w.bigrams) sum += weaknessScoreFor(bg);
@@ -113,7 +107,7 @@ const weightedSampleWithoutReplacement = (
 
 // In-place Fisher-Yates using the provided rng. Returns the same array
 // for ergonomic chaining; the array IS mutated.
-const shuffleInPlace = <T,>(arr: T[], rng: () => number): T[] => {
+const shuffleInPlace = <T>(arr: T[], rng: () => number): T[] => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [arr[i], arr[j]] = [arr[j]!, arr[i]!];
@@ -137,11 +131,7 @@ export function generateExercise(options: ExerciseOptions): string[] {
     if (score > 0) candidates.push({ word: w, weight: score });
   }
 
-  const sampled = weightedSampleWithoutReplacement(
-    candidates,
-    targetWordCount,
-    rng,
-  );
+  const sampled = weightedSampleWithoutReplacement(candidates, targetWordCount, rng);
   const words = sampled.map((s) => s.word);
   return shuffleInPlace(words, rng);
 }

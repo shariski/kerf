@@ -66,9 +66,7 @@ export const MIN_SAMPLES_PER_BUCKET = 2;
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
-export function computeTemporalPatterns(
-  input: TemporalPatternsInput,
-): TemporalPatterns {
+export function computeTemporalPatterns(input: TemporalPatternsInput): TemporalPatterns {
   const hourSums = new Array<number>(24).fill(0);
   const hourCounts = new Array<number>(24).fill(0);
   const daySums = new Array<number>(7).fill(0);
@@ -87,9 +85,7 @@ export function computeTemporalPatterns(
     hour: i,
     sampleCount: hourCounts[i]!,
     meanWpm:
-      hourCounts[i]! >= MIN_SAMPLES_PER_BUCKET
-        ? Math.round(hourSums[i]! / hourCounts[i]!)
-        : null,
+      hourCounts[i]! >= MIN_SAMPLES_PER_BUCKET ? Math.round(hourSums[i]! / hourCounts[i]!) : null,
   }));
 
   const byDayOfWeek: DayOfWeekBucket[] = DAY_LABELS.map((label, i) => ({
@@ -97,14 +93,11 @@ export function computeTemporalPatterns(
     dayLabel: label,
     sampleCount: dayCounts[i]!,
     meanWpm:
-      dayCounts[i]! >= MIN_SAMPLES_PER_BUCKET
-        ? Math.round(daySums[i]! / dayCounts[i]!)
-        : null,
+      dayCounts[i]! >= MIN_SAMPLES_PER_BUCKET ? Math.round(daySums[i]! / dayCounts[i]!) : null,
   }));
 
   const hasMeaningfulData =
-    byHour.some((h) => h.meanWpm !== null) ||
-    byDayOfWeek.some((d) => d.meanWpm !== null);
+    byHour.some((h) => h.meanWpm !== null) || byDayOfWeek.some((d) => d.meanWpm !== null);
 
   return {
     byHour,
@@ -122,9 +115,9 @@ export function computeTemporalPatterns(
  * that does the reading for the user instead of making them squint
  * at bars.
  */
-export function pickPeakBucket<
-  T extends { meanWpm: number | null },
->(buckets: readonly T[]): T | null {
+export function pickPeakBucket<T extends { meanWpm: number | null }>(
+  buckets: readonly T[],
+): T | null {
   let peak: T | null = null;
   for (const b of buckets) {
     if (b.meanWpm === null) continue;

@@ -17,20 +17,14 @@ type Props = {
   children: React.ReactNode;
 };
 
-export function DocPage({
-  title,
-  lede,
-  isTemplate,
-  effectiveDate,
-  children,
-}: Props) {
+export function DocPage({ title, lede, isTemplate, effectiveDate, children }: Props) {
   return (
     <main id="main-content" className="kerf-doc-page">
       {isTemplate && (
         <div className="kerf-doc-template-banner" role="note">
           This page is a template. Replace the{" "}
-          <code className="kerf-doc-placeholder">{"{{PLACEHOLDERS}}"}</code>{" "}
-          before deploying to production.
+          <code className="kerf-doc-placeholder">{"{{PLACEHOLDERS}}"}</code> before deploying to
+          production.
         </div>
       )}
       <article className="kerf-doc-article">

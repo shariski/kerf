@@ -16,8 +16,7 @@ const JOURNEY_OPTIONS = [
   {
     value: "unsure" as const,
     label: "I'm not sure",
-    description:
-      "We'll make a good guess based on how you type and you can change this later.",
+    description: "We'll make a good guess based on how you type and you can change this later.",
   },
 ] as const satisfies ReadonlyArray<{
   value: JourneyCode;
@@ -65,8 +64,7 @@ export function JourneyQuestion({
           lineHeight: 1.6,
         }}
       >
-        This helps the engine weight finger-column targets correctly from the
-        start.
+        This helps the engine weight finger-column targets correctly from the start.
       </p>
 
       <fieldset className="grid grid-cols-1 gap-4 max-w-[700px] w-full border-0 p-0 m-0">

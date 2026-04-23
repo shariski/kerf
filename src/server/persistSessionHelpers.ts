@@ -1,7 +1,4 @@
-import type {
-  KeystrokeEvent,
-  TransitionPhase,
-} from "#/domain/stats/types";
+import type { KeystrokeEvent, TransitionPhase } from "#/domain/stats/types";
 
 /**
  * Pure helpers used by the `persistSession` server function — extracted
@@ -46,8 +43,7 @@ export type PersistSessionInput = {
 
 // --- validator -------------------------------------------------------------
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const MODES = new Set(["adaptive", "targeted_drill", "diagnostic"]);
 const PHASES = new Set(["transitioning", "refining"]);
@@ -58,9 +54,7 @@ const PHASES = new Set(["transitioning", "refining"]);
  * instead of a silent cast. Minimal checks — TypeScript carries the
  * shape; this is just the API boundary guard.
  */
-export function validatePersistSessionInput(
-  input: unknown,
-): PersistSessionInput {
+export function validatePersistSessionInput(input: unknown): PersistSessionInput {
   if (typeof input !== "object" || input === null) {
     throw new Error("persistSession: input must be an object");
   }
@@ -184,8 +178,7 @@ export function enrichEvents(
   for (let i = 0; i < events.length; i++) {
     const e = events[i]!;
     const clampedPos = Math.min(pos, target.length - 1);
-    const positionInWord =
-      target.length === 0 ? -1 : clampedPos - wordStart[clampedPos]!;
+    const positionInWord = target.length === 0 ? -1 : clampedPos - wordStart[clampedPos]!;
 
     out.push({
       sequence: i,
@@ -253,14 +246,9 @@ export function deriveSessionHeader(input: {
   const correctCount = events.filter((e) => !e.isError).length;
   const totalErrors = events.length - correctCount;
   const accuracy = events.length === 0 ? 1 : correctCount / events.length;
-  const elapsedMs = Math.max(
-    0,
-    new Date(endedAt).getTime() - new Date(startedAt).getTime(),
-  );
+  const elapsedMs = Math.max(0, new Date(endedAt).getTime() - new Date(startedAt).getTime());
   const wpm =
-    elapsedMs < MIN_ELAPSED_MS_FOR_WPM
-      ? 0
-      : (correctCount / CHARS_PER_WORD) / (elapsedMs / 60000);
+    elapsedMs < MIN_ELAPSED_MS_FOR_WPM ? 0 : correctCount / CHARS_PER_WORD / (elapsedMs / 60000);
 
   return {
     totalChars: events.length,
@@ -278,9 +266,7 @@ export function deriveSessionHeader(input: {
  * we can feed them to `computeStats` / `computeSplitMetrics`, which
  * expect `timestamp: Date`.
  */
-export function toDomainEvents(
-  events: readonly KeystrokeEventDto[],
-): KeystrokeEvent[] {
+export function toDomainEvents(events: readonly KeystrokeEventDto[]): KeystrokeEvent[] {
   return events.map((e) => ({
     targetChar: e.targetChar,
     actualChar: e.actualChar,

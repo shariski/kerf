@@ -17,9 +17,7 @@ import { useEffect, useRef, type RefObject } from "react";
 import { sessionStore, useSessionStore } from "#/stores/sessionStore";
 import type { KeyboardSVGHandle } from "#/components/keyboard";
 
-export function useFlashKeyboardOnKeypress(
-  ref: RefObject<KeyboardSVGHandle | null>,
-): void {
+export function useFlashKeyboardOnKeypress(ref: RefObject<KeyboardSVGHandle | null>): void {
   const eventsLength = useSessionStore((s) => s.events.length);
   const prevLength = useRef(0);
 

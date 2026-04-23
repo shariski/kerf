@@ -12,16 +12,8 @@ type Props = {
   style?: CSSProperties;
 };
 
-export const SofleSVG = forwardRef<KeyboardSVGHandle, Props>(function SofleSVG(
-  props,
-  ref,
-) {
+export const SofleSVG = forwardRef<KeyboardSVGHandle, Props>(function SofleSVG(props, ref) {
   return (
-    <KeyboardSVG
-      ref={ref}
-      geometry={SOFLE_GEOMETRY}
-      fingerTable={SOFLE_BASE_LAYER}
-      {...props}
-    />
+    <KeyboardSVG ref={ref} geometry={SOFLE_GEOMETRY} fingerTable={SOFLE_BASE_LAYER} {...props} />
   );
 });

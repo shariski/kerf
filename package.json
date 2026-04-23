@@ -12,6 +12,10 @@
     "test": "vitest run",
     "test:a11y": "playwright test tests/a11y.spec.ts",
     "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/server/db/seed.ts",
@@ -43,6 +47,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.2",
+    "@biomejs/biome": "2.4.12",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "latest",

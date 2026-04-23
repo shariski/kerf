@@ -58,8 +58,8 @@ export function DrillPreSessionStage({
 
       <h1 className="kerf-pre-title">What to drill?</h1>
       <p className="kerf-pre-subtitle">
-        Focused reps on a specific letter, bigram, or split-keyboard pain
-        point. About {EST_MIN_LOW}–{EST_MIN_HIGH} minutes.
+        Focused reps on a specific letter, bigram, or split-keyboard pain point. About {EST_MIN_LOW}
+        –{EST_MIN_HIGH} minutes.
       </p>
 
       <div className="kerf-drill-target-card">
@@ -98,8 +98,7 @@ export function DrillPreSessionStage({
           </button>
         </div>
         <p className="kerf-drill-target-note">
-          Auto-recommend from top weakness lands with Phase 3 session
-          history.
+          Auto-recommend from top weakness lands with Phase 3 session history.
         </p>
       </div>
 
@@ -111,7 +110,9 @@ export function DrillPreSessionStage({
           onClick={() => onSelectPreset("innerColumn")}
           aria-label="Inner column drill: B, G, H, N, T, Y"
         >
-          <span className="kerf-mode-card-icon" aria-hidden>⬌</span>
+          <span className="kerf-mode-card-icon" aria-hidden>
+            ⬌
+          </span>
           <span className="kerf-mode-card-name">Inner column</span>
           <span className="kerf-mode-card-desc">
             Focus on B, G, H, N, T, Y — classic split pain points
@@ -123,7 +124,9 @@ export function DrillPreSessionStage({
           onClick={() => onSelectPreset("thumbCluster")}
           aria-label="Thumb cluster drill: short words"
         >
-          <span className="kerf-mode-card-icon" aria-hidden>◐</span>
+          <span className="kerf-mode-card-icon" aria-hidden>
+            ◐
+          </span>
           <span className="kerf-mode-card-name">Thumb cluster</span>
           <span className="kerf-mode-card-desc">
             Short words — builds space-bar and thumb rhythm
@@ -135,7 +138,9 @@ export function DrillPreSessionStage({
           onClick={() => onSelectPreset("crossHandBigram")}
           aria-label="Cross-hand bigram drill"
         >
-          <span className="kerf-mode-card-icon" aria-hidden>⇌</span>
+          <span className="kerf-mode-card-icon" aria-hidden>
+            ⇌
+          </span>
           <span className="kerf-mode-card-name">Cross-hand bigrams</span>
           <span className="kerf-mode-card-desc">
             Top bigrams that jump between hands — hardest on split layouts

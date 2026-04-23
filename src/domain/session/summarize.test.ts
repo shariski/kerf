@@ -8,9 +8,7 @@ const event = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
   targetChar: over.targetChar ?? "a",
   actualChar: over.actualChar ?? over.targetChar ?? "a",
   isError:
-    over.isError ??
-    (over.actualChar !== undefined &&
-      over.actualChar !== (over.targetChar ?? "a")),
+    over.isError ?? (over.actualChar !== undefined && over.actualChar !== (over.targetChar ?? "a")),
   keystrokeMs: over.keystrokeMs ?? 180,
   prevChar: over.prevChar,
   timestamp: over.timestamp ?? ts,
@@ -269,9 +267,7 @@ describe("summarizeSession — error positions", () => {
       completedAt: 10_000,
       phase: "transitioning",
     });
-    expect(summary.errorPositions).toEqual([
-      { index: 1, expected: "b", typed: "v" },
-    ]);
+    expect(summary.errorPositions).toEqual([{ index: 1, expected: "b", typed: "v" }]);
   });
 
   it("keeps only the FIRST error at each position, even if user mistypes multiple times", () => {
@@ -290,9 +286,7 @@ describe("summarizeSession — error positions", () => {
       completedAt: 10_000,
       phase: "transitioning",
     });
-    expect(summary.errorPositions).toEqual([
-      { index: 1, expected: "b", typed: "x" },
-    ]);
+    expect(summary.errorPositions).toEqual([{ index: 1, expected: "b", typed: "x" }]);
   });
 
   it("returns errors sorted by index", () => {
@@ -386,8 +380,7 @@ describe("summarizeSession — emergent weaknesses", () => {
 
 describe("summarizeSession — patterns and insight", () => {
   it("surfaces B↔N confusion via the existing pattern detector", () => {
-    const mk = (target: string, typed: string) =>
-      event({ targetChar: target, actualChar: typed });
+    const mk = (target: string, typed: string) => event({ targetChar: target, actualChar: typed });
     // 3 B↔N substitutions + filler
     const events: KeystrokeEvent[] = [
       mk("b", "n"),
@@ -418,13 +411,7 @@ describe("summarizeSession — patterns and insight", () => {
     });
     expect(summary.insightText.length).toBeGreaterThan(0);
     const lower = summary.insightText.toLowerCase();
-    for (const banned of [
-      "amazing",
-      "crushing it",
-      "nailed it",
-      "incredible",
-      "awesome",
-    ]) {
+    for (const banned of ["amazing", "crushing it", "nailed it", "incredible", "awesome"]) {
       expect(lower).not.toContain(banned);
     }
     // No stacked exclamation marks.

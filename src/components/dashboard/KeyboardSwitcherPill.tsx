@@ -31,10 +31,7 @@ export function KeyboardSwitcherPill({ profiles, onSwitchProfile }: Props) {
     if (!open) return;
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (
-        !menuRef.current?.contains(target) &&
-        !triggerRef.current?.contains(target)
-      ) {
+      if (!menuRef.current?.contains(target) && !triggerRef.current?.contains(target)) {
         setOpen(false);
       }
     };

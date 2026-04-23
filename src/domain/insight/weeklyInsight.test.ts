@@ -49,11 +49,7 @@ describe("generateWeeklyInsight — frame classification", () => {
 
   it("returns `stagnant` when both windows have ≥3 sessions and neither metric moved beyond noise", () => {
     const thisW = [session(1, 94, 40), session(3, 94, 40), session(5, 94, 40)];
-    const lastW = [
-      session(8, 94, 40),
-      session(10, 94, 40),
-      session(12, 94, 40),
-    ];
+    const lastW = [session(8, 94, 40), session(10, 94, 40), session(12, 94, 40)];
     const r = run([...thisW, ...lastW]);
     expect(r.frame).toBe("stagnant");
     expect(r.hasComparison).toBe(true);
@@ -119,11 +115,7 @@ describe("generateWeeklyInsight — frame classification", () => {
 describe("generateWeeklyInsight — window boundaries", () => {
   it("excludes sessions older than 14 days even when they would otherwise fit the stagnation bucket", () => {
     const thisW = [session(1, 94, 40), session(3, 94, 40), session(5, 94, 40)];
-    const lastW = [
-      session(8, 94, 40),
-      session(10, 94, 40),
-      session(12, 94, 40),
-    ];
+    const lastW = [session(8, 94, 40), session(10, 94, 40), session(12, 94, 40)];
     const old = [session(20, 94, 40), session(30, 94, 40)];
     const r = run([...thisW, ...lastW, ...old]);
     // The old entries are dropped; this-week and last-week session counts
@@ -181,19 +173,12 @@ describe("generateWeeklyInsight — copy integrity", () => {
       case "building":
         return run([session(1, 94, 40)], phase);
       case "stagnant": {
-        const thisW = Array.from({ length: 3 }, (_, i) =>
-          session(1 + i * 2, 94, 40),
-        );
-        const lastW = Array.from({ length: 3 }, (_, i) =>
-          session(8 + i * 2, 94, 40),
-        );
+        const thisW = Array.from({ length: 3 }, (_, i) => session(1 + i * 2, 94, 40));
+        const lastW = Array.from({ length: 3 }, (_, i) => session(8 + i * 2, 94, 40));
         return run([...thisW, ...lastW], phase);
       }
       case "right-trajectory":
-        return run(
-          [session(1, 96, 42), session(8, 92, 40)],
-          phase,
-        );
+        return run([session(1, 96, 42), session(8, 92, 40)], phase);
       case "concern":
         return run([session(1, 88, 48), session(8, 94, 42)], phase);
       case "mixed":
@@ -235,20 +220,12 @@ describe("generateWeeklyInsight — copy integrity", () => {
   });
 
   it("stagnant copy surfaces the plateau honestly, not as a win", () => {
-    const thisW = Array.from({ length: 3 }, (_, i) =>
-      session(1 + i * 2, 94, 40),
-    );
-    const lastW = Array.from({ length: 3 }, (_, i) =>
-      session(8 + i * 2, 94, 40),
-    );
+    const thisW = Array.from({ length: 3 }, (_, i) => session(1 + i * 2, 94, 40));
+    const lastW = Array.from({ length: 3 }, (_, i) => session(8 + i * 2, 94, 40));
     const r = run([...thisW, ...lastW]);
-    expect(r.narrative.toLowerCase()).toMatch(
-      /plateau|honest|similar numbers/,
-    );
+    expect(r.narrative.toLowerCase()).toMatch(/plateau|honest|similar numbers/);
     // Should not frame the plateau as a positive.
-    expect(r.narrative.toLowerCase()).not.toMatch(
-      /keep it up|great|well done|congrats/,
-    );
+    expect(r.narrative.toLowerCase()).not.toMatch(/keep it up|great|well done|congrats/);
   });
 
   it("concern copy leads with accuracy concern, not with the speed gain", () => {
@@ -266,14 +243,8 @@ describe("generateWeeklyInsight — copy integrity", () => {
   });
 
   it("picks phase-specific recommendations", () => {
-    const bothTransitioning = run(
-      [session(1, 96, 42), session(8, 92, 40)],
-      "transitioning",
-    );
-    const bothRefining = run(
-      [session(1, 96, 42), session(8, 92, 40)],
-      "refining",
-    );
+    const bothTransitioning = run([session(1, 96, 42), session(8, 92, 40)], "transitioning");
+    const bothRefining = run([session(1, 96, 42), session(8, 92, 40)], "refining");
     expect(bothTransitioning.recommendations.join(" ")).not.toEqual(
       bothRefining.recommendations.join(" "),
     );

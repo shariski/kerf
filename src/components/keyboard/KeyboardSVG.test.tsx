@@ -105,11 +105,7 @@ describe("KeyboardSVG imperative flash API", () => {
   const renderSofle = () => {
     const ref = createRef<KeyboardSVGHandle>();
     const { container } = render(
-      <KeyboardSVG
-        ref={ref}
-        geometry={SOFLE_GEOMETRY}
-        fingerTable={SOFLE_BASE_LAYER}
-      />,
+      <KeyboardSVG ref={ref} geometry={SOFLE_GEOMETRY} fingerTable={SOFLE_BASE_LAYER} />,
     );
     return { ref, container };
   };
@@ -154,9 +150,7 @@ describe("KeyboardSVG imperative flash API", () => {
 
   it("flashes the canonical space character on the left thumb", () => {
     const { ref, container } = renderSofle();
-    const spaceKey = container.querySelector(
-      'g.kb-key[data-char=" "]',
-    ) as SVGGElement;
+    const spaceKey = container.querySelector('g.kb-key[data-char=" "]') as SVGGElement;
     expect(spaceKey).not.toBeNull();
 
     ref.current!.flash(" ", "correct");

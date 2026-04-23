@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import type {
-  EmergentWeakness,
-  ErrorPosition,
-  SessionSummary,
-} from "#/domain/session/summarize";
+import type { EmergentWeakness, ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import type { PatternDetection } from "#/domain/insight/types";
 
 /**
@@ -27,12 +23,7 @@ type Props = {
   onPracticeAgain: () => void;
 };
 
-export function PostSessionStage({
-  target,
-  title,
-  summary,
-  onPracticeAgain,
-}: Props) {
+export function PostSessionStage({ target, title, summary, onPracticeAgain }: Props) {
   const {
     accuracyPct,
     wpm,
@@ -63,8 +54,7 @@ export function PostSessionStage({
   useEffect(() => {
     const onScroll = () => {
       const scrolled = window.scrollY;
-      const max =
-        document.documentElement.scrollHeight - window.innerHeight;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
       // Hide if page isn't scrollable (nothing to hint at).
       if (max < 40) {
         setShowScrollHint(false);
@@ -76,10 +66,7 @@ export function PostSessionStage({
       // "hint visible in the top half of scroll range"; capping at
       // innerHeight * 0.5 keeps very tall pages from requiring an
       // unreasonable amount of scrolling to dismiss.
-      const threshold = Math.min(
-        Math.round(window.innerHeight * 0.5),
-        Math.round(max * 0.5),
-      );
+      const threshold = Math.min(Math.round(window.innerHeight * 0.5), Math.round(max * 0.5));
       setShowScrollHint(scrolled < threshold);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -98,11 +85,7 @@ export function PostSessionStage({
 
       <h1 className="kerf-post-title">{title}</h1>
 
-      <div
-        className="kerf-post-stats"
-        role="list"
-        aria-label="Session results"
-      >
+      <div className="kerf-post-stats" role="list" aria-label="Session results">
         <div className="kerf-post-stat" role="listitem">
           <div className="kerf-post-stat-label">accuracy</div>
           <div
@@ -119,20 +102,14 @@ export function PostSessionStage({
         </div>
         <div className="kerf-post-stat" role="listitem">
           <div className="kerf-post-stat-label">speed</div>
-          <div
-            className="kerf-post-stat-value"
-            aria-label={`Speed ${wpm} words per minute`}
-          >
+          <div className="kerf-post-stat-value" aria-label={`Speed ${wpm} words per minute`}>
             {wpm}
           </div>
           <div className="kerf-post-stat-delta neutral">wpm</div>
         </div>
         <div className="kerf-post-stat" role="listitem">
           <div className="kerf-post-stat-label">time</div>
-          <div
-            className="kerf-post-stat-value"
-            aria-label={`Time ${elapsedLabel}`}
-          >
+          <div className="kerf-post-stat-value" aria-label={`Time ${elapsedLabel}`}>
             {elapsedLabel}
           </div>
           <div className="kerf-post-stat-delta neutral">
@@ -154,10 +131,7 @@ export function PostSessionStage({
         <div className="kerf-error-review-text">
           <ErrorReviewText target={target} errors={errorPositions} />
         </div>
-        <ErrorPatterns
-          patterns={patterns}
-          uniqueErrorCount={uniqueErrorCount}
-        />
+        <ErrorPatterns patterns={patterns} uniqueErrorCount={uniqueErrorCount} />
       </div>
 
       <div className="kerf-post-section-label">Weakness shifts this session</div>
@@ -168,8 +142,8 @@ export function PostSessionStage({
             <span>improved</span>
           </div>
           <p className="kerf-shift-empty">
-            Session history arrives in a future update — improvements
-            will surface once this isn't your first rep on record.
+            Session history arrives in a future update — improvements will surface once this isn't
+            your first rep on record.
           </p>
         </div>
         <div className="kerf-shift-group emergent">
@@ -194,7 +168,9 @@ export function PostSessionStage({
           ref={practiceAgainRef}
         >
           Practice again
-          <span className="kerf-post-btn-shortcut" aria-hidden="true">⏎</span>
+          <span className="kerf-post-btn-shortcut" aria-hidden="true">
+            ⏎
+          </span>
         </button>
         <Link
           to="/practice/drill"
@@ -204,11 +180,15 @@ export function PostSessionStage({
           {topWeaknessName
             ? `Drill ${topWeaknessName.toUpperCase()} specifically`
             : "Drill a weakness"}
-          <span className="kerf-post-btn-shortcut" aria-hidden="true">D</span>
+          <span className="kerf-post-btn-shortcut" aria-hidden="true">
+            D
+          </span>
         </Link>
         <Link to="/dashboard" className="kerf-post-btn secondary">
           View dashboard
-          <span className="kerf-post-btn-shortcut" aria-hidden="true">⌘D</span>
+          <span className="kerf-post-btn-shortcut" aria-hidden="true">
+            ⌘D
+          </span>
         </Link>
       </div>
 
@@ -265,13 +245,7 @@ function ShortcutHintStrip() {
 
 // --- subcomponents ---------------------------------------------------------
 
-function ErrorReviewText({
-  target,
-  errors,
-}: {
-  target: string;
-  errors: readonly ErrorPosition[];
-}) {
+function ErrorReviewText({ target, errors }: { target: string; errors: readonly ErrorPosition[] }) {
   if (errors.length === 0) {
     return <>{target}</>;
   }
@@ -330,11 +304,7 @@ function ErrorPatterns({
 
 function EmergentList({ items }: { items: readonly EmergentWeakness[] }) {
   if (items.length === 0) {
-    return (
-      <p className="kerf-shift-empty">
-        Nothing noteworthy surfaced this session.
-      </p>
-    );
+    return <p className="kerf-shift-empty">Nothing noteworthy surfaced this session.</p>;
   }
   return (
     <>

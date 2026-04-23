@@ -18,10 +18,7 @@ import {
   validatePersistSessionInput,
 } from "./persistSessionHelpers";
 import { computeStats } from "#/domain/stats/computeStats";
-import {
-  HESITATION_MULTIPLIER,
-  PHASE_BASELINES,
-} from "#/domain/stats/baselines";
+import { HESITATION_MULTIPLIER, PHASE_BASELINES } from "#/domain/stats/baselines";
 import { computeSplitMetrics } from "#/domain/metrics/computeSplitMetrics";
 import type { KeyboardLayout } from "#/domain/finger/types";
 
@@ -72,10 +69,7 @@ export const persistSession = createServerFn({ method: "POST" })
       })
       .from(keyboardProfiles)
       .where(
-        and(
-          eq(keyboardProfiles.id, data.keyboardProfileId),
-          eq(keyboardProfiles.userId, userId),
-        ),
+        and(eq(keyboardProfiles.id, data.keyboardProfileId), eq(keyboardProfiles.userId, userId)),
       )
       .limit(1);
     if (!profile) {
@@ -194,11 +188,7 @@ export const persistSession = createServerFn({ method: "POST" })
             })),
           )
           .onConflictDoUpdate({
-            target: [
-              bigramStats.userId,
-              bigramStats.keyboardProfileId,
-              bigramStats.bigram,
-            ],
+            target: [bigramStats.userId, bigramStats.keyboardProfileId, bigramStats.bigram],
             set: {
               totalAttempts: sql`${bigramStats.totalAttempts} + EXCLUDED.total_attempts`,
               totalErrors: sql`${bigramStats.totalErrors} + EXCLUDED.total_errors`,

@@ -49,11 +49,7 @@ function chunkTarget(target: string): Chunk[] {
   return chunks;
 }
 
-export function TypingArea({
-  target,
-  expectedLetterHint = true,
-  capture = true,
-}: Props) {
+export function TypingArea({ target, expectedLetterHint = true, capture = true }: Props) {
   const dispatch = useSessionStore((s) => s.dispatch);
   const position = useSessionStore((s) => s.position);
   const charStatus = useSessionStore((s) => s.charStatus);
@@ -96,12 +92,8 @@ export function TypingArea({
     if (!Number.isFinite(lineHeightPx) || lineHeightPx <= 0) return;
     const containerRect = container.getBoundingClientRect();
     const charRect = current.getBoundingClientRect();
-    const charTopInContent =
-      charRect.top - containerRect.top + container.scrollTop;
-    const lineIndex = Math.max(
-      0,
-      Math.round((charTopInContent - paddingTopPx) / lineHeightPx),
-    );
+    const charTopInContent = charRect.top - containerRect.top + container.scrollTop;
+    const lineIndex = Math.max(0, Math.round((charTopInContent - paddingTopPx) / lineHeightPx));
     container.scrollTop = Math.max(0, lineIndex * lineHeightPx);
   }, [position]);
 
@@ -123,9 +115,7 @@ export function TypingArea({
               char={ch}
               className={classFor(index, position, charStatus[index] ?? "pending")}
               expectedBadge={
-                index === position && activeError && expectedLetterHint
-                  ? activeError
-                  : null
+                index === position && activeError && expectedLetterHint ? activeError : null
               }
             />
           );
@@ -178,11 +168,7 @@ function resolveLineHeightPx(styles: CSSStyleDeclaration): number {
   return parseFloat(lh) * fontSize;
 }
 
-function classFor(
-  index: number,
-  position: number,
-  status: CharStatus,
-): string {
+function classFor(index: number, position: number, status: CharStatus): string {
   const base = "kerf-typing-char";
   if (index < position) return `${base} kerf-typing-typed`;
   if (index === position) {

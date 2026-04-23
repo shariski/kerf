@@ -16,12 +16,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "./auth";
 import { db } from "./db";
-import {
-  bigramStats,
-  characterStats,
-  keyboardProfiles,
-  sessions,
-} from "./db/schema";
+import { bigramStats, characterStats, keyboardProfiles, sessions } from "./db/schema";
 import type { KeyboardType } from "./profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import {
@@ -78,12 +73,7 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
         transitionPhase: keyboardProfiles.transitionPhase,
       })
       .from(keyboardProfiles)
-      .where(
-        and(
-          eq(keyboardProfiles.userId, userId),
-          eq(keyboardProfiles.isActive, true),
-        ),
-      )
+      .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
       .limit(1);
     if (!profile) {
       throw new Error("getHomeData: no active profile");
@@ -100,12 +90,7 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
         accuracy: sessions.accuracy,
       })
       .from(sessions)
-      .where(
-        and(
-          eq(sessions.userId, userId),
-          eq(sessions.keyboardProfileId, profile.id),
-        ),
-      )
+      .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
       .orderBy(asc(sessions.startedAt));
 
     if (sessionRows.length === 0) {
@@ -128,20 +113,12 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
     const durationSec =
       endedAtDate === null
         ? 0
-        : Math.max(
-            0,
-            Math.round(
-              (endedAtDate.getTime() - latest.startedAt.getTime()) / 1000,
-            ),
-          );
+        : Math.max(0, Math.round((endedAtDate.getTime() - latest.startedAt.getTime()) / 1000));
     const lastSession: HomeLastSession = {
       startedAt: latest.startedAt.toISOString(),
       endedAt: endedAtDate === null ? null : endedAtDate.toISOString(),
       wpm: typeof latest.wpm === "number" ? Math.round(latest.wpm) : null,
-      accuracyPct:
-        typeof latest.accuracy === "number"
-          ? Math.round(latest.accuracy * 100)
-          : null,
+      accuracyPct: typeof latest.accuracy === "number" ? Math.round(latest.accuracy * 100) : null,
       durationSec,
     };
 
@@ -159,10 +136,7 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
       })
       .from(characterStats)
       .where(
-        and(
-          eq(characterStats.userId, userId),
-          eq(characterStats.keyboardProfileId, profile.id),
-        ),
+        and(eq(characterStats.userId, userId), eq(characterStats.keyboardProfileId, profile.id)),
       );
 
     const bigramRows = await db
@@ -173,12 +147,7 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
         sumTime: bigramStats.sumKeystrokeMs,
       })
       .from(bigramStats)
-      .where(
-        and(
-          eq(bigramStats.userId, userId),
-          eq(bigramStats.keyboardProfileId, profile.id),
-        ),
-      );
+      .where(and(eq(bigramStats.userId, userId), eq(bigramStats.keyboardProfileId, profile.id)));
 
     const topWeaknesses = computeWeaknessRanking({
       chars: charRows,

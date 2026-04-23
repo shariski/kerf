@@ -25,10 +25,7 @@ import {
   type SplitSnapshot,
   type WeaknessRankEntry,
 } from "#/domain/dashboard/aggregates";
-import {
-  computeWeaknessBreakdown,
-  type WeaknessBreakdown,
-} from "#/domain/dashboard/breakdown";
+import { computeWeaknessBreakdown, type WeaknessBreakdown } from "#/domain/dashboard/breakdown";
 import { PHASE_BASELINES } from "#/domain/stats/baselines";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import {
@@ -127,12 +124,7 @@ export const getDashboardHeroStats = createServerFn({
       keyboardType: keyboardProfiles.keyboardType,
     })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     throw new Error("getDashboardHeroStats: no active profile");
@@ -149,12 +141,7 @@ export const getDashboardHeroStats = createServerFn({
       accuracy: sessions.accuracy,
     })
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.userId, userId),
-        eq(sessions.keyboardProfileId, profile.id),
-      ),
-    )
+    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
     .orderBy(asc(sessions.startedAt));
 
   if (sessionRows.length === 0) {
@@ -174,10 +161,7 @@ export const getDashboardHeroStats = createServerFn({
     })
     .from(characterStats)
     .where(
-      and(
-        eq(characterStats.userId, userId),
-        eq(characterStats.keyboardProfileId, profile.id),
-      ),
+      and(eq(characterStats.userId, userId), eq(characterStats.keyboardProfileId, profile.id)),
     );
 
   // Recent split-metrics snapshots only — see SPLIT_METRICS_RECENT_N
@@ -205,20 +189,18 @@ export const getDashboardHeroStats = createServerFn({
       ),
     )
     .orderBy(asc(splitMetricsSnapshots.createdAt));
-  const splitRows: SplitSnapshot[] = splitRowsAll
-    .slice(-SPLIT_METRICS_RECENT_N)
-    .map((r) => ({
-      innerColAttempts: r.innerColAttempts ?? 0,
-      innerColErrors: r.innerColErrors ?? 0,
-      innerColErrorRate: r.innerColErrorRate,
-      thumbClusterCount: r.thumbClusterCount,
-      thumbClusterAvgMs: r.thumbClusterAvgMs,
-      crossHandBigramCount: r.crossHandBigramCount,
-      crossHandBigramAvgMs: r.crossHandBigramAvgMs,
-      columnarStableCount: r.columnarStableCount,
-      columnarDriftCount: r.columnarDriftCount,
-      columnarStabilityPct: r.columnarStabilityPct,
-    }));
+  const splitRows: SplitSnapshot[] = splitRowsAll.slice(-SPLIT_METRICS_RECENT_N).map((r) => ({
+    innerColAttempts: r.innerColAttempts ?? 0,
+    innerColErrors: r.innerColErrors ?? 0,
+    innerColErrorRate: r.innerColErrorRate,
+    thumbClusterCount: r.thumbClusterCount,
+    thumbClusterAvgMs: r.thumbClusterAvgMs,
+    crossHandBigramCount: r.crossHandBigramCount,
+    crossHandBigramAvgMs: r.crossHandBigramAvgMs,
+    columnarStableCount: r.columnarStableCount,
+    columnarDriftCount: r.columnarDriftCount,
+    columnarStabilityPct: r.columnarStabilityPct,
+  }));
 
   // --- derive ---------------------------------------------------------
 
@@ -231,16 +213,10 @@ export const getDashboardHeroStats = createServerFn({
     .map((a) => a * 100);
 
   const avgWpm = wpmValues.length > 0 ? Math.round(mean(wpmValues)) : 0;
-  const accuracyPct =
-    accuracyPcts.length > 0 ? Math.round(mean(accuracyPcts)) : 100;
+  const accuracyPct = accuracyPcts.length > 0 ? Math.round(mean(accuracyPcts)) : 100;
 
-  const avgWpmTrend = roundOrNull(
-    computeTrendDelta(wpmValues, TREND_BASELINE_N),
-  );
-  const accuracyTrendPct = roundOrNull(
-    computeTrendDelta(accuracyPcts, TREND_BASELINE_N),
-    1,
-  );
+  const avgWpmTrend = roundOrNull(computeTrendDelta(wpmValues, TREND_BASELINE_N));
+  const accuracyTrendPct = roundOrNull(computeTrendDelta(accuracyPcts, TREND_BASELINE_N), 1);
 
   const mastered = computeMasteredCount(
     charStatRows.map((c) => ({
@@ -358,12 +334,7 @@ export const getDashboardActivity = createServerFn({
   const [profile] = await db
     .select({ id: keyboardProfiles.id })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     return { days: bucketActivityByDay([], new Date(), ACTIVITY_WINDOW_DAYS), recentSessions: [] };
@@ -383,12 +354,7 @@ export const getDashboardActivity = createServerFn({
       filterConfig: sessions.filterConfig,
     })
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.userId, userId),
-        eq(sessions.keyboardProfileId, profile.id),
-      ),
-    )
+    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
     .orderBy(asc(sessions.startedAt));
 
   const now = new Date();
@@ -404,9 +370,7 @@ export const getDashboardActivity = createServerFn({
     .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
     .slice(0, RECENT_SESSIONS_N);
 
-  const recentSessions: RecentSession[] = recent.map((s) =>
-    toRecentSession(s, now),
-  );
+  const recentSessions: RecentSession[] = recent.map((s) => toRecentSession(s, now));
 
   return { days, recentSessions };
 });
@@ -423,10 +387,7 @@ type SessionRow = {
 };
 
 function toRecentSession(row: SessionRow, now: Date): RecentSession {
-  const durationMs =
-    row.endedAt !== null
-      ? row.endedAt.getTime() - row.startedAt.getTime()
-      : 0;
+  const durationMs = row.endedAt !== null ? row.endedAt.getTime() - row.startedAt.getTime() : 0;
 
   const mode = row.mode === "targeted_drill" ? "targeted_drill" : "adaptive";
   const cfg = isRecord(row.filterConfig) ? row.filterConfig : {};
@@ -491,12 +452,7 @@ export const getDashboardHeatmap = createServerFn({
       keyboardType: keyboardProfiles.keyboardType,
     })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     return {
@@ -515,10 +471,7 @@ export const getDashboardHeatmap = createServerFn({
     })
     .from(characterStats)
     .where(
-      and(
-        eq(characterStats.userId, userId),
-        eq(characterStats.keyboardProfileId, profile.id),
-      ),
+      and(eq(characterStats.userId, userId), eq(characterStats.keyboardProfileId, profile.id)),
     );
 
   const entries = computeHeatLevels(
@@ -575,9 +528,7 @@ function buildSessionDescription(input: {
   // than "either" so filters show up in the session log.
   const hand = input.filterConfig.handIsolation;
   const handSuffix =
-    hand === "left" ? " · left hand only"
-      : hand === "right" ? " · right hand only"
-        : "";
+    hand === "left" ? " · left hand only" : hand === "right" ? " · right hand only" : "";
   return `${words} words${handSuffix}`;
 }
 
@@ -629,12 +580,7 @@ export const getDashboardTrajectory = createServerFn({
   const [profile] = await db
     .select({ id: keyboardProfiles.id })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     return {
@@ -655,12 +601,7 @@ export const getDashboardTrajectory = createServerFn({
       accuracy: sessions.accuracy,
     })
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.userId, userId),
-        eq(sessions.keyboardProfileId, profile.id),
-      ),
-    )
+    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
     .orderBy(asc(sessions.startedAt));
 
   if (rows.length === 0) {
@@ -687,13 +628,8 @@ export const getDashboardTrajectory = createServerFn({
   return {
     points,
     current: { wpm: last.wpm, accuracyPct: last.accuracyPct },
-    wpmDelta: roundOrNull(
-      computeTrendDelta(wpmSeries, TREND_BASELINE_N_TRAJECTORY),
-    ),
-    accuracyDelta: roundOrNull(
-      computeTrendDelta(accSeries, TREND_BASELINE_N_TRAJECTORY),
-      1,
-    ),
+    wpmDelta: roundOrNull(computeTrendDelta(wpmSeries, TREND_BASELINE_N_TRAJECTORY)),
+    accuracyDelta: roundOrNull(computeTrendDelta(accSeries, TREND_BASELINE_N_TRAJECTORY), 1),
   };
 });
 
@@ -750,12 +686,7 @@ export const getDashboardWeaknessRanking = createServerFn({
       transitionPhase: keyboardProfiles.transitionPhase,
     })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     return { entries: [], phase: "transitioning", topBreakdown: null };
@@ -774,10 +705,7 @@ export const getDashboardWeaknessRanking = createServerFn({
     })
     .from(characterStats)
     .where(
-      and(
-        eq(characterStats.userId, userId),
-        eq(characterStats.keyboardProfileId, profile.id),
-      ),
+      and(eq(characterStats.userId, userId), eq(characterStats.keyboardProfileId, profile.id)),
     );
 
   const bigramRows = await db
@@ -788,12 +716,7 @@ export const getDashboardWeaknessRanking = createServerFn({
       sumTime: bigramStats.sumKeystrokeMs,
     })
     .from(bigramStats)
-    .where(
-      and(
-        eq(bigramStats.userId, userId),
-        eq(bigramStats.keyboardProfileId, profile.id),
-      ),
-    );
+    .where(and(eq(bigramStats.userId, userId), eq(bigramStats.keyboardProfileId, profile.id)));
 
   const entries = computeWeaknessRanking({
     chars: charRows,
@@ -812,16 +735,12 @@ export const getDashboardWeaknessRanking = createServerFn({
   let topBreakdown: WeaknessBreakdown | null = null;
   if (top) {
     if (top.isCharacter) {
-      const raw = charRows.find(
-        (r) => r.character.toLowerCase() === top.unit,
-      );
+      const raw = charRows.find((r) => r.character.toLowerCase() === top.unit);
       if (raw) {
         topBreakdown = computeWeaknessBreakdown(raw, baseline, phase, 0);
       }
     } else {
-      const raw = bigramRows.find(
-        (r) => r.bigram.toLowerCase() === top.unit,
-      );
+      const raw = bigramRows.find((r) => r.bigram.toLowerCase() === top.unit);
       if (raw) {
         topBreakdown = computeWeaknessBreakdown(raw, baseline, phase, 0);
       }
@@ -878,12 +797,7 @@ export const getDashboardPhaseSuggestion = createServerFn({
       transitionPhase: keyboardProfiles.transitionPhase,
     })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     return { currentPhase: "transitioning", signal: null };
@@ -902,16 +816,8 @@ export const getDashboardPhaseSuggestion = createServerFn({
       innerColErrorRate: splitMetricsSnapshots.innerColErrorRate,
     })
     .from(sessions)
-    .innerJoin(
-      splitMetricsSnapshots,
-      eq(splitMetricsSnapshots.sessionId, sessions.id),
-    )
-    .where(
-      and(
-        eq(sessions.userId, userId),
-        eq(sessions.keyboardProfileId, profile.id),
-      ),
-    )
+    .innerJoin(splitMetricsSnapshots, eq(splitMetricsSnapshots.sessionId, sessions.id))
+    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
     .orderBy(desc(sessions.startedAt))
     .limit(PHASE_SUGGESTION_WINDOW_N);
 
@@ -991,12 +897,7 @@ export const getDashboardWeeklyInsight = createServerFn({
       transitionPhase: keyboardProfiles.transitionPhase,
     })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     return { phase: "transitioning", insight: null };
@@ -1010,12 +911,7 @@ export const getDashboardWeeklyInsight = createServerFn({
       wpm: sessions.wpm,
     })
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.userId, userId),
-        eq(sessions.keyboardProfileId, profile.id),
-      ),
-    )
+    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
     .orderBy(desc(sessions.startedAt))
     .limit(120); // generous ceiling — 14 days at ~8 sessions/day
 
@@ -1079,20 +975,13 @@ export const getDashboardTemporalPatterns = createServerFn({
   const [profile] = await db
     .select({ id: keyboardProfiles.id })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, userId),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) {
     return { sessions: [] };
   }
 
-  const cutoff = new Date(
-    Date.now() - TEMPORAL_PATTERNS_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-  );
+  const cutoff = new Date(Date.now() - TEMPORAL_PATTERNS_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
   const rows = await db
     .select({
@@ -1100,12 +989,7 @@ export const getDashboardTemporalPatterns = createServerFn({
       wpm: sessions.wpm,
     })
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.userId, userId),
-        eq(sessions.keyboardProfileId, profile.id),
-      ),
-    )
+    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
     .orderBy(desc(sessions.startedAt))
     .limit(250); // generous upper bound — worst-case 8 sessions/day × 30
 

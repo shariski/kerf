@@ -21,9 +21,7 @@ import {
   removeFromSessionQueue,
 } from "./sessionRetryQueue";
 
-function makePayload(
-  sessionId = "11111111-1111-4111-8111-111111111111",
-): PersistSessionInput {
+function makePayload(sessionId = "11111111-1111-4111-8111-111111111111"): PersistSessionInput {
   return {
     sessionId,
     keyboardProfileId: "22222222-2222-4222-8222-222222222222",
@@ -80,9 +78,7 @@ describe("sessionRetryQueue", () => {
     // growth on a user who's been offline for days. Recent sessions are
     // more useful diagnostic signal than week-old ones.
     for (let i = 0; i < MAX_QUEUE_SIZE + 3; i++) {
-      enqueueSession(
-        makePayload(`${i.toString().padStart(8, "0")}-0000-4000-8000-000000000000`),
-      );
+      enqueueSession(makePayload(`${i.toString().padStart(8, "0")}-0000-4000-8000-000000000000`));
     }
     const queue = readSessionQueue();
     expect(queue).toHaveLength(MAX_QUEUE_SIZE);

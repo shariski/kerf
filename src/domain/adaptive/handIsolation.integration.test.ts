@@ -48,10 +48,9 @@ describe("generateExercise — hand isolation × real corpus", () => {
     // somewhere (or the finger table has an unmapped letter) — the filter
     // can't be trusted downstream.
     for (const w of realCorpus.words.slice(0, 50)) {
-      expect(
-        w.leftKeystrokes + w.rightKeystrokes,
-        `${w.word} has inconsistent hand counts`,
-      ).toBe(w.length);
+      expect(w.leftKeystrokes + w.rightKeystrokes, `${w.word} has inconsistent hand counts`).toBe(
+        w.length,
+      );
     }
   });
 

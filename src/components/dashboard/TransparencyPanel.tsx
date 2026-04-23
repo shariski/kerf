@@ -33,9 +33,8 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
     return (
       <div className="kerf-dash-transparency kerf-dash-transparency--empty">
         <p className="kerf-dash-transparency-empty-note">
-          The formula is ready, but nothing has cleared the 5-attempt
-          confidence bar yet. Keep practicing — a few more sessions
-          will surface a top weakness and you'll see the live
+          The formula is ready, but nothing has cleared the 5-attempt confidence bar yet. Keep
+          practicing — a few more sessions will surface a top weakness and you'll see the live
           component breakdown here.
         </p>
         <Formula phase={phase} coefficients={COEFFICIENTS[phase]} />
@@ -49,12 +48,8 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
 
       <section className="kerf-dash-transparency-block">
         <header className="kerf-dash-transparency-block-head">
-          <span className="kerf-dash-transparency-eyebrow">
-            applied to your top weakness
-          </span>
-          <span className="kerf-dash-transparency-unit">
-            {breakdown.unit}
-          </span>
+          <span className="kerf-dash-transparency-eyebrow">applied to your top weakness</span>
+          <span className="kerf-dash-transparency-unit">{breakdown.unit}</span>
           <span className="kerf-dash-transparency-attempts">
             {breakdown.attempts} attempts observed
           </span>
@@ -73,12 +68,9 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
           <tbody>
             <tr>
               <td>
-                <span className="kerf-dash-transparency-symbol">α</span>{" "}
-                error rate
+                <span className="kerf-dash-transparency-symbol">α</span> error rate
               </td>
-              <td className="kerf-dash-transparency-num">
-                {formatPct(breakdown.errorRate.raw)}
-              </td>
+              <td className="kerf-dash-transparency-num">{formatPct(breakdown.errorRate.raw)}</td>
               <td className="kerf-dash-transparency-num kerf-dash-transparency-muted">
                 {formatPct(breakdown.errorRate.baseline)}
               </td>
@@ -93,8 +85,7 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
             {breakdown.hesitation ? (
               <tr>
                 <td>
-                  <span className="kerf-dash-transparency-symbol">β</span>{" "}
-                  hesitation
+                  <span className="kerf-dash-transparency-symbol">β</span> hesitation
                 </td>
                 <td className="kerf-dash-transparency-num">
                   {formatPct(breakdown.hesitation.raw)}
@@ -112,13 +103,9 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
             ) : (
               <tr>
                 <td>
-                  <span className="kerf-dash-transparency-symbol">β</span>{" "}
-                  hesitation
+                  <span className="kerf-dash-transparency-symbol">β</span> hesitation
                 </td>
-                <td
-                  className="kerf-dash-transparency-muted"
-                  colSpan={4}
-                >
+                <td className="kerf-dash-transparency-muted" colSpan={4}>
                   not tracked for bigrams in the current schema
                 </td>
               </tr>
@@ -126,12 +113,9 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
 
             <tr>
               <td>
-                <span className="kerf-dash-transparency-symbol">γ</span>{" "}
-                slowness
+                <span className="kerf-dash-transparency-symbol">γ</span> slowness
               </td>
-              <td className="kerf-dash-transparency-num">
-                {Math.round(breakdown.slowness.raw)}ms
-              </td>
+              <td className="kerf-dash-transparency-num">{Math.round(breakdown.slowness.raw)}ms</td>
               <td className="kerf-dash-transparency-num kerf-dash-transparency-muted">
                 {breakdown.slowness.baseline}ms
               </td>
@@ -145,13 +129,9 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
 
             <tr>
               <td>
-                <span className="kerf-dash-transparency-symbol">δ</span>{" "}
-                corpus frequency
+                <span className="kerf-dash-transparency-symbol">δ</span> corpus frequency
               </td>
-              <td
-                className="kerf-dash-transparency-muted"
-                colSpan={3}
-              >
+              <td className="kerf-dash-transparency-muted" colSpan={3}>
                 not loaded in the dashboard read path
               </td>
               <td className="kerf-dash-transparency-num kerf-dash-transparency-contribution">
@@ -162,13 +142,9 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
             {breakdown.innerColumnBonus > 0 ? (
               <tr className="kerf-dash-transparency-bonus-row">
                 <td>
-                  <span className="kerf-dash-transparency-symbol">+</span>{" "}
-                  inner-column bonus
+                  <span className="kerf-dash-transparency-symbol">+</span> inner-column bonus
                 </td>
-                <td
-                  className="kerf-dash-transparency-muted"
-                  colSpan={3}
-                >
+                <td className="kerf-dash-transparency-muted" colSpan={3}>
                   {breakdown.unit} is an inner-column reach
                 </td>
                 <td className="kerf-dash-transparency-num kerf-dash-transparency-contribution">
@@ -188,11 +164,10 @@ export function TransparencyPanel({ breakdown, phase }: Props) {
 
         {breakdown.innerColumnBonus > 0 ? (
           <p className="kerf-dash-transparency-bonus-note">
-            The +{breakdown.innerColumnBonus.toFixed(1)} inner-column
-            bonus only applies while you're in the transitioning phase
-            and only to <code>b g h n t y</code> — the keys that
-            row-stagger typists reach past, and split-columnar typists
-            have to learn as a fresh column.
+            The +{breakdown.innerColumnBonus.toFixed(1)} inner-column bonus only applies while
+            you're in the transitioning phase and only to <code>b g h n t y</code> — the keys that
+            row-stagger typists reach past, and split-columnar typists have to learn as a fresh
+            column.
           </p>
         ) : null}
 
@@ -214,12 +189,8 @@ function Formula({
   return (
     <section className="kerf-dash-transparency-formula">
       <header className="kerf-dash-transparency-formula-head">
-        <span className="kerf-dash-transparency-eyebrow">
-          weakness score formula
-        </span>
-        <span
-          className={`kerf-dash-transparency-phase kerf-dash-transparency-phase--${phase}`}
-        >
+        <span className="kerf-dash-transparency-eyebrow">weakness score formula</span>
+        <span className={`kerf-dash-transparency-phase kerf-dash-transparency-phase--${phase}`}>
           {phase} coefficients
         </span>
       </header>
@@ -228,11 +199,7 @@ function Formula({
         <span className="kerf-dash-transparency-formula-op">=</span>
         <CoefficientTerm c={coefficients.ALPHA} symbol="α" name="error" />
         <span className="kerf-dash-transparency-formula-op">+</span>
-        <CoefficientTerm
-          c={coefficients.BETA}
-          symbol="β"
-          name="hesitation"
-        />
+        <CoefficientTerm c={coefficients.BETA} symbol="β" name="hesitation" />
         <span className="kerf-dash-transparency-formula-op">+</span>
         <CoefficientTerm c={coefficients.GAMMA} symbol="γ" name="slowness" />
         <span className="kerf-dash-transparency-formula-op">−</span>
@@ -242,9 +209,7 @@ function Formula({
             <span className="kerf-dash-transparency-formula-op">+</span>
             <span className="kerf-dash-transparency-formula-term">
               <span className="kerf-dash-transparency-formula-coef">0.3</span>
-              <span className="kerf-dash-transparency-formula-name">
-                inner-column
-              </span>
+              <span className="kerf-dash-transparency-formula-name">inner-column</span>
             </span>
           </>
         ) : null}
@@ -253,20 +218,10 @@ function Formula({
   );
 }
 
-function CoefficientTerm({
-  c,
-  symbol,
-  name,
-}: {
-  c: number;
-  symbol: string;
-  name: string;
-}) {
+function CoefficientTerm({ c, symbol, name }: { c: number; symbol: string; name: string }) {
   return (
     <span className="kerf-dash-transparency-formula-term">
-      <span className="kerf-dash-transparency-formula-coef">
-        {c.toFixed(2)}
-      </span>
+      <span className="kerf-dash-transparency-formula-coef">{c.toFixed(2)}</span>
       <span className="kerf-dash-transparency-formula-sym">{symbol}</span>
       <span className="kerf-dash-transparency-formula-name">{name}</span>
     </span>
@@ -277,20 +232,18 @@ function PhaseNote({ phase }: { phase: TransitionPhase }) {
   if (phase === "transitioning") {
     return (
       <p className="kerf-dash-transparency-phase-note">
-        You're in the <strong>transitioning</strong> phase — errors
-        carry the most weight (α = 0.6) while you're still building
-        muscle memory. Once your error rate consistently tracks below
-        baseline, the engine moves you to <em>refining</em>, where
-        hesitation becomes the dominant lever (β = 0.35).
+        You're in the <strong>transitioning</strong> phase — errors carry the most weight (α = 0.6)
+        while you're still building muscle memory. Once your error rate consistently tracks below
+        baseline, the engine moves you to <em>refining</em>, where hesitation becomes the dominant
+        lever (β = 0.35).
       </p>
     );
   }
   return (
     <p className="kerf-dash-transparency-phase-note">
-      You're in the <strong>refining</strong> phase — hesitation now
-      carries the most weight (β = 0.35) because errors on their own
-      don't say much at this level. The engine focuses on letters you
-      know but still pause on, to turn recognition into flow.
+      You're in the <strong>refining</strong> phase — hesitation now carries the most weight (β =
+      0.35) because errors on their own don't say much at this level. The engine focuses on letters
+      you know but still pause on, to turn recognition into flow.
     </p>
   );
 }

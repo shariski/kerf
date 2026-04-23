@@ -77,9 +77,7 @@ describe("createCorpusLoader", () => {
 
   describe("validation", () => {
     it("rejects when version mismatches CORPUS_VERSION", async () => {
-      const fetchJson = vi
-        .fn()
-        .mockResolvedValue(validCorpus({ version: 9999 }));
+      const fetchJson = vi.fn().mockResolvedValue(validCorpus({ version: 9999 }));
       const loader = createCorpusLoader({ fetchJson });
 
       await expect(loader.load()).rejects.toThrow(/version/i);
@@ -93,9 +91,7 @@ describe("createCorpusLoader", () => {
     });
 
     it("rejects when words is not an array", async () => {
-      const fetchJson = vi
-        .fn()
-        .mockResolvedValue({ ...validCorpus(), words: "nope" });
+      const fetchJson = vi.fn().mockResolvedValue({ ...validCorpus(), words: "nope" });
       const loader = createCorpusLoader({ fetchJson });
 
       await expect(loader.load()).rejects.toThrow(/words/i);
@@ -103,9 +99,7 @@ describe("createCorpusLoader", () => {
 
     it("rejects when a word entry is missing required fields", async () => {
       const broken = { word: "the" };
-      const fetchJson = vi
-        .fn()
-        .mockResolvedValue({ ...validCorpus(), words: [broken] });
+      const fetchJson = vi.fn().mockResolvedValue({ ...validCorpus(), words: [broken] });
       const loader = createCorpusLoader({ fetchJson });
 
       await expect(loader.load()).rejects.toThrow();

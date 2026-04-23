@@ -19,19 +19,13 @@ import type { PersistSessionInput } from "#/server/persistSessionHelpers";
 
 const persistSessionMock = vi.fn();
 vi.mock("#/server/persistSession", () => ({
-  persistSession: (args: { data: PersistSessionInput }) =>
-    persistSessionMock(args),
+  persistSession: (args: { data: PersistSessionInput }) => persistSessionMock(args),
 }));
 
-import {
-  flushSessionQueue,
-  persistSessionWithRetry,
-} from "./persistSessionWithRetry";
+import { flushSessionQueue, persistSessionWithRetry } from "./persistSessionWithRetry";
 import { readSessionQueue } from "./sessionRetryQueue";
 
-function makePayload(
-  sessionId = "11111111-1111-4111-8111-111111111111",
-): PersistSessionInput {
+function makePayload(sessionId = "11111111-1111-4111-8111-111111111111"): PersistSessionInput {
   return {
     sessionId,
     keyboardProfileId: "22222222-2222-4222-8222-222222222222",
@@ -99,9 +93,7 @@ describe("persistSessionWithRetry", () => {
 
     const remaining = readSessionQueue();
     expect(remaining).toHaveLength(1);
-    expect(remaining[0]!.payload.sessionId).toBe(
-      "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-    );
+    expect(remaining[0]!.payload.sessionId).toBe("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
   });
 
   it("flush is a no-op when the queue is empty", async () => {

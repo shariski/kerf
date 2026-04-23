@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  createFileRoute,
-  redirect,
-  Link,
-  useRouter,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getDashboardActivity,
@@ -24,11 +19,7 @@ import {
   type DashboardWeaknessRankingData,
   type DashboardWeeklyInsightData,
 } from "#/server/dashboard";
-import {
-  listKeyboardProfiles,
-  switchActiveProfile,
-  type ProfileListEntry,
-} from "#/server/profile";
+import { listKeyboardProfiles, switchActiveProfile, type ProfileListEntry } from "#/server/profile";
 import {
   KeyboardSwitcherPill,
   type KeyboardSwitcherProfile,
@@ -147,10 +138,7 @@ function DashboardPage() {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const targetEl = e.target as HTMLElement | null;
       const tag = targetEl?.tagName;
-      const inField =
-        tag === "INPUT" ||
-        tag === "TEXTAREA" ||
-        targetEl?.isContentEditable === true;
+      const inField = tag === "INPUT" || tag === "TEXTAREA" || targetEl?.isContentEditable === true;
       if (inField) return;
 
       // Use `e.code` (physical key) rather than `e.key` for vim
@@ -212,16 +200,12 @@ function DashboardPage() {
   useEffect(() => {
     const onScroll = () => {
       const scrolled = window.scrollY;
-      const max =
-        document.documentElement.scrollHeight - window.innerHeight;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
       if (max < 40) {
         setShowScrollHint(false);
         return;
       }
-      const threshold = Math.min(
-        Math.round(window.innerHeight * 0.5),
-        Math.round(max * 0.5),
-      );
+      const threshold = Math.min(Math.round(window.innerHeight * 0.5), Math.round(max * 0.5));
       setShowScrollHint(scrolled < threshold);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -249,10 +233,7 @@ function DashboardPage() {
           <div className="kerf-dash-page-breadcrumb">Your progress</div>
           <h1 className="kerf-dash-page-title">Dashboard</h1>
         </div>
-        <KeyboardSwitcherPill
-          profiles={switcherProfiles}
-          onSwitchProfile={handleSwitchProfile}
-        />
+        <KeyboardSwitcherPill profiles={switcherProfiles} onSwitchProfile={handleSwitchProfile} />
       </header>
 
       <Section title="Where you are now" meta={meta}>
@@ -263,17 +244,11 @@ function DashboardPage() {
         <ActivityLog data={activity} />
       </Section>
 
-      <Section
-        title="Per-key heatmap"
-        meta={`${heatmap.keyboardType} base layer`}
-      >
+      <Section title="Per-key heatmap" meta={`${heatmap.keyboardType} base layer`}>
         <Heatmap data={heatmap} />
       </Section>
 
-      <Section
-        title="Top weaknesses"
-        meta={`ranked by ${weakness.phase} engine`}
-      >
+      <Section title="Top weaknesses" meta={`ranked by ${weakness.phase} engine`}>
         <WeaknessRanking data={weakness} />
       </Section>
 
@@ -307,14 +282,8 @@ function DashboardPage() {
         />
       </Section>
 
-      <Section
-        title="How is this calculated?"
-        meta="live formula + top-weakness breakdown"
-      >
-        <TransparencyPanel
-          breakdown={weakness.topBreakdown}
-          phase={weakness.phase}
-        />
+      <Section title="How is this calculated?" meta="live formula + top-weakness breakdown">
+        <TransparencyPanel breakdown={weakness.topBreakdown} phase={weakness.phase} />
       </Section>
 
       <div
@@ -353,9 +322,8 @@ function EmptyState() {
       <div className="kerf-dash-empty">
         <h1 className="kerf-dash-empty-title">No practice yet</h1>
         <p className="kerf-dash-empty-body">
-          Finish your first session and your stats will land here —
-          accuracy, speed, letters you've mastered, and split-keyboard-
-          specific signals the engine watches.
+          Finish your first session and your stats will land here — accuracy, speed, letters you've
+          mastered, and split-keyboard- specific signals the engine watches.
         </p>
         <Link to="/practice" className="kerf-dash-empty-cta">
           Start your first session

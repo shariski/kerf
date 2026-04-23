@@ -27,9 +27,7 @@ describe("LILY58_GEOMETRY", () => {
   });
 
   it("covers every typable character declared in LILY58_BASE_LAYER", () => {
-    const missing = Object.keys(LILY58_BASE_LAYER).filter(
-      (char) => !allChars.includes(char),
-    );
+    const missing = Object.keys(LILY58_BASE_LAYER).filter((char) => !allChars.includes(char));
     expect(missing).toEqual([]);
   });
 

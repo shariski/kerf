@@ -12,16 +12,8 @@ type Props = {
   style?: CSSProperties;
 };
 
-export const Lily58SVG = forwardRef<KeyboardSVGHandle, Props>(function Lily58SVG(
-  props,
-  ref,
-) {
+export const Lily58SVG = forwardRef<KeyboardSVGHandle, Props>(function Lily58SVG(props, ref) {
   return (
-    <KeyboardSVG
-      ref={ref}
-      geometry={LILY58_GEOMETRY}
-      fingerTable={LILY58_BASE_LAYER}
-      {...props}
-    />
+    <KeyboardSVG ref={ref} geometry={LILY58_GEOMETRY} fingerTable={LILY58_BASE_LAYER} {...props} />
   );
 });

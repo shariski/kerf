@@ -23,10 +23,7 @@ import type { Corpus, CorpusWord } from "../src/domain/corpus/types";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 
-const SOURCE_FILE = resolve(
-  ROOT,
-  "scripts/data/google-10000-english-usa-no-swears.txt",
-);
+const SOURCE_FILE = resolve(ROOT, "scripts/data/google-10000-english-usa-no-swears.txt");
 const OUT_FILE = resolve(ROOT, "public/corpus.json");
 const SOURCE_NAME = "google-10000-english-usa-no-swears";
 
@@ -39,14 +36,7 @@ const ALPHA_ONLY = /^[a-z]+$/;
 // as a belt-and-suspenders pass. Add here if something slips through.
 const EXTRA_BLOCKLIST: ReadonlySet<string> = new Set<string>([]);
 
-const INNER_COLUMN: ReadonlySet<string> = new Set([
-  "b",
-  "g",
-  "h",
-  "n",
-  "t",
-  "y",
-]);
+const INNER_COLUMN: ReadonlySet<string> = new Set(["b", "g", "h", "n", "t", "y"]);
 
 function buildWord(word: string, freqRank: number): CorpusWord {
   const chars = [...new Set(word.split(""))].sort();
@@ -62,9 +52,7 @@ function buildWord(word: string, freqRank: number): CorpusWord {
     // Sofle and Lily58 share alpha assignments — either lookup works.
     const assignment = getFingerForKey("sofle", ch);
     if (!assignment) {
-      throw new Error(
-        `word "${word}" contains char "${ch}" with no finger assignment`,
-      );
+      throw new Error(`word "${word}" contains char "${ch}" with no finger assignment`);
     }
     if (assignment.hand === "left") left++;
     else right++;
@@ -85,7 +73,10 @@ function buildWord(word: string, freqRank: number): CorpusWord {
 
 function main(): void {
   const raw = readFileSync(SOURCE_FILE, "utf8");
-  const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = raw
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 
   let kept = 0;
   let droppedLen = 0;

@@ -20,11 +20,7 @@ export function HeroStats({ data }: Props) {
       <FeaturedCard
         label="accuracy"
         value={<>{data.accuracyPct}%</>}
-        trend={
-          data.accuracyTrendPct !== null
-            ? signedPct(data.accuracyTrendPct)
-            : null
-        }
+        trend={data.accuracyTrendPct !== null ? signedPct(data.accuracyTrendPct) : null}
         trendCaption={`vs first 7 sessions`}
         sparkline={data.accuracySparkline}
       />
@@ -41,9 +37,7 @@ export function HeroStats({ data }: Props) {
         value={
           <>
             {data.mastered.count}
-            <span className="kerf-dash-hero-denominator">
-              /{data.mastered.total}
-            </span>
+            <span className="kerf-dash-hero-denominator">/{data.mastered.total}</span>
           </>
         }
         caption="letters at < 5% error"
@@ -62,9 +56,7 @@ export function HeroStats({ data }: Props) {
         }
         caption={
           data.longestStreakDays > 0
-            ? `longest: ${data.longestStreakDays} day${
-                data.longestStreakDays === 1 ? "" : "s"
-              }`
+            ? `longest: ${data.longestStreakDays} day${data.longestStreakDays === 1 ? "" : "s"}`
             : "start your first streak"
         }
       />
@@ -94,20 +86,13 @@ function FeaturedCard({
       <div className="kerf-dash-hero-context">
         {trend ? (
           <>
-            <span
-              className="kerf-dash-hero-trend"
-              data-dir={trend.dir}
-            >
+            <span className="kerf-dash-hero-trend" data-dir={trend.dir}>
               {trend.text}
             </span>
-            <span className="kerf-dash-hero-trend-caption">
-              {trendCaption}
-            </span>
+            <span className="kerf-dash-hero-trend-caption">{trendCaption}</span>
           </>
         ) : (
-          <span className="kerf-dash-hero-trend-caption">
-            trend appears after 8 sessions
-          </span>
+          <span className="kerf-dash-hero-trend-caption">trend appears after 8 sessions</span>
         )}
       </div>
       <SparklineSvg
@@ -139,16 +124,11 @@ function SecondaryCard({
       <div className="kerf-dash-hero-context">
         {trend ? (
           <>
-            <span
-              className="kerf-dash-hero-trend"
-              data-dir={trend.dir}
-            >
+            <span className="kerf-dash-hero-trend" data-dir={trend.dir}>
               {trend.text}
             </span>
             {trendCaption ? (
-              <span className="kerf-dash-hero-trend-caption">
-                {trendCaption}
-              </span>
+              <span className="kerf-dash-hero-trend-caption">{trendCaption}</span>
             ) : null}
           </>
         ) : caption ? (
@@ -165,16 +145,14 @@ type SignedFormatted = { text: string; dir: "up" | "down" | "flat" };
 
 function signedPct(delta: number): SignedFormatted {
   const rounded = Math.round(delta * 10) / 10;
-  const dir: SignedFormatted["dir"] =
-    rounded > 0 ? "up" : rounded < 0 ? "down" : "flat";
+  const dir: SignedFormatted["dir"] = rounded > 0 ? "up" : rounded < 0 ? "down" : "flat";
   const sign = rounded > 0 ? "+" : rounded < 0 ? "−" : "±";
   return { dir, text: `${sign}${Math.abs(rounded)} pts` };
 }
 
 function signedWpm(delta: number): SignedFormatted {
   const rounded = Math.round(delta);
-  const dir: SignedFormatted["dir"] =
-    rounded > 0 ? "up" : rounded < 0 ? "down" : "flat";
+  const dir: SignedFormatted["dir"] = rounded > 0 ? "up" : rounded < 0 ? "down" : "flat";
   const sign = rounded > 0 ? "+" : rounded < 0 ? "−" : "±";
   return { dir, text: `${sign}${Math.abs(rounded)} wpm` };
 }

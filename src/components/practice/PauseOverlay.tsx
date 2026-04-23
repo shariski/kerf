@@ -34,44 +34,27 @@ type Props = {
   onEnd: () => void;
 };
 
-export function PauseOverlay({
-  settings,
-  onSettingsChange,
-  onResume,
-  onRestart,
-  onEnd,
-}: Props) {
+export function PauseOverlay({ settings, onSettingsChange, onResume, onRestart, onEnd }: Props) {
   const resumeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     resumeRef.current?.focus();
   }, []);
 
-  const set = <K extends keyof PauseSettings>(
-    key: K,
-    value: PauseSettings[K],
-  ) => onSettingsChange({ ...settings, [key]: value });
+  const set = <K extends keyof PauseSettings>(key: K, value: PauseSettings[K]) =>
+    onSettingsChange({ ...settings, [key]: value });
 
   return (
-    <div
-      className="kerf-pause-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Session paused"
-    >
+    <div className="kerf-pause-overlay" role="dialog" aria-modal="true" aria-label="Session paused">
       <div className="kerf-pause-panel">
         <div className="kerf-pause-label">paused</div>
         <h2 className="kerf-pause-title">Take a breath.</h2>
         <p className="kerf-pause-subtitle">
-          Accuracy improves when you slow down. Adjust settings below or
-          resume when ready.
+          Accuracy improves when you slow down. Adjust settings below or resume when ready.
         </p>
 
         <div className="kerf-pause-settings">
-          <SettingRow
-            label="Typing text size"
-            description="larger = easier on the eyes"
-          >
+          <SettingRow label="Typing text size" description="larger = easier on the eyes">
             {(["S", "M", "L", "XL"] as const).map((s) => (
               <PillOption
                 key={s}
@@ -83,28 +66,16 @@ export function PauseOverlay({
             ))}
           </SettingRow>
 
-          <SettingRow
-            label="Visual keyboard"
-            description="show finger assignment hints"
-          >
-            <PillOption
-              active={settings.showKeyboard}
-              onClick={() => set("showKeyboard", true)}
-            >
+          <SettingRow label="Visual keyboard" description="show finger assignment hints">
+            <PillOption active={settings.showKeyboard} onClick={() => set("showKeyboard", true)}>
               Show
             </PillOption>
-            <PillOption
-              active={!settings.showKeyboard}
-              onClick={() => set("showKeyboard", false)}
-            >
+            <PillOption active={!settings.showKeyboard} onClick={() => set("showKeyboard", false)}>
               Hide
             </PillOption>
           </SettingRow>
 
-          <SettingRow
-            label="Expected-letter hint"
-            description="show correct letter above errors"
-          >
+          <SettingRow label="Expected-letter hint" description="show correct letter above errors">
             <PillOption
               active={settings.expectedLetterHint}
               onClick={() => set("expectedLetterHint", true)}
@@ -130,11 +101,7 @@ export function PauseOverlay({
             Resume
             <span className="kerf-pause-btn-shortcut">⏎</span>
           </button>
-          <button
-            type="button"
-            className="kerf-pause-btn"
-            onClick={onRestart}
-          >
+          <button type="button" className="kerf-pause-btn" onClick={onRestart}>
             Restart exercise
             <span className="kerf-pause-btn-shortcut">⇥</span>
           </button>

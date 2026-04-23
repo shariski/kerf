@@ -9,9 +9,7 @@ const word = (over: Partial<CorpusWord> = {}): CorpusWord => {
     word: w,
     length: over.length ?? w.length,
     chars: over.chars ?? [...new Set(w.split(""))].sort(),
-    bigrams:
-      over.bigrams ??
-      Array.from({ length: w.length - 1 }, (_, i) => w.slice(i, i + 2)),
+    bigrams: over.bigrams ?? Array.from({ length: w.length - 1 }, (_, i) => w.slice(i, i + 2)),
     freqRank: over.freqRank ?? 0,
     leftKeystrokes: over.leftKeystrokes ?? 0,
     rightKeystrokes: over.rightKeystrokes ?? w.length,
