@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
@@ -32,7 +32,7 @@ import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import { AppFooter } from "#/components/nav/AppFooter";
 import { generateSession } from "#/domain/adaptive/sessionGenerator";
 import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
-import { selectTarget } from "#/domain/adaptive/targetSelection";
+import { rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
 import type { SessionTarget } from "#/domain/adaptive/targetSelection";
 import { DRILL_LIBRARY } from "#/domain/adaptive/drillLibraryData";
 
@@ -112,6 +112,7 @@ function PracticePage() {
   const { profile, isFirstSession, engineData } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const status = useSessionStore((s) => s.status);
   const currentTarget = useSessionStore((s) => s.target);
   const corpus = useCorpus();
@@ -195,6 +196,18 @@ function PracticePage() {
         },
       },
     });
+
+    // Dev-only observability: surface the top-3 weakness candidates and
+    // their weighted scores so it's easy to tell *why* a target was
+    // picked (and, after a session, whether it's about to change).
+    if (import.meta.env.DEV) {
+      const ranked = rankTargets(stats, baseline, phase, () => 0.5).slice(0, 3);
+      console.log(
+        "[adaptive] top-3 weakness candidates:",
+        ranked.map((t) => ({ type: t.type, value: t.value, score: t.score?.toFixed(3) })),
+      );
+      console.log("[adaptive] picked:", output.target.type, JSON.stringify(output.target.value));
+    }
 
     briefingShownAtRef.current = new Date();
     sessionModeRef.current = "adaptive";
@@ -463,6 +476,10 @@ function PracticePage() {
     const startedAt = new Date(endedAt.getTime() - elapsedMs);
 
     const st = currentSessionTargetRef.current;
+    // Invalidate the route on completion so the next "Practice again"
+    // reads fresh stats (updated character_stats / bigram_stats) instead
+    // of the loader snapshot from page mount — otherwise selectTarget
+    // keeps picking the same target across sessions on the same page.
     void persistSessionWithRetry({
       sessionId: crypto.randomUUID(),
       keyboardProfileId: profile.id,
@@ -499,8 +516,10 @@ function PracticePage() {
             },
           }
         : {}),
+    }).finally(() => {
+      void router.invalidate();
     });
-  }, [status, profile.id, profile.transitionPhase, filters]);
+  }, [status, profile.id, profile.transitionPhase, filters, router]);
 
   // Per-key breakdown for the post-session summary — computed once on complete.
   // useMemo re-runs if status flips (idle → complete → idle), which is fine.

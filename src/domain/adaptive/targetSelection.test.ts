@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { selectTarget, TARGET_JOURNEY_WEIGHTS, diagnosticTarget } from "./targetSelection";
+import {
+  rankTargets,
+  selectTarget,
+  TARGET_JOURNEY_WEIGHTS,
+  diagnosticTarget,
+} from "./targetSelection";
 import type { CharacterStat, BigramStat, UserBaseline } from "../stats/types";
 
 const baseline = (over: Partial<UserBaseline> = {}): UserBaseline => ({
@@ -113,5 +118,59 @@ describe("selectTarget — returns SessionTarget with correct shape", () => {
     // (inner-column has weight 1.2 under columnar). Sanity: the value should
     // be larger than the unweighted aggregate would be alone.
     expect(chosen.score).toBeGreaterThan(0.8); // very loose lower bound
+  });
+});
+
+describe("rankTargets — full candidate ranking for diagnostics", () => {
+  const charsStats = (): CharacterStat[] => [
+    { character: "x", attempts: 100, errors: 25, sumTime: 30_000, hesitationCount: 5 },
+    { character: "q", attempts: 100, errors: 15, sumTime: 30_000, hesitationCount: 3 },
+    { character: "a", attempts: 100, errors: 2, sumTime: 28_000, hesitationCount: 0 },
+  ];
+  const bigramsStats = (): BigramStat[] => [
+    { bigram: "uw", attempts: 40, errors: 18, sumTime: 16_000 },
+    { bigram: "th", attempts: 200, errors: 4, sumTime: 50_000 },
+  ];
+
+  it("returns candidates sorted by weighted score descending", () => {
+    const ranked = rankTargets(
+      statsWith(charsStats(), bigramsStats()),
+      baseline(),
+      "transitioning",
+      freq,
+    );
+    expect(ranked.length).toBeGreaterThanOrEqual(2);
+    for (let i = 1; i < ranked.length; i++) {
+      expect(ranked[i - 1]?.score ?? 0).toBeGreaterThanOrEqual(ranked[i]?.score ?? 0);
+    }
+  });
+
+  it("scores match what selectTarget would pick as the top", () => {
+    const ranked = rankTargets(
+      statsWith(charsStats(), bigramsStats()),
+      baseline(),
+      "transitioning",
+      freq,
+    );
+    const chosen = selectTarget(
+      statsWith(charsStats(), bigramsStats()),
+      baseline(),
+      "transitioning",
+      freq,
+    );
+    const [top] = ranked;
+    expect(top).toBeDefined();
+    expect(top?.type).toBe(chosen.type);
+    expect(top?.value).toBe(chosen.value);
+  });
+
+  it("returns empty array when no stats meet the confidence threshold", () => {
+    const ranked = rankTargets(
+      statsWith([{ character: "g", attempts: 1, errors: 0, sumTime: 200, hesitationCount: 0 }], []),
+      baseline(),
+      "transitioning",
+      freq,
+    );
+    expect(ranked).toEqual([]);
   });
 });

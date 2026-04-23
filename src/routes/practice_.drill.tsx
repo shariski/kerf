@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
@@ -368,6 +368,7 @@ function DrillPage() {
   const { profile } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const status = useSessionStore((s) => s.status);
   const corpus = useCorpus();
 
@@ -651,8 +652,13 @@ function DrillPage() {
             },
           }
         : {}),
+    }).finally(() => {
+      // Refresh the route loader so the next adaptive-target pick
+      // reads updated character_stats / bigram_stats instead of the
+      // snapshot from page mount. Symmetric with /practice.
+      void router.invalidate();
     });
-  }, [status, activeDrill, profile.id, profile.transitionPhase, search]);
+  }, [status, activeDrill, profile.id, profile.transitionPhase, search, router]);
 
   const runAgain = () => {
     if (corpus.status !== "ready") return;
