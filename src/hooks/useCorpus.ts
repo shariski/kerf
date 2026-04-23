@@ -21,7 +21,7 @@ const loader = createCorpusLoader({ fetchJson });
 /** Count of corpus words containing each bigram (not total occurrences).
  *  De-duplicating within a single word ensures a word like "tt" in "butter"
  *  contributes 1, not 2, to the "tt" count. */
-function buildBigramSupport(corpus: Corpus): ReadonlyMap<string, number> {
+export function buildBigramSupport(corpus: Corpus): ReadonlyMap<string, number> {
   const counts = new Map<string, number>();
   for (const w of corpus.words) {
     // De-duplicate bigrams within a single word so we're counting
