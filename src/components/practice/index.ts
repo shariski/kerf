@@ -7,3 +7,4 @@ export { DrillPreSessionStage, type PresetKey } from "./DrillPreSessionStage";
 export { DrillActiveHeader } from "./DrillActiveHeader";
 export { DrillPostSessionStage } from "./DrillPostSessionStage";
 export type { PreSessionFilterValues } from "./PreSessionFilters";
+export { SessionBriefing } from "./SessionBriefing";
