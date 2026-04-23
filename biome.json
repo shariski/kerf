@@ -9,7 +9,8 @@
       "!**/dist",
       "!**/build",
       "!**/.output",
-      "!**/.tanstack"
+      "!**/.tanstack",
+      "!src/routeTree.gen.ts"
     ]
   },
   "linter": {
