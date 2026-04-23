@@ -1,9 +1,4 @@
-import type {
-  BigramStat,
-  CharacterStat,
-  TransitionPhase,
-  UserBaseline,
-} from "../stats/types";
+import type { BigramStat, CharacterStat, TransitionPhase, UserBaseline } from "../stats/types";
 import type { JourneyCode } from "./journey";
 
 /**
@@ -39,14 +34,7 @@ export const JOURNEY_BONUSES: Record<
 /** Backward-compat: former single-journey constant. Equals conventional default. */
 export const INNER_COLUMN_BONUS = 0.3;
 
-export const INNER_COLUMN: ReadonlySet<string> = new Set([
-  "b",
-  "g",
-  "h",
-  "n",
-  "t",
-  "y",
-]);
+export const INNER_COLUMN: ReadonlySet<string> = new Set(["b", "g", "h", "n", "t", "y"]);
 
 /**
  * Home-row membership per the base layer (Sofle + Lily58 share home-row keys).
@@ -55,8 +43,16 @@ export const INNER_COLUMN: ReadonlySet<string> = new Set([
  * is not "vertical reach" — thumbs get their own drill category.
  */
 const HOME_ROW_KEYS: ReadonlySet<string> = new Set([
-  "a", "s", "d", "f", "g",
-  "h", "j", "k", "l", ";",
+  "a",
+  "s",
+  "d",
+  "f",
+  "g",
+  "h",
+  "j",
+  "k",
+  "l",
+  ";",
 ]);
 
 function isOffHomeRow(unit: CharacterStat | BigramStat): boolean {
@@ -71,9 +67,8 @@ function isOffHomeRow(unit: CharacterStat | BigramStat): boolean {
  * by callers (the score function itself still produces a value). */
 export const LOW_CONFIDENCE_THRESHOLD = 5;
 
-const isCharacter = (
-  unit: CharacterStat | BigramStat,
-): unit is CharacterStat => "character" in unit;
+const isCharacter = (unit: CharacterStat | BigramStat): unit is CharacterStat =>
+  "character" in unit;
 
 const safeRatio = (n: number, d: number): number => (d > 0 ? n / d : 0);
 
@@ -86,16 +81,11 @@ export function computeWeaknessScore(
   const denomAttempts = Math.max(unit.attempts, 1);
   const errorRate = unit.errors / denomAttempts;
   const meanTime = unit.sumTime / denomAttempts;
-  const hesitationRate = isCharacter(unit)
-    ? unit.hesitationCount / denomAttempts
-    : 0;
+  const hesitationRate = isCharacter(unit) ? unit.hesitationCount / denomAttempts : 0;
 
   const normalizedError = safeRatio(errorRate, baseline.meanErrorRate);
   const normalizedSlowness = safeRatio(meanTime, baseline.meanKeystrokeTime);
-  const normalizedHesitation = safeRatio(
-    hesitationRate,
-    baseline.meanHesitationRate,
-  );
+  const normalizedHesitation = safeRatio(hesitationRate, baseline.meanHesitationRate);
 
   const c = COEFFICIENTS[phase];
   const j = JOURNEY_BONUSES[baseline.journey];
@@ -104,9 +94,7 @@ export function computeWeaknessScore(
   // characters (bigrams are diffuse — they don't belong to one column).
   const journeyBonus =
     phase === "transitioning" && isCharacter(unit)
-      ? (INNER_COLUMN.has(unit.character.toLowerCase())
-          ? j.INNER_COLUMN_BONUS
-          : 0) +
+      ? (INNER_COLUMN.has(unit.character.toLowerCase()) ? j.INNER_COLUMN_BONUS : 0) +
         (isOffHomeRow(unit) ? j.VERTICAL_REACH_BONUS : 0)
       : 0;
 

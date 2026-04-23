@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  MIN_ATTEMPTS_FOR_PERSONAL_BASELINE,
-  PHASE_BASELINES,
-} from "./baselines";
+import { MIN_ATTEMPTS_FOR_PERSONAL_BASELINE, PHASE_BASELINES } from "./baselines";
 import { computeBaseline } from "./computeBaseline";
 import type { CharacterStat, ComputedStats } from "./types";
 

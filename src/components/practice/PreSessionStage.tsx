@@ -20,10 +20,7 @@ import type { KeyboardType } from "#/server/profile";
 import { KeyboardContextPill } from "./KeyboardContextPill";
 import { PhaseBadge } from "./PhaseBadge";
 import { ModeCard } from "./ModeCard";
-import {
-  PreSessionFilters,
-  type PreSessionFilterValues,
-} from "./PreSessionFilters";
+import { PreSessionFilters, type PreSessionFilterValues } from "./PreSessionFilters";
 
 type Props = {
   keyboardType: KeyboardType;
@@ -69,9 +66,7 @@ export function PreSessionStage({
   const subtitle = isFirstSession
     ? "We'll capture a baseline on your split layout, then tailor future exercises to your real weaknesses."
     : "Accuracy first. Speed follows.";
-  const ctaLabel = isFirstSession
-    ? "Start your first session"
-    : "Continue adaptive practice";
+  const ctaLabel = isFirstSession ? "Start your first session" : "Continue adaptive practice";
 
   return (
     <div className="kerf-pre-session">
@@ -83,11 +78,7 @@ export function PreSessionStage({
       <h1 className="kerf-pre-title">{title}</h1>
       <p className="kerf-pre-subtitle">{subtitle}</p>
 
-      <button
-        type="button"
-        className="kerf-pre-cta-primary"
-        onClick={onStartAdaptive}
-      >
+      <button type="button" className="kerf-pre-cta-primary" onClick={onStartAdaptive}>
         <span className="kerf-pre-cta-primary-text">
           <span className="kerf-pre-cta-primary-label">{ctaLabel}</span>
           <span className="kerf-pre-cta-primary-meta">{metaLine}</span>

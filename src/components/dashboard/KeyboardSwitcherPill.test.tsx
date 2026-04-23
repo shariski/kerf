@@ -23,10 +23,7 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
-import {
-  KeyboardSwitcherPill,
-  type KeyboardSwitcherProfile,
-} from "./KeyboardSwitcherPill";
+import { KeyboardSwitcherPill, type KeyboardSwitcherProfile } from "./KeyboardSwitcherPill";
 
 const profiles: KeyboardSwitcherProfile[] = [
   { id: "p1", keyboardType: "lily58", isActive: true },
@@ -37,17 +34,13 @@ afterEach(() => cleanup());
 
 describe("KeyboardSwitcherPill", () => {
   it("renders the active profile name in the trigger", () => {
-    render(
-      <KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />,
-    );
+    render(<KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />);
     const trigger = screen.getByRole("button", { name: /viewing/i });
     expect(trigger.textContent).toMatch(/lily58/);
   });
 
   it("opens the menu on click and lists other profiles", () => {
-    render(
-      <KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />,
-    );
+    render(<KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /viewing/i }));
     expect(screen.getByRole("menu")).toBeTruthy();
     // The non-active profile row is rendered as a button with role=menuitem.
@@ -56,9 +49,7 @@ describe("KeyboardSwitcherPill", () => {
   });
 
   it("marks the active profile as current (aria-disabled) in the menu", () => {
-    render(
-      <KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />,
-    );
+    render(<KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /viewing/i }));
     const current = screen
       .getAllByRole("menuitem")
@@ -69,21 +60,15 @@ describe("KeyboardSwitcherPill", () => {
 
   it("calls onSwitchProfile with the selected profile id", () => {
     const onSwitch = vi.fn();
-    render(
-      <KeyboardSwitcherPill profiles={profiles} onSwitchProfile={onSwitch} />,
-    );
+    render(<KeyboardSwitcherPill profiles={profiles} onSwitchProfile={onSwitch} />);
     fireEvent.click(screen.getByRole("button", { name: /viewing/i }));
-    const sofle = screen
-      .getAllByRole("menuitem")
-      .find((i) => i.textContent?.includes("sofle"));
+    const sofle = screen.getAllByRole("menuitem").find((i) => i.textContent?.includes("sofle"));
     fireEvent.click(sofle!);
     expect(onSwitch).toHaveBeenCalledWith("p2");
   });
 
   it("closes on Escape and returns focus to the trigger", () => {
-    render(
-      <KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />,
-    );
+    render(<KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />);
     const trigger = screen.getByRole("button", { name: /viewing/i });
     fireEvent.click(trigger);
     expect(screen.getByRole("menu")).toBeTruthy();
@@ -93,9 +78,7 @@ describe("KeyboardSwitcherPill", () => {
   });
 
   it("shows a Manage all link pointing at /keyboards", () => {
-    render(
-      <KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />,
-    );
+    render(<KeyboardSwitcherPill profiles={profiles} onSwitchProfile={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /viewing/i }));
     const link = screen.getByRole("link", { name: /manage all/i });
     expect(link.getAttribute("href")).toBe("/keyboards");

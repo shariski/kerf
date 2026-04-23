@@ -91,12 +91,7 @@ describe("computeWeaknessScore — inner column transition bonus", () => {
   });
 
   it("does not add the bonus in refining phase", () => {
-    const rInner = computeWeaknessScore(
-      innerColUnit,
-      PHASE_BASELINES.refining,
-      "refining",
-      0,
-    );
+    const rInner = computeWeaknessScore(innerColUnit, PHASE_BASELINES.refining, "refining", 0);
     const rNonInner = computeWeaknessScore(
       nonInnerColUnit,
       PHASE_BASELINES.refining,
@@ -120,10 +115,7 @@ describe("computeWeaknessScore — inner column transition bonus", () => {
         "transitioning",
         0,
       );
-      expect(score - noBonus, `expected bonus for '${ch}'`).toBeCloseTo(
-        INNER_COLUMN_BONUS,
-        5,
-      );
+      expect(score - noBonus, `expected bonus for '${ch}'`).toBeCloseTo(INNER_COLUMN_BONUS, 5);
     }
   });
 
@@ -165,18 +157,8 @@ describe("computeWeaknessScore — inner column transition bonus", () => {
 describe("computeWeaknessScore — frequency penalty", () => {
   it("reduces the score for high-frequency units", () => {
     const unit = charStat({ character: "a", attempts: 100, errors: 5 });
-    const lowFreq = computeWeaknessScore(
-      unit,
-      PHASE_BASELINES.transitioning,
-      "transitioning",
-      0,
-    );
-    const highFreq = computeWeaknessScore(
-      unit,
-      PHASE_BASELINES.transitioning,
-      "transitioning",
-      1,
-    );
+    const lowFreq = computeWeaknessScore(unit, PHASE_BASELINES.transitioning, "transitioning", 0);
+    const highFreq = computeWeaknessScore(unit, PHASE_BASELINES.transitioning, "transitioning", 1);
     expect(lowFreq).toBeGreaterThan(highFreq);
   });
 });

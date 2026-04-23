@@ -36,9 +36,13 @@ export function computeStats(
     if (w === 0) continue;
 
     const ch = e.targetChar.toLowerCase();
-    const charStat =
-      characters.get(ch) ??
-      { character: ch, attempts: 0, errors: 0, sumTime: 0, hesitationCount: 0 };
+    const charStat = characters.get(ch) ?? {
+      character: ch,
+      attempts: 0,
+      errors: 0,
+      sumTime: 0,
+      hesitationCount: 0,
+    };
 
     charStat.attempts += w;
     charStat.sumTime += w * e.keystrokeMs;
@@ -50,9 +54,7 @@ export function computeStats(
 
     if (e.prevChar !== undefined) {
       const bg = (e.prevChar + e.targetChar).toLowerCase();
-      const bigramStat =
-        bigrams.get(bg) ??
-        { bigram: bg, attempts: 0, errors: 0, sumTime: 0 };
+      const bigramStat = bigrams.get(bg) ?? { bigram: bg, attempts: 0, errors: 0, sumTime: 0 };
       bigramStat.attempts += w;
       bigramStat.sumTime += w * e.keystrokeMs;
       if (e.isError) bigramStat.errors += w;

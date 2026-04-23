@@ -30,10 +30,8 @@ type Props = {
 export function PreSessionFilters({ values, onChange }: Props) {
   const [open, setOpen] = useState(false);
 
-  const set = <K extends keyof PreSessionFilterValues>(
-    key: K,
-    value: PreSessionFilterValues[K],
-  ) => onChange({ ...values, [key]: value });
+  const set = <K extends keyof PreSessionFilterValues>(key: K, value: PreSessionFilterValues[K]) =>
+    onChange({ ...values, [key]: value });
 
   return (
     <div className="kerf-pre-filters">
@@ -45,11 +43,7 @@ export function PreSessionFilters({ values, onChange }: Props) {
         aria-controls="kerf-pre-filters-content"
       >
         <span>Filters &amp; options</span>
-        <span
-          className="kerf-pre-filters-caret"
-          data-open={open || undefined}
-          aria-hidden
-        >
+        <span className="kerf-pre-filters-caret" data-open={open || undefined} aria-hidden>
           ▶
         </span>
       </button>
@@ -90,16 +84,10 @@ export function PreSessionFilters({ values, onChange }: Props) {
           </FilterRow>
 
           <FilterRow label="Visual keyboard">
-            <Pill
-              active={values.showKeyboard}
-              onClick={() => set("showKeyboard", true)}
-            >
+            <Pill active={values.showKeyboard} onClick={() => set("showKeyboard", true)}>
               Show
             </Pill>
-            <Pill
-              active={!values.showKeyboard}
-              onClick={() => set("showKeyboard", false)}
-            >
+            <Pill active={!values.showKeyboard} onClick={() => set("showKeyboard", false)}>
               Hide
             </Pill>
           </FilterRow>
@@ -109,13 +97,7 @@ export function PreSessionFilters({ values, onChange }: Props) {
   );
 }
 
-function FilterRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="kerf-filter-row">
       <span className="kerf-filter-label">{label}</span>

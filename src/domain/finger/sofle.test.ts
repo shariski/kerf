@@ -3,13 +3,7 @@ import { SOFLE_BASE_LAYER } from "./sofle";
 import type { Finger, Hand } from "./types";
 
 const VALID_HANDS: ReadonlySet<Hand> = new Set(["left", "right"]);
-const VALID_FINGERS: ReadonlySet<Finger> = new Set([
-  "thumb",
-  "index",
-  "middle",
-  "ring",
-  "pinky",
-]);
+const VALID_FINGERS: ReadonlySet<Finger> = new Set(["thumb", "index", "middle", "ring", "pinky"]);
 
 describe("SOFLE_BASE_LAYER", () => {
   describe("coverage", () => {

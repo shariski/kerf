@@ -18,10 +18,16 @@ import type { CharacterStat, UserBaseline } from "../stats/types";
  */
 
 export type VerticalColumnId =
-  | "left-pinky" | "left-ring" | "left-middle"
-  | "left-index-outer" | "left-index-inner"
-  | "right-index-inner" | "right-index-outer"
-  | "right-middle" | "right-ring" | "right-pinky";
+  | "left-pinky"
+  | "left-ring"
+  | "left-middle"
+  | "left-index-outer"
+  | "left-index-inner"
+  | "right-index-inner"
+  | "right-index-outer"
+  | "right-middle"
+  | "right-ring"
+  | "right-pinky";
 
 type MotionCandidate = {
   type: "vertical-column" | "inner-column" | "thumb-cluster";
@@ -34,29 +40,29 @@ type MotionCandidate = {
 /** 5 columns × 2 hands. Each entry lists [top, home, bottom] keys for the
  * Sofle/Lily58 base layer (both keyboards share these on the main alpha area). */
 const VERTICAL_COLUMNS: Record<VerticalColumnId, [string, string, string]> = {
-  "left-pinky":        ["q", "a", "z"],
-  "left-ring":         ["w", "s", "x"],
-  "left-middle":       ["e", "d", "c"],
-  "left-index-outer":  ["r", "f", "v"],
-  "left-index-inner":  ["t", "g", "b"],
+  "left-pinky": ["q", "a", "z"],
+  "left-ring": ["w", "s", "x"],
+  "left-middle": ["e", "d", "c"],
+  "left-index-outer": ["r", "f", "v"],
+  "left-index-inner": ["t", "g", "b"],
   "right-index-inner": ["y", "h", "n"],
   "right-index-outer": ["u", "j", "m"],
-  "right-middle":      ["i", "k", ","],
-  "right-ring":        ["o", "l", "."],
-  "right-pinky":       ["p", ";", "/"],
+  "right-middle": ["i", "k", ","],
+  "right-ring": ["o", "l", "."],
+  "right-pinky": ["p", ";", "/"],
 };
 
 const VERTICAL_LABELS: Record<VerticalColumnId, string> = {
-  "left-pinky":        "Left pinky column vertical reach",
-  "left-ring":         "Left ring column vertical reach",
-  "left-middle":       "Left middle column vertical reach",
-  "left-index-outer":  "Left index (outer) column vertical reach",
-  "left-index-inner":  "Left index (inner) column vertical reach",
+  "left-pinky": "Left pinky column vertical reach",
+  "left-ring": "Left ring column vertical reach",
+  "left-middle": "Left middle column vertical reach",
+  "left-index-outer": "Left index (outer) column vertical reach",
+  "left-index-inner": "Left index (inner) column vertical reach",
   "right-index-inner": "Right index (inner) column vertical reach",
   "right-index-outer": "Right index (outer) column vertical reach",
-  "right-middle":      "Right middle column vertical reach",
-  "right-ring":        "Right ring column vertical reach",
-  "right-pinky":       "Right pinky column vertical reach",
+  "right-middle": "Right middle column vertical reach",
+  "right-ring": "Right ring column vertical reach",
+  "right-pinky": "Right pinky column vertical reach",
 };
 
 function aggregateErrorRate(

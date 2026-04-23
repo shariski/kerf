@@ -3,13 +3,7 @@ import { LILY58_BASE_LAYER } from "./lily58";
 import type { Finger, Hand } from "./types";
 
 const VALID_HANDS: ReadonlySet<Hand> = new Set(["left", "right"]);
-const VALID_FINGERS: ReadonlySet<Finger> = new Set([
-  "thumb",
-  "index",
-  "middle",
-  "ring",
-  "pinky",
-]);
+const VALID_FINGERS: ReadonlySet<Finger> = new Set(["thumb", "index", "middle", "ring", "pinky"]);
 
 describe("LILY58_BASE_LAYER", () => {
   describe("coverage", () => {

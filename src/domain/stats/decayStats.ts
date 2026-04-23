@@ -18,9 +18,6 @@ export function decayWeight(eventAt: Date, asOf: Date): number {
 
 /** Returns a parallel array of events with decay weights attached.
  * Inputs are not mutated. */
-export function decayStats(
-  events: KeystrokeEvent[],
-  asOf: Date,
-): WeightedKeystrokeEvent[] {
+export function decayStats(events: KeystrokeEvent[], asOf: Date): WeightedKeystrokeEvent[] {
   return events.map((e) => ({ ...e, weight: decayWeight(e.timestamp, asOf) }));
 }

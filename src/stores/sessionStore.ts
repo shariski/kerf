@@ -19,11 +19,7 @@
 import { createStore } from "zustand/vanilla";
 import { useStore } from "zustand";
 import { keystrokeReducer } from "#/domain/session/keystrokeReducer";
-import {
-  idleSessionState,
-  type SessionAction,
-  type SessionState,
-} from "#/domain/session/types";
+import { idleSessionState, type SessionAction, type SessionState } from "#/domain/session/types";
 
 export type SessionStore = SessionState & {
   dispatch: (action: SessionAction) => void;

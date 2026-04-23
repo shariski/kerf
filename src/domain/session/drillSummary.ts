@@ -68,8 +68,7 @@ export function summarizeDrill(input: DrillSummaryInput): DrillSummary {
     deltaPct: after.errorRatePct - before.errorRatePct,
     splitIndex,
     insufficientData:
-      before.attempts < DRILL_MIN_PER_HALF_ATTEMPTS ||
-      after.attempts < DRILL_MIN_PER_HALF_ATTEMPTS,
+      before.attempts < DRILL_MIN_PER_HALF_ATTEMPTS || after.attempts < DRILL_MIN_PER_HALF_ATTEMPTS,
   };
 }
 

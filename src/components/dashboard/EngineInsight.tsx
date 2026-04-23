@@ -37,29 +37,20 @@ export function EngineInsight({ insight, phase, topWeaknessName }: Props) {
       <p className="kerf-dash-insight-narrative">{insight.narrative}</p>
 
       <div className="kerf-dash-insight-rationale">
-        <span className="kerf-dash-insight-rationale-label">
-          Next exercise
-        </span>
+        <span className="kerf-dash-insight-rationale-label">Next exercise</span>
         {insight.nextFocus.length > 0 ? (
           <p className="kerf-dash-insight-rationale-text">
             will emphasize <FocusList units={insight.nextFocus} />.
           </p>
         ) : (
-          <p className="kerf-dash-insight-rationale-text">
-            {insight.rationale}
-          </p>
+          <p className="kerf-dash-insight-rationale-text">{insight.rationale}</p>
         )}
       </div>
 
       <footer className="kerf-dash-insight-footer">
-        <span className="kerf-dash-insight-footer-copy">
-          Ready to keep going?
-        </span>
+        <span className="kerf-dash-insight-footer-copy">Ready to keep going?</span>
         <div className="kerf-dash-insight-actions">
-          <Link
-            to="/practice"
-            className="kerf-dash-insight-btn kerf-dash-insight-btn--primary"
-          >
+          <Link to="/practice" className="kerf-dash-insight-btn kerf-dash-insight-btn--primary">
             Continue adaptive practice
           </Link>
           {topWeaknessName ? (
@@ -85,13 +76,8 @@ function FocusList({ units }: { units: readonly WeaknessRankEntry[] }) {
       {units.map((u, i) => (
         <span key={u.unit}>
           {i > 0 ? (i === units.length - 1 ? ", and " : ", ") : null}
-          <strong className="kerf-dash-insight-focus">
-            {u.unit}
-          </strong>
-          <span className="kerf-dash-insight-focus-score">
-            {" "}
-            (score {u.score.toFixed(1)})
-          </span>
+          <strong className="kerf-dash-insight-focus">{u.unit}</strong>
+          <span className="kerf-dash-insight-focus-score"> (score {u.score.toFixed(1)})</span>
         </span>
       ))}
     </>

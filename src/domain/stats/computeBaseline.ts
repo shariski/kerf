@@ -1,7 +1,4 @@
-import {
-  MIN_ATTEMPTS_FOR_PERSONAL_BASELINE,
-  PHASE_BASELINES,
-} from "./baselines";
+import { MIN_ATTEMPTS_FOR_PERSONAL_BASELINE, PHASE_BASELINES } from "./baselines";
 import type { ComputedStats, TransitionPhase, UserBaseline } from "./types";
 import type { JourneyCode } from "#/domain/adaptive/journey";
 

@@ -22,8 +22,16 @@ describe("DRILL_LIBRARY — structural", () => {
     const verticals = DRILL_LIBRARY.filter((e) => e.category === "vertical-column");
     const values = new Set(verticals.map((e) => e.target.value));
     const expectedColumns = [
-      "left-pinky", "left-ring", "left-middle", "left-index-outer", "left-index-inner",
-      "right-index-inner", "right-index-outer", "right-middle", "right-ring", "right-pinky",
+      "left-pinky",
+      "left-ring",
+      "left-middle",
+      "left-index-outer",
+      "left-index-inner",
+      "right-index-inner",
+      "right-index-outer",
+      "right-middle",
+      "right-ring",
+      "right-pinky",
     ];
     for (const col of expectedColumns) {
       expect(values.has(col), `missing column: ${col}`).toBe(true);

@@ -1,15 +1,8 @@
 import { describe, expect, it } from "vitest";
-import {
-  composeDashboardInsight,
-  type InsightInput,
-} from "./insight";
+import { composeDashboardInsight, type InsightInput } from "./insight";
 import type { WeaknessRankEntry } from "./aggregates";
 
-const rank = (
-  unit: string,
-  score: number,
-  isCharacter = unit.length === 1,
-): WeaknessRankEntry => ({
+const rank = (unit: string, score: number, isCharacter = unit.length === 1): WeaknessRankEntry => ({
   unit,
   isCharacter,
   score,
@@ -54,26 +47,20 @@ describe("composeDashboardInsight — narrative", () => {
   });
 
   it("speed-up + accuracy-down is framed as concern, not a win (§6.2)", () => {
-    const out = composeDashboardInsight(
-      base({ accuracyTrendPct: -2, wpmTrend: 5 }),
-    );
+    const out = composeDashboardInsight(base({ accuracyTrendPct: -2, wpmTrend: 5 }));
     expect(out.narrative.toLowerCase()).toContain("slow");
     expect(out.narrative.toLowerCase()).toContain("accuracy");
     expectNoHype(out.narrative);
   });
 
   it("accuracy-up + speed-flat is the right-trajectory frame", () => {
-    const out = composeDashboardInsight(
-      base({ accuracyTrendPct: 1.2, wpmTrend: 0 }),
-    );
+    const out = composeDashboardInsight(base({ accuracyTrendPct: 1.2, wpmTrend: 0 }));
     expect(out.narrative.toLowerCase()).toContain("accuracy is climbing");
     expectNoHype(out.narrative);
   });
 
   it("flat trajectory stays quiet — no hype, no panic", () => {
-    const out = composeDashboardInsight(
-      base({ accuracyTrendPct: 0, wpmTrend: 0 }),
-    );
+    const out = composeDashboardInsight(base({ accuracyTrendPct: 0, wpmTrend: 0 }));
     expect(out.narrative.toLowerCase()).toContain("steady");
     expectNoHype(out.narrative);
   });
@@ -113,17 +100,13 @@ describe("composeDashboardInsight — rationale", () => {
   });
 
   it("lists one focus unit with its score", () => {
-    const out = composeDashboardInsight(
-      base({ topWeaknesses: [rank("b", 2.8)] }),
-    );
+    const out = composeDashboardInsight(base({ topWeaknesses: [rank("b", 2.8)] }));
     expect(out.rationale).toContain("b");
     expect(out.rationale).toContain("2.8");
   });
 
   it("joins two focus units with 'and'", () => {
-    const out = composeDashboardInsight(
-      base({ topWeaknesses: [rank("b", 2.8), rank("er", 2.1)] }),
-    );
+    const out = composeDashboardInsight(base({ topWeaknesses: [rank("b", 2.8), rank("er", 2.1)] }));
     expect(out.rationale).toContain("b");
     expect(out.rationale).toContain("er");
     expect(out.rationale).toMatch(/ and /);

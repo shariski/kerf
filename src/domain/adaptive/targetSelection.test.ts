@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  selectTarget,
-  TARGET_JOURNEY_WEIGHTS,
-  diagnosticTarget,
-} from "./targetSelection";
+import { selectTarget, TARGET_JOURNEY_WEIGHTS, diagnosticTarget } from "./targetSelection";
 import type { CharacterStat, BigramStat, UserBaseline } from "../stats/types";
 
 const baseline = (over: Partial<UserBaseline> = {}): UserBaseline => ({
@@ -16,10 +12,10 @@ const baseline = (over: Partial<UserBaseline> = {}): UserBaseline => ({
 
 const freq = (_: string) => 0.5;
 
-const statsWith = (
-  chars: CharacterStat[] = [],
-  bigrams: BigramStat[] = [],
-) => ({ characters: chars, bigrams });
+const statsWith = (chars: CharacterStat[] = [], bigrams: BigramStat[] = []) => ({
+  characters: chars,
+  bigrams,
+});
 
 describe("diagnosticTarget", () => {
   it("returns a diagnostic-type target with empty keys", () => {
@@ -38,9 +34,7 @@ describe("selectTarget — low-confidence fallback", () => {
 
   it("returns diagnostic when all character attempts < LOW_CONFIDENCE_THRESHOLD", () => {
     const chosen = selectTarget(
-      statsWith([
-        { character: "g", attempts: 2, errors: 1, sumTime: 500, hesitationCount: 0 },
-      ]),
+      statsWith([{ character: "g", attempts: 2, errors: 1, sumTime: 500, hesitationCount: 0 }]),
       baseline(),
       "transitioning",
       freq,

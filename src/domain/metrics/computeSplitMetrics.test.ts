@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { KeystrokeEvent } from "../stats/types";
-import {
-  INSUFFICIENT_DATA_THRESHOLD,
-  computeSplitMetrics,
-} from "./computeSplitMetrics";
+import { INSUFFICIENT_DATA_THRESHOLD, computeSplitMetrics } from "./computeSplitMetrics";
 
 const ts = new Date("2026-04-18T12:00:00Z");
 
@@ -11,9 +8,7 @@ const event = (over: Partial<KeystrokeEvent> = {}): KeystrokeEvent => ({
   targetChar: over.targetChar ?? "a",
   actualChar: over.actualChar ?? over.targetChar ?? "a",
   isError:
-    over.isError ??
-    (over.actualChar !== undefined &&
-      over.actualChar !== (over.targetChar ?? "a")),
+    over.isError ?? (over.actualChar !== undefined && over.actualChar !== (over.targetChar ?? "a")),
   keystrokeMs: over.keystrokeMs ?? 200,
   prevChar: over.prevChar,
   timestamp: over.timestamp ?? ts,
@@ -168,10 +163,7 @@ describe("computeSplitMetrics — Metric 3: cross-hand bigram timing", () => {
 describe("computeSplitMetrics — Metric 4: columnar stability", () => {
   it("classifies same-hand adjacent-column error as drift (B→V)", () => {
     // 'b' is left-index col 4, 'v' is left-index col 3 — adjacent.
-    const events = [
-      ...filler(50),
-      event({ targetChar: "b", actualChar: "v" }),
-    ];
+    const events = [...filler(50), event({ targetChar: "b", actualChar: "v" })];
     const m = computeSplitMetrics(events, "sofle");
     expect(m.columnarDriftCount).toBe(1);
     expect(m.columnarStableCount).toBe(0);
@@ -179,10 +171,7 @@ describe("computeSplitMetrics — Metric 4: columnar stability", () => {
 
   it("classifies cross-hand error as stable not drift (B→N, QWERTY residue)", () => {
     // 'b' is LEFT index, 'n' is RIGHT index — different hands.
-    const events = [
-      ...filler(50),
-      event({ targetChar: "b", actualChar: "n" }),
-    ];
+    const events = [...filler(50), event({ targetChar: "b", actualChar: "n" })];
     const m = computeSplitMetrics(events, "sofle");
     expect(m.columnarStableCount).toBe(1);
     expect(m.columnarDriftCount).toBe(0);
@@ -190,10 +179,7 @@ describe("computeSplitMetrics — Metric 4: columnar stability", () => {
 
   it("classifies same-hand far-apart error as stable (B→Q)", () => {
     // 'b' left-index row 3; 'q' left-pinky row 1 — col diff > 1.
-    const events = [
-      ...filler(50),
-      event({ targetChar: "b", actualChar: "q" }),
-    ];
+    const events = [...filler(50), event({ targetChar: "b", actualChar: "q" })];
     const m = computeSplitMetrics(events, "sofle");
     expect(m.columnarStableCount).toBe(1);
     expect(m.columnarDriftCount).toBe(0);
@@ -233,10 +219,7 @@ describe("computeSplitMetrics — layout parameter", () => {
   it("accepts 'lily58' as well as 'sofle'", () => {
     // sofle and lily58 share the alpha layer; a simple smoke test
     // confirms the layout param is threaded through to finger lookups.
-    const events = [
-      ...filler(50),
-      event({ targetChar: "b", actualChar: "v" }),
-    ];
+    const events = [...filler(50), event({ targetChar: "b", actualChar: "v" })];
     const sofle = computeSplitMetrics(events, "sofle");
     const lily58 = computeSplitMetrics(events, "lily58");
     expect(lily58.columnarDriftCount).toBe(sofle.columnarDriftCount);

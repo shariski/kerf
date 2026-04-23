@@ -47,9 +47,9 @@ describe("TypingArea — rendering", () => {
     expect(words[1]?.textContent).toBe("two");
     // The space between them lives outside any word wrapper so it's a real
     // break opportunity for the browser.
-    const spaceChars = Array.from(
-      container.querySelectorAll(".kerf-typing-char"),
-    ).filter((el) => el.textContent === " ");
+    const spaceChars = Array.from(container.querySelectorAll(".kerf-typing-char")).filter(
+      (el) => el.textContent === " ",
+    );
     expect(spaceChars).toHaveLength(1);
     expect(spaceChars[0]?.closest(".kerf-typing-word")).toBeNull();
   });
@@ -107,9 +107,7 @@ describe("TypingArea — typing progression", () => {
 
 describe("TypingArea — expectedLetterHint preference", () => {
   it("suppresses the expected-letter badge when expectedLetterHint=false", () => {
-    const { container } = render(
-      <TypingArea target="nice" expectedLetterHint={false} />,
-    );
+    const { container } = render(<TypingArea target="nice" expectedLetterHint={false} />);
 
     fireEvent.keyDown(window, { key: "b" });
     // Error styling still applies — only the amber hint badge is hidden.
@@ -121,16 +119,14 @@ describe("TypingArea — expectedLetterHint preference", () => {
 describe("TypingArea — accessibility", () => {
   it("exposes a labeled textbox role for screen readers", () => {
     render(<TypingArea target="abc" />);
-    expect(screen.getByRole("textbox", { name: /typing exercise/i })).toBeInstanceOf(
-      HTMLElement,
-    );
+    expect(screen.getByRole("textbox", { name: /typing exercise/i })).toBeInstanceOf(HTMLElement);
   });
 
   it("marks the expected-letter badge as aria-hidden (decorative)", () => {
     const { container } = render(<TypingArea target="nice" />);
     fireEvent.keyDown(window, { key: "b" });
-    expect(
-      container.querySelector(".kerf-typing-expected")?.getAttribute("aria-hidden"),
-    ).toBe("true");
+    expect(container.querySelector(".kerf-typing-expected")?.getAttribute("aria-hidden")).toBe(
+      "true",
+    );
   });
 });

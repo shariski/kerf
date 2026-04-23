@@ -5,8 +5,7 @@ import type { KeystrokeEvent } from "./types";
 
 const ASOF = new Date("2026-04-18T12:00:00Z");
 
-const daysAgo = (days: number): Date =>
-  new Date(ASOF.getTime() - days * 24 * 60 * 60 * 1000);
+const daysAgo = (days: number): Date => new Date(ASOF.getTime() - days * 24 * 60 * 60 * 1000);
 
 const event = (timestamp: Date): KeystrokeEvent => ({
   targetChar: "a",
@@ -47,9 +46,7 @@ describe("decayStats", () => {
     const events = [event(daysAgo(1)), event(daysAgo(10)), event(daysAgo(20))];
     const decayed = decayStats(events, ASOF);
     expect(decayed).toHaveLength(3);
-    expect(decayed.map((e) => e.timestamp)).toEqual(
-      events.map((e) => e.timestamp),
-    );
+    expect(decayed.map((e) => e.timestamp)).toEqual(events.map((e) => e.timestamp));
   });
 
   it("attaches a weight in [0, 1] to every event", () => {

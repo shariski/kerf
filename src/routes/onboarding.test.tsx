@@ -16,9 +16,7 @@ vi.mock("#/lib/require-auth", () => ({
 
 vi.mock("@tanstack/react-router", async () => {
   const actual =
-    await vi.importActual<typeof import("@tanstack/react-router")>(
-      "@tanstack/react-router",
-    );
+    await vi.importActual<typeof import("@tanstack/react-router")>("@tanstack/react-router");
   return {
     ...actual,
     useRouter: () => ({ navigate }),
@@ -59,16 +57,12 @@ describe("OnboardingPage", () => {
     ).toBeTruthy();
 
     // Spec default (docs/06-design-summary.md §/onboarding): Lily58.
-    expect(
-      screen.getByRole("button", { name: /^lily58$/i }).getAttribute(
-        "aria-pressed",
-      ),
-    ).toBe("true");
-    expect(
-      screen.getByRole("button", { name: /^sofle$/i }).getAttribute(
-        "aria-pressed",
-      ),
-    ).toBe("false");
+    expect(screen.getByRole("button", { name: /^lily58$/i }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+    expect(screen.getByRole("button", { name: /^sofle$/i }).getAttribute("aria-pressed")).toBe(
+      "false",
+    );
 
     const cta = screen.getByRole("button", { name: /^continue/i });
     expect(cta.hasAttribute("disabled")).toBe(false);
@@ -93,23 +87,17 @@ describe("OnboardingPage", () => {
 
     // Step 2: pick Right.
     expect(screen.getByText(/step 2 of 4/i)).toBeTruthy();
-    fireEvent.click(
-      screen.getByRole("button", { name: /right-handed/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
 
     // Step 3: pick level 1.
     expect(screen.getByText(/step 3 of 4/i)).toBeTruthy();
-    fireEvent.click(
-      screen.getByRole("button", { name: /first day on split/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /first day on split/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
 
     // Step 4: pick journey.
     expect(screen.getByText(/step 4 of 4/i)).toBeTruthy();
-    fireEvent.click(
-      screen.getByRole("radio", { name: /like qwerty, just on a split board/i }),
-    );
+    fireEvent.click(screen.getByRole("radio", { name: /like qwerty, just on a split board/i }));
 
     const finish = screen.getByRole("button", { name: /finish setup/i });
     expect(finish.hasAttribute("disabled")).toBe(false);
@@ -131,9 +119,7 @@ describe("OnboardingPage", () => {
     expect(screen.getByText(/all set/i)).toBeTruthy();
 
     // Click "Start first session" to jump past the auto-redirect.
-    fireEvent.click(
-      screen.getByRole("button", { name: /start first session/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /start first session/i }));
     expect(navigate).toHaveBeenCalledWith({ to: "/practice" });
   });
 
@@ -146,9 +132,7 @@ describe("OnboardingPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
-    fireEvent.click(
-      screen.getByRole("button", { name: /first day on split/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /first day on split/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     // Step 4: pick any journey option (unsure is pre-selected, just finish)
     fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
@@ -189,9 +173,7 @@ describe("OnboardingPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
-    fireEvent.click(
-      screen.getByRole("button", { name: /comfortable, refining/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /comfortable, refining/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     // Step 4: default (unsure) is pre-selected, just finish
     fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
@@ -217,19 +199,11 @@ describe("OnboardingPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
     fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
-    fireEvent.click(
-      screen.getByRole("button", { name: /first day on split/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /first day on split/i }));
     fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
 
     const text = document.body.textContent ?? "";
-    const banned = [
-      /amazing/i,
-      /crushing it/i,
-      /nailed it/i,
-      /incredible/i,
-      /!!+/,
-    ];
+    const banned = [/amazing/i, /crushing it/i, /nailed it/i, /incredible/i, /!!+/];
     for (const pattern of banned) {
       expect(text).not.toMatch(pattern);
     }
@@ -252,16 +226,10 @@ describe("OnboardingPage", () => {
           name: /like qwerty, just on a split board/i,
         }),
       ).toBeTruthy();
-      expect(
-        screen.getByRole("radio", { name: /one finger per column/i }),
-      ).toBeTruthy();
-      expect(
-        screen.getByRole("radio", { name: /i'm not sure/i }),
-      ).toBeTruthy();
+      expect(screen.getByRole("radio", { name: /one finger per column/i })).toBeTruthy();
+      expect(screen.getByRole("radio", { name: /i'm not sure/i })).toBeTruthy();
 
-      expect(
-        screen.getByText(/you can change this anytime in settings/i),
-      ).toBeTruthy();
+      expect(screen.getByText(/you can change this anytime in settings/i)).toBeTruthy();
     });
 
     it("has 'I'm not sure' pre-selected (safe default)", () => {
@@ -297,9 +265,7 @@ describe("OnboardingPage", () => {
     it("submits fingerAssignment: 'columnar' when One finger per column is chosen", async () => {
       createKeyboardProfile.mockResolvedValueOnce({ id: "p1" });
       advanceToJourneyStep();
-      fireEvent.click(
-        screen.getByRole("radio", { name: /one finger per column/i }),
-      );
+      fireEvent.click(screen.getByRole("radio", { name: /one finger per column/i }));
       fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
       await vi.waitFor(() => {
         expect(createKeyboardProfile).toHaveBeenCalledTimes(1);

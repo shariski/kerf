@@ -38,9 +38,7 @@ export function validateCreateProfileInput(input: unknown): CreateProfileInput {
     i.initialLevel !== "few_weeks" &&
     i.initialLevel !== "comfortable"
   ) {
-    throw new Error(
-      "initialLevel must be 'first_day', 'few_weeks', or 'comfortable'",
-    );
+    throw new Error("initialLevel must be 'first_day', 'few_weeks', or 'comfortable'");
   }
   return {
     keyboardType: i.keyboardType,
@@ -89,26 +87,18 @@ export const createKeyboardProfile = createServerFn({ method: "POST" })
     return row;
   });
 
-export const getActiveProfile = createServerFn({ method: "GET" }).handler(
-  async () => {
-    const request = getRequest();
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) return null;
+export const getActiveProfile = createServerFn({ method: "GET" }).handler(async () => {
+  const request = getRequest();
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) return null;
 
-    const rows = await db
-      .select()
-      .from(keyboardProfiles)
-      .where(
-        and(
-          eq(keyboardProfiles.userId, session.user.id),
-          eq(keyboardProfiles.isActive, true),
-        ),
-      )
-      .limit(1);
-    return rows[0] ?? null;
-  },
-);
-
+  const rows = await db
+    .select()
+    .from(keyboardProfiles)
+    .where(and(eq(keyboardProfiles.userId, session.user.id), eq(keyboardProfiles.isActive, true)))
+    .limit(1);
+  return rows[0] ?? null;
+});
 
 /**
  * Cheap "does this profile have any session at all" check — drives
@@ -132,41 +122,27 @@ export const hasAnySessionOnActiveProfile = createServerFn({
   const [profile] = await db
     .select({ id: keyboardProfiles.id })
     .from(keyboardProfiles)
-    .where(
-      and(
-        eq(keyboardProfiles.userId, session.user.id),
-        eq(keyboardProfiles.isActive, true),
-      ),
-    )
+    .where(and(eq(keyboardProfiles.userId, session.user.id), eq(keyboardProfiles.isActive, true)))
     .limit(1);
   if (!profile) return false;
 
   const [row] = await db
     .select({ id: sessions.id })
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.userId, session.user.id),
-        eq(sessions.keyboardProfileId, profile.id),
-      ),
-    )
+    .where(and(eq(sessions.userId, session.user.id), eq(sessions.keyboardProfileId, profile.id)))
     .limit(1);
   return row !== undefined;
 });
 
 export type UpdateTransitionPhaseInput = { phase: TransitionPhase };
 
-export function validateUpdateTransitionPhaseInput(
-  input: unknown,
-): UpdateTransitionPhaseInput {
+export function validateUpdateTransitionPhaseInput(input: unknown): UpdateTransitionPhaseInput {
   if (typeof input !== "object" || input === null) {
     throw new Error("updateTransitionPhase: input must be an object");
   }
   const i = input as Record<string, unknown>;
   if (i.phase !== "transitioning" && i.phase !== "refining") {
-    throw new Error(
-      "updateTransitionPhase: phase must be 'transitioning' or 'refining'",
-    );
+    throw new Error("updateTransitionPhase: phase must be 'transitioning' or 'refining'");
   }
   return { phase: i.phase };
 }
@@ -192,12 +168,7 @@ export const updateTransitionPhase = createServerFn({ method: "POST" })
     const [updated] = await db
       .update(keyboardProfiles)
       .set({ transitionPhase: data.phase, phaseChangedAt: new Date() })
-      .where(
-        and(
-          eq(keyboardProfiles.userId, session.user.id),
-          eq(keyboardProfiles.isActive, true),
-        ),
-      )
+      .where(and(eq(keyboardProfiles.userId, session.user.id), eq(keyboardProfiles.isActive, true)))
       .returning({
         id: keyboardProfiles.id,
         transitionPhase: keyboardProfiles.transitionPhase,
@@ -255,9 +226,7 @@ export const listKeyboardProfiles = createServerFn({ method: "GET" }).handler(
 
 export type SwitchActiveProfileInput = { profileId: string };
 
-export function validateSwitchActiveProfileInput(
-  input: unknown,
-): SwitchActiveProfileInput {
+export function validateSwitchActiveProfileInput(input: unknown): SwitchActiveProfileInput {
   if (typeof input !== "object" || input === null) {
     throw new Error("switchActiveProfile: input must be an object");
   }

@@ -27,9 +27,7 @@ describe("SOFLE_GEOMETRY", () => {
   });
 
   it("covers every typable character declared in SOFLE_BASE_LAYER", () => {
-    const missing = Object.keys(SOFLE_BASE_LAYER).filter(
-      (char) => !allChars.includes(char),
-    );
+    const missing = Object.keys(SOFLE_BASE_LAYER).filter((char) => !allChars.includes(char));
     expect(missing).toEqual([]);
   });
 

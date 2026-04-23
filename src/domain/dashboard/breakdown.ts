@@ -1,8 +1,4 @@
-import {
-  COEFFICIENTS,
-  INNER_COLUMN,
-  INNER_COLUMN_BONUS,
-} from "#/domain/adaptive/weaknessScore";
+import { COEFFICIENTS, INNER_COLUMN, INNER_COLUMN_BONUS } from "#/domain/adaptive/weaknessScore";
 import type {
   BigramStat,
   CharacterStat,
@@ -82,9 +78,8 @@ export type WeaknessBreakdown = {
 
 const safeRatio = (n: number, d: number): number => (d > 0 ? n / d : 0);
 
-const isCharacter = (
-  unit: CharacterStat | BigramStat,
-): unit is CharacterStat => "character" in unit;
+const isCharacter = (unit: CharacterStat | BigramStat): unit is CharacterStat =>
+  "character" in unit;
 
 /**
  * Compute a full, value-preserving breakdown of the weakness score for
@@ -109,9 +104,7 @@ export function computeWeaknessBreakdown(
   const errorRateRaw = unit.errors / denomAttempts;
   const meanTimeRaw = unit.sumTime / denomAttempts;
   const unitIsChar = isCharacter(unit);
-  const hesitationRaw = unitIsChar
-    ? unit.hesitationCount / denomAttempts
-    : 0;
+  const hesitationRaw = unitIsChar ? unit.hesitationCount / denomAttempts : 0;
 
   const c = COEFFICIENTS[phase];
 
@@ -120,8 +113,7 @@ export function computeWeaknessBreakdown(
     baseline: baseline.meanErrorRate,
     normalized: safeRatio(errorRateRaw, baseline.meanErrorRate),
     coefficient: c.ALPHA,
-    contribution:
-      c.ALPHA * safeRatio(errorRateRaw, baseline.meanErrorRate),
+    contribution: c.ALPHA * safeRatio(errorRateRaw, baseline.meanErrorRate),
   };
 
   const hesitation: ComponentBreakdown | null = unitIsChar
@@ -130,8 +122,7 @@ export function computeWeaknessBreakdown(
         baseline: baseline.meanHesitationRate,
         normalized: safeRatio(hesitationRaw, baseline.meanHesitationRate),
         coefficient: c.BETA,
-        contribution:
-          c.BETA * safeRatio(hesitationRaw, baseline.meanHesitationRate),
+        contribution: c.BETA * safeRatio(hesitationRaw, baseline.meanHesitationRate),
       }
     : null;
 
@@ -140,8 +131,7 @@ export function computeWeaknessBreakdown(
     baseline: baseline.meanKeystrokeTime,
     normalized: safeRatio(meanTimeRaw, baseline.meanKeystrokeTime),
     coefficient: c.GAMMA,
-    contribution:
-      c.GAMMA * safeRatio(meanTimeRaw, baseline.meanKeystrokeTime),
+    contribution: c.GAMMA * safeRatio(meanTimeRaw, baseline.meanKeystrokeTime),
   };
 
   const frequency: FrequencyBreakdown = {
@@ -151,9 +141,7 @@ export function computeWeaknessBreakdown(
   };
 
   const innerColumnBonus =
-    phase === "transitioning" &&
-    unitIsChar &&
-    INNER_COLUMN.has(unit.character.toLowerCase())
+    phase === "transitioning" && unitIsChar && INNER_COLUMN.has(unit.character.toLowerCase())
       ? INNER_COLUMN_BONUS
       : 0;
 
@@ -165,9 +153,7 @@ export function computeWeaknessBreakdown(
     innerColumnBonus;
 
   return {
-    unit: unitIsChar
-      ? unit.character.toLowerCase()
-      : unit.bigram.toLowerCase(),
+    unit: unitIsChar ? unit.character.toLowerCase() : unit.bigram.toLowerCase(),
     isCharacter: unitIsChar,
     phase,
     coefficients: c,

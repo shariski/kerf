@@ -70,11 +70,7 @@ function Metric({
     <article className="kerf-dash-split-card">
       <div className="kerf-dash-split-label">{label}</div>
       <div className="kerf-dash-split-value">
-        {value !== null ? (
-          format(value)
-        ) : (
-          <span className="kerf-dash-split-value--empty">—</span>
-        )}
+        {value !== null ? format(value) : <span className="kerf-dash-split-value--empty">—</span>}
       </div>
       <div className="kerf-dash-split-caption">{caption}</div>
     </article>

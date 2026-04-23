@@ -23,10 +23,7 @@ import { generateExercise } from "#/domain/adaptive/exerciseGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
 import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
-import {
-  flushSessionQueue,
-  persistSessionWithRetry,
-} from "#/lib/persistSessionWithRetry";
+import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
 import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import { AppFooter } from "#/components/nav/AppFooter";
@@ -112,9 +109,7 @@ function PracticePage() {
 
   const [filters, setFilters] = useState<PreSessionFilterValues>(DEFAULT_FILTERS);
   const [paused, setPaused] = useState(false);
-  const [pauseSettings, setPauseSettings] = useState<PauseSettings>(
-    DEFAULT_PAUSE_SETTINGS,
-  );
+  const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
 
   // Mode used by the session currently running (or just finished). The
   // persist effect reads this so the DB row carries the right mode. A
@@ -145,15 +140,12 @@ function PracticePage() {
       if (!target) return;
       sessionModeRef.current = "diagnostic";
       diagnosticConsumedRef.current = true;
-      sessionStore
-        .getState()
-        .dispatch({ type: "start", target, now: performance.now() });
+      sessionStore.getState().dispatch({ type: "start", target, now: performance.now() });
       return;
     }
 
     if (corpus.status !== "ready") return;
-    const maxLength =
-      filters.maxWordLength === "all" ? undefined : filters.maxWordLength;
+    const maxLength = filters.maxWordLength === "all" ? undefined : filters.maxWordLength;
 
     // Cold-start weakness function: uniform weight until session history lands
     // in Phase 3. Biases slightly toward longer words via matchScore — OK
@@ -168,9 +160,7 @@ function PracticePage() {
     const target = words.join(" ");
     if (!target) return;
     sessionModeRef.current = "adaptive";
-    sessionStore
-      .getState()
-      .dispatch({ type: "start", target, now: performance.now() });
+    sessionStore.getState().dispatch({ type: "start", target, now: performance.now() });
   };
 
   const restartSameExercise = () => {
@@ -305,10 +295,7 @@ function PracticePage() {
     const onKey = (e: KeyboardEvent) => {
       const targetEl = e.target as HTMLElement | null;
       const tag = targetEl?.tagName;
-      const inField =
-        tag === "INPUT" ||
-        tag === "TEXTAREA" ||
-        targetEl?.isContentEditable === true;
+      const inField = tag === "INPUT" || tag === "TEXTAREA" || targetEl?.isContentEditable === true;
 
       // ⌘D / Ctrl+D → dashboard. Check modifier combo before plain-D branch
       // so ⌘D isn't mistakenly routed to drill.
@@ -354,9 +341,7 @@ function PracticePage() {
         });
         void navigate({
           to: "/practice/drill",
-          search: summary.topWeaknessName
-            ? { target: summary.topWeaknessName }
-            : {},
+          search: summary.topWeaknessName ? { target: summary.topWeaknessName } : {},
         });
         return;
       }
@@ -487,7 +472,10 @@ function PracticePage() {
     // visual "the clock is paused, type to resume" signal.
     const idleAutoPaused = status === "paused" && !paused;
     return (
-      <main id="main-content" className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
+      <main
+        id="main-content"
+        className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in"
+      >
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
           showKeyboard={pauseSettings.showKeyboard}
@@ -503,9 +491,7 @@ function PracticePage() {
             onSettingsChange={setPauseSettings}
             onResume={() => {
               if (sessionStore.getState().status === "paused") {
-                sessionStore
-                  .getState()
-                  .dispatch({ type: "resume", now: performance.now() });
+                sessionStore.getState().dispatch({ type: "resume", now: performance.now() });
               }
               setPaused(false);
             }}
@@ -527,9 +513,7 @@ function PracticePage() {
             filterValues={filters}
             onFilterChange={setFilters}
             onStartAdaptive={startAdaptive}
-            onDrillWeakness={() =>
-              navigate({ to: "/practice/drill", search: {} })
-            }
+            onDrillWeakness={() => navigate({ to: "/practice/drill", search: {} })}
             onDrillInnerColumn={() =>
               navigate({
                 to: "/practice/drill",
@@ -539,13 +523,9 @@ function PracticePage() {
             isFirstSession={useDiagnostic}
           />
           {otherTabActive && (
-            <p
-              className="kerf-multitab-banner"
-              role="status"
-              aria-live="polite"
-            >
-              Another tab has an active practice session. Starting here will
-              save as a separate session alongside it.
+            <p className="kerf-multitab-banner" role="status" aria-live="polite">
+              Another tab has an active practice session. Starting here will save as a separate
+              session alongside it.
             </p>
           )}
           {corpus.status === "error" && (
@@ -570,11 +550,7 @@ function PracticePage() {
  */
 function IdlePauseChip() {
   return (
-    <div
-      className="kerf-idle-pause-chip"
-      role="status"
-      aria-live="polite"
-    >
+    <div className="kerf-idle-pause-chip" role="status" aria-live="polite">
       <span className="kerf-idle-pause-chip-dot" aria-hidden="true" />
       paused · type to resume
     </div>

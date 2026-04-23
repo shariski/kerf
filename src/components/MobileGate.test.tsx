@@ -9,9 +9,9 @@ afterEach(() => cleanup());
 describe("MobileGate", () => {
   it("renders the exact locked headline", () => {
     render(<MobileGate />);
-    expect(
-      screen.getByRole("heading", { level: 1 }).textContent,
-    ).toBe("kerf is a desktop experience.");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "kerf is a desktop experience.",
+    );
   });
 
   it("renders the exact locked body copy", () => {
@@ -34,8 +34,6 @@ describe("MobileGate", () => {
     expect(main).not.toBeNull();
     const labelledBy = main?.getAttribute("aria-labelledby");
     expect(labelledBy).toBeTruthy();
-    expect(document.getElementById(labelledBy!)?.textContent).toBe(
-      "kerf is a desktop experience.",
-    );
+    expect(document.getElementById(labelledBy!)?.textContent).toBe("kerf is a desktop experience.");
   });
 });

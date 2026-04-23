@@ -24,9 +24,8 @@ export function WeaknessRanking({ data }: Props) {
     return (
       <div className="kerf-dash-weakness kerf-dash-weakness--empty">
         <p className="kerf-dash-weakness-empty-note">
-          Not enough signal yet — every letter needs at least a handful of
-          attempts before it earns a rank here. Keep practicing and the
-          list will fill in.
+          Not enough signal yet — every letter needs at least a handful of attempts before it earns
+          a rank here. Keep practicing and the list will fill in.
         </p>
       </div>
     );
@@ -45,9 +44,7 @@ export function WeaknessRanking({ data }: Props) {
 
       {data.entries.map((entry, i) => (
         <div key={entry.unit} className="kerf-dash-weakness-row" role="listitem">
-          <span className="kerf-dash-weakness-rank">
-            {(i + 1).toString().padStart(2, "0")}
-          </span>
+          <span className="kerf-dash-weakness-rank">{(i + 1).toString().padStart(2, "0")}</span>
           <span className="kerf-dash-weakness-key">{entry.unit}</span>
           <div
             className="kerf-dash-weakness-bar"
@@ -64,9 +61,7 @@ export function WeaknessRanking({ data }: Props) {
           </div>
           <span className="kerf-dash-weakness-stat">{entry.errorRatePct}%</span>
           <span className="kerf-dash-weakness-stat">{entry.avgTimeMs}ms</span>
-          <span className="kerf-dash-weakness-score">
-            {entry.score.toFixed(1)}
-          </span>
+          <span className="kerf-dash-weakness-score">{entry.score.toFixed(1)}</span>
         </div>
       ))}
     </div>

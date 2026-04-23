@@ -1,11 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
-import {
-  getActiveProfile,
-  type KeyboardType,
-  type DominantHand,
-} from "#/server/profile";
+import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import {
   ActiveSessionStage,
@@ -28,10 +24,7 @@ import {
 } from "#/domain/adaptive/drillGenerator";
 import { summarizeSession } from "#/domain/session/summarize";
 import { summarizeDrill } from "#/domain/session/drillSummary";
-import {
-  flushSessionQueue,
-  persistSessionWithRetry,
-} from "#/lib/persistSessionWithRetry";
+import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
 import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import type { Corpus } from "#/domain/corpus/types";
@@ -113,11 +106,7 @@ type DrillBuild = {
   targetChars: string[];
 };
 
-function buildDrill(
-  corpus: Corpus,
-  search: DrillSearch,
-  layout: KeyboardType,
-): DrillBuild | null {
+function buildDrill(corpus: Corpus, search: DrillSearch, layout: KeyboardType): DrillBuild | null {
   if (search.target) {
     const t = search.target;
     return {
@@ -150,7 +139,12 @@ function buildDrill(
       // Unique chars in the generated drill — approximates the bigram
       // chars the user actually saw this run.
       targetChars: Array.from(
-        new Set(text.toLowerCase().replace(/[^a-z]/g, "").split("")),
+        new Set(
+          text
+            .toLowerCase()
+            .replace(/[^a-z]/g, "")
+            .split(""),
+        ),
       ),
     };
   }
@@ -165,9 +159,7 @@ function DrillPage() {
   const corpus = useCorpus();
 
   const [paused, setPaused] = useState(false);
-  const [pauseSettings, setPauseSettings] = useState<PauseSettings>(
-    DEFAULT_PAUSE_SETTINGS,
-  );
+  const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
 
   // Capture the drill label + target char set at the moment the
   // drill is built so the post-session summary can reference them
@@ -187,9 +179,7 @@ function DrillPage() {
       targetChars: build.targetChars,
       target: build.text,
     });
-    sessionStore
-      .getState()
-      .dispatch({ type: "start", target: build.text, now: performance.now() });
+    sessionStore.getState().dispatch({ type: "start", target: build.text, now: performance.now() });
   };
 
   // Auto-start a drill whenever the URL carries target/preset and we
@@ -366,7 +356,10 @@ function DrillPage() {
   if (status === "active" || status === "paused") {
     const idleAutoPaused = status === "paused" && !paused;
     return (
-      <main id="main-content" className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in">
+      <main
+        id="main-content"
+        className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in"
+      >
         {activeDrill && <DrillActiveHeader label={activeDrill.label} />}
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
@@ -382,9 +375,7 @@ function DrillPage() {
             onSettingsChange={setPauseSettings}
             onResume={() => {
               if (sessionStore.getState().status === "paused") {
-                sessionStore
-                  .getState()
-                  .dispatch({ type: "resume", now: performance.now() });
+                sessionStore.getState().dispatch({ type: "resume", now: performance.now() });
               }
               setPaused(false);
             }}
@@ -408,12 +399,8 @@ function DrillPage() {
               keyboardType={profile.keyboardType}
               dominantHand={profile.dominantHand}
               phase={profile.transitionPhase}
-              onSelectTarget={(target) =>
-                navigate({ to: "/practice/drill", search: { target } })
-              }
-              onSelectPreset={(preset) =>
-                navigate({ to: "/practice/drill", search: { preset } })
-              }
+              onSelectTarget={(target) => navigate({ to: "/practice/drill", search: { target } })}
+              onSelectPreset={(preset) => navigate({ to: "/practice/drill", search: { preset } })}
             />
           ) : (
             <p className="kerf-drill-loading" aria-live="polite">
@@ -421,13 +408,9 @@ function DrillPage() {
             </p>
           )}
           {otherTabActive && (
-            <p
-              className="kerf-multitab-banner"
-              role="status"
-              aria-live="polite"
-            >
-              Another tab has an active practice session. Starting here will
-              save as a separate session alongside it.
+            <p className="kerf-multitab-banner" role="status" aria-live="polite">
+              Another tab has an active practice session. Starting here will save as a separate
+              session alongside it.
             </p>
           )}
           {corpus.status === "error" && (

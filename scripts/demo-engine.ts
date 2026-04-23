@@ -23,10 +23,7 @@ import {
 } from "../src/domain/adaptive/drillGenerator";
 import { suggestPhaseTransition } from "../src/domain/adaptive/phaseSuggestion";
 import { mulberry32 } from "../src/domain/adaptive/rng";
-import {
-  computeWeaknessScore,
-  isLowConfidence,
-} from "../src/domain/adaptive/weaknessScore";
+import { computeWeaknessScore, isLowConfidence } from "../src/domain/adaptive/weaknessScore";
 import { createCorpusLoader } from "../src/domain/corpus/loader";
 import type { Corpus } from "../src/domain/corpus/types";
 import { generateSessionInsight } from "../src/domain/insight/sessionInsight";
@@ -89,10 +86,7 @@ const transitioningBefore: ComputedStats = {
     charStat("t", 200, 5, 200),
     charStat("s", 180, 4, 190),
   ],
-  bigrams: [
-    bigramStat("th", 80, 12, 260),
-    bigramStat("he", 70, 9, 240),
-  ],
+  bigrams: [bigramStat("th", 80, 12, 260), bigramStat("he", 70, 9, 240)],
 };
 
 // Transitioning user — after a session, weaknesses softened.
@@ -108,10 +102,7 @@ const transitioningAfter: ComputedStats = {
     // new weakness surfaced
     charStat("r", 200, 40, 260),
   ],
-  bigrams: [
-    bigramStat("th", 100, 10, 240),
-    bigramStat("he", 90, 7, 220),
-  ],
+  bigrams: [bigramStat("th", 100, 10, 240), bigramStat("he", 90, 7, 220)],
 };
 
 // Refining user — mostly fluent, tiny residual hesitations.
@@ -127,10 +118,7 @@ const refiningBefore: ComputedStats = {
     // one bigram still a little sticky — classic refining-phase residue
     charStat("r", 400, 14, 195, 12),
   ],
-  bigrams: [
-    bigramStat("th", 180, 6, 170),
-    bigramStat("he", 170, 5, 160),
-  ],
+  bigrams: [bigramStat("th", 180, 6, 170), bigramStat("he", 170, 5, 160)],
 };
 
 const refiningAfter: ComputedStats = refiningBefore;
@@ -141,9 +129,7 @@ const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
   targetChar: over.targetChar ?? "a",
   actualChar: over.actualChar ?? over.targetChar ?? "a",
   isError:
-    over.isError ??
-    (over.actualChar !== undefined &&
-      over.actualChar !== (over.targetChar ?? "a")),
+    over.isError ?? (over.actualChar !== undefined && over.actualChar !== (over.targetChar ?? "a")),
   keystrokeMs: over.keystrokeMs ?? 180,
   prevChar: over.prevChar,
   timestamp: over.timestamp ?? ts,
@@ -193,10 +179,7 @@ function rankWeaknesses(
   stats: ComputedStats,
   phase: TransitionPhase,
 ): { id: string; score: number }[] {
-  const units: (CharacterStat | BigramStat)[] = [
-    ...stats.characters,
-    ...stats.bigrams,
-  ];
+  const units: (CharacterStat | BigramStat)[] = [...stats.characters, ...stats.bigrams];
   return units
     .filter((u) => !isLowConfidence(u))
     .map((u) => ({
@@ -206,10 +189,7 @@ function rankWeaknesses(
     .sort((a, b) => b.score - a.score);
 }
 
-function weaknessLookup(
-  stats: ComputedStats,
-  phase: TransitionPhase,
-): (id: string) => number {
+function weaknessLookup(stats: ComputedStats, phase: TransitionPhase): (id: string) => number {
   const ranked = rankWeaknesses(stats, phase);
   const map = new Map(ranked.map((r) => [r.id, r.score]));
   return (id) => map.get(id) ?? 0;
@@ -308,10 +288,7 @@ async function simulate(
   kv("trajectoryFrame", insight.trajectoryFrame);
   kv("improvements", insight.improvements.map((d) => d.unit).join(", ") || "—");
   kv("newWeaknesses", insight.newWeaknesses.join(", ") || "—");
-  kv(
-    "patterns",
-    insight.patterns.map((p) => p.kind).join(", ") || "—",
-  );
+  kv("patterns", insight.patterns.map((p) => p.kind).join(", ") || "—");
   console.log(`\n    Summary:\n      ${insight.plainLanguageSummary}`);
   console.log(`\n    Next recommendation:\n      ${insight.nextRecommendation}`);
 }
@@ -356,11 +333,7 @@ async function simulatePhaseSuggestion(): Promise<void> {
   const breakReturn = suggestPhaseTransition({
     currentPhase: "refining",
     lastSessionAt: new Date("2026-03-30T00:00:00Z"),
-    recentSessions: [
-      { accuracy: 0.84 },
-      { accuracy: 0.85 },
-      { accuracy: 0.83 },
-    ],
+    recentSessions: [{ accuracy: 0.84 }, { accuracy: 0.85 }, { accuracy: 0.83 }],
     recentSnapshots: Array.from({ length: 3 }, () => ({
       innerColAttempts: 100,
       innerColErrors: 12,
@@ -394,9 +367,7 @@ async function simulatePhaseSuggestion(): Promise<void> {
 
 async function main(): Promise<void> {
   const corpus = await loadCorpus();
-  console.log(
-    `\nkerf adaptive engine demo — corpus has ${corpus.words.length} words\n`,
-  );
+  console.log(`\nkerf adaptive engine demo — corpus has ${corpus.words.length} words\n`);
 
   await simulate(
     "transitioning",

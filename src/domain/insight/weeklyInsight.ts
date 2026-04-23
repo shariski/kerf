@@ -1,9 +1,5 @@
 import type { TransitionPhase } from "../profile/initialPhase";
-import type {
-  WeeklyAggregate,
-  WeeklyInsight,
-  WeeklyTrajectoryFrame,
-} from "./types";
+import type { WeeklyAggregate, WeeklyInsight, WeeklyTrajectoryFrame } from "./types";
 
 /**
  * Weekly insight generation (Task 3.4b).
@@ -107,9 +103,7 @@ type RawAggregate = {
   wpm: number;
 };
 
-function rawAggregate(
-  sessions: WeeklyInsightInput["sessions"],
-): RawAggregate {
+function rawAggregate(sessions: WeeklyInsightInput["sessions"]): RawAggregate {
   return {
     sessions: sessions.length,
     accuracyPct: mean(sessions.map((s) => s.accuracyPct)),
@@ -128,10 +122,7 @@ function roundForDisplay(raw: RawAggregate): WeeklyAggregate {
   };
 }
 
-function classifyFrame(
-  thisWeek: RawAggregate,
-  lastWeek: RawAggregate,
-): WeeklyTrajectoryFrame {
+function classifyFrame(thisWeek: RawAggregate, lastWeek: RawAggregate): WeeklyTrajectoryFrame {
   if (thisWeek.sessions === 0 || lastWeek.sessions === 0) return "building";
 
   // Classification reads the raw means, not the display-rounded
@@ -176,10 +167,7 @@ function narrativeFor(
     thisWeek.accuracyPct !== null && lastWeek.accuracyPct !== null
       ? thisWeek.accuracyPct - lastWeek.accuracyPct
       : 0;
-  const wpmDelta =
-    thisWeek.wpm !== null && lastWeek.wpm !== null
-      ? thisWeek.wpm - lastWeek.wpm
-      : 0;
+  const wpmDelta = thisWeek.wpm !== null && lastWeek.wpm !== null ? thisWeek.wpm - lastWeek.wpm : 0;
   const sign = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
 
   switch (frame) {
@@ -280,9 +268,7 @@ function recommendationsFor(
 
 // --- main ------------------------------------------------------------------
 
-export function generateWeeklyInsight(
-  input: WeeklyInsightInput,
-): WeeklyInsight {
+export function generateWeeklyInsight(input: WeeklyInsightInput): WeeklyInsight {
   const now = input.now ?? new Date();
   const { thisWeek, lastWeek } = bucket(input.sessions, now);
   const thisRaw = rawAggregate(thisWeek);

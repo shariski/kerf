@@ -12,11 +12,7 @@
 
 import { useRef } from "react";
 import { TypingArea } from "#/components/TypingArea";
-import {
-  SofleSVG,
-  Lily58SVG,
-  type KeyboardSVGHandle,
-} from "#/components/keyboard";
+import { SofleSVG, Lily58SVG, type KeyboardSVGHandle } from "#/components/keyboard";
 import { useSessionStore } from "#/stores/sessionStore";
 import { useFlashKeyboardOnKeypress } from "#/hooks/useFlashKeyboardOnKeypress";
 import type { KeyboardType } from "#/server/profile";
@@ -59,20 +55,12 @@ export function ActiveSessionStage({
     <div className="kerf-active-session" data-typing-size={typingSize}>
       <div className="kerf-active-session-typing">
         {isFirstSession && <FirstSessionTooltip />}
-        <TypingArea
-          target={target}
-          expectedLetterHint={expectedLetterHint}
-          capture={capture}
-        />
+        <TypingArea target={target} expectedLetterHint={expectedLetterHint} capture={capture} />
       </div>
 
       {showKeyboard && (
         <div className="kerf-active-session-keyboard">
-          <KeyboardComponent
-            ref={keyboardRef}
-            targetKey={nextChar || undefined}
-            showFingerBars
-          />
+          <KeyboardComponent ref={keyboardRef} targetKey={nextChar || undefined} showFingerBars />
         </div>
       )}
 

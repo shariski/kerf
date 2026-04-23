@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { KeystrokeEvent } from "#/domain/stats/types";
-import {
-  DRILL_MIN_PER_HALF_ATTEMPTS,
-  summarizeDrill,
-} from "./drillSummary";
+import { DRILL_MIN_PER_HALF_ATTEMPTS, summarizeDrill } from "./drillSummary";
 
 const ts = new Date("2026-04-19T12:00:00Z");
 
@@ -11,9 +8,7 @@ const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
   targetChar: over.targetChar ?? "b",
   actualChar: over.actualChar ?? over.targetChar ?? "b",
   isError:
-    over.isError ??
-    (over.actualChar !== undefined &&
-      over.actualChar !== (over.targetChar ?? "b")),
+    over.isError ?? (over.actualChar !== undefined && over.actualChar !== (over.targetChar ?? "b")),
   keystrokeMs: over.keystrokeMs ?? 180,
   prevChar: over.prevChar,
   timestamp: over.timestamp ?? ts,
@@ -95,9 +90,7 @@ describe("summarizeDrill — rate math", () => {
   });
 
   it("returns 0% when a half has no target attempts", () => {
-    const events: KeystrokeEvent[] = Array.from({ length: 10 }, () =>
-      ev({ targetChar: "x" }),
-    );
+    const events: KeystrokeEvent[] = Array.from({ length: 10 }, () => ev({ targetChar: "x" }));
     const result = summarizeDrill({ events, targetChars: ["b"] });
     expect(result.before.errorRatePct).toBe(0);
     expect(result.after.errorRatePct).toBe(0);
@@ -108,9 +101,7 @@ describe("summarizeDrill — rate math", () => {
     // First half: 0 errors → 0%; second half: 4/4 → 100%.
     const events: KeystrokeEvent[] = [
       ...Array.from({ length: 4 }, () => ev({ targetChar: "b" })),
-      ...Array.from({ length: 4 }, () =>
-        ev({ targetChar: "b", actualChar: "n" }),
-      ),
+      ...Array.from({ length: 4 }, () => ev({ targetChar: "b", actualChar: "n" })),
     ];
     const result = summarizeDrill({ events, targetChars: ["b"] });
     expect(result.deltaPct).toBe(100);
@@ -139,9 +130,7 @@ describe("summarizeDrill — insufficient data flag", () => {
       ev({ targetChar: "b" }),
     ];
     const result = summarizeDrill({ events, targetChars: ["b"] });
-    expect(result.before.attempts).toBeGreaterThanOrEqual(
-      DRILL_MIN_PER_HALF_ATTEMPTS,
-    );
+    expect(result.before.attempts).toBeGreaterThanOrEqual(DRILL_MIN_PER_HALF_ATTEMPTS);
     expect(result.after.attempts).toBeLessThan(DRILL_MIN_PER_HALF_ATTEMPTS);
     expect(result.insufficientData).toBe(true);
   });

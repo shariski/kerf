@@ -48,10 +48,7 @@ import type { TransitionPhase } from "#/domain/stats/types";
  *
  * Aim for 5–10 lines of code. Keep strings short. Lean mentor, not coach.
  */
-export function pickSummaryTitle(
-  accuracyPct: number,
-  phase: TransitionPhase,
-): string {
+export function pickSummaryTitle(accuracyPct: number, phase: TransitionPhase): string {
   const transitioning = phase === "transitioning";
   if (accuracyPct >= 98) {
     return transitioning

@@ -12,13 +12,9 @@ const ts = "2026-04-19T12:00:00.000Z";
 
 const ev = (over: Partial<KeystrokeEventDto>): KeystrokeEventDto => ({
   targetChar: over.targetChar ?? "a",
-  actualChar:
-    over.actualChar ??
-    (over.isError === true ? "x" : over.targetChar ?? "a"),
+  actualChar: over.actualChar ?? (over.isError === true ? "x" : (over.targetChar ?? "a")),
   isError:
-    over.isError ??
-    (over.actualChar !== undefined &&
-      over.actualChar !== (over.targetChar ?? "a")),
+    over.isError ?? (over.actualChar !== undefined && over.actualChar !== (over.targetChar ?? "a")),
   keystrokeMs: over.keystrokeMs ?? 180,
   prevChar: over.prevChar,
   timestamp: over.timestamp ?? ts,
@@ -49,16 +45,12 @@ describe("validatePersistSessionInput — happy path", () => {
   });
 
   it("passes targeted_drill mode", () => {
-    const out = validatePersistSessionInput(
-      validInput({ mode: "targeted_drill" }),
-    );
+    const out = validatePersistSessionInput(validInput({ mode: "targeted_drill" }));
     expect(out.mode).toBe("targeted_drill");
   });
 
   it("passes refining phase", () => {
-    const out = validatePersistSessionInput(
-      validInput({ phase: "refining" }),
-    );
+    const out = validatePersistSessionInput(validInput({ phase: "refining" }));
     expect(out.phase).toBe("refining");
   });
 });
@@ -70,9 +62,9 @@ describe("validatePersistSessionInput — rejections", () => {
   });
 
   it("rejects a non-UUID sessionId", () => {
-    expect(() =>
-      validatePersistSessionInput(validInput({ sessionId: "nope" })),
-    ).toThrow(/sessionId/);
+    expect(() => validatePersistSessionInput(validInput({ sessionId: "nope" }))).toThrow(
+      /sessionId/,
+    );
   });
 
   it("rejects unknown mode", () => {
@@ -94,9 +86,9 @@ describe("validatePersistSessionInput — rejections", () => {
   });
 
   it("rejects non-ISO startedAt", () => {
-    expect(() =>
-      validatePersistSessionInput(validInput({ startedAt: "tomorrow" })),
-    ).toThrow(/startedAt/);
+    expect(() => validatePersistSessionInput(validInput({ startedAt: "tomorrow" }))).toThrow(
+      /startedAt/,
+    );
   });
 
   it("rejects malformed events", () => {
@@ -122,11 +114,7 @@ describe("enrichEvents — positionInWord", () => {
   it("starts at 0 and advances one per correct keystroke", () => {
     // target "abc"
     const enriched = enrichEvents(
-      [
-        ev({ targetChar: "a" }),
-        ev({ targetChar: "b" }),
-        ev({ targetChar: "c" }),
-      ],
+      [ev({ targetChar: "a" }), ev({ targetChar: "b" }), ev({ targetChar: "c" })],
       "abc",
     );
     expect(enriched.map((e) => e.positionInWord)).toEqual([0, 1, 2]);
@@ -178,11 +166,7 @@ describe("enrichEvents — positionInWord", () => {
 describe("enrichEvents — sequence numbering", () => {
   it("numbers events 0..N-1 in input order", () => {
     const enriched = enrichEvents(
-      [
-        ev({ targetChar: "a" }),
-        ev({ targetChar: "b" }),
-        ev({ targetChar: "c" }),
-      ],
+      [ev({ targetChar: "a" }), ev({ targetChar: "b" }), ev({ targetChar: "c" })],
       "abc",
     );
     expect(enriched.map((e) => e.sequence)).toEqual([0, 1, 2]);
@@ -233,9 +217,7 @@ describe("deriveSessionHeader", () => {
     // 50 correct in 60s = 10 WPM
     const events = [
       ...Array.from({ length: 50 }, () => ev({ targetChar: "a" })),
-      ...Array.from({ length: 10 }, () =>
-        ev({ targetChar: "b", actualChar: "v", isError: true }),
-      ),
+      ...Array.from({ length: 10 }, () => ev({ targetChar: "b", actualChar: "v", isError: true })),
     ];
     const h = deriveSessionHeader({
       events,

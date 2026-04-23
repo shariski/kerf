@@ -49,12 +49,9 @@ export type PhaseSuggestionInput = {
 const mean = (xs: readonly number[]): number =>
   xs.length === 0 ? 0 : xs.reduce((s, x) => s + x, 0) / xs.length;
 
-const daysBetween = (a: Date, b: Date): number =>
-  Math.abs(b.getTime() - a.getTime()) / MS_PER_DAY;
+const daysBetween = (a: Date, b: Date): number => Math.abs(b.getTime() - a.getTime()) / MS_PER_DAY;
 
-function checkGraduation(
-  input: PhaseSuggestionInput,
-): PhaseTransitionSignal | null {
+function checkGraduation(input: PhaseSuggestionInput): PhaseTransitionSignal | null {
   const { recentSessions, recentSnapshots } = input;
 
   const last10Sessions = recentSessions.slice(-SESSION_HISTORY_REQUIRED);
@@ -67,9 +64,7 @@ function checkGraduation(
   // Noisy sub-50-keystroke sessions shouldn't tank the inner-col average.
   const usableSnapshots = last10Snapshots.filter((s) => !s.insufficientData);
   if (usableSnapshots.length === 0) return null;
-  const avgInnerColError = mean(
-    usableSnapshots.map((s) => s.innerColErrorRate),
-  );
+  const avgInnerColError = mean(usableSnapshots.map((s) => s.innerColErrorRate));
   if (avgInnerColError >= INNER_COL_ERROR_GRADUATION_THRESHOLD) return null;
 
   return {
@@ -80,9 +75,7 @@ function checkGraduation(
   };
 }
 
-function checkBreakReturn(
-  input: PhaseSuggestionInput,
-): PhaseTransitionSignal | null {
+function checkBreakReturn(input: PhaseSuggestionInput): PhaseTransitionSignal | null {
   const { lastSessionAt, recentSessions, now = new Date() } = input;
   if (!lastSessionAt) return null;
 
@@ -103,9 +96,7 @@ function checkBreakReturn(
   };
 }
 
-export function suggestPhaseTransition(
-  input: PhaseSuggestionInput,
-): PhaseTransitionSignal | null {
+export function suggestPhaseTransition(input: PhaseSuggestionInput): PhaseTransitionSignal | null {
   // Caller misalignment — snapshots should be 1:1 with sessions. Fail
   // closed rather than emit a nonsense signal from mismatched windows.
   if (input.recentSessions.length !== input.recentSnapshots.length) return null;

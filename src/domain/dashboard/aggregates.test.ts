@@ -351,26 +351,17 @@ describe("computeHeatLevels", () => {
   });
 
   it("lowercases input characters", () => {
-    const out = computeHeatLevels(
-      [{ character: "A", attempts: 100, errors: 0 }],
-      opts,
-    );
+    const out = computeHeatLevels([{ character: "A", attempts: 100, errors: 0 }], opts);
     expect(out[0]!.character).toBe("a");
   });
 
   it("assigns level 0 when below minAttempts even with high error rate", () => {
-    const out = computeHeatLevels(
-      [{ character: "b", attempts: 5, errors: 3 }],
-      opts,
-    );
+    const out = computeHeatLevels([{ character: "b", attempts: 5, errors: 3 }], opts);
     expect(out[0]!.level).toBe(0);
   });
 
   it("assigns level 0 when error rate is exactly 0", () => {
-    const out = computeHeatLevels(
-      [{ character: "a", attempts: 100, errors: 0 }],
-      opts,
-    );
+    const out = computeHeatLevels([{ character: "a", attempts: 100, errors: 0 }], opts);
     expect(out[0]!.level).toBe(0);
   });
 
@@ -388,18 +379,12 @@ describe("computeHeatLevels", () => {
   ])("error rate %s maps to level %i", (rate, expectedLevel) => {
     const attempts = 1000;
     const errors = Math.round(rate * attempts);
-    const out = computeHeatLevels(
-      [{ character: "x", attempts, errors }],
-      opts,
-    );
+    const out = computeHeatLevels([{ character: "x", attempts, errors }], opts);
     expect(out[0]!.level).toBe(expectedLevel);
   });
 
   it("surfaces errorRate and attempts on each entry", () => {
-    const out = computeHeatLevels(
-      [{ character: "b", attempts: 100, errors: 12 }],
-      opts,
-    );
+    const out = computeHeatLevels([{ character: "b", attempts: 100, errors: 12 }], opts);
     expect(out[0]!.attempts).toBe(100);
     expect(out[0]!.errors).toBe(12);
     expect(out[0]!.errorRate).toBeCloseTo(0.12);
@@ -460,9 +445,7 @@ describe("computeWeaknessRanking", () => {
       chars: [
         cStat({ character: "q", attempts: 50, errors: 20 }), // very error-prone char
       ],
-      bigrams: [
-        bStat({ bigram: "er", attempts: 50, errors: 15 }),
-      ],
+      bigrams: [bStat({ bigram: "er", attempts: 50, errors: 15 })],
       baseline,
       phase: "transitioning",
       topN: 10,

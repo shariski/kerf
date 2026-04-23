@@ -15,13 +15,7 @@ type Props = {
   onSelect?: () => void;
 };
 
-export function ModeCard({
-  icon,
-  name,
-  description,
-  disabled = false,
-  onSelect,
-}: Props) {
+export function ModeCard({ icon, name, description, disabled = false, onSelect }: Props) {
   const clickable = !disabled && !!onSelect;
   return (
     <button

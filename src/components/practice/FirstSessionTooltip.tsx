@@ -36,8 +36,7 @@ export function FirstSessionTooltip() {
         ◷
       </span>
       <span className="kerf-first-session-tip-text">
-        Type at your pace. We're watching accuracy, not speed — backspace to
-        fix mistakes as you go.
+        Type at your pace. We're watching accuracy, not speed — backspace to fix mistakes as you go.
       </span>
       <button
         type="button"

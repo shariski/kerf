@@ -21,8 +21,7 @@ import { Lily58SVG } from "#/components/keyboard/Lily58SVG";
 type Props = { data: DashboardHeatmapData };
 
 export function Heatmap({ data }: Props) {
-  const KeyboardComponent =
-    data.keyboardType === "lily58" ? Lily58SVG : SofleSVG;
+  const KeyboardComponent = data.keyboardType === "lily58" ? Lily58SVG : SofleSVG;
 
   return (
     <div className="kerf-dash-heatmap">
@@ -62,8 +61,7 @@ function Caption({ data }: { data: DashboardHeatmapData }) {
   if (data.measuredCount === 0) {
     return (
       <p className="kerf-dash-heatmap-caption">
-        No keys have enough attempts yet to read a signal. Color fills in as
-        you practice.
+        No keys have enough attempts yet to read a signal. Color fills in as you practice.
       </p>
     );
   }
@@ -73,7 +71,8 @@ function Caption({ data }: { data: DashboardHeatmapData }) {
       Error rate per key across {data.measuredCount} measured letter{plural}
       {data.hottest.length > 0 ? (
         <>
-          {" "}— currently heaviest on <HottestKeys chars={data.hottest} />.
+          {" "}
+          — currently heaviest on <HottestKeys chars={data.hottest} />.
         </>
       ) : (
         <>. No keys are currently above the threshold — nice form.</>

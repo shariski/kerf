@@ -76,14 +76,10 @@ export function readSessionQueue(): QueuedSession[] {
 
 export function enqueueSession(payload: PersistSessionInput): void {
   const current = readSessionQueue();
-  const deduped = current.filter(
-    (q) => q.payload.sessionId !== payload.sessionId,
-  );
+  const deduped = current.filter((q) => q.payload.sessionId !== payload.sessionId);
   deduped.push({ payload, enqueuedAt: Date.now() });
   const trimmed =
-    deduped.length > MAX_QUEUE_SIZE
-      ? deduped.slice(deduped.length - MAX_QUEUE_SIZE)
-      : deduped;
+    deduped.length > MAX_QUEUE_SIZE ? deduped.slice(deduped.length - MAX_QUEUE_SIZE) : deduped;
   writeQueue(trimmed);
 }
 

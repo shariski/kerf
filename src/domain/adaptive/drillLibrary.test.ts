@@ -68,12 +68,16 @@ describe("lookupDrill", () => {
       id: "left-ring-columnar-only",
       appliesTo: ["columnar"],
     };
-    const chosen = lookupDrill([validEntry, other], {
-      type: "vertical-column",
-      value: "left-ring",
-      keys: ["w", "s", "x"],
-      label: "Left ring",
-    }, "columnar");
+    const chosen = lookupDrill(
+      [validEntry, other],
+      {
+        type: "vertical-column",
+        value: "left-ring",
+        keys: ["w", "s", "x"],
+        label: "Left ring",
+      },
+      "columnar",
+    );
     // Both apply to columnar; Array.find returns the first match → validEntry.
     expect(chosen).toBe(validEntry);
   });
@@ -85,8 +89,6 @@ describe("lookupDrill", () => {
       keys: ["p", ";", "/"],
       label: "Right pinky",
     };
-    expect(() => lookupDrill(library, target, "conventional")).toThrow(
-      /no drill/i,
-    );
+    expect(() => lookupDrill(library, target, "conventional")).toThrow(/no drill/i);
   });
 });

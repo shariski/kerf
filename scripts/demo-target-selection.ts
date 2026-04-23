@@ -42,7 +42,9 @@ console.log("──────── ADR-003 selectTarget smoke test ───�
 
 for (const journey of ["conventional", "columnar", "unsure"] as const) {
   const target = selectTarget(stats, baseline(journey), "transitioning", freq);
-  console.log(`journey: ${journey.padEnd(13)} → ${target.type.padEnd(16)} value=${target.value.padEnd(14)} score=${target.score?.toFixed(3) ?? "—"}`);
+  console.log(
+    `journey: ${journey.padEnd(13)} → ${target.type.padEnd(16)} value=${target.value.padEnd(14)} score=${target.score?.toFixed(3) ?? "—"}`,
+  );
   console.log(`  label : ${target.label}`);
   console.log(`  keys  : [${target.keys.join(", ")}]\n`);
 }
@@ -55,5 +57,9 @@ console.log(`→ ${dx.type} value=${dx.value} label="${dx.label}" keys=[${dx.key
 console.log("──── refining phase: same data, no journey bonus ────");
 const refConv = selectTarget(stats, baseline("conventional"), "refining", freq);
 const refCol = selectTarget(stats, baseline("columnar"), "refining", freq);
-console.log(`conventional → ${refConv.type}/${refConv.value} score=${refConv.score?.toFixed(3) ?? "—"}`);
-console.log(`columnar     → ${refCol.type}/${refCol.value} score=${refCol.score?.toFixed(3) ?? "—"}`);
+console.log(
+  `conventional → ${refConv.type}/${refConv.value} score=${refConv.score?.toFixed(3) ?? "—"}`,
+);
+console.log(
+  `columnar     → ${refCol.type}/${refCol.value} score=${refCol.score?.toFixed(3) ?? "—"}`,
+);

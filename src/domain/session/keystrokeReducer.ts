@@ -24,17 +24,10 @@
  *      reducer; useKeystrokeCapture filters them at `e.key.length === 1`.
  */
 
-import type {
-  KeystrokeEvent,
-  SessionAction,
-  SessionState,
-} from "./types";
+import type { KeystrokeEvent, SessionAction, SessionState } from "./types";
 import { idleSessionState } from "./types";
 
-export function keystrokeReducer(
-  state: SessionState,
-  action: SessionAction,
-): SessionState {
+export function keystrokeReducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case "start":
       return {

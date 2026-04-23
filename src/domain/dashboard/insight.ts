@@ -49,8 +49,7 @@ const TREND_SIGNIFICANCE_PTS = 0.5;
 const TREND_SIGNIFICANCE_WPM = 2;
 
 export function composeDashboardInsight(input: InsightInput): DashboardInsight {
-  const { totalSessions, accuracyTrendPct, wpmTrend, phase, topWeaknesses } =
-    input;
+  const { totalSessions, accuracyTrendPct, wpmTrend, phase, topWeaknesses } = input;
 
   const narrative = narrativeFor({
     totalSessions,
@@ -153,10 +152,7 @@ function trajectoryBodyFor(args: {
     : "trajectory is steady. The refining phase rewards reps that don't chase, and this is that shape.";
 }
 
-function directionOf(
-  delta: number | null,
-  threshold: number,
-): "up" | "down" | "flat" | "unknown" {
+function directionOf(delta: number | null, threshold: number): "up" | "down" | "flat" | "unknown" {
   if (delta === null) return "unknown";
   if (delta >= threshold) return "up";
   if (delta <= -threshold) return "down";

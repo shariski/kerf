@@ -7,9 +7,6 @@ const LAYOUTS: Record<KeyboardLayout, FingerTable> = {
   lily58: LILY58_BASE_LAYER,
 };
 
-export function getFingerForKey(
-  layout: KeyboardLayout,
-  char: string,
-): KeyAssignment | undefined {
+export function getFingerForKey(layout: KeyboardLayout, char: string): KeyAssignment | undefined {
   return LAYOUTS[layout][char.toLowerCase()];
 }

@@ -23,9 +23,7 @@ describe("getFingerForKey", () => {
   });
 
   it("treats uppercase letters as their lowercase equivalent", () => {
-    expect(getFingerForKey("sofle", "A")).toEqual(
-      getFingerForKey("sofle", "a"),
-    );
+    expect(getFingerForKey("sofle", "A")).toEqual(getFingerForKey("sofle", "a"));
   });
 
   it("returns undefined for an unknown character", () => {

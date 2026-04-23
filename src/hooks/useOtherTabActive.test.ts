@@ -43,10 +43,9 @@ describe("useOtherTabActive", () => {
   });
 
   it("tab B goes back to inactive after tab A ends the session", async () => {
-    const tabA = renderHook(
-      ({ active }: { active: boolean }) => useOtherTabActive(active),
-      { initialProps: { active: true } },
-    );
+    const tabA = renderHook(({ active }: { active: boolean }) => useOtherTabActive(active), {
+      initialProps: { active: true },
+    });
     const tabB = renderHook(() => useOtherTabActive(false));
     await flushChannel();
     expect(tabB.result.current).toBe(true);

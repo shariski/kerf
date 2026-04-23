@@ -6,10 +6,7 @@ import type {
   UserBaseline,
 } from "../stats/types";
 import type { JourneyCode } from "./journey";
-import {
-  computeWeaknessScore,
-  LOW_CONFIDENCE_THRESHOLD,
-} from "./weaknessScore";
+import { computeWeaknessScore, LOW_CONFIDENCE_THRESHOLD } from "./weaknessScore";
 import {
   innerColumnCandidates,
   thumbClusterCandidate,
@@ -39,10 +36,7 @@ export type SessionTarget = {
  * Weights per ADR-003 §5 — hand-tuned starting values. Transparency panel
  * must state this honestly; revisit with beta feedback.
  */
-export const TARGET_JOURNEY_WEIGHTS: Record<
-  JourneyCode,
-  Record<TargetType, number>
-> = {
+export const TARGET_JOURNEY_WEIGHTS: Record<JourneyCode, Record<TargetType, number>> = {
   conventional: {
     character: 1.0,
     bigram: 1.0,

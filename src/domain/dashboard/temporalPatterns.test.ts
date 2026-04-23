@@ -13,11 +13,7 @@ import {
  * doesn't care about absolute date, only hour/day-of-week. */
 const BASE_SUNDAY = new Date(2026, 3, 19, 0, 0, 0); // month is 0-indexed
 
-const at = (
-  dayOffset: number,
-  hour: number,
-  wpm: number,
-): { startedAt: Date; wpm: number } => ({
+const at = (dayOffset: number, hour: number, wpm: number): { startedAt: Date; wpm: number } => ({
   startedAt: new Date(
     BASE_SUNDAY.getFullYear(),
     BASE_SUNDAY.getMonth(),
@@ -42,9 +38,7 @@ describe("computeTemporalPatterns — shape", () => {
 
   it("labels hour buckets 0-23 in order", () => {
     const r = computeTemporalPatterns({ sessions: [] });
-    expect(r.byHour.map((h) => h.hour)).toEqual(
-      Array.from({ length: 24 }, (_, i) => i),
-    );
+    expect(r.byHour.map((h) => h.hour)).toEqual(Array.from({ length: 24 }, (_, i) => i));
   });
 
   it("labels day-of-week buckets Sun-Sat starting from 0", () => {

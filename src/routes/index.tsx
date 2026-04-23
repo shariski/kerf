@@ -54,12 +54,7 @@ function HomePage() {
       if (e.key !== "Enter") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const tgt = e.target as HTMLElement | null;
-      if (
-        tgt &&
-        (tgt.tagName === "INPUT" ||
-          tgt.tagName === "TEXTAREA" ||
-          tgt.isContentEditable)
-      ) {
+      if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) {
         return;
       }
       e.preventDefault();
@@ -72,11 +67,7 @@ function HomePage() {
   return (
     <main id="main-content" className="kerf-home-page">
       <div className="kerf-home-container">
-        {home.hasAnySession ? (
-          <ReturningState home={home} />
-        ) : (
-          <ZeroState home={home} />
-        )}
+        {home.hasAnySession ? <ReturningState home={home} /> : <ZeroState home={home} />}
       </div>
     </main>
   );
@@ -88,13 +79,11 @@ function ZeroState({ home }: { home: HomeData }) {
       <div className="kerf-home-greeting">
         <div className="kerf-home-greeting-line">welcome to kerf</div>
         <h1 className="kerf-home-zero-welcome">
-          Let's build your{" "}
-          <span className="kerf-home-highlight">split muscle memory</span>.
+          Let's build your <span className="kerf-home-highlight">split muscle memory</span>.
         </h1>
         <p className="kerf-home-zero-message">
-          Your adaptive engine is ready. Start your first session — we'll
-          capture a baseline, then tailor exercises to your actual weaknesses on
-          split layout.
+          Your adaptive engine is ready. Start your first session — we'll capture a baseline, then
+          tailor exercises to your actual weaknesses on split layout.
         </p>
       </div>
 
@@ -109,12 +98,8 @@ function ZeroState({ home }: { home: HomeData }) {
           className="kerf-home-cta-primary kerf-home-cta-primary--tall"
         >
           <span className="kerf-home-cta-primary-text">
-            <span className="kerf-home-cta-primary-label">
-              Start your first session
-            </span>
-            <span className="kerf-home-cta-primary-meta">
-              baseline capture · ~1 minute
-            </span>
+            <span className="kerf-home-cta-primary-label">Start your first session</span>
+            <span className="kerf-home-cta-primary-meta">baseline capture · ~1 minute</span>
           </span>
           <span className="kerf-home-cta-primary-action" aria-hidden>
             <kbd className="kerf-kbd kerf-kbd--with-label">
@@ -146,18 +131,10 @@ function ReturningState({ home }: { home: HomeData }) {
       <KeyboardContextPill keyboardType={home.profile.keyboardType} />
 
       <div className="kerf-home-hero-cta-group">
-        <Link
-          to="/practice"
-          search={{ autostart: true }}
-          className="kerf-home-cta-primary"
-        >
+        <Link to="/practice" search={{ autostart: true }} className="kerf-home-cta-primary">
           <span className="kerf-home-cta-primary-text">
-            <span className="kerf-home-cta-primary-label">
-              Continue adaptive practice
-            </span>
-            <span className="kerf-home-cta-primary-meta">
-              {buildFocusLine(home)}
-            </span>
+            <span className="kerf-home-cta-primary-label">Continue adaptive practice</span>
+            <span className="kerf-home-cta-primary-meta">{buildFocusLine(home)}</span>
           </span>
           <span className="kerf-home-cta-primary-action" aria-hidden>
             <kbd className="kerf-kbd kerf-kbd--with-label">
@@ -167,11 +144,7 @@ function ReturningState({ home }: { home: HomeData }) {
             <span className="kerf-home-cta-primary-arrow">→</span>
           </span>
         </Link>
-        <Link
-          to="/practice/drill"
-          search={{}}
-          className="kerf-home-cta-secondary"
-        >
+        <Link to="/practice/drill" search={{}} className="kerf-home-cta-secondary">
           <span className="kerf-home-cta-secondary-icon" aria-hidden>
             ◎
           </span>
@@ -194,17 +167,13 @@ function ReturningState({ home }: { home: HomeData }) {
             <span className="kerf-home-last-session-stats">
               {home.lastSession.wpm !== null && (
                 <span className="kerf-home-ls-stat">
-                  <span className="kerf-home-ls-stat-value">
-                    {home.lastSession.wpm}
-                  </span>
+                  <span className="kerf-home-ls-stat-value">{home.lastSession.wpm}</span>
                   <span className="kerf-home-ls-stat-unit">wpm</span>
                 </span>
               )}
               {home.lastSession.accuracyPct !== null && (
                 <span className="kerf-home-ls-stat">
-                  <span className="kerf-home-ls-stat-value">
-                    {home.lastSession.accuracyPct}
-                  </span>
+                  <span className="kerf-home-ls-stat-value">{home.lastSession.accuracyPct}</span>
                   <span className="kerf-home-ls-stat-unit">%</span>
                 </span>
               )}
@@ -226,9 +195,7 @@ function ReturningState({ home }: { home: HomeData }) {
           <header className="kerf-home-activity-strip-header">
             <div className="kerf-home-activity-strip-title">Last 30 days</div>
             <div className="kerf-home-activity-strip-meta">
-              {home.streakDays === 0
-                ? "no streak"
-                : `${home.streakDays} day streak`}
+              {home.streakDays === 0 ? "no streak" : `${home.streakDays} day streak`}
             </div>
           </header>
           <div
@@ -252,20 +219,12 @@ function ReturningState({ home }: { home: HomeData }) {
         {home.topWeaknesses.length > 0 && (
           <Link to="/dashboard" className="kerf-home-weakness-strip">
             <header className="kerf-home-weakness-strip-header">
-              <div className="kerf-home-weakness-strip-title">
-                Current focus
-              </div>
-              <span className="kerf-home-weakness-strip-link">
-                full ranking →
-              </span>
+              <div className="kerf-home-weakness-strip-title">Current focus</div>
+              <span className="kerf-home-weakness-strip-link">full ranking →</span>
             </header>
             <div className="kerf-home-weakness-pills">
               {home.topWeaknesses.map((w, i) => (
-                <span
-                  key={w.unit}
-                  className="kerf-home-weakness-pill-row"
-                  aria-hidden={false}
-                >
+                <span key={w.unit} className="kerf-home-weakness-pill-row" aria-hidden={false}>
                   <span className="kerf-home-weakness-pill">
                     {w.isCharacter ? w.unit.toUpperCase() : w.unit}
                   </span>
@@ -278,8 +237,8 @@ function ReturningState({ home }: { home: HomeData }) {
               ))}
             </div>
             <div className="kerf-home-weakness-stat-line">
-              top {home.topWeaknesses.length} weaknesses on{" "}
-              {home.profile.keyboardType} · next exercise will emphasize these
+              top {home.topWeaknesses.length} weaknesses on {home.profile.keyboardType} · next
+              exercise will emphasize these
             </div>
           </Link>
         )}
