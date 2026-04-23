@@ -226,14 +226,28 @@ The repo enforces style via [Biome](https://biomejs.dev) (`biome.json`). The poi
 
 **Rules:**
 
-- Every slice must end with `biome format` clean before the PR opens. Run `./node_modules/.bin/biome format .` (or `npm run format:check`) to check, `npm run format` to apply. If any touched file drifts, apply the fix in a **dedicated mechanical commit** (`chore: ...`) — do NOT mix format and semantic changes in one commit.
+- Every slice must end with `biome format` clean before the PR opens. Run `./node_modules/.bin/biome format .` (or `pnpm format:check`) to check, `pnpm format` to apply. If any touched file drifts, apply the fix in a **dedicated mechanical commit** (`chore: ...`) — do NOT mix format and semantic changes in one commit.
 - Register mechanical format commits in `.git-blame-ignore-revs` so `git blame` skips them.
 - Every slice must leave `biome lint` diagnostic counts at-or-below the pre-slice `origin/main` baseline. Measure before (`./node_modules/.bin/biome lint . --reporter=summary | tail -3`) and after. Net-positive additions of errors or warnings need rule-tuning or code-fix justification — not "we'll fix it later."
-- Prefer direct binary invocation: `./node_modules/.bin/biome lint .` and `./node_modules/.bin/biome format .`. The `rtk` proxy some sessions run truncates `npm run`-spawned Biome output with a spurious "terminated abnormally" message. Direct paths bypass this.
+- Prefer direct binary invocation: `./node_modules/.bin/biome lint .` and `./node_modules/.bin/biome format .` (or `pnpm exec biome ...`). The `rtk` proxy some sessions run may truncate pm-spawned Biome output with a spurious "terminated abnormally" message. Direct paths bypass this.
 - Suppression (`// biome-ignore ...`) is a last resort and needs a one-line reason comment. Fixing the code is the default.
 - Subagent implementer prompts must require the subagent to report format/lint status in their summary, so the controller can verify pre-PR — not just typecheck + tests.
 
 **Why this exists:** a missed format sweep in one PR becomes a multi-file reflow in the next PR, which obscures the real logic change. The check is sub-second; skipping it is a false economy. See PR #54 commit `a0694d2` for a cautionary-tale cleanup where drift from two prior PRs had to be retrofitted.
+
+## B13. Package Manager: pnpm
+
+The repo uses **pnpm** as its package manager. `pnpm-lock.yaml` is committed; `package-lock.json` is gitignored and must never be committed.
+
+**Rules:**
+
+- Install deps: `pnpm install` (CI: `pnpm install --frozen-lockfile`).
+- Run scripts: `pnpm <script>` — e.g. `pnpm dev`, `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm format`. (`pnpm run <script>` also works.)
+- **Never run `npm install` in this repo.** It generates a `package-lock.json` that silently drifts against `pnpm-lock.yaml` and, if installed alongside a prior pnpm install, produces a hybrid `node_modules` where Vite resolves mixed versions of framework internals at runtime.
+- If `git status` ever shows an untracked `package-lock.json` on your working tree, delete it. It should never be committed.
+- Direct binary invocation (e.g. `./node_modules/.bin/biome ...`) works regardless of package manager. Prefer it in subagent prompts to dodge pm-proxy truncation.
+
+**Why this exists:** The repo was originally pnpm (see `package.json`'s `"pnpm": {"onlyBuiltDependencies": [...]}` block), but during ADR-003 implementation several Claude sessions defaulted to `npm install` and silently committed `package-lock.json` alongside the existing `pnpm-lock.yaml`. On a machine that alternated between `pnpm install` (for dev) and `npm install` (via session scripts), `node_modules` ended up with mixed resolutions — different versions of `@tanstack/start-server-core` coexisted, and runtime crashed with `Cannot read properties of undefined (reading 'method')` in the server-function handler. Pinning to pnpm + gitignoring `package-lock.json` prevents the mode where both lockfiles silently drift. See PR #59 for the cleanup.
 
 ---
 

@@ -22,6 +22,11 @@ todos.json
 # docs/superpowers/
 .playwright-mcp/
 
+# The repo uses pnpm (see CLAUDE.md §B13). A stray package-lock.json from
+# an accidental `npm install` would silently fight the pnpm-lock.yaml and
+# produce a hybrid node_modules. Ignore so it never gets committed.
+package-lock.json
+
 # Playwright a11y test artifacts
 test-results/
 playwright-report/
