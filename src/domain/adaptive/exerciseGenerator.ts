@@ -49,6 +49,26 @@ export type ExerciseOptions = {
   filters?: ExerciseFilters;
   targetWordCount?: number;
   rng?: () => number;
+  /**
+   * Emphasis floor — when set alongside a positive `mustContainMinRatio`,
+   * guarantees that fraction of the sampled words contain this unit
+   * (char like "u" or bigram like "th"). Words are split into an emphasis
+   * pool (those containing the unit) and a filler pool; ratio × target
+   * words come from emphasis, the rest from filler. If the emphasis pool
+   * is smaller than the ratio implies, we include all available emphasis
+   * words and top up from filler — we never force repetition.
+   *
+   * Rationale: the default weighted-sum scoring is dominated by the 0.5
+   * per-unit floor for long non-target words, so sessions can silently
+   * end up with few target-containing words even when
+   * `weaknessScoreFor(target) = 10`. The emphasis floor decouples
+   * "how many words contain the target" from the scoring weights.
+   */
+  mustContainUnit?: string;
+  /** Fraction of `targetWordCount` that must contain `mustContainUnit`.
+   *  Clamped to [0, 1]; values <= 0 disable the floor and fall through
+   *  to the legacy weighted sampler. */
+  mustContainMinRatio?: number;
 };
 
 export const DEFAULT_TARGET_WORD_COUNT = 50;
@@ -122,7 +142,38 @@ export function generateExercise(options: ExerciseOptions): string[] {
     filters,
     targetWordCount = DEFAULT_TARGET_WORD_COUNT,
     rng = Math.random,
+    mustContainUnit,
+    mustContainMinRatio,
   } = options;
+
+  const useFloor =
+    mustContainUnit !== undefined && mustContainMinRatio !== undefined && mustContainMinRatio > 0;
+
+  if (useFloor) {
+    const ratio = Math.min(1, mustContainMinRatio);
+    const emphasisTarget = Math.min(targetWordCount, Math.ceil(targetWordCount * ratio));
+
+    const emphasisCandidates: { word: CorpusWord; weight: number }[] = [];
+    const fillerCandidates: { word: CorpusWord; weight: number }[] = [];
+    for (const w of corpus.words) {
+      if (!passesFilters(w, filters)) continue;
+      const score = matchScore(w, weaknessScoreFor);
+      if (score <= 0) continue;
+      const contains = w.chars.includes(mustContainUnit) || w.bigrams.includes(mustContainUnit);
+      (contains ? emphasisCandidates : fillerCandidates).push({ word: w, weight: score });
+    }
+
+    const emphasisSample = weightedSampleWithoutReplacement(
+      emphasisCandidates,
+      emphasisTarget,
+      rng,
+    );
+    const fillerNeeded = targetWordCount - emphasisSample.length;
+    const fillerSample = weightedSampleWithoutReplacement(fillerCandidates, fillerNeeded, rng);
+
+    const combined = [...emphasisSample, ...fillerSample].map((w) => w.word);
+    return shuffleInPlace(combined, rng);
+  }
 
   const candidates: { word: CorpusWord; weight: number }[] = [];
   for (const w of corpus.words) {

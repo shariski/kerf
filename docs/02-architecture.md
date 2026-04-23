@@ -584,11 +584,25 @@ Algorithm:
    - Max difficulty score
 2. For each word in the filtered corpus, compute a match score:
    match_score(word) = sum(weakness_score(unit) for unit in word.characters + word.bigrams)
-3. Weighted random sampling: probability(word) ∝ match_score(word)
-4. Sample until reaching target count (typically 40-60 words)
+3. Split candidates into an emphasis pool (contains the session target
+   unit as a char or bigram) and a filler pool (doesn't)
+4. Weighted random sampling:
+   - ceil(TARGET_EMPHASIS_RATIO × count) words from the emphasis pool
+   - remaining words from the filler pool (for variety)
+   - If emphasis pool is smaller than the ratio implies, include all
+     available emphasis words and top up from filler — no repetition
 5. Shuffle (avoid clustering similar words sequentially)
 6. Return word array to UI
 ```
+
+**Why the emphasis pool split:** the raw weighted-sum score in step 2 is
+dominated by the 0.5 per-unit floor for longer non-target words, so
+without the pool split a session can silently end up with very few
+target-containing words even when the target's `weaknessScore` is 10×
+the floor. The split decouples "how often the target appears" from the
+scoring weights. Default `TARGET_EMPHASIS_RATIO = 0.75` — hand-tuned,
+revisit with beta feedback. Motion targets bypass this entirely (they
+use curated drillLibrary content).
 
 **Performance characteristics:**
 
