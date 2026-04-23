@@ -220,6 +220,21 @@ The `## Status` checklist in `README.md` is the single fastest way for a new Cla
 
 **Why this exists:** a stale checklist is worse than no checklist — it silently lies about state. Without this rule, every future session pays the cost of re-inferring what's done from `git log`, branch names, and commit messages, and risks redoing completed work.
 
+## B12. Lint + Format Discipline
+
+The repo enforces style via [Biome](https://biomejs.dev) (`biome.json`). The point of this section: **don't let AI sessions accumulate unchecked style drift.** In multi-session AI development, quirks compound silently; enforcing the check at every slice keeps the visible diff small and the history reviewable.
+
+**Rules:**
+
+- Every slice must end with `biome format` clean before the PR opens. Run `./node_modules/.bin/biome format .` (or `npm run format:check`) to check, `npm run format` to apply. If any touched file drifts, apply the fix in a **dedicated mechanical commit** (`chore: ...`) — do NOT mix format and semantic changes in one commit.
+- Register mechanical format commits in `.git-blame-ignore-revs` so `git blame` skips them.
+- Every slice must leave `biome lint` diagnostic counts at-or-below the pre-slice `origin/main` baseline. Measure before (`./node_modules/.bin/biome lint . --reporter=summary | tail -3`) and after. Net-positive additions of errors or warnings need rule-tuning or code-fix justification — not "we'll fix it later."
+- Prefer direct binary invocation: `./node_modules/.bin/biome lint .` and `./node_modules/.bin/biome format .`. The `rtk` proxy some sessions run truncates `npm run`-spawned Biome output with a spurious "terminated abnormally" message. Direct paths bypass this.
+- Suppression (`// biome-ignore ...`) is a last resort and needs a one-line reason comment. Fixing the code is the default.
+- Subagent implementer prompts must require the subagent to report format/lint status in their summary, so the controller can verify pre-PR — not just typecheck + tests.
+
+**Why this exists:** a missed format sweep in one PR becomes a multi-file reflow in the next PR, which obscures the real logic change. The check is sub-second; skipping it is a false economy. See PR #54 commit `a0694d2` for a cautionary-tale cleanup where drift from two prior PRs had to be retrofitted.
+
 ---
 
 ## Working Pattern Per Task
@@ -228,9 +243,10 @@ The `## Status` checklist in `README.md` is the single fastest way for a new Cla
 2. State a brief plan with verification checks.
 3. Write tests first where applicable.
 4. Implement the minimum to pass tests.
-5. Report diff, test results, and any assumptions you made.
-6. If the task is tracked in `README.md` `## Status`, flip its checkbox as part of the PR — see §B11.
-7. Wait for developer review before moving to next task.
+5. Run `biome format --write` on touched files and confirm `biome lint` delta vs main is ≈0 — see §B12.
+6. Report diff, test results, lint + format status, and any assumptions you made.
+7. If the task is tracked in `README.md` `## Status`, flip its checkbox as part of the PR — see §B11.
+8. Wait for developer review before moving to next task.
 
 ---
 
