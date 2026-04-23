@@ -3,6 +3,7 @@ import { PHASE_BASELINES } from "../stats/baselines";
 import type { BigramStat, CharacterStat, UserBaseline } from "../stats/types";
 import {
   INNER_COLUMN_BONUS,
+  JOURNEY_BONUSES,
   LOW_CONFIDENCE_THRESHOLD,
   computeWeaknessScore,
   isLowConfidence,
@@ -105,17 +106,17 @@ describe("computeWeaknessScore — inner column transition bonus", () => {
     expect(rInner).toBeCloseTo(rNonInner, 5);
   });
 
-  it("recognizes all six inner-column characters (b, g, h, n, t, y)", () => {
+  it("recognizes all six inner-column characters (b, g, h, n, t, y) in columnar journey", () => {
     const noBonus = computeWeaknessScore(
       charStat({ character: "a" }),
-      PHASE_BASELINES.transitioning,
+      baseline({ journey: "columnar" }),
       "transitioning",
       0,
     );
     for (const ch of ["b", "g", "h", "n", "t", "y"]) {
       const score = computeWeaknessScore(
         charStat({ character: ch }),
-        PHASE_BASELINES.transitioning,
+        baseline({ journey: "columnar" }),
         "transitioning",
         0,
       );
@@ -129,13 +130,13 @@ describe("computeWeaknessScore — inner column transition bonus", () => {
   it("treats inner-column character matching as case-insensitive", () => {
     const lower = computeWeaknessScore(
       charStat({ character: "b" }),
-      PHASE_BASELINES.transitioning,
+      baseline({ journey: "columnar" }),
       "transitioning",
       0,
     );
     const upper = computeWeaknessScore(
       charStat({ character: "B" }),
-      PHASE_BASELINES.transitioning,
+      baseline({ journey: "columnar" }),
       "transitioning",
       0,
     );
@@ -226,5 +227,98 @@ describe("isLowConfidence", () => {
   it("works on bigram stats too", () => {
     expect(isLowConfidence(bigramStat({ attempts: 2 }))).toBe(true);
     expect(isLowConfidence(bigramStat({ attempts: 50 }))).toBe(false);
+  });
+});
+
+describe("computeWeaknessScore — journey branching (ADR-003 §4.1)", () => {
+  it("conventional journey: applies VERTICAL_REACH_BONUS to off-home-row chars, no INNER_COLUMN_BONUS", () => {
+    // 'q' is row 1 (top) — should get vertical bonus under conventional
+    const topRowChar = charStat({ character: "q" });
+    const score = computeWeaknessScore(
+      topRowChar,
+      baseline({ journey: "conventional" }),
+      "transitioning",
+      0.5,
+    );
+    const scoreColumnar = computeWeaknessScore(
+      topRowChar,
+      baseline({ journey: "columnar" }),
+      "transitioning",
+      0.5,
+    );
+    expect(score).toBeGreaterThan(scoreColumnar); // conventional gets +0.3
+  });
+
+  it("conventional JOURNEY_BONUSES: INNER_COLUMN = 0, VERTICAL_REACH = 0.3", () => {
+    expect(JOURNEY_BONUSES.conventional.INNER_COLUMN_BONUS).toBe(0);
+    expect(JOURNEY_BONUSES.conventional.VERTICAL_REACH_BONUS).toBe(0.3);
+  });
+
+  it("columnar JOURNEY_BONUSES: INNER_COLUMN = 0.3, VERTICAL_REACH = 0", () => {
+    expect(JOURNEY_BONUSES.columnar.INNER_COLUMN_BONUS).toBe(0.3);
+    expect(JOURNEY_BONUSES.columnar.VERTICAL_REACH_BONUS).toBe(0);
+  });
+
+  it("columnar journey: applies INNER_COLUMN_BONUS to inner-column chars, no VERTICAL_REACH", () => {
+    // 'g' is home-row inner-column
+    const gScore = computeWeaknessScore(
+      charStat({ character: "g" }),
+      baseline({ journey: "columnar" }),
+      "transitioning",
+      0.5,
+    );
+    const gConv = computeWeaknessScore(
+      charStat({ character: "g" }),
+      baseline({ journey: "conventional" }),
+      "transitioning",
+      0.5,
+    );
+    expect(gScore).toBeGreaterThan(gConv); // columnar gets +0.3 on 'g'; conventional gets 0
+  });
+
+  it("unsure journey: behaves as conventional (same BONUSES shape)", () => {
+    expect(JOURNEY_BONUSES.unsure).toEqual(JOURNEY_BONUSES.conventional);
+  });
+
+  it("refining phase: no journey bonus applied regardless of journey", () => {
+    const refConv = computeWeaknessScore(
+      charStat({ character: "q" }),
+      baseline({ journey: "conventional" }),
+      "refining",
+      0.5,
+    );
+    const refCol = computeWeaknessScore(
+      charStat({ character: "q" }),
+      baseline({ journey: "columnar" }),
+      "refining",
+      0.5,
+    );
+    expect(refConv).toBe(refCol);
+  });
+
+  it("bigrams never get journey bonus (even in transitioning)", () => {
+    const bigram: BigramStat = {
+      bigram: "gh",
+      attempts: 50,
+      errors: 5,
+      sumTime: 15_000,
+    } as BigramStat;
+    const conv = computeWeaknessScore(
+      bigram,
+      baseline({ journey: "conventional" }),
+      "transitioning",
+      0.5,
+    );
+    const col = computeWeaknessScore(
+      bigram,
+      baseline({ journey: "columnar" }),
+      "transitioning",
+      0.5,
+    );
+    expect(conv).toBe(col);
+  });
+
+  it("INNER_COLUMN_BONUS backward-compat export equals 0.3", () => {
+    expect(INNER_COLUMN_BONUS).toBe(0.3);
   });
 });
