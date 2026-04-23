@@ -5,6 +5,7 @@ import { SOFLE_GEOMETRY } from "./geometry/sofle";
 
 type Props = {
   targetKey?: string;
+  targetKeys?: string[];
   showFingerBars?: boolean;
   onKeyClick?: (char: string) => void;
   heatLevels?: Record<string, number>;

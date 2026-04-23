@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import type { EmergentWeakness, ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import type { PatternDetection } from "#/domain/insight/types";
+import type { SessionTarget } from "#/domain/adaptive/targetSelection";
 
 /**
  * Post-session summary stage — 1:1 port of the `.post-session` block in
@@ -21,9 +22,23 @@ type Props = {
   title: string;
   summary: SessionSummary;
   onPracticeAgain: () => void;
+  /** ADR-003 §4 Stage 3: optional — present for adaptive sessions. */
+  sessionTarget?: SessionTarget;
+  /** Per-key accuracy breakdown for the declared target keys. */
+  perKeyBreakdown?: { key: string; accuracy: number; attempts: number }[];
+  /** Label of the next likely target — soft forward-looking preview. */
+  nextTargetPreview?: string | null;
 };
 
-export function PostSessionStage({ target, title, summary, onPracticeAgain }: Props) {
+export function PostSessionStage({
+  target,
+  title,
+  summary,
+  onPracticeAgain,
+  sessionTarget,
+  perKeyBreakdown,
+  nextTargetPreview,
+}: Props) {
   const {
     accuracyPct,
     wpm,
@@ -84,6 +99,43 @@ export function PostSessionStage({ target, title, summary, onPracticeAgain }: Pr
       </div>
 
       <h1 className="kerf-post-title">{title}</h1>
+
+      {sessionTarget && (
+        <section className="space-y-2 mb-6">
+          <p className="text-sm text-kerf-text-secondary">You targeted:</p>
+          <p className="text-lg text-kerf-text-primary">{sessionTarget.label}</p>
+        </section>
+      )}
+
+      {perKeyBreakdown && perKeyBreakdown.length > 0 && (
+        <section className="mb-6">
+          <h3 className="text-sm text-kerf-text-secondary mb-2">How it went on those keys</h3>
+          <table className="w-full text-sm">
+            <tbody>
+              {perKeyBreakdown.map((row) => (
+                <tr key={row.key}>
+                  <td className="font-mono text-kerf-text-primary pr-4">
+                    {row.key === " " ? "space" : row.key.toUpperCase()}
+                  </td>
+                  <td className="text-kerf-text-secondary">
+                    {(row.accuracy * 100).toFixed(0)}% accuracy · {row.attempts} attempts
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {nextTargetPreview && (
+        <section className="mb-6">
+          <p className="text-sm text-kerf-text-secondary">
+            Next session will likely focus on:{" "}
+            <span className="text-kerf-text-primary">{nextTargetPreview}</span>. You can override by
+            picking a drill mode.
+          </p>
+        </section>
+      )}
 
       <div className="kerf-post-stats" role="list" aria-label="Session results">
         <div className="kerf-post-stat" role="listitem">

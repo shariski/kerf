@@ -157,3 +157,49 @@ describe("KeyboardSVG imperative flash API", () => {
     expect(spaceKey.classList.contains("kb-flash-correct")).toBe(true);
   });
 });
+
+describe("KeyboardSVG — targetKeys prop (ADR-003 §4)", () => {
+  const renderWithTargetKeys = (targetKeys?: string[], targetKey?: string) =>
+    render(
+      <KeyboardSVG
+        geometry={SOFLE_GEOMETRY}
+        fingerTable={SOFLE_BASE_LAYER}
+        targetKeys={targetKeys}
+        targetKey={targetKey}
+      />,
+    );
+
+  it("renders kb-key-target-ring class on each char in targetKeys", () => {
+    const { container } = renderWithTargetKeys(["w", "s", "x"]);
+
+    const wKey = container.querySelector('g.kb-key[data-char="w"]');
+    const sKey = container.querySelector('g.kb-key[data-char="s"]');
+    const xKey = container.querySelector('g.kb-key[data-char="x"]');
+
+    expect(wKey?.classList.contains("kb-key-target-ring")).toBe(true);
+    expect(sKey?.classList.contains("kb-key-target-ring")).toBe(true);
+    expect(xKey?.classList.contains("kb-key-target-ring")).toBe(true);
+  });
+
+  it("does NOT apply ring class to chars outside targetKeys", () => {
+    const { container } = renderWithTargetKeys(["w"]);
+
+    const sKey = container.querySelector('g.kb-key[data-char="s"]');
+    expect(sKey?.classList.contains("kb-key-target-ring")).toBe(false);
+  });
+
+  it("renders ring AND target fill together when cursor is on a ring key", () => {
+    const { container } = renderWithTargetKeys(["w", "s", "x"], "w");
+
+    const wKey = container.querySelector('g.kb-key[data-char="w"]');
+    expect(wKey?.classList.contains("kb-key-target")).toBe(true);
+    expect(wKey?.classList.contains("kb-key-target-ring")).toBe(true);
+  });
+
+  it("works when targetKeys is undefined (no ring at all)", () => {
+    const { container } = renderWithTargetKeys(undefined);
+
+    const ringKeys = container.querySelectorAll("g.kb-key-target-ring");
+    expect(ringKeys).toHaveLength(0);
+  });
+});
