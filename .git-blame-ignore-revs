@@ -8,3 +8,6 @@
 
 # chore: apply Biome formatter to entire codebase (2026-04-23)
 14773cf42d7ee9318e53a422affd60a758752643
+
+# chore: apply biome format to practice_.drill.tsx drift (2026-04-23)
+b433777565681b374166ca249bf9d6ca798f557b
