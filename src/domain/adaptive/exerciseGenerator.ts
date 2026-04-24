@@ -1,4 +1,5 @@
 import type { Corpus, CorpusWord } from "../corpus/types";
+import { LOW_CORPUS_SUPPORT_THRESHOLD } from "./targetSelection";
 
 /**
  * Adaptive word-picker per 02-architecture.md §4.2. Takes a loaded
@@ -70,12 +71,14 @@ export type ExerciseOptions = {
    *  to the legacy weighted sampler. */
   mustContainMinRatio?: number;
   /** Precomputed `bigram → corpus word count` map. If present and
-   *  `mustContainUnit` is a 2-char bigram whose entry is 0, the
+   *  `mustContainUnit` is a 2-char bigram whose entry is below
+   *  `LOW_CORPUS_SUPPORT_THRESHOLD` (including absent / zero), the
    *  emphasis pool widens to "words whose `chars` contains either
-   *  component character" — so a bigram with no direct corpus support
-   *  still produces a session biased toward the letters that drive it.
-   *  When the map is omitted or the bigram has support, the literal
-   *  `mustContainUnit` match is used (unchanged behavior). */
+   *  component character" — so a bigram with too few direct corpus
+   *  words still produces a session biased toward the letters that
+   *  drive it. When the map is omitted or support is at/above the
+   *  threshold, the literal `mustContainUnit` match is used
+   *  (unchanged behavior). */
   corpusBigramSupport?: ReadonlyMap<string, number>;
 };
 
@@ -162,13 +165,14 @@ export function generateExercise(options: ExerciseOptions): string[] {
     const ratio = Math.min(1, mustContainMinRatio);
     const emphasisTarget = Math.min(targetWordCount, Math.ceil(targetWordCount * ratio));
 
-    // Widen to component-char match when the literal bigram has zero
-    // corpus support. `unit` is `mustContainUnit` narrowed by useFloor.
+    // Widen to component-char match when the literal bigram has low
+    // corpus support (below LOW_CORPUS_SUPPORT_THRESHOLD, including
+    // 0). `unit` is `mustContainUnit` narrowed by useFloor.
     const unit = mustContainUnit;
     const widenToComponentChars =
       unit.length === 2 &&
       corpusBigramSupport !== undefined &&
-      (corpusBigramSupport.get(unit) ?? 0) === 0;
+      (corpusBigramSupport.get(unit) ?? 0) < LOW_CORPUS_SUPPORT_THRESHOLD;
 
     const matches = (w: CorpusWord): boolean => {
       if (widenToComponentChars) {

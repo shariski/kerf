@@ -70,24 +70,43 @@ export const TARGET_JOURNEY_WEIGHTS: Record<JourneyCode, Record<TargetType, numb
 };
 
 /**
+ * Threshold below which a bigram's corpus support is considered "low."
+ * A bigram with fewer than this many corpus words containing it as an
+ * adjacent-pair can't produce a varied enough emphasis pool to be
+ * worth practicing — the user would see the same 1-2 words every
+ * session. At or above the threshold, the bigram is treated as a
+ * normal practicable target.
+ *
+ * Shared with `generateExercise` (content widening): a single boundary
+ * keeps decay (ranking) and widening (content) in sync. If decay fires
+ * but widening doesn't (or vice versa), the loop degrades.
+ *
+ * Hand-tuned starting value. Raise if "not-quite-rare" bigrams are
+ * leaking decay; lower if too many rare-but-practicable bigrams are
+ * being pushed off the ranking.
+ */
+export const LOW_CORPUS_SUPPORT_THRESHOLD = 3;
+
+/**
  * How much to discount the weighted weakness score of a bigram target
- * whose corpus support is 0 — i.e. no corpus word contains the bigram
- * as an adjacent-pair. Applied inside `rankTargets` before sorting so
- * un-practicable bigrams naturally lose priority to practicable ones.
+ * whose corpus support is below the threshold. Applied inside
+ * `rankTargets` before sorting so un-practicable bigrams naturally
+ * lose priority to practicable ones.
  *
  * Stateless: the condition is a property of the corpus, identical for
  * every user and every session. No persistence surface.
  *
- * Hand-tuned starting value — if zero-corpus bigrams still dominate in
+ * Hand-tuned starting value — if low-corpus bigrams still dominate in
  * practice, lower this. If practicable alternatives lose priority too
  * aggressively, raise it.
  */
-const ZERO_CORPUS_BIGRAM_PENALTY = 0.5;
+const LOW_CORPUS_BIGRAM_PENALTY = 0.5;
 
 export type RankTargetsOptions = {
   /** Precomputed `bigram → corpus word count` map. When present, bigram
-   *  candidates whose value maps to 0 (or is absent) get their weighted
-   *  score multiplied by `ZERO_CORPUS_BIGRAM_PENALTY` before sorting. */
+   *  candidates whose value is below `LOW_CORPUS_SUPPORT_THRESHOLD`
+   *  (including absent / zero) get their weighted score multiplied by
+   *  `LOW_CORPUS_BIGRAM_PENALTY` before sorting. */
   corpusBigramSupport?: ReadonlyMap<string, number>;
 };
 
@@ -187,8 +206,10 @@ export function rankTargets(
     .map<SessionTarget>((c) => {
       const weighted = (c.score ?? 0) * weights[c.type];
       const penalize =
-        support !== undefined && c.type === "bigram" && (support.get(c.value) ?? 0) === 0;
-      return { ...c, score: penalize ? weighted * ZERO_CORPUS_BIGRAM_PENALTY : weighted };
+        support !== undefined &&
+        c.type === "bigram" &&
+        (support.get(c.value) ?? 0) < LOW_CORPUS_SUPPORT_THRESHOLD;
+      return { ...c, score: penalize ? weighted * LOW_CORPUS_BIGRAM_PENALTY : weighted };
     })
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 }
