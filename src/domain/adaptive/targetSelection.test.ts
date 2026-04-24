@@ -196,7 +196,7 @@ describe("rankTargets — full candidate ranking for diagnostics", () => {
     expect(top?.value).toBe("yd");
   });
 
-  it("does not apply decay when the bigram has non-zero corpus support", () => {
+  it("does not apply decay when the bigram has corpus support at or above the threshold", () => {
     const stats = statsWith(
       [{ character: "a", attempts: 100, errors: 1, sumTime: 28_000, hesitationCount: 0 }],
       [
@@ -204,7 +204,30 @@ describe("rankTargets — full candidate ranking for diagnostics", () => {
         { bigram: "yd", attempts: 40, errors: 20, sumTime: 17_000 },
       ],
     );
-    // Both bigrams have positive support — xw should keep its lead.
+    // Both bigrams have support at/above threshold (3) — xw keeps its lead.
+    const support = new Map<string, number>([
+      ["xw", 5],
+      ["yd", 8],
+    ]);
+    const ranked = rankTargets(stats, baseline(), "transitioning", freq, {
+      corpusBigramSupport: support,
+    });
+    const [top] = ranked;
+    expect(top?.value).toBe("xw");
+  });
+
+  it("applies decay to bigrams whose support is between 1 and threshold-1 (boundary case)", () => {
+    // Same stats as above, but xw has support=2 — below the threshold
+    // of 3. Decay must fire (xw → yd), same as the support=0 case.
+    // This pins the `<` comparison: if a future refactor switched to
+    // `=== 0`, this test would fail.
+    const stats = statsWith(
+      [{ character: "a", attempts: 100, errors: 1, sumTime: 28_000, hesitationCount: 0 }],
+      [
+        { bigram: "xw", attempts: 40, errors: 22, sumTime: 18_000 },
+        { bigram: "yd", attempts: 40, errors: 20, sumTime: 17_000 },
+      ],
+    );
     const support = new Map<string, number>([
       ["xw", 2],
       ["yd", 8],
@@ -213,6 +236,6 @@ describe("rankTargets — full candidate ranking for diagnostics", () => {
       corpusBigramSupport: support,
     });
     const [top] = ranked;
-    expect(top?.value).toBe("xw");
+    expect(top?.value).toBe("yd");
   });
 });
