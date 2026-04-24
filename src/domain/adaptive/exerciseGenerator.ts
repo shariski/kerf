@@ -49,6 +49,34 @@ export type ExerciseOptions = {
   filters?: ExerciseFilters;
   targetWordCount?: number;
   rng?: () => number;
+  /**
+   * Emphasis floor — when set alongside a positive `mustContainMinRatio`,
+   * guarantees that fraction of the sampled words contain this unit
+   * (char like "u" or bigram like "th"). Words are split into an emphasis
+   * pool (those containing the unit) and a filler pool; ratio × target
+   * words come from emphasis, the rest from filler. If the emphasis pool
+   * is smaller than the ratio implies, we include all available emphasis
+   * words and top up from filler — we never force repetition.
+   *
+   * Rationale: the default weighted-sum scoring is dominated by the 0.5
+   * per-unit floor for long non-target words, so sessions can silently
+   * end up with few target-containing words even when
+   * `weaknessScoreFor(target) = 10`. The emphasis floor decouples
+   * "how many words contain the target" from the scoring weights.
+   */
+  mustContainUnit?: string;
+  /** Fraction of `targetWordCount` that must contain `mustContainUnit`.
+   *  Clamped to [0, 1]; values <= 0 disable the floor and fall through
+   *  to the legacy weighted sampler. */
+  mustContainMinRatio?: number;
+  /** Precomputed `bigram → corpus word count` map. If present and
+   *  `mustContainUnit` is a 2-char bigram whose entry is 0, the
+   *  emphasis pool widens to "words whose `chars` contains either
+   *  component character" — so a bigram with no direct corpus support
+   *  still produces a session biased toward the letters that drive it.
+   *  When the map is omitted or the bigram has support, the literal
+   *  `mustContainUnit` match is used (unchanged behavior). */
+  corpusBigramSupport?: ReadonlyMap<string, number>;
 };
 
 export const DEFAULT_TARGET_WORD_COUNT = 50;
@@ -122,7 +150,53 @@ export function generateExercise(options: ExerciseOptions): string[] {
     filters,
     targetWordCount = DEFAULT_TARGET_WORD_COUNT,
     rng = Math.random,
+    mustContainUnit,
+    mustContainMinRatio,
+    corpusBigramSupport,
   } = options;
+
+  const useFloor =
+    mustContainUnit !== undefined && mustContainMinRatio !== undefined && mustContainMinRatio > 0;
+
+  if (useFloor) {
+    const ratio = Math.min(1, mustContainMinRatio);
+    const emphasisTarget = Math.min(targetWordCount, Math.ceil(targetWordCount * ratio));
+
+    // Widen to component-char match when the literal bigram has zero
+    // corpus support. `unit` is `mustContainUnit` narrowed by useFloor.
+    const unit = mustContainUnit;
+    const widenToComponentChars =
+      unit.length === 2 &&
+      corpusBigramSupport !== undefined &&
+      (corpusBigramSupport.get(unit) ?? 0) === 0;
+
+    const matches = (w: CorpusWord): boolean => {
+      if (widenToComponentChars) {
+        return w.chars.includes(unit[0]!) || w.chars.includes(unit[1]!);
+      }
+      return w.chars.includes(unit) || w.bigrams.includes(unit);
+    };
+
+    const emphasisCandidates: { word: CorpusWord; weight: number }[] = [];
+    const fillerCandidates: { word: CorpusWord; weight: number }[] = [];
+    for (const w of corpus.words) {
+      if (!passesFilters(w, filters)) continue;
+      const score = matchScore(w, weaknessScoreFor);
+      if (score <= 0) continue;
+      (matches(w) ? emphasisCandidates : fillerCandidates).push({ word: w, weight: score });
+    }
+
+    const emphasisSample = weightedSampleWithoutReplacement(
+      emphasisCandidates,
+      emphasisTarget,
+      rng,
+    );
+    const fillerNeeded = targetWordCount - emphasisSample.length;
+    const fillerSample = weightedSampleWithoutReplacement(fillerCandidates, fillerNeeded, rng);
+
+    const combined = [...emphasisSample, ...fillerSample].map((w) => w.word);
+    return shuffleInPlace(combined, rng);
+  }
 
   const candidates: { word: CorpusWord; weight: number }[] = [];
   for (const w of corpus.words) {

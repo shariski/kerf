@@ -584,11 +584,48 @@ Algorithm:
    - Max difficulty score
 2. For each word in the filtered corpus, compute a match score:
    match_score(word) = sum(weakness_score(unit) for unit in word.characters + word.bigrams)
-3. Weighted random sampling: probability(word) ∝ match_score(word)
-4. Sample until reaching target count (typically 40-60 words)
+3. Split candidates into an emphasis pool (contains the session target
+   unit as a char or bigram) and a filler pool (doesn't)
+4. Weighted random sampling:
+   - ceil(TARGET_EMPHASIS_RATIO × count) words from the emphasis pool
+   - remaining words from the filler pool (for variety)
+   - If emphasis pool is smaller than the ratio implies, include all
+     available emphasis words and top up from filler — no repetition
 5. Shuffle (avoid clustering similar words sequentially)
 6. Return word array to UI
 ```
+
+**Why the emphasis pool split:** the raw weighted-sum score in step 2 is
+dominated by the 0.5 per-unit floor for longer non-target words, so
+without the pool split a session can silently end up with very few
+target-containing words even when the target's `weaknessScore` is 10×
+the floor. The split decouples "how often the target appears" from the
+scoring weights. Default `TARGET_EMPHASIS_RATIO = 0.75` — hand-tuned,
+revisit with beta feedback. Motion targets bypass this entirely (they
+use curated drillLibrary content).
+
+**Zero-corpus bigram handling.** Rare bigrams like `xw` have zero
+corpus words containing them (the pre-built English word list doesn't
+include any word where `x` and `w` are adjacent). Without special
+handling, the adaptive loop gets stuck: the engine picks `xw` as the
+top weakness, the emphasis pool is empty, the user types a session
+with no `xw` in it, no new `xw` keystrokes land in `bigram_stats`,
+so the next ranking is identical — `xw` forever. Two coordinated
+mitigations, both triggered by `corpusBigramSupport.get(bigram) === 0`:
+
+1. **Widening** — `generateExercise` rebuilds the emphasis pool as
+   "words containing either component character" (for `xw`: words
+   with `x` or `w` in their `chars`). The user gets meaningful
+   muscle-memory practice on the letters driving the bigram weakness.
+2. **Decay** — `rankTargets` multiplies the weighted score of
+   zero-corpus bigrams by `ZERO_CORPUS_BIGRAM_PENALTY` (0.5, hand-
+   tuned). Practicable alternatives with slightly lower raw scores
+   surface, and the loop rotates.
+
+Both are stateless — the condition is a property of the corpus,
+identical for every user and session. `corpusBigramSupport` is a
+`ReadonlyMap<string, number>` precomputed once on corpus load in
+`useCorpus`, threaded through `generateSession`.
 
 **Performance characteristics:**
 

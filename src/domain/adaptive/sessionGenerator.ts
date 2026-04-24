@@ -27,9 +27,19 @@ export type GenerateSessionInput = {
   targetOverride?: SessionTarget;
   /** Optional override for the word-picker. */
   exerciseOptions?: Partial<ExerciseOptions>;
+  /** Precomputed `bigram → corpus word count` map. When present,
+   *  selectTarget decays zero-corpus bigrams and generateExercise
+   *  widens their emphasis pool to component chars. */
+  corpusBigramSupport?: ReadonlyMap<string, number>;
 };
 
 const DEFAULT_WORD_COUNT = 50;
+
+/** Fraction of a character/bigram session's words guaranteed to contain
+ *  the target unit. Hand-tuned starting value — revisit with beta feedback.
+ *  Motion targets (vertical-column, thumb-cluster, inner-column) bypass
+ *  this and use curated drillLibrary content instead. */
+const TARGET_EMPHASIS_RATIO = 0.75;
 
 function estimate(target: SessionTarget, wordCount: number): number {
   if (target.type === "diagnostic") return 90;
@@ -41,7 +51,9 @@ function estimate(target: SessionTarget, wordCount: number): number {
 export function generateSession(input: GenerateSessionInput): SessionOutput {
   const target =
     input.targetOverride ??
-    selectTarget(input.stats, input.baseline, input.phase, input.frequencyInLanguage);
+    selectTarget(input.stats, input.baseline, input.phase, input.frequencyInLanguage, {
+      corpusBigramSupport: input.corpusBigramSupport,
+    });
 
   let exerciseString: string;
   let estimatedSeconds: number;
@@ -60,6 +72,9 @@ export function generateSession(input: GenerateSessionInput): SessionOutput {
       corpus: input.corpus,
       weaknessScoreFor: (unitId) => (unitId === target.value ? 10 : 0.5),
       targetWordCount: DEFAULT_WORD_COUNT,
+      mustContainUnit: target.value,
+      mustContainMinRatio: TARGET_EMPHASIS_RATIO,
+      corpusBigramSupport: input.corpusBigramSupport,
       ...input.exerciseOptions,
     });
     exerciseString = words.join(" ");

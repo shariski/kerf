@@ -69,6 +69,28 @@ export const TARGET_JOURNEY_WEIGHTS: Record<JourneyCode, Record<TargetType, numb
   },
 };
 
+/**
+ * How much to discount the weighted weakness score of a bigram target
+ * whose corpus support is 0 — i.e. no corpus word contains the bigram
+ * as an adjacent-pair. Applied inside `rankTargets` before sorting so
+ * un-practicable bigrams naturally lose priority to practicable ones.
+ *
+ * Stateless: the condition is a property of the corpus, identical for
+ * every user and every session. No persistence surface.
+ *
+ * Hand-tuned starting value — if zero-corpus bigrams still dominate in
+ * practice, lower this. If practicable alternatives lose priority too
+ * aggressively, raise it.
+ */
+const ZERO_CORPUS_BIGRAM_PENALTY = 0.5;
+
+export type RankTargetsOptions = {
+  /** Precomputed `bigram → corpus word count` map. When present, bigram
+   *  candidates whose value maps to 0 (or is absent) get their weighted
+   *  score multiplied by `ZERO_CORPUS_BIGRAM_PENALTY` before sorting. */
+  corpusBigramSupport?: ReadonlyMap<string, number>;
+};
+
 export function diagnosticTarget(): SessionTarget {
   return {
     type: "diagnostic",
@@ -113,22 +135,22 @@ function bigramCandidates(
 }
 
 /**
- * Pick this session's target. Low-confidence → diagnostic. Otherwise
- * returns the (candidate × journey-weight)-argmax over character, bigram,
- * vertical-column, inner-column, and thumb-cluster candidates.
- *
- * Hand-isolation and cross-hand-bigram are drill-mode-only; not selected here.
+ * Return every eligible candidate with its journey-weighted score, sorted
+ * best-first. Powers both `selectTarget` (takes [0]) and diagnostic logs
+ * (shows the top-N reasoning). Returns [] when no candidates pass the
+ * confidence threshold — callers should fall back to `diagnosticTarget()`.
  */
-export function selectTarget(
+export function rankTargets(
   stats: ComputedStats,
   baseline: UserBaseline,
   phase: TransitionPhase,
   frequencyInLanguage: (unit: string) => number,
-): SessionTarget {
+  options?: RankTargetsOptions,
+): SessionTarget[] {
   const hasConfidentData =
     stats.characters.some((s) => s.attempts >= LOW_CONFIDENCE_THRESHOLD) ||
     stats.bigrams.some((s) => s.attempts >= LOW_CONFIDENCE_THRESHOLD);
-  if (!hasConfidentData) return diagnosticTarget();
+  if (!hasConfidentData) return [];
 
   const weights = TARGET_JOURNEY_WEIGHTS[baseline.journey];
   const candidates: SessionTarget[] = [
@@ -160,10 +182,31 @@ export function selectTarget(
     });
   }
 
-  if (candidates.length === 0) return diagnosticTarget();
+  const support = options?.corpusBigramSupport;
+  return candidates
+    .map<SessionTarget>((c) => {
+      const weighted = (c.score ?? 0) * weights[c.type];
+      const penalize =
+        support !== undefined && c.type === "bigram" && (support.get(c.value) ?? 0) === 0;
+      return { ...c, score: penalize ? weighted * ZERO_CORPUS_BIGRAM_PENALTY : weighted };
+    })
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+}
 
-  const winner = candidates.reduce((best, c) =>
-    (c.score ?? 0) * weights[c.type] > (best.score ?? 0) * weights[best.type] ? c : best,
-  );
-  return { ...winner, score: (winner.score ?? 0) * weights[winner.type] };
+/**
+ * Pick this session's target. Low-confidence → diagnostic. Otherwise
+ * returns the (candidate × journey-weight)-argmax over character, bigram,
+ * vertical-column, inner-column, and thumb-cluster candidates.
+ *
+ * Hand-isolation and cross-hand-bigram are drill-mode-only; not selected here.
+ */
+export function selectTarget(
+  stats: ComputedStats,
+  baseline: UserBaseline,
+  phase: TransitionPhase,
+  frequencyInLanguage: (unit: string) => number,
+  options?: RankTargetsOptions,
+): SessionTarget {
+  const ranked = rankTargets(stats, baseline, phase, frequencyInLanguage, options);
+  return ranked[0] ?? diagnosticTarget();
 }

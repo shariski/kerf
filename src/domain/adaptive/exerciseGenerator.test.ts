@@ -276,3 +276,180 @@ describe("generateExercise — shuffle", () => {
     expect(new Set(out)).toEqual(new Set(inputOrder));
   });
 });
+
+describe("generateExercise — mustContainUnit emphasis floor", () => {
+  // Synthetic corpus where target-char words score LOWER than filler words
+  // under the default weighted-sum, so the legacy algorithm alone cannot
+  // guarantee a target-containing majority. This isolates the emphasis
+  // floor as the mechanism under test.
+  const buildMixedCorpus = () => {
+    // 10 short words containing 'u': default score = 10 + 4*0.5 = 12
+    const withU = ["up", "us", "un", "ub", "uc", "ud", "uf", "ug", "uh", "uk"].map((w) =>
+      word({ word: w }),
+    );
+    // 30 long words without 'u': default score ≈ 15 (more 0.5s summed)
+    const withoutU = Array.from({ length: 30 }, (_, i) => {
+      // 15-char words over b..t, skipping 'u'. Pad with digits so every
+      // word is unique. (All chars are treated as units; digits are fine
+      // for the fixture because they land under the 0.5 floor.)
+      const w = `bcdefghijklmnop${String(i).padStart(2, "0")}`;
+      return word({ word: w });
+    });
+    return corpus([...withU, ...withoutU]);
+  };
+
+  const uScore = (unit: string) => (unit === "u" ? 10 : 0.5);
+
+  it("guarantees at least mustContainMinRatio of words contain the target unit", () => {
+    const out = generateExercise({
+      corpus: buildMixedCorpus(),
+      weaknessScoreFor: uScore,
+      targetWordCount: 10,
+      mustContainUnit: "u",
+      mustContainMinRatio: 0.8,
+      rng: mulberry32(42),
+    });
+    const uCount = out.filter((w) => w.includes("u")).length;
+    expect(out).toHaveLength(10);
+    expect(uCount).toBeGreaterThanOrEqual(Math.ceil(10 * 0.8));
+  });
+
+  it("falls back gracefully when the target pool is smaller than the ratio implies", () => {
+    // Only 2 words contain 'z'; a ratio of 0.8 would ideally pick 8.
+    const withZ = [word({ word: "zoo" }), word({ word: "buzz" })];
+    const withoutZ = Array.from({ length: 20 }, (_, i) =>
+      word({ word: `bcdefgh${String(i).padStart(2, "0")}` }),
+    );
+    const out = generateExercise({
+      corpus: corpus([...withZ, ...withoutZ]),
+      weaknessScoreFor: (unit) => (unit === "z" ? 10 : 0.5),
+      targetWordCount: 10,
+      mustContainUnit: "z",
+      mustContainMinRatio: 0.8,
+      rng: mulberry32(99),
+    });
+    expect(out).toHaveLength(10);
+    const zCount = out.filter((w) => w.includes("z")).length;
+    // All available z-words get included; the remainder come from the
+    // non-z pool. No duplicates forced.
+    expect(zCount).toBe(2);
+    expect(new Set(out).size).toBe(10);
+  });
+
+  it("detects bigram targets via the bigrams field, not character membership", () => {
+    // Target is 'th' (bigram). Words containing the bigram 'th' are in
+    // the emphasis pool; words that merely contain 't' or 'h' separately
+    // are not.
+    const withTh = [
+      word({ word: "the" }),
+      word({ word: "that" }),
+      word({ word: "with" }),
+      word({ word: "both" }),
+      word({ word: "thin" }),
+    ];
+    const withoutTh = [
+      word({ word: "cat" }), // has 't' but no 'th' bigram
+      word({ word: "has" }), // has 'h' but no 'th' bigram
+      word({ word: "hit" }), // has both 'h' and 't' but bigram is 'hi','it'
+      word({ word: "ton" }),
+      word({ word: "hot" }),
+      word({ word: "not" }),
+      word({ word: "son" }),
+      word({ word: "one" }),
+      word({ word: "two" }),
+      word({ word: "red" }),
+    ];
+    const out = generateExercise({
+      corpus: corpus([...withTh, ...withoutTh]),
+      weaknessScoreFor: (unit) => (unit === "th" ? 10 : 0.5),
+      targetWordCount: 6,
+      mustContainUnit: "th",
+      mustContainMinRatio: 0.67,
+      rng: mulberry32(7),
+    });
+    const thCount = out.filter((w) => w.includes("th")).length;
+    // With 5 'th' words available and need = ceil(6 * 0.67) = 5, all 5
+    // should be included. "hit" contains both 'h' and 't' but not as the
+    // adjacent-pair 'th', so it must NOT count.
+    expect(thCount).toBeGreaterThanOrEqual(5);
+  });
+
+  it("ignores the emphasis floor when mustContainMinRatio is 0 or undefined", () => {
+    // Omitting the options should produce identical output to omitting
+    // the feature entirely — guards backward compatibility.
+    const words = Array.from({ length: 20 }, (_, i) =>
+      word({ word: `w${String(i).padStart(2, "0")}` }),
+    );
+    const baseOpts = {
+      corpus: corpus(words),
+      weaknessScoreFor: uniformScore,
+      targetWordCount: 10,
+    };
+    const legacy = generateExercise({ ...baseOpts, rng: mulberry32(3) });
+    const explicitOff = generateExercise({
+      ...baseOpts,
+      mustContainUnit: "w",
+      mustContainMinRatio: 0,
+      rng: mulberry32(3),
+    });
+    expect(explicitOff).toEqual(legacy);
+  });
+
+  it("widens emphasis pool to component characters when bigram has zero corpus support", () => {
+    // 8 words containing 'x' or 'w' individually (none have 'xw' adjacent),
+    // 16 words containing neither. Target xw with zero corpus support
+    // should pull words with x or w instead of falling all the way to
+    // filler.
+    const withComponent = ["ax", "bx", "cx", "wa", "wb", "wc", "xo", "ow"].map((w) =>
+      word({ word: w }),
+    );
+    const neither = Array.from({ length: 16 }, (_, i) =>
+      word({ word: `bc${String(i).padStart(2, "0")}` }),
+    );
+    const support = new Map<string, number>([["xw", 0]]);
+    const out = generateExercise({
+      corpus: corpus([...withComponent, ...neither]),
+      weaknessScoreFor: (unit) => (unit === "xw" ? 10 : 0.5),
+      targetWordCount: 10,
+      mustContainUnit: "xw",
+      mustContainMinRatio: 0.8,
+      corpusBigramSupport: support,
+      rng: mulberry32(42),
+    });
+    const componentHits = out.filter((w) => w.includes("x") || w.includes("w")).length;
+    expect(out).toHaveLength(10);
+    expect(componentHits).toBeGreaterThanOrEqual(Math.ceil(10 * 0.8));
+  });
+
+  it("does not widen when bigram has non-zero corpus support (literal match still required)", () => {
+    // Same fixture as the widening test: 8 words with 'x' or 'w'
+    // individually, 16 with neither. BUT this time we claim the 'xw'
+    // bigram has non-zero support via the map — so widening must NOT
+    // trigger. Since no fixture word contains 'xw' as an adjacent pair,
+    // the literal-match emphasis pool is empty and the emphasis sample
+    // falls to 0; the session should be drawn entirely from filler.
+    const withComponent = ["ax", "bx", "cx", "wa", "wb", "wc", "xo", "ow"].map((w) =>
+      word({ word: w }),
+    );
+    const neither = Array.from({ length: 16 }, (_, i) =>
+      word({ word: `bc${String(i).padStart(2, "0")}` }),
+    );
+    const support = new Map<string, number>([["xw", 3]]);
+    const out = generateExercise({
+      corpus: corpus([...withComponent, ...neither]),
+      weaknessScoreFor: (unit) => (unit === "xw" ? 10 : 0.5),
+      targetWordCount: 10,
+      mustContainUnit: "xw",
+      mustContainMinRatio: 0.8,
+      corpusBigramSupport: support,
+      rng: mulberry32(42),
+    });
+    const componentHits = out.filter((w) => w.includes("x") || w.includes("w")).length;
+    expect(out).toHaveLength(10);
+    // With widening OFF, component words may still appear as filler (they are
+    // valid non-xw words). The discriminating assertion is that they do NOT
+    // saturate to the emphasis ratio — a stuck-true widenToComponentChars
+    // would produce componentHits >= ceil(10 * 0.8) = 8.
+    expect(componentHits).toBeLessThan(Math.ceil(10 * 0.8));
+  });
+});
