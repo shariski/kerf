@@ -604,27 +604,34 @@ scoring weights. Default `TARGET_EMPHASIS_RATIO = 0.75` — hand-tuned,
 revisit with beta feedback. Motion targets bypass this entirely (they
 use curated drillLibrary content).
 
-**Zero-corpus bigram handling.** Rare bigrams like `xw` have zero
-corpus words containing them (the pre-built English word list doesn't
-include any word where `x` and `w` are adjacent). Without special
-handling, the adaptive loop gets stuck: the engine picks `xw` as the
-top weakness, the emphasis pool is empty, the user types a session
-with no `xw` in it, no new `xw` keystrokes land in `bigram_stats`,
-so the next ranking is identical — `xw` forever. Two coordinated
-mitigations, both triggered by `corpusBigramSupport.get(bigram) === 0`:
+**Low-corpus bigram handling.** Rare bigrams like `xw` have zero or
+near-zero corpus words containing them as an adjacent pair (`xw` has
+none; `vr` has just `chevrolet` and a junk entry `"vr"`). Without
+special handling, the adaptive loop gets stuck: the engine picks the
+rare bigram as the top weakness, the emphasis pool is empty or
+near-empty, the user types a session with little-to-no practice of
+that bigram, no meaningful new keystrokes land in `bigram_stats`, so
+the next ranking is nearly identical and the same target is picked
+again. Two coordinated mitigations, both triggered by
+`corpusBigramSupport.get(bigram) < LOW_CORPUS_SUPPORT_THRESHOLD`
+(currently 3 — covers absent, zero, 1-word, and 2-word supports):
 
 1. **Widening** — `generateExercise` rebuilds the emphasis pool as
    "words containing either component character" (for `xw`: words
    with `x` or `w` in their `chars`). The user gets meaningful
    muscle-memory practice on the letters driving the bigram weakness.
 2. **Decay** — `rankTargets` multiplies the weighted score of
-   zero-corpus bigrams by `ZERO_CORPUS_BIGRAM_PENALTY` (0.5, hand-
+   low-corpus bigrams by `LOW_CORPUS_BIGRAM_PENALTY` (0.5, hand-
    tuned). Practicable alternatives with slightly lower raw scores
    surface, and the loop rotates.
 
-Both are stateless — the condition is a property of the corpus,
-identical for every user and session. `corpusBigramSupport` is a
-`ReadonlyMap<string, number>` precomputed once on corpus load in
+The two mitigations share a single threshold so they fire together
+(decay alone without widening would push a rare bigram down the
+ranking but leave the session content starved if it still gets picked;
+widening alone without decay would lock the loop onto the same rare
+target forever). Both are stateless — the condition is a property of
+the corpus, identical for every user and session. `corpusBigramSupport`
+is a `ReadonlyMap<string, number>` precomputed once on corpus load in
 `useCorpus`, threaded through `generateSession`.
 
 **Performance characteristics:**
