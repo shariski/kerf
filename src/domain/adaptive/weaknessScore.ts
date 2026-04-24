@@ -67,10 +67,42 @@ function isOffHomeRow(unit: CharacterStat | BigramStat): boolean {
  * by callers (the score function itself still produces a value). */
 export const LOW_CONFIDENCE_THRESHOLD = 5;
 
+/**
+ * Confidence-weight pseudocount. The evidence-based components of the
+ * weakness score (error/hesitation/slowness) are multiplied by
+ * `n / (n + K)` where `n = unit.attempts` and `K` is this constant.
+ *
+ * With K=10:
+ *   - n=3   → weight 0.23 (barely-observed unit contributes ~23% of full)
+ *   - n=40  → weight 0.80
+ *   - n=500 → weight 0.98 (essentially unattenuated)
+ *
+ * Why: raw `errors/attempts` ratios on small samples are dominated by
+ * noise. A bigram with 3 attempts and 2 errors shows 67% error rate,
+ * which would otherwise outrank a well-measured bigram at 15% error
+ * rate over 500 attempts. The weight pulls thin evidence toward
+ * "don't trust this as a weakness signal" without throwing it away.
+ *
+ * Journey bonus and frequency penalty are NOT attenuated — they are
+ * structural priors (category membership, language frequency),
+ * independent of how much this user has typed the unit.
+ *
+ * Hand-tuned. Raise if rare bigrams still dominate rankings; lower if
+ * genuinely-problematic rare units are losing priority too easily.
+ */
+export const CONFIDENCE_WEIGHT_K = 10;
+
 const isCharacter = (unit: CharacterStat | BigramStat): unit is CharacterStat =>
   "character" in unit;
 
 const safeRatio = (n: number, d: number): number => (d > 0 ? n / d : 0);
+
+/** `n / (n + K)` — the evidence-weight multiplier. Returns 0 for n=0,
+ *  approaches 1 as n grows. Exported for `computeWeaknessBreakdown` so
+ *  the dashboard can surface the same weight the engine uses. */
+export function confidenceWeight(attempts: number): number {
+  return attempts / (attempts + CONFIDENCE_WEIGHT_K);
+}
 
 export function computeWeaknessScore(
   unit: CharacterStat | BigramStat,
@@ -98,10 +130,10 @@ export function computeWeaknessScore(
         (isOffHomeRow(unit) ? j.VERTICAL_REACH_BONUS : 0)
       : 0;
 
+  const w = confidenceWeight(unit.attempts);
+
   return (
-    c.ALPHA * normalizedError +
-    c.BETA * normalizedHesitation +
-    c.GAMMA * normalizedSlowness -
+    w * (c.ALPHA * normalizedError + c.BETA * normalizedHesitation + c.GAMMA * normalizedSlowness) -
     c.DELTA * frequencyInLanguage +
     journeyBonus
   );

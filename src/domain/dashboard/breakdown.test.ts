@@ -69,11 +69,14 @@ describe("computeWeaknessBreakdown — component values", () => {
     const unit = makeChar();
     const b = computeWeaknessBreakdown(unit, baseline, "transitioning", 0);
     // error rate: 12/100 = 0.12 raw, baseline 0.08 → 1.5×, coefficient 0.6
+    // contribution is evidence-weighted: (100/110) × 0.6 × 1.5 ≈ 0.818
+    const w = 100 / 110;
     expect(b.errorRate.raw).toBeCloseTo(0.12, 10);
     expect(b.errorRate.baseline).toBe(0.08);
     expect(b.errorRate.normalized).toBeCloseTo(1.5, 10);
     expect(b.errorRate.coefficient).toBe(0.6);
-    expect(b.errorRate.contribution).toBeCloseTo(0.9, 10);
+    expect(b.errorRate.contribution).toBeCloseTo(w * 0.9, 10);
+    expect(b.confidenceWeight).toBeCloseTo(w, 10);
 
     // slowness: 320ms raw, baseline 280ms → 1.143×, coefficient 0.1
     expect(b.slowness.raw).toBeCloseTo(320, 10);

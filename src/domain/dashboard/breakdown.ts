@@ -1,4 +1,9 @@
-import { COEFFICIENTS, INNER_COLUMN, INNER_COLUMN_BONUS } from "#/domain/adaptive/weaknessScore";
+import {
+  COEFFICIENTS,
+  INNER_COLUMN,
+  INNER_COLUMN_BONUS,
+  confidenceWeight,
+} from "#/domain/adaptive/weaknessScore";
 import type {
   BigramStat,
   CharacterStat,
@@ -67,6 +72,12 @@ export type WeaknessBreakdown = {
   /** Inner-column transition bonus (0 when phase is refining or the
    * unit is not an inner-column char). */
   innerColumnBonus: number;
+  /** Evidence-weight multiplier applied to the error/hesitation/
+   *  slowness contributions — `attempts / (attempts + K)`. Surfaced so
+   *  the UI can explain why a low-sample unit's contributions are
+   *  smaller than the raw formula would suggest. Not applied to
+   *  frequency or innerColumnBonus (structural priors). */
+  confidenceWeight: number;
   /** Total — sum of component contributions plus bonus. Matches what
    * `computeWeaknessScore` would return for the same inputs. */
   total: number;
@@ -107,13 +118,17 @@ export function computeWeaknessBreakdown(
   const hesitationRaw = unitIsChar ? unit.hesitationCount / denomAttempts : 0;
 
   const c = COEFFICIENTS[phase];
+  const w = confidenceWeight(unit.attempts);
 
   const errorRate: ComponentBreakdown = {
     raw: errorRateRaw,
     baseline: baseline.meanErrorRate,
     normalized: safeRatio(errorRateRaw, baseline.meanErrorRate),
     coefficient: c.ALPHA,
-    contribution: c.ALPHA * safeRatio(errorRateRaw, baseline.meanErrorRate),
+    // Contribution is evidence-weighted — raw rate stays visible above
+    // for honest UX, but the contribution the engine actually adds to
+    // the score is attenuated for low-sample units.
+    contribution: w * c.ALPHA * safeRatio(errorRateRaw, baseline.meanErrorRate),
   };
 
   const hesitation: ComponentBreakdown | null = unitIsChar
@@ -122,7 +137,7 @@ export function computeWeaknessBreakdown(
         baseline: baseline.meanHesitationRate,
         normalized: safeRatio(hesitationRaw, baseline.meanHesitationRate),
         coefficient: c.BETA,
-        contribution: c.BETA * safeRatio(hesitationRaw, baseline.meanHesitationRate),
+        contribution: w * c.BETA * safeRatio(hesitationRaw, baseline.meanHesitationRate),
       }
     : null;
 
@@ -131,7 +146,7 @@ export function computeWeaknessBreakdown(
     baseline: baseline.meanKeystrokeTime,
     normalized: safeRatio(meanTimeRaw, baseline.meanKeystrokeTime),
     coefficient: c.GAMMA,
-    contribution: c.GAMMA * safeRatio(meanTimeRaw, baseline.meanKeystrokeTime),
+    contribution: w * c.GAMMA * safeRatio(meanTimeRaw, baseline.meanKeystrokeTime),
   };
 
   const frequency: FrequencyBreakdown = {
@@ -162,6 +177,7 @@ export function computeWeaknessBreakdown(
     slowness,
     frequency,
     innerColumnBonus,
+    confidenceWeight: w,
     total,
     attempts: unit.attempts,
   };

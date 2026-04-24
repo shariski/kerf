@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { PHASE_BASELINES } from "../stats/baselines";
 import type { BigramStat, CharacterStat, UserBaseline } from "../stats/types";
 import {
+  CONFIDENCE_WEIGHT_K,
   INNER_COLUMN_BONUS,
   JOURNEY_BONUSES,
   LOW_CONFIDENCE_THRESHOLD,
   computeWeaknessScore,
+  confidenceWeight,
   isLowConfidence,
 } from "./weaknessScore";
 
@@ -192,6 +194,65 @@ describe("computeWeaknessScore — defensive numerics", () => {
       0,
     );
     expect(Number.isFinite(score)).toBe(true);
+  });
+});
+
+describe("computeWeaknessScore — evidence-weight attenuation for small samples", () => {
+  it("same error rate, fewer attempts → lower score (shrinkage fires)", () => {
+    // Both units show ~15% error rate relative to 8% baseline. The
+    // small-sample unit has 6 attempts, the large-sample has 600.
+    // Under raw-rate scoring they'd tie; with confidenceWeight they
+    // differ by the ratio of their weights.
+    const smallSample = charStat({
+      character: "a",
+      attempts: 6,
+      errors: 1,
+      sumTime: 6 * 280,
+    });
+    const largeSample = charStat({
+      character: "a",
+      attempts: 600,
+      errors: 90,
+      sumTime: 600 * 280,
+    });
+    const small = computeWeaknessScore(
+      smallSample,
+      PHASE_BASELINES.transitioning,
+      "transitioning",
+      0,
+    );
+    const large = computeWeaknessScore(
+      largeSample,
+      PHASE_BASELINES.transitioning,
+      "transitioning",
+      0,
+    );
+    expect(small).toBeLessThan(large);
+  });
+
+  it("confidenceWeight(attempts) → 0 at attempts=0, approaches 1 for large attempts", () => {
+    expect(confidenceWeight(0)).toBe(0);
+    expect(confidenceWeight(CONFIDENCE_WEIGHT_K)).toBeCloseTo(0.5, 5);
+    expect(confidenceWeight(1000)).toBeGreaterThan(0.98);
+    expect(confidenceWeight(1000)).toBeLessThan(1);
+  });
+
+  it("journey bonus is NOT attenuated (structural prior, independent of attempts)", () => {
+    // Inner-column 'b' at very low attempts should still get the bonus
+    // at full strength — even though the evidence-based components
+    // are attenuated near zero.
+    const noise = charStat({ character: "b", attempts: 1, errors: 0, sumTime: 280 });
+    const score = computeWeaknessScore(
+      noise,
+      baseline({ journey: "columnar" }),
+      "transitioning",
+      0,
+    );
+    // With zero observed weakness and zero frequency, the score
+    // should be very close to the journey bonus (~0.3). If the bonus
+    // were being attenuated by confidenceWeight(1) = 1/11 ≈ 0.09, the
+    // score would be ~0.027 instead.
+    expect(score).toBeCloseTo(JOURNEY_BONUSES.columnar.INNER_COLUMN_BONUS, 1);
   });
 });
 
