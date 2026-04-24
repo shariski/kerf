@@ -34,7 +34,11 @@ const ALPHA_ONLY = /^[a-z]+$/;
 // Words a typing app should not ship even if upstream missed them.
 // Intentionally small — we trust the upstream filter and treat this
 // as a belt-and-suspenders pass. Add here if something slips through.
-const EXTRA_BLOCKLIST: ReadonlySet<string> = new Set<string>([]);
+const EXTRA_BLOCKLIST: ReadonlySet<string> = new Set<string>([
+  // Politically-charged tokens kept out to maintain platform neutrality.
+  "israel",
+  "israeli",
+]);
 
 const INNER_COLUMN: ReadonlySet<string> = new Set(["b", "g", "h", "n", "t", "y"]);
 

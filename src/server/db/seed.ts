@@ -27,12 +27,17 @@ async function seed() {
   }
   const text = await res.text();
 
-  // Keep only lowercase alpha words of length >= 2
+  // Mirrors EXTRA_BLOCKLIST in scripts/build-corpus.ts — kept in sync so
+  // both the DB seed and the shipped corpus.json drop the same tokens.
+  const EXTRA_BLOCKLIST = new Set(["israel", "israeli"]);
+
+  // Keep only lowercase alpha words of length >= 2, minus blocklist.
   const words = text
     .trim()
     .split("\n")
     .map((w) => w.trim().toLowerCase())
-    .filter((w) => /^[a-z]{2,}$/.test(w));
+    .filter((w) => /^[a-z]{2,}$/.test(w))
+    .filter((w) => !EXTRA_BLOCKLIST.has(w));
 
   console.log(`Seeding ${words.length} words...`);
 
