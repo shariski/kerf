@@ -34,6 +34,21 @@ export function buildBigramSupport(corpus: Corpus): ReadonlyMap<string, number> 
   return counts;
 }
 
+/** Count of corpus words containing each character. `w.chars` is
+ *  already deduped per word (see corpus/types.ts), so summation is
+ *  direct. Drives the adaptive engine's character-target exclusion:
+ *  a char with 0 corpus support (e.g. `;` accumulated via drill mode)
+ *  can't be practiced by the word-picker and shouldn't be rankable. */
+export function buildCharSupport(corpus: Corpus): ReadonlyMap<string, number> {
+  const counts = new Map<string, number>();
+  for (const w of corpus.words) {
+    for (const c of w.chars) {
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
 export type CorpusState =
   | { status: "loading" }
   | {
@@ -43,6 +58,12 @@ export type CorpusState =
        *  Consumed by the adaptive engine to detect bigram targets that
        *  can't be practiced via the word-picker. */
       bigramSupport: ReadonlyMap<string, number>;
+      /** Precomputed `char → corpus word count`. Parallel to
+       *  `bigramSupport`, consumed by the engine to exclude character
+       *  targets with no corpus representation (cross-layer leak from
+       *  drill mode — keys like `;` / `/` accumulate real stats but
+       *  can't be produced by the word-picker). */
+      charSupport: ReadonlyMap<string, number>;
     }
   | { status: "error"; error: Error };
 
@@ -59,6 +80,7 @@ export function useCorpus(): CorpusState {
             status: "ready",
             corpus,
             bigramSupport: buildBigramSupport(corpus),
+            charSupport: buildCharSupport(corpus),
           });
         }
       })

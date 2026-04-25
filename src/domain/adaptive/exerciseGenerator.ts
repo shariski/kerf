@@ -80,6 +80,16 @@ export type ExerciseOptions = {
    *  threshold, the literal `mustContainUnit` match is used
    *  (unchanged behavior). */
   corpusBigramSupport?: ReadonlyMap<string, number>;
+  /** Per-word weighting for the **filler** pool only (the non-emphasis
+   *  portion when `mustContainUnit` + `mustContainMinRatio` are set).
+   *  When provided, filler candidates are scored with this function
+   *  instead of `matchScore(w, weaknessScoreFor)`. Use `() => 1` for
+   *  uniform-per-word sampling (exploration blend — surfaces rare
+   *  corpus words that weakness-weighted scoring would drown out).
+   *  When omitted, filler inherits the weakness-weighted score for
+   *  backwards-compat with callers that want "emphasize target, fill
+   *  with other weaknesses." */
+  fillerWeightFor?: (word: CorpusWord) => number;
 };
 
 export const DEFAULT_TARGET_WORD_COUNT = 50;
@@ -156,6 +166,7 @@ export function generateExercise(options: ExerciseOptions): string[] {
     mustContainUnit,
     mustContainMinRatio,
     corpusBigramSupport,
+    fillerWeightFor,
   } = options;
 
   const useFloor =
@@ -185,9 +196,19 @@ export function generateExercise(options: ExerciseOptions): string[] {
     const fillerCandidates: { word: CorpusWord; weight: number }[] = [];
     for (const w of corpus.words) {
       if (!passesFilters(w, filters)) continue;
-      const score = matchScore(w, weaknessScoreFor);
-      if (score <= 0) continue;
-      (matches(w) ? emphasisCandidates : fillerCandidates).push({ word: w, weight: score });
+      if (matches(w)) {
+        const score = matchScore(w, weaknessScoreFor);
+        if (score <= 0) continue;
+        emphasisCandidates.push({ word: w, weight: score });
+      } else {
+        // Filler gets its own weighting when provided (exploration blend
+        // uses uniform per-word weight so rare-letter words aren't
+        // drowned out by corpus-frequency bias). Falls back to the
+        // emphasis scorer otherwise.
+        const fillerScore = fillerWeightFor ? fillerWeightFor(w) : matchScore(w, weaknessScoreFor);
+        if (fillerScore <= 0) continue;
+        fillerCandidates.push({ word: w, weight: fillerScore });
+      }
     }
 
     const emphasisSample = weightedSampleWithoutReplacement(

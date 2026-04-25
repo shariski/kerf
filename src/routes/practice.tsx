@@ -4,7 +4,8 @@ import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
   getEngineStatsAndBaseline,
-  hasAnySessionOnActiveProfile,
+  getCompletedSessionCountOnActiveProfile,
+  getRecentSessionTargetsOnActiveProfile,
   type EngineStatsAndBaseline,
   type KeyboardType,
   type DominantHand,
@@ -32,7 +33,7 @@ import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import { AppFooter } from "#/components/nav/AppFooter";
 import { generateSession } from "#/domain/adaptive/sessionGenerator";
 import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
-import { rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
+import { RECENCY_WINDOW, rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
 import type { SessionTarget } from "#/domain/adaptive/targetSelection";
 import { DRILL_LIBRARY } from "#/domain/adaptive/drillLibraryData";
 
@@ -73,11 +74,18 @@ export const Route = createFileRoute("/practice")({
   loader: async (): Promise<{
     profile: LoadedProfile;
     isFirstSession: boolean;
+    completedSessionCount: number;
+    recentTargets: string[];
     engineData: EngineStatsAndBaseline | null;
   }> => {
-    const [profile, hasSession, engineData] = await Promise.all([
+    const [profile, completedSessionCount, recentTargets, engineData] = await Promise.all([
       getActiveProfile(),
-      hasAnySessionOnActiveProfile(),
+      getCompletedSessionCountOnActiveProfile(),
+      // Fetch enough history to serve both the cooldown rule (looks
+      // at first COOLDOWN_RUN_LENGTH - 1 = 2 entries) and the soft
+      // recency decay (needs the full RECENCY_WINDOW). The larger
+      // window is the bounding one — cooldown just ignores the tail.
+      getRecentSessionTargetsOnActiveProfile({ data: { limit: RECENCY_WINDOW } }),
       getEngineStatsAndBaseline(),
     ]);
     if (!profile) throw redirect({ to: "/onboarding" });
@@ -88,7 +96,9 @@ export const Route = createFileRoute("/practice")({
         dominantHand: profile.dominantHand as DominantHand,
         transitionPhase: profile.transitionPhase as TransitionPhase,
       },
-      isFirstSession: !hasSession,
+      isFirstSession: completedSessionCount === 0,
+      completedSessionCount,
+      recentTargets,
       engineData,
     };
   },
@@ -109,7 +119,8 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
 };
 
 function PracticePage() {
-  const { profile, isFirstSession, engineData } = Route.useLoaderData();
+  const { profile, isFirstSession, completedSessionCount, recentTargets, engineData } =
+    Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const router = useRouter();
@@ -188,8 +199,15 @@ function PracticePage() {
       phase,
       corpus: corpus.corpus,
       corpusBigramSupport: corpus.bigramSupport,
+      corpusCharSupport: corpus.charSupport,
       drillLibrary: DRILL_LIBRARY,
       frequencyInLanguage: () => 0.5,
+      // 1-indexed "session about to start" — the loader's count reflects
+      // sessions already persisted, so the upcoming one is count + 1.
+      // Drives the every-DIAGNOSTIC_PERIOD re-baseline in selectTarget.
+      upcomingSessionNumber: completedSessionCount + 1,
+      // Recent adaptive-target values for the cooldown rule.
+      recentTargets,
       exerciseOptions: {
         filters: {
           handIsolation: filters.handIsolation,
@@ -204,9 +222,11 @@ function PracticePage() {
     if (import.meta.env.DEV) {
       const ranked = rankTargets(stats, baseline, phase, () => 0.5, {
         corpusBigramSupport: corpus.bigramSupport,
-      }).slice(0, 3);
+        corpusCharSupport: corpus.charSupport,
+        recentTargets,
+      }).slice(0, 10);
       console.log(
-        "[adaptive] top-3 weakness candidates:",
+        "[adaptive] top-10 weakness candidates:",
         ranked.map((t) => ({ type: t.type, value: t.value, score: t.score?.toFixed(3) })),
       );
       console.log("[adaptive] picked:", output.target.type, JSON.stringify(output.target.value));
@@ -553,16 +573,30 @@ function PracticePage() {
   // what the engine would pick if run right now. Pre-session stats are
   // close enough for Phase A; post-session stats would require a DB
   // round-trip we don't have. Returns null when no confident data.
+  // After persist + router.invalidate, completedSessionCount reflects the
+  // just-completed session, so the upcoming one is count + 1 — same
+  // formula as the main generateSession call.
   const nextTargetPreview = useMemo(() => {
     if (status !== "complete") return null;
     if (!engineData) return null;
     try {
-      const next = selectTarget(engineData.stats, engineData.baseline, engineData.phase, () => 0.5);
+      const next = selectTarget(
+        engineData.stats,
+        engineData.baseline,
+        engineData.phase,
+        () => 0.5,
+        {
+          corpusBigramSupport: corpus.status === "ready" ? corpus.bigramSupport : undefined,
+          corpusCharSupport: corpus.status === "ready" ? corpus.charSupport : undefined,
+          upcomingSessionNumber: completedSessionCount + 1,
+          recentTargets,
+        },
+      );
       return next.type === "diagnostic" ? null : next.label;
     } catch {
       return null;
     }
-  }, [status, engineData]);
+  }, [status, engineData, completedSessionCount, recentTargets, corpus]);
 
   if (status === "active" || status === "paused") {
     // `idleAutoPaused` = clock is frozen by the watchdog but the user
