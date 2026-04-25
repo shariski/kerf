@@ -1,0 +1,1 @@
+ALTER TABLE "keyboard_profiles" ADD COLUMN "nickname" text;

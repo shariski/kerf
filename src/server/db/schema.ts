@@ -35,6 +35,13 @@ export const keyboardProfiles = pgTable("keyboard_profiles", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   keyboardType: text("keyboard_type").notNull(), // 'sofle' | 'lily58'
+  /**
+   * User-set display name (e.g. "work setup", "kira's split"). Optional;
+   * falls back to the keyboard-type label when null. Trimmed to ≤30 chars
+   * at the API boundary; stored as raw text so a later cap change doesn't
+   * need an alter-column.
+   */
+  nickname: text("nickname"),
   dominantHand: text("dominant_hand").notNull(), // 'left' | 'right'
   initialLevel: text("initial_level").notNull(), // 'first_day' | 'few_weeks' | 'comfortable'
   transitionPhase: text("transition_phase").notNull().default("transitioning"), // 'transitioning' | 'refining'

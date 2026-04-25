@@ -1,4 +1,10 @@
-import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useNavigate,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
@@ -116,6 +122,7 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
   typingSize: "M",
   showKeyboard: true,
   expectedLetterHint: true,
+  focusedKeyHint: true,
 };
 
 function PracticePage() {
@@ -350,6 +357,40 @@ function PracticePage() {
   // banner on the pre-session stage, not a hard lock, because the user
   // may have abandoned the other tab.
   const otherTabActive = useOtherTabActive(sessionInFlight);
+
+  // Auto-cancel briefing on tab switch (browser tab). The "ready to start"
+  // briefing is ephemeral — if the user moves away, the engine context may
+  // change and they likely want to re-pick. Scoped to briefing only.
+  useEffect(() => {
+    if (pendingSession === null) return;
+    const onVis = () => {
+      if (document.hidden) setPendingSession(null);
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [pendingSession]);
+
+  // Reset to pre-session whenever the user (re)arrives at /practice from
+  // another in-app route. Three things get cleared:
+  //   1. `pendingSession` — drops any briefing the user clicked away from.
+  //   2. `sessionStore.status` if non-idle — drops an active or completed
+  //      session that survived the route remount via the singleton store.
+  //   3. `paused` — local pause-overlay flag tied to the prior session.
+  // This matches the user mental model: every fresh /practice arrival is
+  // a clean slate. Mid-session typing progress is lost if the user navs
+  // away, by design. The autostart effect rebuilds the briefing if
+  // `?autostart=1` is present, so hero-CTA hand-offs from /home still work.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => {
+    if (pathname !== "/practice") return;
+    if (search.autostart) return;
+    setPendingSession(null);
+    setPaused(false);
+    const state = sessionStore.getState();
+    if (state.status !== "idle") {
+      state.dispatch({ type: "reset" });
+    }
+  }, [pathname, search.autostart]);
 
   // Task 4.2 — drain any retry backlog on mount. Fire-and-forget; the
   // in-flight guard inside the wrapper coalesces this with flushes
@@ -618,7 +659,7 @@ function PracticePage() {
           capture={!paused}
           typingSize={pauseSettings.typingSize}
           isFirstSession={sessionModeRef.current === "diagnostic"}
-          targetKeys={activeTarget?.keys}
+          targetKeys={pauseSettings.focusedKeyHint ? activeTarget?.keys : undefined}
         />
         {idleAutoPaused && <IdlePauseChip />}
         {paused && (
@@ -663,6 +704,7 @@ function PracticePage() {
               target={pendingSession.target}
               briefingText={pendingSession.briefing.text}
               onStart={handleBriefingStart}
+              onBack={() => setPendingSession(null)}
             />
           </div>
         </main>

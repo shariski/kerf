@@ -8,15 +8,31 @@ afterEach(() => {
 });
 
 describe("TargetRibbon", () => {
-  it("renders the target label and keys inline", () => {
+  it("renders the target label", () => {
     render(<TargetRibbon label="Left ring column vertical reach" keys={["w", "s", "x"]} />);
     expect(screen.getByText(/Left ring column vertical reach/)).toBeTruthy();
-    expect(screen.getByText(/w/i)).toBeTruthy();
   });
 
-  it("renders space key as the word 'space'", () => {
+  it("renders each key as a chip in the keys list", () => {
+    render(<TargetRibbon label="Left ring column vertical reach" keys={["w", "s", "x"]} />);
+    const keysList = screen.getByRole("list", { name: /keys in this target/i });
+    expect(keysList.querySelectorAll("li")).toHaveLength(3);
+  });
+
+  it("renders space key with an accessible 'space' label and a visible glyph", () => {
     render(<TargetRibbon label="Thumb" keys={[" ", "a"]} />);
-    expect(screen.getByText(/space a/)).toBeTruthy();
+    // Visible content: space chip uses the open-box glyph; "a" uppercases to "A".
+    const keysList = screen.getByRole("list", { name: /keys in this target/i });
+    const items = keysList.querySelectorAll("li");
+    expect(items[0]?.textContent).toContain("␣");
+    expect(items[1]?.textContent).toContain("A");
+    // Screen-reader text still says "space" so AT users get the word, not the glyph name.
+    expect(keysList.textContent).toContain("space");
+  });
+
+  it("does not show a redundant 'Target:' prefix — the icon + aria-label carry that meaning", () => {
+    render(<TargetRibbon label="Your weakness: Y" keys={["y"]} />);
+    expect(screen.queryByText(/^Target:/)).toBeNull();
   });
 
   it("has region landmark with accessible label", () => {

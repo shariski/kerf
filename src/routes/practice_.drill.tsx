@@ -1,4 +1,10 @@
-import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useNavigate,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
@@ -7,7 +13,6 @@ import {
   ActiveSessionStage,
   PauseOverlay,
   DrillPreSessionStage,
-  DrillActiveHeader,
   DrillPostSessionStage,
   SessionBriefing,
   TargetRibbon,
@@ -111,6 +116,7 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
   typingSize: "M",
   showKeyboard: true,
   expectedLetterHint: true,
+  focusedKeyHint: true,
 };
 
 /** Default journey for drill mode — no user journey data available. */
@@ -385,6 +391,14 @@ function DrillPage() {
   // Wall-clock timestamp when the briefing was shown — for persistSessionWithRetry.
   const briefingShownAtRef = useRef<Date | null>(null);
 
+  // Snapshot of the URL search params at the moment the briefing was first
+  // staged. The URL effect clears the live `search` after consuming params
+  // (so re-arrival via in-app nav lands on the picker, not on a duplicated
+  // briefing). But "Run again" from the post-session view still needs the
+  // original params to rebuild a fresh exercise — without this ref, it
+  // would call `buildSessionOutput(corpus, {}, …)` and return null.
+  const drillSourceRef = useRef<DrillSearch | null>(null);
+
   // Capture the drill label + target char set at the moment the drill is built.
   const [activeDrill, setActiveDrill] = useState<{
     label: string;
@@ -432,6 +446,14 @@ function DrillPage() {
   };
 
   // Auto-start a drill whenever the URL carries target/preset and we are idle.
+  // The URL params are consumed once: as soon as the briefing is staged we
+  // also `navigate({ search: {} }, replace)` to clear them. This makes the
+  // briefing a one-shot — if the user navigates away and back via in-app
+  // nav, the URL no longer carries the drill key and the picker shows
+  // (matching the `?autostart=1` consume pattern in /practice). Without
+  // this, browser-back to a stale `/practice/drill?target=…` URL would
+  // silently re-create the briefing.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: corpus.corpus and pendingSession are read inside as snapshots, not trigger conditions; including them would refire on corpus shape changes or post-creation pendingSession flip, neither of which should re-stage briefing.
   useEffect(() => {
     if (!hasRouteDrill) return;
     if (corpus.status !== "ready") return;
@@ -445,9 +467,19 @@ function DrillPage() {
     );
     if (output) {
       briefingShownAtRef.current = new Date();
+      drillSourceRef.current = search;
       setPendingSession(output);
+      void navigate({ to: "/practice/drill", search: {}, replace: true });
     }
-  }, [hasRouteDrill, corpus.status, status, search, profile.keyboardType, profile.transitionPhase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    hasRouteDrill,
+    corpus.status,
+    status,
+    search,
+    profile.keyboardType,
+    profile.transitionPhase,
+    navigate,
+  ]);
 
   // Escape toggles the pause overlay.
   useEffect(() => {
@@ -480,6 +512,57 @@ function DrillPage() {
   const sessionInFlight = status === "active" || status === "paused";
   useBeforeUnloadWarning(sessionInFlight);
   const otherTabActive = useOtherTabActive(sessionInFlight);
+
+  // Auto-cancel briefing on browser-tab switch — see practice.tsx.
+  useEffect(() => {
+    if (pendingSession === null) return;
+    const onVis = () => {
+      if (document.hidden) {
+        setPendingSession(null);
+        void navigate({ to: "/practice/drill", search: {} });
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [pendingSession, navigate]);
+
+  // Reset to picker whenever the user (re)arrives at /practice/drill from
+  // another in-app route. Same intent as the /practice reset: every fresh
+  // arrival is a clean slate. The URL effect above consumes target/preset
+  // params on first arrival (replace+empty search), so a re-arrival has a
+  // clean URL and naturally lands on the picker; this effect additionally
+  // clears any session/briefing state that survived the remount via the
+  // singleton session store or React preservation.
+  //
+  // Deps are intentionally narrowed to [drillPathname]: hasRouteDrill is
+  // derived from search params and changes within-route (URL effect clears
+  // it after staging a briefing). Including it would cause this effect to
+  // refire and wipe the briefing the user just kicked off — see the bug
+  // where clicking a vertical-reach preset appeared to do nothing.
+  const drillPathname = useRouterState({ select: (s) => s.location.pathname });
+  // biome-ignore lint/correctness/useExhaustiveDependencies: hasRouteDrill is read as a snapshot inside the effect; including it in deps causes a refire-then-clobber race with the URL effect's setPendingSession + URL clear.
+  useEffect(() => {
+    if (drillPathname !== "/practice/drill") return;
+    // Unconditional cleanups on route arrival: paused flag and any stale
+    // session-store status from a prior route. These are scrubbed
+    // regardless of URL params, otherwise a `status: "complete"` carried
+    // over from a /practice post-session view would block the URL effect's
+    // `status === "idle"` guard and the user would get stuck on
+    // "Building drill…".
+    setPaused(false);
+    const state = sessionStore.getState();
+    if (state.status !== "idle") {
+      state.dispatch({ type: "reset" });
+    }
+    // pendingSession only resets when the URL has no drill params; if
+    // hasRouteDrill is true, the URL effect owns the briefing creation
+    // and clearing pendingSession here would race against it.
+    if (!hasRouteDrill) {
+      setPendingSession(null);
+      drillSourceRef.current = null;
+    }
+  }, [drillPathname]);
+
   useEffect(() => {
     void flushSessionQueue();
   }, []);
@@ -549,6 +632,15 @@ function DrillPage() {
       if (e.key === "Enter") {
         e.preventDefault();
         runAgainRef.current();
+        return;
+      }
+
+      // P → "Move to adaptive practice" — matches the shortcut hint
+      // shown in DrillPostSessionStage's secondary CTA. Use e.code so
+      // the binding works regardless of layout/shift state.
+      if (e.code === "KeyP") {
+        e.preventDefault();
+        moveToAdaptiveRef.current();
         return;
       }
 
@@ -662,9 +754,13 @@ function DrillPage() {
 
   const runAgain = () => {
     if (corpus.status !== "ready") return;
+    // Read from the source-snapshot ref, not the live `search` — the URL
+    // effect clears search after consuming, so a post-session "Run again"
+    // sees an empty search if it reads it directly.
+    const source = drillSourceRef.current ?? search;
     const output = buildSessionOutput(
       corpus.corpus,
-      search,
+      source,
       profile.keyboardType,
       profile.transitionPhase,
     );
@@ -684,6 +780,12 @@ function DrillPage() {
     sessionStore.getState().dispatch({ type: "reset" });
     navigate({ to: "/practice" });
   };
+
+  // Stable ref for the P shortcut so the post-session keydown effect
+  // doesn't have to re-bind every render (moveToAdaptive closes over
+  // navigate). Mirrors runAgainRef.
+  const moveToAdaptiveRef = useRef(moveToAdaptive);
+  moveToAdaptiveRef.current = moveToAdaptive;
 
   const restartSameExercise = () => {
     if (!activeDrill) return;
@@ -740,13 +842,17 @@ function DrillPage() {
             keys={activeDrill.sessionTarget?.keys ?? activeDrill.targetChars}
           />
         )}
-        {activeDrill && <DrillActiveHeader label={activeDrill.label} />}
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
           showKeyboard={pauseSettings.showKeyboard}
           expectedLetterHint={pauseSettings.expectedLetterHint}
           capture={!paused}
           typingSize={pauseSettings.typingSize}
+          targetKeys={
+            pauseSettings.focusedKeyHint
+              ? (activeDrill?.sessionTarget?.keys ?? undefined)
+              : undefined
+          }
         />
         {idleAutoPaused && <DrillIdlePauseChip />}
         {paused && (
@@ -781,6 +887,14 @@ function DrillPage() {
               target={pendingSession.target}
               briefingText={pendingSession.briefing.text}
               onStart={() => startFromPending(pendingSession)}
+              onBack={() => {
+                // Drill briefing is driven by URL params (?target=… or
+                // ?preset=…), so we have to clear both the local pending
+                // session AND the URL — otherwise the URL-watching effect
+                // would just regenerate the briefing on the next render.
+                setPendingSession(null);
+                void navigate({ to: "/practice/drill", search: {} });
+              }}
             />
           </div>
         </main>

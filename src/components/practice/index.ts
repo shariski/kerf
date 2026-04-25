@@ -4,7 +4,6 @@ export { FirstSessionTooltip } from "./FirstSessionTooltip";
 export { PauseOverlay, type PauseSettings } from "./PauseOverlay";
 export { PostSessionStage } from "./PostSessionStage";
 export { DrillPreSessionStage, type PresetKey } from "./DrillPreSessionStage";
-export { DrillActiveHeader } from "./DrillActiveHeader";
 export { DrillPostSessionStage } from "./DrillPostSessionStage";
 export type { PreSessionFilterValues } from "./PreSessionFilters";
 export { SessionBriefing } from "./SessionBriefing";

@@ -24,6 +24,14 @@ export type PauseSettings = {
   typingSize: "S" | "M" | "L" | "XL";
   showKeyboard: boolean;
   expectedLetterHint: boolean;
+  /**
+   * Highlight the session's target keys — both the ivory ring on the
+   * keyboard SVG and the matching characters inside the typing text.
+   * Tied to a single setting because the two visualizations are the
+   * same signal ("these are the letters this session is training") on
+   * two surfaces; toggling them independently would be confusing.
+   */
+  focusedKeyHint: boolean;
 };
 
 type Props = {
@@ -85,6 +93,24 @@ export function PauseOverlay({ settings, onSettingsChange, onResume, onRestart, 
             <PillOption
               active={!settings.expectedLetterHint}
               onClick={() => set("expectedLetterHint", false)}
+            >
+              Off
+            </PillOption>
+          </SettingRow>
+
+          <SettingRow
+            label="Focused-letter hint"
+            description="highlight target keys on keyboard + text"
+          >
+            <PillOption
+              active={settings.focusedKeyHint}
+              onClick={() => set("focusedKeyHint", true)}
+            >
+              On
+            </PillOption>
+            <PillOption
+              active={!settings.focusedKeyHint}
+              onClick={() => set("focusedKeyHint", false)}
             >
               Off
             </PillOption>

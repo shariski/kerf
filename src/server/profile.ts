@@ -28,6 +28,11 @@ export type CreateProfileInput = {
   dominantHand: DominantHand;
   initialLevel: InitialLevel;
   fingerAssignment: JourneyCode;
+  /**
+   * Optional display name (≤30 chars after trim). Empty/whitespace-only
+   * inputs become null. Omitting the field on create is equivalent to null.
+   */
+  nickname?: string | null;
 };
 
 export function validateCreateProfileInput(input: unknown): CreateProfileInput {
@@ -55,7 +60,20 @@ export function validateCreateProfileInput(input: unknown): CreateProfileInput {
     fingerAssignment: toJourneyCode(
       typeof i.fingerAssignment === "string" ? i.fingerAssignment : null,
     ),
+    nickname: normalizeNickname(i.nickname),
   };
+}
+
+/**
+ * Trim, drop empty, and cap at 30 chars. Returns null when the input is
+ * absent / non-string / whitespace-only — the schema column is nullable
+ * and "no nickname" is the default state.
+ */
+function normalizeNickname(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return null;
+  return trimmed.slice(0, 30);
 }
 
 export const createKeyboardProfile = createServerFn({ method: "POST" })
@@ -83,6 +101,7 @@ export const createKeyboardProfile = createServerFn({ method: "POST" })
         .values({
           userId: session.user.id,
           keyboardType: data.keyboardType,
+          nickname: data.nickname,
           dominantHand: data.dominantHand,
           initialLevel: data.initialLevel,
           transitionPhase: phase,
@@ -93,6 +112,71 @@ export const createKeyboardProfile = createServerFn({ method: "POST" })
       return inserted!;
     });
     return row;
+  });
+
+// ── update profile (nickname + dominant hand) ────────────────────────────────
+
+export type UpdateProfileInput = {
+  profileId: string;
+  /** When omitted, field is left unchanged. `null` clears the nickname. */
+  nickname?: string | null;
+  dominantHand?: DominantHand;
+};
+
+export function validateUpdateProfileInput(input: unknown): UpdateProfileInput {
+  if (typeof input !== "object" || input === null) {
+    throw new Error("update profile input must be an object");
+  }
+  const i = input as Record<string, unknown>;
+  if (typeof i.profileId !== "string" || i.profileId.length === 0) {
+    throw new Error("profileId is required");
+  }
+  const out: UpdateProfileInput = { profileId: i.profileId };
+  if ("nickname" in i) {
+    // Reuse the same trim/cap rules as create. Whitespace-only or empty
+    // string clears the nickname; anything else is trimmed to ≤30 chars.
+    if (i.nickname === null) {
+      out.nickname = null;
+    } else if (typeof i.nickname === "string") {
+      const trimmed = i.nickname.trim();
+      out.nickname = trimmed.length === 0 ? null : trimmed.slice(0, 30);
+    } else {
+      throw new Error("nickname must be a string or null");
+    }
+  }
+  if ("dominantHand" in i) {
+    if (i.dominantHand !== "left" && i.dominantHand !== "right") {
+      throw new Error("dominantHand must be 'left' or 'right'");
+    }
+    out.dominantHand = i.dominantHand;
+  }
+  return out;
+}
+
+export const updateKeyboardProfile = createServerFn({ method: "POST" })
+  .inputValidator(validateUpdateProfileInput)
+  .handler(async ({ data }) => {
+    const request = getRequest();
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) throw redirect({ to: "/login" });
+
+    // Build the SET clause from only the provided fields. Drizzle treats
+    // an empty object update as a no-op; if neither field was supplied,
+    // skip the round-trip entirely.
+    const patch: Partial<typeof keyboardProfiles.$inferInsert> = {};
+    if ("nickname" in data) patch.nickname = data.nickname ?? null;
+    if (data.dominantHand !== undefined) patch.dominantHand = data.dominantHand;
+    if (Object.keys(patch).length === 0) return { ok: true as const };
+
+    // Scope the update by user id so a forged profileId can't touch
+    // another user's row.
+    await db
+      .update(keyboardProfiles)
+      .set(patch)
+      .where(
+        and(eq(keyboardProfiles.id, data.profileId), eq(keyboardProfiles.userId, session.user.id)),
+      );
+    return { ok: true as const };
   });
 
 export const getActiveProfile = createServerFn({ method: "GET" }).handler(async () => {
@@ -289,6 +373,7 @@ export const updateFingerAssignment = createServerFn({ method: "POST" })
 export type ProfileListEntry = {
   id: string;
   keyboardType: KeyboardType;
+  nickname: string | null;
   dominantHand: DominantHand;
   initialLevel: InitialLevel;
   transitionPhase: TransitionPhase;
@@ -319,6 +404,7 @@ export const listKeyboardProfiles = createServerFn({ method: "GET" }).handler(
       .map((r) => ({
         id: r.id,
         keyboardType: r.keyboardType as KeyboardType,
+        nickname: r.nickname,
         dominantHand: r.dominantHand as DominantHand,
         initialLevel: r.initialLevel as InitialLevel,
         transitionPhase: r.transitionPhase as TransitionPhase,

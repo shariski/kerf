@@ -5,44 +5,63 @@ type Props = {
   target: SessionTarget;
   briefingText: string;
   onStart: () => void;
+  /**
+   * If provided, renders a small "Back" button that returns the user
+   * to the pre-session picker without starting a session. Routes also
+   * auto-cancel the briefing on tab switch (visibilitychange → hidden),
+   * so this is the explicit user-driven counterpart to that behavior.
+   */
+  onBack?: () => void;
 };
 
-export function SessionBriefing({ target, briefingText, onStart }: Props) {
+export function SessionBriefing({ target, briefingText, onStart, onBack }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
         onStart();
+        return;
+      }
+      // Escape returns to picker if a back handler is wired. Mirrors the
+      // tab-switch auto-reset — same intent, explicit keystroke.
+      if (e.key === "Escape" && onBack) {
+        e.preventDefault();
+        onBack();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onStart]);
+  }, [onStart, onBack]);
 
   return (
-    <section className="max-w-2xl mx-auto p-8 space-y-6 text-center">
-      <h1 className="text-3xl font-semibold text-kerf-amber-base">{target.label}</h1>
-      <p className="whitespace-pre-line text-lg text-kerf-text-secondary">{briefingText}</p>
+    <section className="kerf-session-briefing" aria-label="Session briefing">
+      <span className="kerf-session-briefing-eyebrow">session brief</span>
+      <h1 className="kerf-session-briefing-title">{target.label}</h1>
+      <p className="kerf-session-briefing-text">{briefingText}</p>
       {target.keys.length > 0 && (
-        <div className="flex gap-2 justify-center">
-          {target.keys.map((k) => (
-            <kbd
-              key={k}
-              className="px-3 py-2 border border-kerf-amber-base rounded text-kerf-amber-base font-mono text-xl"
-              style={{ borderWidth: "1.5px" }}
-            >
-              {k === " " ? "space" : k}
-            </kbd>
+        <ul className="kerf-session-briefing-keys" aria-label="Keys in this target">
+          {target.keys.map((k, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: positional key needed because target keys can repeat (e.g. ["e","e"] for "ee" bigram).
+            <li key={`${k}-${i}`} className="kerf-session-briefing-key">
+              <span aria-hidden>{k === " " ? "␣" : k.toUpperCase()}</span>
+              <span className="sr-only">{k === " " ? "space" : k}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-      <button
-        type="button"
-        onClick={onStart}
-        className="px-6 py-3 rounded bg-kerf-amber-base text-kerf-text-inverse font-medium"
-      >
-        Start ⏎
-      </button>
+      <div className="kerf-session-briefing-actions">
+        <button type="button" onClick={onStart} className="kerf-session-briefing-start">
+          Start
+          <kbd className="kerf-kbd" aria-hidden>
+            ⏎
+          </kbd>
+        </button>
+        {onBack && (
+          <button type="button" onClick={onBack} className="kerf-session-briefing-back">
+            ← Back
+          </button>
+        )}
+      </div>
     </section>
   );
 }

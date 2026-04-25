@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="kerf">
+  <!--
+    Brand-matched favicon: lowercase k + amber period, drawn from actual
+    Fraunces glyph paths (extracted via scripts/extract-favicon-glyphs.mjs)
+    so the favicon mirrors the page wordmark instead of falling back to
+    a generic serif. Colors mirror the design tokens (bg #181410, text
+    #F2EAE0, amber #F59E0B). Note: SVG comments must not contain double
+    hyphens, so token names with leading dashes are spelled inline above.
+  -->
+  <rect width="64" height="64" rx="12" fill="#181410"/>
+  <!-- Glyphs are positioned by the extraction script with baseline y=44.
+       Group translate centers the combined "k." horizontally (left
+       margin ~10px) and shifts down ~6px so the cap top sits with
+       roughly equal padding above and below. -->
+  <g transform="translate(8.67, 5.76)">
+    <path
+      fill="#F2EAE0"
+      d="M13.85 44L3.22 44Q2.26 44 1.82 43.62Q1.39 43.23 1.39 42.56L1.39 42.56Q1.39 42.08 1.63 41.72Q1.87 41.36 2.42 41.12L2.42 41.12L2.95 40.88Q3.31 40.71 3.46 40.32Q3.60 39.92 3.60 38.96L3.60 38.96L3.60 15.30Q3.60 14.53 3.40 14.20Q3.19 13.88 2.78 13.76L2.78 13.76L2.26 13.59Q1.75 13.42 1.52 13.11Q1.30 12.80 1.30 12.32L1.30 12.32Q1.30 11.74 1.61 11.41Q1.92 11.07 2.78 10.74L2.78 10.74L8.11 8.67Q9.34 8.19 10.09 7.98Q10.85 7.76 11.57 7.76L11.57 7.76Q12.65 7.76 13.21 8.37Q13.78 8.98 13.78 9.92L13.78 9.92L13.78 38.96Q13.78 39.92 13.92 40.30Q14.06 40.69 14.42 40.88L14.42 40.88L14.90 41.14Q15.70 41.60 15.70 42.46L15.70 42.46Q15.70 44 13.85 44L13.85 44ZM12.07 36.13L10.82 33.54L19.85 26.29Q20.66 25.64 20.59 24.94Q20.52 24.25 19.63 23.86L19.63 23.86L19.03 23.60Q18.55 23.38 18.37 23.08Q18.19 22.78 18.19 22.30L18.19 22.30Q18.19 21.63 18.66 21.25Q19.13 20.86 19.92 20.86L19.92 20.86L29.28 20.86Q30.10 20.86 30.56 21.24Q31.03 21.61 31.03 22.23L31.03 22.23Q31.03 22.86 30.66 23.28Q30.29 23.70 29.04 24.03L29.04 24.03Q27.77 24.39 26.64 25.02Q25.51 25.64 23.90 26.91L23.90 26.91L12.07 36.13ZM14.26 32.50L20.83 26.50L29.52 39.49Q29.90 40.04 30.23 40.35Q30.55 40.66 30.98 40.98L30.98 40.98Q31.54 41.36 31.86 41.78Q32.18 42.20 32.18 42.68L32.18 42.68Q32.18 43.28 31.72 43.64Q31.25 44 30.46 44L30.46 44L19.18 44Q18.48 44 18.06 43.62Q17.64 43.23 17.64 42.58L17.64 42.58Q17.64 42.18 17.81 41.90Q17.98 41.62 18.36 41.38L18.36 41.38L18.82 41.12Q19.20 40.90 19.24 40.51Q19.27 40.11 18.72 39.30L18.72 39.30L14.26 32.50Z"
+    />
+    <path
+      fill="#F59E0B"
+      transform="translate(31.78, 0)"
+      d="M7.85 44.72L7.85 44.72Q6.26 44.72 4.97 43.92Q3.67 43.11 2.92 41.77Q2.16 40.42 2.16 38.86L2.16 38.86Q2.16 37.26 2.92 35.95Q3.67 34.64 4.97 33.85Q6.26 33.06 7.85 33.06L7.85 33.06Q9.48 33.06 10.78 33.85Q12.07 34.64 12.83 35.95Q13.58 37.26 13.58 38.86L13.58 38.86Q13.58 40.42 12.83 41.77Q12.07 43.11 10.78 43.92Q9.48 44.72 7.85 44.72Z"
+    />
+  </g>
+</svg>

@@ -41,6 +41,14 @@ export const Route = createRootRoute({
         rel: "stylesheet",
         href: appCss,
       },
+      // SVG favicon — modern browsers prefer this over the legacy
+      // `/favicon.ico` (Tanstack template default). The .ico file ships
+      // alongside as a fallback for older clients that don't request SVG.
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
     ],
   }),
   shellComponent: RootDocument,
