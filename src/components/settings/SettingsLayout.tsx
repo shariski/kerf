@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type SidebarLink = {
   id: string;
@@ -22,11 +22,29 @@ type SettingsLayoutProps = {
 export function SettingsLayout({ children }: SettingsLayoutProps) {
   const [activeId, setActiveId] = useState<string>("account");
 
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        const top = visible[0];
+        if (top) setActiveId(top.target.id);
+      },
+      { rootMargin: "-128px 0px -60% 0px", threshold: 0 },
+    );
+    for (const link of SIDEBAR_LINKS) {
+      const el = document.getElementById(link.id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     setActiveId(id);
     const target = typeof document !== "undefined" ? document.getElementById(id) : null;
-    if (!target) return;
+    if (!target || typeof target.scrollIntoView !== "function") return;
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
