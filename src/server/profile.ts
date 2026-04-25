@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { redirect } from "@tanstack/react-router";
 import { getRequest } from "@tanstack/react-start/server";
-import { and, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import {
   initialPhaseForLevel,
   type InitialLevel,
@@ -12,7 +12,13 @@ import { computeBaseline } from "#/domain/stats/computeBaseline";
 import type { ComputedStats, UserBaseline } from "#/domain/stats/types";
 import { auth } from "./auth";
 import { db } from "./db";
-import { bigramStats, characterStats, keyboardProfiles, sessions } from "./db/schema";
+import {
+  bigramStats,
+  characterStats,
+  keyboardProfiles,
+  sessions,
+  sessionTargets,
+} from "./db/schema";
 
 export type KeyboardType = "sofle" | "lily58";
 export type DominantHand = "left" | "right";
@@ -103,38 +109,101 @@ export const getActiveProfile = createServerFn({ method: "GET" }).handler(async 
 });
 
 /**
- * Cheap "does this profile have any session at all" check — drives
- * the zero-data gate on `/practice` (use curated first-session
- * exercise instead of adaptive sampling) and on `/` (show welcome
- * state instead of the returning-user lobby).
+ * Count completed sessions on the active profile. Drives two things:
  *
- * Returns false when there is no authenticated user or no active
- * profile. Callers that need a different error surface should check
- * those upstream themselves; conflating "no user" with "first
- * session" was a deliberate simplification — both cases want the
- * zero-data UI.
+ *  - Zero-data gate on `/practice` and `/` (count === 0 → curated
+ *    first-session exercise / welcome state, previously served by
+ *    `hasAnySessionOnActiveProfile`).
+ *  - The periodic re-baseline in `selectTarget` — every
+ *    `DIAGNOSTIC_PERIOD` sessions the engine forces a diagnostic.
+ *    The loader passes `count + 1` as the upcoming session number.
+ *
+ * Returns 0 when there is no authenticated user or no active profile
+ * (conflating the two cases is deliberate — both surface the
+ * zero-data UI; callers that need finer-grained errors should check
+ * upstream).
  */
-export const hasAnySessionOnActiveProfile = createServerFn({
+export const getCompletedSessionCountOnActiveProfile = createServerFn({
   method: "GET",
-}).handler(async () => {
+}).handler(async (): Promise<number> => {
   const request = getRequest();
   const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) return false;
+  if (!session) return 0;
 
   const [profile] = await db
     .select({ id: keyboardProfiles.id })
     .from(keyboardProfiles)
     .where(and(eq(keyboardProfiles.userId, session.user.id), eq(keyboardProfiles.isActive, true)))
     .limit(1);
-  if (!profile) return false;
+  if (!profile) return 0;
 
   const [row] = await db
-    .select({ id: sessions.id })
+    .select({ n: count() })
     .from(sessions)
-    .where(and(eq(sessions.userId, session.user.id), eq(sessions.keyboardProfileId, profile.id)))
-    .limit(1);
-  return row !== undefined;
+    .where(and(eq(sessions.userId, session.user.id), eq(sessions.keyboardProfileId, profile.id)));
+  return row?.n ?? 0;
 });
+
+/**
+ * Return the target values from the N most recent sessions on the active
+ * profile, newest first. Drives the same-target cooldown in
+ * `selectTarget` — if the last `COOLDOWN_RUN_LENGTH - 1` entries are
+ * all equal, that target is excluded from this session's ranking so
+ * the engine rotates instead of clinging to a single overwhelming
+ * weakness indefinitely.
+ *
+ * Joins `sessions` → `session_targets` because only engine-selected
+ * sessions (adaptive mode) have a `session_targets` row; drill mode
+ * sessions have a `sessions` row but no `session_targets` entry. That
+ * means only adaptive targets count toward the cooldown — which is
+ * exactly what we want: a user doing drills on `;` shouldn't prevent
+ * the engine from adaptively picking `;`-related targets (though the
+ * char-support filter already prevents that specifically).
+ *
+ * Returns an empty array when unauthenticated, no active profile, or
+ * no recent sessions exist. The `limit` parameter is hard-capped at
+ * `COOLDOWN_RUN_LENGTH - 1` at the call site; this function is
+ * deliberately not aware of that constant so it stays general.
+ */
+export type RecentTargetsInput = { limit: number };
+
+export function validateRecentTargetsInput(input: unknown): RecentTargetsInput {
+  if (typeof input !== "object" || input === null) {
+    throw new Error("recentTargets: input must be an object");
+  }
+  const i = input as Record<string, unknown>;
+  if (typeof i.limit !== "number" || i.limit < 1 || i.limit > 50) {
+    throw new Error("recentTargets: limit must be a number in [1, 50]");
+  }
+  return { limit: Math.floor(i.limit) };
+}
+
+export const getRecentSessionTargetsOnActiveProfile = createServerFn({
+  method: "GET",
+})
+  .inputValidator(validateRecentTargetsInput)
+  .handler(async ({ data }): Promise<string[]> => {
+    const request = getRequest();
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) return [];
+
+    const [profile] = await db
+      .select({ id: keyboardProfiles.id })
+      .from(keyboardProfiles)
+      .where(and(eq(keyboardProfiles.userId, session.user.id), eq(keyboardProfiles.isActive, true)))
+      .limit(1);
+    if (!profile) return [];
+
+    const rows = await db
+      .select({ targetValue: sessionTargets.targetValue, endedAt: sessions.endedAt })
+      .from(sessionTargets)
+      .innerJoin(sessions, eq(sessionTargets.sessionId, sessions.id))
+      .where(and(eq(sessions.userId, session.user.id), eq(sessions.keyboardProfileId, profile.id)))
+      .orderBy(desc(sessions.endedAt))
+      .limit(data.limit);
+
+    return rows.map((r) => r.targetValue);
+  });
 
 export type UpdateTransitionPhaseInput = { phase: TransitionPhase };
 

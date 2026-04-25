@@ -479,3 +479,51 @@ describe("generateExercise — mustContainUnit emphasis floor", () => {
     expect(componentHits).toBeLessThan(Math.ceil(10 * 0.8));
   });
 });
+
+describe("generateExercise — fillerWeightFor (exploration blend)", () => {
+  it("applies fillerWeightFor to filler pool independently of weaknessScoreFor", () => {
+    // Corpus: 2 emphasis words ("up", "us"), 2 short filler words ("at",
+    // "by"), 1 long filler word ("abcdefg"). Under default matchScore the
+    // long word dominates filler (score ~13 vs ~2.5). With a fillerWeightFor
+    // that heavily favors "at", "at" must win even though matchScore would
+    // have killed it. This asserts the hook actually takes effect.
+    const c = corpus([
+      word({ word: "up" }),
+      word({ word: "us" }),
+      word({ word: "at" }),
+      word({ word: "by" }),
+      word({ word: "abcdefg" }),
+    ]);
+    const out = generateExercise({
+      corpus: c,
+      weaknessScoreFor: (unit) => (unit === "u" ? 10 : 0.5),
+      targetWordCount: 4,
+      mustContainUnit: "u",
+      mustContainMinRatio: 0.5,
+      fillerWeightFor: (w) => (w.word === "at" ? 1000 : 0.001),
+      rng: mulberry32(123),
+    });
+    expect(out).toHaveLength(4);
+    expect(out).toContain("at");
+  });
+
+  it("falls back to matchScore on filler when fillerWeightFor is omitted", () => {
+    // Backwards-compat guard: existing callers (drill library lookups,
+    // older tests) that don't provide fillerWeightFor must see the
+    // pre-existing matchScore-weighted behavior. Only 3 words total; the
+    // sample must deterministically include every one regardless of
+    // scoring — so the test's real job is to prove the code path
+    // doesn't throw or degrade when the option is absent.
+    const c = corpus([word({ word: "up" }), word({ word: "us" }), word({ word: "at" })]);
+    const out = generateExercise({
+      corpus: c,
+      weaknessScoreFor: (unit) => (unit === "u" ? 10 : 0.5),
+      targetWordCount: 3,
+      mustContainUnit: "u",
+      mustContainMinRatio: 0.5,
+      rng: mulberry32(7),
+    });
+    expect(out).toHaveLength(3);
+    expect([...out].sort()).toEqual(["at", "up", "us"]);
+  });
+});

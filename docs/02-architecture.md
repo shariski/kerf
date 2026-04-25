@@ -507,9 +507,9 @@ const TARGET_JOURNEY_WEIGHTS = {
   columnar: {
     character: 1.0,
     bigram: 1.0,
-    "vertical-column": 0.8,
-    "inner-column": 1.2,    // promoted — primary pain
-    "thumb-cluster": 1.0,
+    "vertical-column": 1.5,  // boosted — split motions surface often enough to matter
+    "inner-column": 1.8,     // promoted — primary pain, strongest boost
+    "thumb-cluster": 1.5,    // boosted — split-exclusive motion
   },
   unsure: {
     // mirrors conventional
@@ -547,6 +547,22 @@ function selectTarget(
 ```
 
 **Low-confidence fallback.** `isLowConfidence(stats)` from current weakness logic → default target = `diagnostic` (Template V7 briefing — "Capturing your baseline"). Covers first sessions and cold-start scenarios.
+
+**Prior-weakness floor for unseen characters (`UNSEEN_CHARACTER_WEAKNESS_FLOOR`, Path 1).** A philosophical inversion to the default frequentist "no data → not rankable" rule. For any character that's in the loaded corpus (`corpusCharSupport > 0`) but doesn't yet have `LOW_CONFIDENCE_THRESHOLD` confident attempts, the engine injects a synthetic candidate with a fixed prior weakness score (currently 0.5). Effect: unseen letters surface as targets early instead of being invisible to the ranker. Once a letter accumulates real attempts, the computed weakness score takes over and the prior no longer applies.
+
+The model treats unfamiliarity itself as a kind of weakness — a coach should serve `q` early to find out whether the user can handle it, not wait for evidence of `q`-failure that can never come if `q` is never asked. The same `corpusCharSupport` map already used for the char-support exclusion (above) is reused as the source of "what letters does the user-facing corpus contain"; chars with support 0 are still excluded (drill-key cross-layer guard takes precedence over the prior). Path-2 ADR-005 would generalize this to a full Bayesian mastery model across characters, bigrams, and motion targets; Path 1 is the minimal version scoped to characters only.
+
+**Periodic re-baseline (`DIAGNOSTIC_PERIOD`).** Pure argmax selection narrows scope over time: the session's text is biased toward the chosen target, which concentrates new keystroke data on a small set of letters; letters outside that set decay below `LOW_CONFIDENCE_THRESHOLD` and drop out of ranking, eventually leaving the engine stuck on a handful of keys. To break that feedback loop, every `DIAGNOSTIC_PERIOD = 10` sessions `selectTarget` short-circuits to `diagnosticTarget()` regardless of argmax — a forced broad-coverage session that re-measures across the full key/bigram space. This runs alongside the per-session exploration blend described in §4.3; together they widen scope continuously (blend) and episodically (every 10th session). The cadence is hand-tuned; revisit with beta feedback.
+
+**Character corpus-support exclusion.** Symmetric counterpart to the bigram exclusion in §4.3. A char with 0 corpus support (e.g. `;`, `/` — drill-mode-only keys that aren't in the `alpha-only` corpus) can't be practiced by the word-picker, so `rankTargets` filters it out when `corpusCharSupport` is provided. Without this filter, any keystroke on such a key logged through drill mode contaminates `character_stats` and leaves the adaptive loop argmax-locked on an untrainable target — the same category error as low-support bigrams, one layer down. The filter uses a stricter `=== 0` (not `< LOW_CORPUS_SUPPORT_THRESHOLD`) because even a single corpus word produces non-zero practice material for a character; bigrams need multiple words for variety, characters don't.
+
+**Same-target cooldown (`COOLDOWN_RUN_LENGTH`).** Prevents a single target value from winning `COOLDOWN_RUN_LENGTH = 3` adaptive sessions in a row. After the cap, the target is filtered from the next session's ranking and the second-best candidate wins; on the session after that the cap no longer applies (recent history now contains a different value), so if the weakness persists the target returns. Net pattern: target wins 2, break 1, target wins 2, break 1 — variety emerges without suppressing a genuine long-lived weakness. The rule is **value-scoped, not weakness-scoped**: if character `g` is cooled down but `left-index-inner` (a column candidate driven partly by `g`'s errors) is also eligible, the column candidate can still win. This is deliberate — the user gets *different content* on the break session, even if the underlying weak region is the same. `recentTargets` is threaded through the practice route loader via a `session_targets` ⟕ `sessions` join, newest-first, limited to `COOLDOWN_RUN_LENGTH - 1` rows.
+
+**Rank exploration (`RANK_EXPLORATION_PERIOD`).** Cooldown handles "same value repeatedly" but leaves ranks 3+ in the weakness distribution untouched — when ranks 0 and 1 trade off under cooldown, no session ever visits the long tail. Every `RANK_EXPLORATION_PERIOD` sessions (that isn't already a diagnostic), `selectTarget` picks a non-argmax rank via a seeded geometric draw over the ranked candidates: rank 1 ≈ 50%, rank 2 ≈ 25%, rank 3 ≈ 12.5%, etc. The seed is the session number, so behavior is deterministic and stable across re-renders. Diagnostic period wins when both rules fire on the same session — diagnostic's check runs first. When the ranking has fewer than 2 candidates, rank exploration degrades to argmax.
+
+**Recency decay (`RECENCY_DECAY`, `RECENCY_WINDOW`, `RARE_MASTERY_BOOST`).** Soft counterpart to the hard cooldown cap. For each time a candidate's value appears in the last `RECENCY_WINDOW = 5` sessions, its weighted weakness score is multiplied by `RECENCY_DECAY = 0.7` raised to a per-target rarity exponent. The exponent matters: under uniform decay (`0.7^count`), every practice contributes the same score reduction regardless of the target's frequency in the corpus, which means rare letters (`q`, `j`, `z` — typed only when their few corpus words appear) accumulate "mastery credit" too slowly to ever drop out of argmax even after several practices. Rarity weighting fixes that: the exponent becomes `count × rarityFactor(value)`, where the factor is 1.0 for the most-common unit in the support map and rises linearly to `RARE_MASTERY_BOOST = 3.0` for a unit with zero support. So practicing `q` once produces a `0.7^3 ≈ 0.34` decay (≈70% steeper than the uniform `0.7^1 ≈ 0.7`), and rare letters cycle out of argmax in ~1-2 practices instead of indefinitely. Motion targets (column / thumb-cluster) bypass rarity weighting and stay at factor 1 — they have no corpus-frequency analog. Recency decay is fundamentally different from the stats-based weakness score: it rewards the *act* of practicing, not the *evidence* of improvement. A user who keeps struggling on `tc` still gets rotated off after a few sessions, accepting that forward progress isn't only measurable by error-rate movement. When `recentTargets` isn't provided (or is empty), decay is ×1 — no change.
+
+Composing the five exploration mechanisms: **rare-letter-biased filler** (continuous letter widening in every session), **cooldown** (hard exclusion after N consecutive wins), **recency decay** (soft score discount as practice accumulates), **rank exploration** (periodic non-argmax draw from the weakness tail), and **diagnostic** (forced broad coverage every N sessions). They operate on different time scales — session-internal, short-horizon, medium-horizon, long-horizon — and address different failure modes, so stacking them doesn't produce double-coverage. Cooldown and recency decay in particular are complementary: the first is a tripwire, the second is a slope.
 
 **Drill-mode integration.** Drill mode skips `selectTarget` and feeds a user-provided `SessionTarget` directly into session construction. Same `SessionOutput` shape (below); `score` is null and the briefing template is chosen by target type.
 
@@ -637,6 +653,24 @@ scoring weights. Default `TARGET_EMPHASIS_RATIO = 0.75` — hand-tuned,
 revisit with beta feedback. Motion targets bypass this entirely (they
 use curated drillLibrary content).
 
+**Exploration blend in the filler pool.** Without help, the non-emphasis
+pool is also scored by `match_score`, which sums the 0.5-per-unit floor
+across each word. That biases filler toward long, common-letter words —
+rare letters (`j`, `q`, `z`) almost never surface, so stats for those
+keys stay frozen while the engine endlessly argmaxes over the narrow
+set it has data on. To break the narrowing loop, the character/bigram
+path of `generateSession` passes a `fillerWeightFor` function that
+weights each candidate word by `1 + RARE_LETTER_BOOST × Σ(1 / charSupport(c))`
+over the word's chars. Uniform-per-word alone would still inherit the
+Zipfian skew of English (`e`/`t`/`a` dominate raw word counts); the
+rare-letter boost compensates so words containing low-support letters
+compete on an approximately letter-uniform basis. Degrades to pure
+uniform-per-word when `charSupport` isn't threaded in. Paired with the
+`DIAGNOSTIC_PERIOD` re-baseline in §4.2 and the `COOLDOWN_RUN_LENGTH`
+rotation rule: **continuous** (every session, biased-filler blend),
+**periodic** (every 10th session, full broad coverage), and **enforced**
+(no target wins more than 3 sessions in a row).
+
 **Low-corpus bigram handling.** Rare bigrams like `xw` have zero or
 near-zero corpus words containing them as an adjacent pair (`xw` has
 none; `vr` has just `chevrolet` and a junk entry `"vr"`). Without
@@ -645,27 +679,36 @@ rare bigram as the top weakness, the emphasis pool is empty or
 near-empty, the user types a session with little-to-no practice of
 that bigram, no meaningful new keystrokes land in `bigram_stats`, so
 the next ranking is nearly identical and the same target is picked
-again. Two coordinated mitigations, both triggered by
+again. The mitigation is **exclusion in ranking + widening in
+generation**, both keyed on
 `corpusBigramSupport.get(bigram) < LOW_CORPUS_SUPPORT_THRESHOLD`
 (currently 3 — covers absent, zero, 1-word, and 2-word supports):
 
-1. **Widening** — `generateExercise` rebuilds the emphasis pool as
+1. **Exclusion** — `rankTargets` filters out low-support bigrams
+   entirely. A bigram with <3 corpus words can't produce enough real
+   adjacent-pair occurrences in a session to move its stat (the
+   session text just doesn't contain the bigram in adjacent position
+   often enough), so picking it as an adaptive target creates a
+   permanent stuck-loop where the argmax keeps returning it forever.
+   Removing it from ranking lets practicable alternatives surface.
+2. **Widening** — `generateExercise` rebuilds the emphasis pool as
    "words containing either component character" (for `xw`: words
-   with `x` or `w` in their `chars`). The user gets meaningful
-   muscle-memory practice on the letters driving the bigram weakness.
-2. **Decay** — `rankTargets` multiplies the weighted score of
-   low-corpus bigrams by `LOW_CORPUS_BIGRAM_PENALTY` (0.5, hand-
-   tuned). Practicable alternatives with slightly lower raw scores
-   surface, and the loop rotates.
+   with `x` or `w` in their `chars`). Only fires if the bigram is
+   explicitly passed as the target — so in practice this code path is
+   exercised only by **drill mode**, where the user has picked a rare
+   bigram on purpose and accepts "component-char practice" as the
+   substitute for impossible-to-generate true bigram practice.
 
-The two mitigations share a single threshold so they fire together
-(decay alone without widening would push a rare bigram down the
-ranking but leave the session content starved if it still gets picked;
-widening alone without decay would lock the loop onto the same rare
-target forever). Both are stateless — the condition is a property of
-the corpus, identical for every user and session. `corpusBigramSupport`
-is a `ReadonlyMap<string, number>` precomputed once on corpus load in
-`useCorpus`, threaded through `generateSession`.
+Note: an earlier design penalized low-support bigrams (multiplied the
+weighted score by 0.5) rather than excluding them. This was not
+strong enough — a rare bigram with a high raw weakness score (e.g.
+`zs` after a handful of 100%-error attempts) could still beat every
+other candidate even after halving, and the user stayed stuck. The
+exclusion rule replaces the penalty because ranking a target you
+can't meaningfully exercise is a category error, not a tuning issue.
+`corpusBigramSupport` is a `ReadonlyMap<string, number>` precomputed
+once on corpus load in `useCorpus`, threaded through
+`generateSession`.
 
 **Performance characteristics:**
 
