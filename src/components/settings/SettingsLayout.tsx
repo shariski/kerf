@@ -23,21 +23,41 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
   const [activeId, setActiveId] = useState<string>("account");
 
   useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        const top = visible[0];
-        if (top) setActiveId(top.target.id);
-      },
-      { rootMargin: "-128px 0px -60% 0px", threshold: 0 },
+    if (typeof window === "undefined") return;
+    const sections = SIDEBAR_LINKS.map((l) => document.getElementById(l.id)).filter(
+      (el): el is HTMLElement => el !== null,
     );
-    for (const link of SIDEBAR_LINKS) {
-      const el = document.getElementById(link.id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
+    if (sections.length === 0) return;
+
+    const TRIGGER_Y = 140;
+    let raf = 0;
+
+    const compute = () => {
+      raf = 0;
+      if (document.body.getBoundingClientRect().height === 0) return;
+      let activeIndex = 0;
+      for (let i = 0; i < sections.length; i++) {
+        const top = sections[i]?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;
+        if (top <= TRIGGER_Y) activeIndex = i;
+        else break;
+      }
+      const id = sections[activeIndex]?.id;
+      if (id) setActiveId(id);
+    };
+
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(compute);
+    };
+
+    compute();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
   }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
