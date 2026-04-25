@@ -11,8 +11,8 @@ import { useNavAutoHide } from "#/hooks/useNavAutoHide";
  * deferred to a later task — this component renders the chrome; the
  * hide/show timing lives alongside the keystroke capture logic.
  *
- * Avatar + settings cog are visual-only for now (Phase 3 wires the user
- * menu dropdown per IA §5).
+ * Avatar is visual-only for now (Phase 3 wires the user menu dropdown
+ * per IA §5). Settings cog navigates to /settings.
  */
 
 const NAV_LINKS = [
@@ -54,15 +54,9 @@ export function AppNav() {
       </nav>
 
       <div className="kerf-nav-right" aria-label="Account">
-        <button
-          type="button"
-          className="kerf-nav-cog"
-          aria-label="Settings (coming soon)"
-          disabled
-          title="Settings dropdown lands in Phase 3"
-        >
+        <Link to="/settings" className="kerf-nav-cog" aria-label="Settings">
           ⚙
-        </button>
+        </Link>
         <span className="kerf-nav-avatar" aria-label="User menu">
           U
         </span>
