@@ -8,9 +8,11 @@ import type {
 import { bayesianWeakness, type MasteryStat } from "./bayesianMastery";
 import type { JourneyCode } from "./journey";
 import {
-  innerColumnCandidates,
-  thumbClusterCandidate,
-  verticalColumnCandidates,
+  INNER_LEFT,
+  INNER_RIGHT,
+  VERTICAL_COLUMNS,
+  VERTICAL_LABELS,
+  type VerticalColumnId,
 } from "./motionPatterns";
 
 export type TargetType =
@@ -167,6 +169,92 @@ function characterCandidates(
   });
 }
 
+/**
+ * Sum (attempts, errors) across the keys in a column. Returns a
+ * MasteryStat suitable for `bayesianWeakness`. If the user has no
+ * stats on any key in the column, the aggregate is (0, 0) → prior
+ * weakness 0.8, so unmeasured columns surface naturally just like
+ * unmeasured single chars.
+ */
+function aggregateColumnStat(stats: CharacterStat[], columnKeys: readonly string[]): MasteryStat {
+  const keySet = new Set(columnKeys.map((k) => k.toLowerCase()));
+  let attempts = 0;
+  let errors = 0;
+  for (const s of stats) {
+    if (keySet.has(s.character.toLowerCase())) {
+      attempts += s.attempts;
+      errors += s.errors;
+    }
+  }
+  return { attempts, errors };
+}
+
+/**
+ * Bayesian-scored motion candidates — replaces the legacy
+ * `motionPatterns.ts` candidate functions whose unbounded
+ * `errors/baseline.meanErrorRate` formula produced scores out of
+ * scale with the [0, 1]-bounded character/bigram Bayesian scores.
+ * Now everything is on the same scale so journey weights can do
+ * their job correctly.
+ */
+function bayesianMotionCandidates(stats: CharacterStat[]): SessionTarget[] {
+  const out: SessionTarget[] = [];
+  // Motion candidates differ from character/bigram candidates: there's
+  // no "corpus support map" to define their universe. So unlike
+  // characters (where every corpus letter is a candidate, scored at
+  // the prior if unmeasured), motion candidates only enter the
+  // ranking when their aggregate has actual data — `attempts > 0`.
+  // Otherwise 10 vertical columns + 2 inner columns + thumb-cluster
+  // would all show up at the prior weakness, dominate the ranking
+  // via journey weights, and crowd out everything else.
+  // Vertical columns (10 — 5 columns × 2 hands).
+  for (const id of Object.keys(VERTICAL_COLUMNS) as VerticalColumnId[]) {
+    const keys = VERTICAL_COLUMNS[id];
+    const stat = aggregateColumnStat(stats, keys);
+    if (stat.attempts === 0) continue;
+    out.push({
+      type: "vertical-column",
+      value: id,
+      keys: [...keys],
+      label: VERTICAL_LABELS[id],
+      score: bayesianWeakness(stat),
+    });
+  }
+  // Inner columns (2 — left B/G/T, right H/N/Y).
+  const leftInner = aggregateColumnStat(stats, INNER_LEFT);
+  if (leftInner.attempts > 0) {
+    out.push({
+      type: "inner-column",
+      value: "inner-left",
+      keys: [...INNER_LEFT],
+      label: "Inner-column reach — B, G, T (left hand)",
+      score: bayesianWeakness(leftInner),
+    });
+  }
+  const rightInner = aggregateColumnStat(stats, INNER_RIGHT);
+  if (rightInner.attempts > 0) {
+    out.push({
+      type: "inner-column",
+      value: "inner-right",
+      keys: [...INNER_RIGHT],
+      label: "Inner-column reach — H, N, Y (right hand)",
+      score: bayesianWeakness(rightInner),
+    });
+  }
+  // Thumb cluster (space key only in Phase A).
+  const space = stats.find((s) => s.character === " ");
+  if (space && space.attempts > 0) {
+    out.push({
+      type: "thumb-cluster",
+      value: "space",
+      keys: [" "],
+      label: "Thumb cluster — space activation",
+      score: bayesianWeakness(space),
+    });
+  }
+  return out;
+}
+
 /** Same Bayesian iteration for bigrams. Bigrams below
  * `LOW_CORPUS_SUPPORT_THRESHOLD` are excluded — the prior would
  * surface them otherwise, but they're untrainable in adaptive mode. */
@@ -239,31 +327,8 @@ export function rankTargets(
   const candidates: SessionTarget[] = [
     ...characterCandidates(stats.characters, options?.corpusCharSupport),
     ...bigramCandidates(stats.bigrams, options?.corpusBigramSupport),
-    ...verticalColumnCandidates(stats.characters, baseline).map<SessionTarget>((c) => ({
-      type: c.type,
-      value: c.value,
-      keys: c.keys,
-      label: c.label,
-      score: c.score,
-    })),
-    ...innerColumnCandidates(stats.characters, baseline).map<SessionTarget>((c) => ({
-      type: c.type,
-      value: c.value,
-      keys: c.keys,
-      label: c.label,
-      score: c.score,
-    })),
+    ...bayesianMotionCandidates(stats.characters),
   ];
-  const thumb = thumbClusterCandidate(stats.characters, baseline);
-  if (thumb) {
-    candidates.push({
-      type: thumb.type,
-      value: thumb.value,
-      keys: thumb.keys,
-      label: thumb.label,
-      score: thumb.score,
-    });
-  }
 
   const weights = TARGET_JOURNEY_WEIGHTS[baseline.journey];
   return candidates

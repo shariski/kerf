@@ -39,7 +39,7 @@ type MotionCandidate = {
 
 /** 5 columns × 2 hands. Each entry lists [top, home, bottom] keys for the
  * Sofle/Lily58 base layer (both keyboards share these on the main alpha area). */
-const VERTICAL_COLUMNS: Record<VerticalColumnId, [string, string, string]> = {
+export const VERTICAL_COLUMNS: Record<VerticalColumnId, [string, string, string]> = {
   "left-pinky": ["q", "a", "z"],
   "left-ring": ["w", "s", "x"],
   "left-middle": ["e", "d", "c"],
@@ -52,7 +52,7 @@ const VERTICAL_COLUMNS: Record<VerticalColumnId, [string, string, string]> = {
   "right-pinky": ["p", ";", "/"],
 };
 
-const VERTICAL_LABELS: Record<VerticalColumnId, string> = {
+export const VERTICAL_LABELS: Record<VerticalColumnId, string> = {
   "left-pinky": "Left pinky column vertical reach",
   "left-ring": "Left ring column vertical reach",
   "left-middle": "Left middle column vertical reach",
@@ -95,8 +95,8 @@ export function verticalColumnCandidates(
   });
 }
 
-const INNER_LEFT: readonly string[] = ["b", "g", "t"];
-const INNER_RIGHT: readonly string[] = ["h", "n", "y"];
+export const INNER_LEFT: readonly string[] = ["b", "g", "t"];
+export const INNER_RIGHT: readonly string[] = ["h", "n", "y"];
 
 export function innerColumnCandidates(
   stats: CharacterStat[],
