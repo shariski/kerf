@@ -34,6 +34,21 @@ export function buildBigramSupport(corpus: Corpus): ReadonlyMap<string, number> 
   return counts;
 }
 
+/** Count of corpus words containing each character. Used by Path 2's
+ *  Bayesian engine to enumerate the rankable character universe (every
+ *  corpus character is a candidate, scored at the prior or posterior).
+ *  Also serves as the cross-layer-leak guard: characters with support 0
+ *  (e.g. drill keys like `;`) are filtered out of ranking. */
+export function buildCharSupport(corpus: Corpus): ReadonlyMap<string, number> {
+  const counts = new Map<string, number>();
+  for (const w of corpus.words) {
+    for (const c of w.chars) {
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
 export type CorpusState =
   | { status: "loading" }
   | {
@@ -43,6 +58,12 @@ export type CorpusState =
        *  Consumed by the adaptive engine to detect bigram targets that
        *  can't be practiced via the word-picker. */
       bigramSupport: ReadonlyMap<string, number>;
+      /** Precomputed `char → corpus word count`. Path 2 engine uses
+       *  this as the rankable character universe — every corpus char
+       *  becomes a candidate (scored at the Bayesian prior if no
+       *  measured stat exists). Chars with support 0 (drill keys
+       *  like `;`/`/`) are excluded. */
+      charSupport: ReadonlyMap<string, number>;
     }
   | { status: "error"; error: Error };
 
@@ -59,6 +80,7 @@ export function useCorpus(): CorpusState {
             status: "ready",
             corpus,
             bigramSupport: buildBigramSupport(corpus),
+            charSupport: buildCharSupport(corpus),
           });
         }
       })

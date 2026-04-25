@@ -3,8 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import {
   getActiveProfile,
+  getCompletedSessionCountOnActiveProfile,
   getEngineStatsAndBaseline,
-  hasAnySessionOnActiveProfile,
+  getRecentSessionTargetsOnActiveProfile,
   type EngineStatsAndBaseline,
   type KeyboardType,
   type DominantHand,
@@ -73,11 +74,18 @@ export const Route = createFileRoute("/practice")({
   loader: async (): Promise<{
     profile: LoadedProfile;
     isFirstSession: boolean;
+    completedSessionCount: number;
+    recentTargets: string[];
     engineData: EngineStatsAndBaseline | null;
   }> => {
-    const [profile, hasSession, engineData] = await Promise.all([
+    const [profile, completedSessionCount, recentTargets, engineData] = await Promise.all([
       getActiveProfile(),
-      hasAnySessionOnActiveProfile(),
+      getCompletedSessionCountOnActiveProfile(),
+      // 2 entries are enough for the cooldown rule (no 3-in-a-row).
+      // Path 2 doesn't use a longer recency window — the Bayesian
+      // model handles "recently practiced" via posterior updates,
+      // not via a separate decay mechanism.
+      getRecentSessionTargetsOnActiveProfile({ data: { limit: 2 } }),
       getEngineStatsAndBaseline(),
     ]);
     if (!profile) throw redirect({ to: "/onboarding" });
@@ -88,7 +96,9 @@ export const Route = createFileRoute("/practice")({
         dominantHand: profile.dominantHand as DominantHand,
         transitionPhase: profile.transitionPhase as TransitionPhase,
       },
-      isFirstSession: !hasSession,
+      isFirstSession: completedSessionCount === 0,
+      completedSessionCount,
+      recentTargets,
       engineData,
     };
   },
@@ -109,7 +119,8 @@ const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
 };
 
 function PracticePage() {
-  const { profile, isFirstSession, engineData } = Route.useLoaderData();
+  const { profile, isFirstSession, completedSessionCount, recentTargets, engineData } =
+    Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const router = useRouter();
@@ -188,8 +199,15 @@ function PracticePage() {
       phase,
       corpus: corpus.corpus,
       corpusBigramSupport: corpus.bigramSupport,
+      corpusCharSupport: corpus.charSupport,
       drillLibrary: DRILL_LIBRARY,
       frequencyInLanguage: () => 0.5,
+      // 1-indexed "session about to start" — the loader's count
+      // reflects sessions already persisted, so the upcoming one is
+      // count + 1. Drives the every-DIAGNOSTIC_PERIOD re-baseline.
+      upcomingSessionNumber: completedSessionCount + 1,
+      // Recent adaptive-target values for the cooldown rule.
+      recentTargets,
       exerciseOptions: {
         filters: {
           handIsolation: filters.handIsolation,
@@ -204,6 +222,8 @@ function PracticePage() {
     if (import.meta.env.DEV) {
       const ranked = rankTargets(stats, baseline, phase, () => 0.5, {
         corpusBigramSupport: corpus.bigramSupport,
+        corpusCharSupport: corpus.charSupport,
+        recentTargets,
       }).slice(0, 3);
       console.log(
         "[adaptive] top-3 weakness candidates:",
@@ -557,12 +577,23 @@ function PracticePage() {
     if (status !== "complete") return null;
     if (!engineData) return null;
     try {
-      const next = selectTarget(engineData.stats, engineData.baseline, engineData.phase, () => 0.5);
+      const next = selectTarget(
+        engineData.stats,
+        engineData.baseline,
+        engineData.phase,
+        () => 0.5,
+        {
+          corpusBigramSupport: corpus.status === "ready" ? corpus.bigramSupport : undefined,
+          corpusCharSupport: corpus.status === "ready" ? corpus.charSupport : undefined,
+          upcomingSessionNumber: completedSessionCount + 1,
+          recentTargets,
+        },
+      );
       return next.type === "diagnostic" ? null : next.label;
     } catch {
       return null;
     }
-  }, [status, engineData]);
+  }, [status, engineData, completedSessionCount, recentTargets, corpus]);
 
   if (status === "active" || status === "paused") {
     // `idleAutoPaused` = clock is frozen by the watchdog but the user

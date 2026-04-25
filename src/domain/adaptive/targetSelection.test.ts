@@ -31,20 +31,38 @@ describe("diagnosticTarget", () => {
   });
 });
 
-describe("selectTarget — low-confidence fallback", () => {
-  it("returns diagnostic when stats are empty", () => {
+describe("selectTarget — cold-start fallback", () => {
+  it("returns diagnostic when stats are empty AND no corpus support is provided", () => {
+    // True cold start — no signal anywhere. Without a corpus, the
+    // Bayesian engine has no characters to enumerate; motion targets
+    // with empty stats produce score-0 candidates. Fall back to
+    // diagnostic rather than arbitrarily pick one.
     const chosen = selectTarget(statsWith(), baseline(), "transitioning", freq);
     expect(chosen.type).toBe("diagnostic");
   });
 
-  it("returns diagnostic when all character attempts < LOW_CONFIDENCE_THRESHOLD", () => {
+  it("does NOT fall back to diagnostic when a corpus is provided — Bayesian prior gives every char a rankable score", () => {
+    // Empty stats but a corpus → the prior surfaces every corpus
+    // character at the prior weakness (≈0.8). The engine picks one,
+    // which is the whole point of Path 2's prior-biased model.
+    const charSupport = new Map<string, number>([["a", 100]]);
+    const chosen = selectTarget(statsWith(), baseline(), "transitioning", freq, {
+      corpusCharSupport: charSupport,
+    });
+    expect(chosen.type).not.toBe("diagnostic");
+  });
+
+  it("does NOT fall back when stats have sub-threshold attempts — Bayesian posterior still ranks", () => {
+    // Pre-Path-2 the engine excluded chars with <5 attempts and
+    // returned diagnostic. Path 2 keeps them in the ranking via the
+    // Bayesian posterior (1 attempt + prior is still rankable).
     const chosen = selectTarget(
       statsWith([{ character: "g", attempts: 2, errors: 1, sumTime: 500, hesitationCount: 0 }]),
       baseline(),
       "transitioning",
       freq,
     );
-    expect(chosen.type).toBe("diagnostic");
+    expect(chosen.type).not.toBe("diagnostic");
   });
 });
 
@@ -164,14 +182,23 @@ describe("rankTargets — full candidate ranking for diagnostics", () => {
     expect(top?.value).toBe(chosen.value);
   });
 
-  it("returns empty array when no stats meet the confidence threshold", () => {
+  it("returns rankable candidates even when stats are sub-threshold (Bayesian posterior)", () => {
+    // Pre-Path-2: this test asserted `[]` because LOW_CONFIDENCE_THRESHOLD
+    // filtered out chars with <5 attempts. Under Path 2's Bayesian
+    // model, sub-threshold stats are still rankable — the posterior
+    // is dominated by the prior but produces a real score.
     const ranked = rankTargets(
       statsWith([{ character: "g", attempts: 1, errors: 0, sumTime: 200, hesitationCount: 0 }], []),
       baseline(),
       "transitioning",
       freq,
     );
-    expect(ranked).toEqual([]);
+    expect(ranked.length).toBeGreaterThan(0);
+    const g = ranked.find((c) => c.type === "character" && c.value === "g");
+    expect(g).toBeDefined();
+    // 1 success, 0 errors → posterior α=2, β=4 → weakness 4/6 ≈ 0.667.
+    // Multiplied by character journey weight 1.0 = 0.667.
+    expect(g?.score).toBeCloseTo(4 / 6, 3);
   });
 
   it("applies decay to bigrams whose corpus support is 0, letting next-ranked practicable targets win", () => {
@@ -237,5 +264,107 @@ describe("rankTargets — full candidate ranking for diagnostics", () => {
     });
     const [top] = ranked;
     expect(top?.value).toBe("yd");
+  });
+});
+
+describe("rankTargets — Path 2 Bayesian behaviors", () => {
+  it("enumerates every corpus character as a candidate, scored at the prior when unseen", () => {
+    // No measured stats; corpus has 3 characters. All 3 should appear
+    // as character candidates with the prior weakness (≈0.8).
+    const charSupport = new Map<string, number>([
+      ["a", 100],
+      ["b", 50],
+      ["c", 25],
+    ]);
+    const ranked = rankTargets(statsWith(), baseline(), "transitioning", freq, {
+      corpusCharSupport: charSupport,
+    });
+    const charCandidates = ranked.filter((c) => c.type === "character");
+    expect(charCandidates.length).toBe(3);
+    for (const c of charCandidates) {
+      // Bayesian prior weakness × character journey weight (1.0).
+      expect(c.score).toBeCloseTo(0.8, 3);
+    }
+  });
+
+  it("excludes corpus characters with support === 0 (drill-key cross-layer guard)", () => {
+    // `;` has support 0 → not a real corpus letter → must not appear
+    // as a candidate even though it might exist in stats from drill mode.
+    const charSupport = new Map<string, number>([
+      ["a", 100],
+      [";", 0],
+    ]);
+    const ranked = rankTargets(statsWith(), baseline(), "transitioning", freq, {
+      corpusCharSupport: charSupport,
+    });
+    expect(ranked.find((c) => c.value === ";")).toBeUndefined();
+  });
+
+  it("measured chars with errors outrank unseen chars at the prior", () => {
+    // Char "a" with 100 attempts, 50 errors → posterior weakness
+    // (54/105 ≈ 0.514). Char "b" unseen → prior weakness 0.8.
+    // Wait — under Bayesian, b at 0.8 OUT-RANKS a at 0.514. The prior
+    // says "we presume ignorance," and ignorance is rated weaker than
+    // mediocre measured performance. This is a deliberate Path 2
+    // property: explore unseen letters before continuing to drill
+    // moderate-but-known weaknesses.
+    const charSupport = new Map<string, number>([
+      ["a", 100],
+      ["b", 100],
+    ]);
+    const ranked = rankTargets(
+      statsWith([
+        { character: "a", attempts: 100, errors: 50, sumTime: 30_000, hesitationCount: 0 },
+      ]),
+      baseline(),
+      "transitioning",
+      freq,
+      { corpusCharSupport: charSupport },
+    );
+    const a = ranked.find((c) => c.type === "character" && c.value === "a");
+    const b = ranked.find((c) => c.type === "character" && c.value === "b");
+    expect(a).toBeDefined();
+    expect(b).toBeDefined();
+    expect(b?.score ?? 0).toBeGreaterThan(a?.score ?? 0);
+  });
+
+  it("excludes a value that's been the target for the last COOLDOWN_RUN_LENGTH - 1 sessions", () => {
+    const charSupport = new Map<string, number>([
+      ["a", 100],
+      ["b", 100],
+    ]);
+    const ranked = rankTargets(statsWith(), baseline(), "transitioning", freq, {
+      corpusCharSupport: charSupport,
+      recentTargets: ["a", "a"], // 2 in a row → cooldown
+    });
+    expect(ranked.find((c) => c.value === "a")).toBeUndefined();
+    expect(ranked.find((c) => c.value === "b")).toBeDefined();
+  });
+});
+
+describe("selectTarget — periodic diagnostic", () => {
+  it("returns diagnostic on every DIAGNOSTIC_PERIOD-th session regardless of argmax", () => {
+    const charSupport = new Map<string, number>([["a", 100]]);
+    const session10 = selectTarget(statsWith(), baseline(), "transitioning", freq, {
+      corpusCharSupport: charSupport,
+      upcomingSessionNumber: 10,
+    });
+    expect(session10.type).toBe("diagnostic");
+    const session20 = selectTarget(statsWith(), baseline(), "transitioning", freq, {
+      corpusCharSupport: charSupport,
+      upcomingSessionNumber: 20,
+    });
+    expect(session20.type).toBe("diagnostic");
+  });
+
+  it("does not return diagnostic on non-multiple sessions", () => {
+    const charSupport = new Map<string, number>([["a", 100]]);
+    for (const n of [1, 2, 3, 5, 7, 9, 11]) {
+      const chosen = selectTarget(statsWith(), baseline(), "transitioning", freq, {
+        corpusCharSupport: charSupport,
+        upcomingSessionNumber: n,
+      });
+      expect(chosen.type).not.toBe("diagnostic");
+    }
   });
 });

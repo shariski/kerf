@@ -28,9 +28,20 @@ export type GenerateSessionInput = {
   /** Optional override for the word-picker. */
   exerciseOptions?: Partial<ExerciseOptions>;
   /** Precomputed `bigram → corpus word count` map. When present,
-   *  selectTarget decays zero-corpus bigrams and generateExercise
-   *  widens their emphasis pool to component chars. */
+   *  selectTarget excludes low-support bigrams and generateExercise
+   *  can widen their emphasis pool to component chars. */
   corpusBigramSupport?: ReadonlyMap<string, number>;
+  /** Precomputed `char → corpus word count` map. Required for the
+   *  Path 2 Bayesian engine to enumerate the rankable character
+   *  universe and to filter zero-support characters from ranking. */
+  corpusCharSupport?: ReadonlyMap<string, number>;
+  /** Target values from the most recent sessions, newest first.
+   *  Drives the cooldown rule in `selectTarget`. */
+  recentTargets?: readonly string[];
+  /** 1-indexed number of the session about to be generated. When
+   *  divisible by `DIAGNOSTIC_PERIOD`, `selectTarget` returns a
+   *  diagnostic. */
+  upcomingSessionNumber?: number;
 };
 
 const DEFAULT_WORD_COUNT = 50;
@@ -53,6 +64,9 @@ export function generateSession(input: GenerateSessionInput): SessionOutput {
     input.targetOverride ??
     selectTarget(input.stats, input.baseline, input.phase, input.frequencyInLanguage, {
       corpusBigramSupport: input.corpusBigramSupport,
+      corpusCharSupport: input.corpusCharSupport,
+      recentTargets: input.recentTargets,
+      upcomingSessionNumber: input.upcomingSessionNumber,
     });
 
   let exerciseString: string;
