@@ -26,7 +26,6 @@ import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
 import { useCorpus } from "#/hooks/useCorpus";
 import { summarizeSession } from "#/domain/session/summarize";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
-import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
 import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
 import { useOtherTabActive } from "#/hooks/useOtherTabActive";
@@ -135,13 +134,10 @@ function PracticePage() {
   // Mode used by the session currently running (or just finished). The
   // persist effect reads this so the DB row carries the right mode. A
   // ref — not state — so we don't re-trigger renders when it flips.
-  const sessionModeRef = useRef<"adaptive" | "diagnostic">(
-    isFirstSession ? "diagnostic" : "adaptive",
-  );
-  // Flips to true once we've actually started (or finished) the first
-  // diagnostic. The "Practice again" CTA after a diagnostic should run
-  // adaptive, not another diagnostic.
-  const diagnosticConsumedRef = useRef(false);
+  // Set from `output.target.type` after every `generateSession` call:
+  // diagnostic targets (first session, periodic re-baseline at every
+  // DIAGNOSTIC_PERIOD) → "diagnostic"; everything else → "adaptive".
+  const sessionModeRef = useRef<"adaptive" | "diagnostic">("adaptive");
 
   // ADR-003 §4 — briefing state machine (Gap 2).
   // generateSession result is held here until the user confirms start.
@@ -162,24 +158,13 @@ function PracticePage() {
     setPauseSettings((s) => ({ ...s, showKeyboard: filters.showKeyboard }));
   }, [filters.showKeyboard]);
 
-  const useDiagnostic = isFirstSession && !diagnosticConsumedRef.current;
-
   const generateSessionAndShowBriefing = () => {
-    // First-session gate — serve the curated diagnostic target in place
-    // of adaptive sampling, so the first DB row is a comparable baseline
-    // (Task 4.1). Adaptive sampling on an empty weakness profile is just
-    // uniform-random, which defeats the "baseline" idea.
-    if (useDiagnostic) {
-      const target = getFirstSessionTarget();
-      if (!target) return;
-      sessionModeRef.current = "diagnostic";
-      diagnosticConsumedRef.current = true;
-      sessionStore
-        .getState()
-        .dispatch({ type: "start", target, now: performance.now(), targetKeys: [] });
-      return;
-    }
-
+    // Both first sessions and periodic re-baselines flow through
+    // `generateSession` → `selectTarget`. With measured-only ranking,
+    // a fresh profile (zero stats) produces an empty ranker → cold-
+    // start fallback returns a diagnostic target → coverage-guided
+    // diagnostic exercise. Same path as session 10, 20, … so there's
+    // no separate first-session shortcut.
     if (corpus.status !== "ready") return;
 
     const stats = engineData?.stats ?? { characters: [], bigrams: [] };
@@ -224,16 +209,16 @@ function PracticePage() {
         corpusBigramSupport: corpus.bigramSupport,
         corpusCharSupport: corpus.charSupport,
         recentTargets,
-      }).slice(0, 3);
+      }).slice(0, 10);
       console.log(
-        "[adaptive] top-3 weakness candidates:",
+        "[adaptive] top-10 weakness candidates:",
         ranked.map((t) => ({ type: t.type, value: t.value, score: t.score?.toFixed(3) })),
       );
       console.log("[adaptive] picked:", output.target.type, JSON.stringify(output.target.value));
     }
 
     briefingShownAtRef.current = new Date();
-    sessionModeRef.current = "adaptive";
+    sessionModeRef.current = output.target.type === "diagnostic" ? "diagnostic" : "adaptive";
     setPendingSession(output);
   };
 
@@ -267,11 +252,12 @@ function PracticePage() {
     if (!search.autostart) return;
     if (status !== "idle") return;
     if (pendingSession !== null) return;
-    // Diagnostic doesn't need the corpus; adaptive does. Wait for it.
-    if (!useDiagnostic && corpus.status !== "ready") return;
+    // Every session flows through generateSession (which needs the
+    // corpus), so always wait for it.
+    if (corpus.status !== "ready") return;
     generateSessionRef.current();
     void navigate({ to: "/practice", search: {}, replace: true });
-  }, [search.autostart, status, pendingSession, useDiagnostic, corpus.status, navigate]);
+  }, [search.autostart, status, pendingSession, corpus.status, navigate]);
 
   // Esc toggles the manual pause overlay during a live session. We
   // listen while active *or* paused — the latter because idle auto-
@@ -614,7 +600,7 @@ function PracticePage() {
           expectedLetterHint={pauseSettings.expectedLetterHint}
           capture={!paused}
           typingSize={pauseSettings.typingSize}
-          isFirstSession={sessionModeRef.current === "diagnostic"}
+          isFirstSession={isFirstSession}
           targetKeys={activeTarget?.keys}
         />
         {idleAutoPaused && <IdlePauseChip />}
@@ -720,7 +706,7 @@ function PracticePage() {
                 search: { preset: "innerColumn" },
               })
             }
-            isFirstSession={useDiagnostic}
+            isFirstSession={isFirstSession}
           />
           {otherTabActive && (
             <p className="kerf-multitab-banner" role="status" aria-live="polite">

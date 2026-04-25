@@ -41,15 +41,16 @@ describe("selectTarget — cold-start fallback", () => {
     expect(chosen.type).toBe("diagnostic");
   });
 
-  it("does NOT fall back to diagnostic when a corpus is provided — Bayesian prior gives every char a rankable score", () => {
-    // Empty stats but a corpus → the prior surfaces every corpus
-    // character at the prior weakness (≈0.8). The engine picks one,
-    // which is the whole point of Path 2's prior-biased model.
+  it("falls back to diagnostic when corpus is provided but no chars have been measured", () => {
+    // Path 2 (post-tuning): the ranker only includes MEASURED
+    // candidates. Unmeasured corpus chars are explored via the
+    // periodic diagnostic, not by enumerating them at the prior.
+    // With empty stats there's nothing to rank → diagnostic.
     const charSupport = new Map<string, number>([["a", 100]]);
     const chosen = selectTarget(statsWith(), baseline(), "transitioning", freq, {
       corpusCharSupport: charSupport,
     });
-    expect(chosen.type).not.toBe("diagnostic");
+    expect(chosen.type).toBe("diagnostic");
   });
 
   it("does NOT fall back when stats have sub-threshold attempts — Bayesian posterior still ranks", () => {
@@ -269,9 +270,12 @@ describe("rankTargets — full candidate ranking for diagnostics", () => {
 });
 
 describe("rankTargets — Path 2 Bayesian behaviors", () => {
-  it("enumerates every corpus character as a candidate, scored at the prior when unseen", () => {
-    // No measured stats; corpus has 3 characters. All 3 should appear
-    // as character candidates with the prior weakness (≈0.8).
+  it("excludes unmeasured corpus characters — exploration is delegated to DIAGNOSTIC_PERIOD", () => {
+    // Path 2 (post-tuning): the ranker no longer enumerates the prior.
+    // Unmeasured chars get explored via the periodic diagnostic. This
+    // pins the swarm-effect fix where 676 unmeasured bigrams at the
+    // prior weakness used to crowd out the user's actual measured
+    // weaknesses in the argmax.
     const charSupport = new Map<string, number>([
       ["a", 100],
       ["b", 50],
@@ -280,12 +284,7 @@ describe("rankTargets — Path 2 Bayesian behaviors", () => {
     const ranked = rankTargets(statsWith(), baseline(), "transitioning", freq, {
       corpusCharSupport: charSupport,
     });
-    const charCandidates = ranked.filter((c) => c.type === "character");
-    expect(charCandidates.length).toBe(3);
-    for (const c of charCandidates) {
-      // Bayesian prior weakness × character journey weight (1.0).
-      expect(c.score).toBeCloseTo(0.8, 3);
-    }
+    expect(ranked.filter((c) => c.type === "character")).toEqual([]);
   });
 
   it("excludes corpus characters with support === 0 (drill-key cross-layer guard)", () => {
@@ -301,14 +300,11 @@ describe("rankTargets — Path 2 Bayesian behaviors", () => {
     expect(ranked.find((c) => c.value === ";")).toBeUndefined();
   });
 
-  it("measured chars with errors outrank unseen chars at the prior", () => {
-    // Char "a" with 100 attempts, 50 errors → posterior weakness
-    // (54/105 ≈ 0.514). Char "b" unseen → prior weakness 0.8.
-    // Wait — under Bayesian, b at 0.8 OUT-RANKS a at 0.514. The prior
-    // says "we presume ignorance," and ignorance is rated weaker than
-    // mediocre measured performance. This is a deliberate Path 2
-    // property: explore unseen letters before continuing to drill
-    // moderate-but-known weaknesses.
+  it("ranks only measured chars — unmeasured chars are deferred to the diagnostic", () => {
+    // Path 2 (post-tuning): unmeasured `b` doesn't appear in the
+    // ranker. Measured `a` (50% errors over 100 attempts) is the
+    // only character candidate; the diagnostic period will surface
+    // `b` separately when it's its turn.
     const charSupport = new Map<string, number>([
       ["a", 100],
       ["b", 100],
@@ -322,22 +318,30 @@ describe("rankTargets — Path 2 Bayesian behaviors", () => {
       freq,
       { corpusCharSupport: charSupport },
     );
-    const a = ranked.find((c) => c.type === "character" && c.value === "a");
-    const b = ranked.find((c) => c.type === "character" && c.value === "b");
-    expect(a).toBeDefined();
-    expect(b).toBeDefined();
-    expect(b?.score ?? 0).toBeGreaterThan(a?.score ?? 0);
+    expect(ranked.find((c) => c.type === "character" && c.value === "a")).toBeDefined();
+    expect(ranked.find((c) => c.type === "character" && c.value === "b")).toBeUndefined();
   });
 
   it("excludes a value that's been the target for the last COOLDOWN_RUN_LENGTH - 1 sessions", () => {
+    // Both chars must be measured to even appear in the post-tuning
+    // ranker; cooldown then drops `a` for one cycle.
     const charSupport = new Map<string, number>([
       ["a", 100],
       ["b", 100],
     ]);
-    const ranked = rankTargets(statsWith(), baseline(), "transitioning", freq, {
-      corpusCharSupport: charSupport,
-      recentTargets: ["a", "a"], // 2 in a row → cooldown
-    });
+    const ranked = rankTargets(
+      statsWith([
+        { character: "a", attempts: 50, errors: 20, sumTime: 15_000, hesitationCount: 0 },
+        { character: "b", attempts: 50, errors: 20, sumTime: 15_000, hesitationCount: 0 },
+      ]),
+      baseline(),
+      "transitioning",
+      freq,
+      {
+        corpusCharSupport: charSupport,
+        recentTargets: ["a", "a"], // 2 in a row → cooldown
+      },
+    );
     expect(ranked.find((c) => c.value === "a")).toBeUndefined();
     expect(ranked.find((c) => c.value === "b")).toBeDefined();
   });
@@ -359,9 +363,15 @@ describe("selectTarget — periodic diagnostic", () => {
   });
 
   it("does not return diagnostic on non-multiple sessions", () => {
+    // Need at least one measured stat for the post-tuning ranker to
+    // return a non-diagnostic candidate. Empty stats now correctly
+    // fall back to diagnostic regardless of `upcomingSessionNumber`.
     const charSupport = new Map<string, number>([["a", 100]]);
+    const stats = statsWith([
+      { character: "a", attempts: 100, errors: 20, sumTime: 30_000, hesitationCount: 0 },
+    ]);
     for (const n of [1, 2, 3, 5, 7, 9, 11]) {
-      const chosen = selectTarget(statsWith(), baseline(), "transitioning", freq, {
+      const chosen = selectTarget(stats, baseline(), "transitioning", freq, {
         corpusCharSupport: charSupport,
         upcomingSessionNumber: n,
       });

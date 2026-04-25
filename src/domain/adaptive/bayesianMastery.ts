@@ -54,17 +54,27 @@
  *
  * --- Why these prior values ---
  *
- * `PRIOR_MASTERY = 0.2` (i.e. prior weakness = 0.8) is intentionally
- * pessimistic — we want unseen letters to argmax until they have data.
- * If we set the prior to 0.5 (truly uninformative), unseen letters
- * would be ranked equally with measured letters of moderate weakness,
- * and the engine wouldn't preferentially explore them.
+ * The prior plays a single role in Path 2's ranker now:
+ * **shrinkage on small-sample measurements.** A letter typed once
+ * with no errors gets weakness ≈ 0.667 instead of 0.0; a letter
+ * typed once with one error gets ≈ 0.833 instead of 1.0. This
+ * keeps fresh measurements from immediately winning or losing on
+ * coin-flip noise.
  *
- * `PRIOR_STRENGTH = 5` aligns with `LOW_CONFIDENCE_THRESHOLD` from
- * the legacy weakness-score module — both encode "5 attempts is
- * roughly when measurement starts to dominate the prior." After 5
- * attempts the posterior weight on observed data equals the prior
- * weight (each contributes 5 to the denominator).
+ * Exploration of *unseen* letters is **not** the prior's job —
+ * `targetSelection.ts` excludes attempts=0 candidates from the
+ * ranker entirely. Coverage of the unseen surface is delegated to
+ * `DIAGNOSTIC_PERIOD`. (Earlier iterations of this file enumerated
+ * priors as ranker candidates; with ~676 corpus bigrams, the
+ * resulting swarm of 0.8-scored unmeasured candidates drowned the
+ * argmax. See PR series for ADR-005 if you're tempted to revert.)
+ *
+ * `PRIOR_MASTERY = 0.2` (i.e. weakness pull toward 0.8) is the
+ * shrinkage target — fresh measurements get pulled toward "weak,
+ * keep practicing" rather than "perfect, ignore." `PRIOR_STRENGTH
+ * = 5` aligns with `LOW_CONFIDENCE_THRESHOLD` from the legacy
+ * weakness-score module: at 5 attempts, observed data weight
+ * equals prior weight (each contributes 5 to the denominator).
  *
  * --- What this model does NOT include ---
  *

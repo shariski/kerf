@@ -118,7 +118,10 @@ const matchScore = (w: CorpusWord, weaknessScoreFor: (unitId: string) => number)
 // formulation uses key = u^(1/weight) and takes the largest — numerically
 // the same, but `-ln(u)/w` is more stable when weights span many orders
 // of magnitude.) Without replacement; O(n log target) via a partial sort.
-const weightedSampleWithoutReplacement = (
+//
+// Exported for `diagnosticExercise.ts` — the diagnostic generator
+// reuses this for its phase-3 (weighted fill) sample.
+export const weightedSampleWithoutReplacement = (
   candidates: { word: CorpusWord; weight: number }[],
   target: number,
   rng: () => number,
@@ -137,8 +140,10 @@ const weightedSampleWithoutReplacement = (
 };
 
 // In-place Fisher-Yates using the provided rng. Returns the same array
-// for ergonomic chaining; the array IS mutated.
-const shuffleInPlace = <T>(arr: T[], rng: () => number): T[] => {
+// for ergonomic chaining; the array IS mutated. Exported for
+// `diagnosticExercise.ts` — same shuffle ergonomics for the final
+// natural-reading-order randomization.
+export const shuffleInPlace = <T>(arr: T[], rng: () => number): T[] => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [arr[i], arr[j]] = [arr[j]!, arr[i]!];

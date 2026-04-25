@@ -106,11 +106,13 @@ export type RankTargetsOptions = {
    *  are excluded from ranking (untrainable). When absent, all
    *  bigrams in the user's stats are eligible. */
   corpusBigramSupport?: ReadonlyMap<string, number>;
-  /** Precomputed `char → corpus word count` map. Required for the
-   *  Path 2 Bayesian engine to enumerate the rankable character
-   *  universe — every corpus character becomes a candidate, scored
-   *  at the prior if there's no measured stat. Characters with
-   *  support 0 are excluded (drill-key cross-layer leak guard). */
+  /** Precomputed `char → corpus word count` map. Used as a corpus-
+   *  membership filter on measured character stats — drops chars
+   *  with support 0 (drill-key cross-layer leak guard, e.g. `;`
+   *  from drill mode that's not part of the alpha corpus). When
+   *  omitted, all measured chars are eligible. The map is no
+   *  longer used to enumerate unmeasured candidates — those are
+   *  explored via `DIAGNOSTIC_PERIOD` instead. */
   corpusCharSupport?: ReadonlyMap<string, number>;
   /** Target values from the most recent sessions, newest first.
    *  When the last `COOLDOWN_RUN_LENGTH - 1` entries are all equal,
@@ -131,42 +133,41 @@ export function diagnosticTarget(): SessionTarget {
   };
 }
 
-const ZERO_STAT: MasteryStat = { attempts: 0, errors: 0 };
-
 /**
  * Build the character candidate list for the Bayesian engine.
  *
- * - When `corpusCharSupport` is provided: iterate every corpus
- *   character (the rankable universe), look up the user's stat if
- *   any, and score with `bayesianWeakness`. Characters with support
- *   0 are skipped (untrainable). Unseen characters score at the
- *   Bayesian prior (≈0.8), so they surface naturally.
- * - When `corpusCharSupport` is omitted: fall back to scoring only
- *   the user's measured characters. Same model, smaller universe.
- *   Used by tests/fixtures that don't load a corpus.
+ * Only **measured** characters (`attempts > 0`) become candidates.
+ * Unmeasured corpus characters are deliberately excluded: enumerating
+ * them at the prior (~0.8) caused the swarm-effect bug where every
+ * top-N slot was a different unmeasured letter, drowning out the
+ * user's real weaknesses. Coverage of unmeasured letters is now the
+ * sole responsibility of `DIAGNOSTIC_PERIOD`.
+ *
+ * The `corpusCharSupport` map, when provided, acts as a membership
+ * filter — measured chars whose support is 0 (e.g. `;` from drill
+ * mode that's not in the alpha corpus) are dropped to avoid
+ * cross-layer leak.
  */
 function characterCandidates(
   stats: CharacterStat[],
   corpusCharSupport: ReadonlyMap<string, number> | undefined,
 ): SessionTarget[] {
-  const statByChar = new Map(stats.map((s) => [s.character, s]));
-  const universe: string[] = corpusCharSupport
-    ? [...corpusCharSupport.keys()].filter((c) => (corpusCharSupport.get(c) ?? 0) > 0)
-    : stats.map((s) => s.character);
-  return universe.map<SessionTarget>((char) => {
-    const stat = statByChar.get(char) ?? ZERO_STAT;
-    const score = bayesianWeakness(stat);
-    return {
-      type: "character",
-      value: char,
-      keys: [char],
-      label:
-        stat.attempts >= 5
-          ? `Your weakness: ${char.toUpperCase()}`
-          : `Building familiarity: ${char.toUpperCase()}`,
-      score,
-    };
-  });
+  return stats
+    .filter((s) => s.attempts > 0)
+    .filter((s) => corpusCharSupport === undefined || (corpusCharSupport.get(s.character) ?? 0) > 0)
+    .map<SessionTarget>((stat) => {
+      const score = bayesianWeakness(stat);
+      return {
+        type: "character",
+        value: stat.character,
+        keys: [stat.character],
+        label:
+          stat.attempts >= 5
+            ? `Your weakness: ${stat.character.toUpperCase()}`
+            : `Building familiarity: ${stat.character.toUpperCase()}`,
+        score,
+      };
+    });
 }
 
 /**
@@ -255,30 +256,32 @@ function bayesianMotionCandidates(stats: CharacterStat[]): SessionTarget[] {
   return out;
 }
 
-/** Same Bayesian iteration for bigrams. Bigrams below
- * `LOW_CORPUS_SUPPORT_THRESHOLD` are excluded — the prior would
- * surface them otherwise, but they're untrainable in adaptive mode. */
+/**
+ * Same measured-only Bayesian rule as `characterCandidates`. Bigrams
+ * below `LOW_CORPUS_SUPPORT_THRESHOLD` are also excluded — even if
+ * the user has typed them, they're untrainable by the word-picker
+ * (would produce a stuck loop).
+ */
 function bigramCandidates(
   stats: BigramStat[],
   corpusBigramSupport: ReadonlyMap<string, number> | undefined,
 ): SessionTarget[] {
-  const statByBigram = new Map(stats.map((s) => [s.bigram, s]));
-  const universe: string[] = corpusBigramSupport
-    ? [...corpusBigramSupport.keys()].filter(
-        (bg) => (corpusBigramSupport.get(bg) ?? 0) >= LOW_CORPUS_SUPPORT_THRESHOLD,
-      )
-    : stats.map((s) => s.bigram);
-  return universe.map<SessionTarget>((bigram) => {
-    const stat = statByBigram.get(bigram) ?? ZERO_STAT;
-    const score = bayesianWeakness(stat);
-    return {
-      type: "bigram",
-      value: bigram,
-      keys: bigram.split(""),
-      label: `Bigram focus: ${bigram}`,
-      score,
-    };
-  });
+  return stats
+    .filter((s) => s.attempts > 0)
+    .filter((s) => {
+      if (corpusBigramSupport === undefined) return true;
+      return (corpusBigramSupport.get(s.bigram) ?? 0) >= LOW_CORPUS_SUPPORT_THRESHOLD;
+    })
+    .map<SessionTarget>((stat) => {
+      const score = bayesianWeakness(stat);
+      return {
+        type: "bigram",
+        value: stat.bigram,
+        keys: stat.bigram.split(""),
+        label: `Bigram focus: ${stat.bigram}`,
+        score,
+      };
+    });
 }
 
 /**
@@ -300,20 +303,22 @@ function computeCooldownExcludedValue(recentTargets: readonly string[] | undefin
 }
 
 /**
- * Bayesian-engine candidate ranking. Every corpus character/bigram is a
- * candidate (scored at prior or posterior). Motion targets (column,
- * thumb-cluster) compute their own scores via `motionPatterns`. Final
- * order: candidate score × journey weight, descending.
+ * Bayesian-engine candidate ranking. Only **measured** characters,
+ * bigrams, and motion-aggregates participate (`attempts > 0`).
+ * Unmeasured units are deliberately excluded from the ranker —
+ * exploration of the unseen surface is handled by the periodic
+ * diagnostic, not by enumerating priors. Final order: candidate
+ * score × journey weight, descending.
  *
- * Three filters apply before scoring:
- *  - Char/bigram corpus exclusion (untrainable targets — separate
- *    concern from Bayesian, kept because the prior would otherwise
- *    rank a non-corpus character at the high prior weakness).
- *  - Cooldown: a value that's won the last N-1 consecutive sessions
- *    is excluded for one cycle.
+ * Filters applied before scoring:
+ *  - Char/bigram corpus exclusion (untrainable targets — kept
+ *    because a measured `;` from drill mode shouldn't surface in
+ *    the alpha-corpus ranker).
+ *  - Cooldown: a value that's won the last N-1 consecutive
+ *    sessions is excluded for one cycle.
  *
- * Returns `[]` only if the corpus is missing AND the user has no
- * stats — in normal use the prior guarantees a non-empty ranking.
+ * Returns `[]` whenever the user has no measured stats. The caller
+ * (`selectTarget`) handles this by falling back to a diagnostic.
  */
 export function rankTargets(
   stats: ComputedStats,
@@ -346,9 +351,13 @@ export function rankTargets(
  * Order of checks:
  *  1. Periodic diagnostic — every `DIAGNOSTIC_PERIOD` sessions,
  *     short-circuit to a diagnostic regardless of argmax.
- *  2. Bayesian argmax — pick the highest-scoring rankable candidate.
- *  3. Empty-ranking fallback — diagnostic. Only triggers if the
- *     corpus is missing AND the user has zero stats.
+ *  2. Bayesian argmax — pick the highest-scoring measured candidate.
+ *  3. Empty-ranking fallback — diagnostic. Triggers whenever the
+ *     user has no measured stats yet (true cold start, or every
+ *     measured candidate is currently in cooldown). The diagnostic
+ *     is also Path 2's only mechanism for surfacing letters the
+ *     user has never typed, so this fallback is structurally
+ *     important — not just an edge-case guard.
  */
 export function selectTarget(
   stats: ComputedStats,
@@ -362,11 +371,9 @@ export function selectTarget(
     return diagnosticTarget();
   }
   const ranked = rankTargets(stats, baseline, phase, frequencyInLanguage, options);
-  // Cold-start fallback: if the engine has no real signal (no corpus +
-  // no stats means motion candidates with score 0 are all that's left),
-  // return the diagnostic target instead of arbitrarily picking one.
-  // The Bayesian prior produces non-zero scores when a corpus is loaded,
-  // so this only fires in the truly-empty case.
+  // Empty-ranker fallback: with measured-only ranking, this fires
+  // whenever the user has no stats yet. Returning a diagnostic both
+  // captures the baseline and seeds the next session's ranking.
   const top = ranked[0];
   if (!top || (top.score ?? 0) === 0) return diagnosticTarget();
   return top;

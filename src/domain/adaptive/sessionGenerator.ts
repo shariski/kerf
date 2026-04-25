@@ -1,6 +1,7 @@
 import type { Corpus } from "../corpus/types";
 import type { ComputedStats, TransitionPhase, UserBaseline } from "../stats/types";
 import { buildBriefing, type Briefing } from "./briefingTemplates";
+import { DEFAULT_DIAGNOSTIC_WORD_COUNT, generateDiagnosticExercise } from "./diagnosticExercise";
 import type { DrillLibraryEntry } from "./drillLibrary";
 import { lookupDrill } from "./drillLibrary";
 import { generateExercise, type ExerciseOptions } from "./exerciseGenerator";
@@ -73,12 +74,25 @@ export function generateSession(input: GenerateSessionInput): SessionOutput {
   let estimatedSeconds: number;
 
   if (target.type === "diagnostic") {
-    const words = generateExercise({
-      corpus: input.corpus,
-      weaknessScoreFor: () => 1, // uniform weight
-      targetWordCount: DEFAULT_WORD_COUNT,
-      ...input.exerciseOptions,
-    });
+    // Coverage-guided diagnostic — see diagnosticExercise.ts. Falls
+    // back to the legacy uniform sampler only when support maps are
+    // missing (older callers / tests without precomputed corpus
+    // metadata). When fallback fires there's no coverage guarantee.
+    const words =
+      input.corpusCharSupport !== undefined && input.corpusBigramSupport !== undefined
+        ? generateDiagnosticExercise({
+            corpus: input.corpus,
+            stats: input.stats,
+            corpusCharSupport: input.corpusCharSupport,
+            corpusBigramSupport: input.corpusBigramSupport,
+            targetWordCount: DEFAULT_DIAGNOSTIC_WORD_COUNT,
+          })
+        : generateExercise({
+            corpus: input.corpus,
+            weaknessScoreFor: () => 1,
+            targetWordCount: DEFAULT_WORD_COUNT,
+            ...input.exerciseOptions,
+          });
     exerciseString = words.join(" ");
     estimatedSeconds = estimate(target, DEFAULT_WORD_COUNT);
   } else if (target.type === "character" || target.type === "bigram") {
