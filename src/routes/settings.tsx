@@ -1,7 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
 import { getAccountSummary, type SettingsData } from "#/server/account";
-import { AppFooter } from "#/components/nav/AppFooter";
 import { SettingsLayout } from "#/components/settings/SettingsLayout";
 import { AccountSection } from "#/components/settings/sections/AccountSection";
 import { PreferencesSection } from "#/components/settings/sections/PreferencesSection";
@@ -21,15 +20,12 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const data = Route.useLoaderData();
   return (
-    <>
-      <SettingsLayout>
-        <AccountSection account={data.account} totalSessions={data.totalSessions} />
-        <PreferencesSection activeProfile={data.activeProfile} />
-        <ThemeSection />
-        <DataSection profiles={data.profiles} />
-        <DangerZoneSection />
-      </SettingsLayout>
-      <AppFooter />
-    </>
+    <SettingsLayout>
+      <AccountSection account={data.account} totalSessions={data.totalSessions} />
+      <PreferencesSection activeProfile={data.activeProfile} />
+      <ThemeSection />
+      <DataSection profiles={data.profiles} />
+      <DangerZoneSection />
+    </SettingsLayout>
   );
 }
