@@ -8,7 +8,8 @@ import { MobileGate } from "#/components/MobileGate";
 // global AppNav:
 //   - /onboarding has its own logo + progress bar
 //   - /login is a centered full-screen card
-const CHROMELESS_PATHS = ["/onboarding", "/login"];
+//   - /welcome is the public landing page (unauth-redirect target)
+const CHROMELESS_PATHS = ["/onboarding", "/login", "/welcome"];
 
 // Routes that manage footer visibility per-stage rather than letting
 // the root render it unconditionally. /practice and /practice/drill
