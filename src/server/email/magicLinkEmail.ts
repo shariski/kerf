@@ -1,8 +1,20 @@
-import { EMAIL_LOGO_DATA_URI, EMAIL_LOGO_HEIGHT_PX, EMAIL_LOGO_WIDTH_PX } from "./emailLogo.gen";
+// Display dimensions of public/email-logo.png. Source is 259x140 (4x retina);
+// width/height attrs downscale to ~65x35 CSS px so the wordmark visually
+// matches the prior 30px text wordmark. Re-eyeball if scripts/generate-email-logo.mjs
+// emits a different aspect ratio next time.
+const LOGO_WIDTH_PX = 65;
+const LOGO_HEIGHT_PX = 35;
 
 export type MagicLinkEmailInput = {
   email: string;
   url: string;
+  /**
+   * Absolute public URL to the kerf wordmark PNG. Must be reachable
+   * from the recipient's mail client (Gmail, Apple Mail, Outlook).
+   * Gmail in particular strips inline data: URIs in <img> tags as an
+   * anti-phishing measure, so this MUST be a hosted https URL.
+   */
+  logoUrl: string;
 };
 
 export type RenderedEmail = {
@@ -26,8 +38,9 @@ function escapeHtml(value: string): string {
 // This is enforced by a unit test (see magicLinkEmail.test.ts) because
 // email clients (Gmail web, Outlook desktop, Apple Mail) strip or mangle
 // non-inline CSS unpredictably.
-function renderHtml(rawUrl: string): string {
+function renderHtml(rawUrl: string, rawLogoUrl: string): string {
   const url = escapeHtml(rawUrl);
+  const logoUrl = escapeHtml(rawLogoUrl);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,7 +55,7 @@ function renderHtml(rawUrl: string): string {
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="520" style="max-width:520px;width:100%;background:#f5efe6;">
         <tr>
           <td style="padding:36px 28px 32px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#211a14;line-height:1.55;">
-            <img src="${EMAIL_LOGO_DATA_URI}" alt="kerf" width="${EMAIL_LOGO_WIDTH_PX}" height="${EMAIL_LOGO_HEIGHT_PX}" style="display:block;width:${EMAIL_LOGO_WIDTH_PX}px;height:${EMAIL_LOGO_HEIGHT_PX}px;border:0;outline:none;text-decoration:none;margin-bottom:28px;">
+            <img src="${logoUrl}" alt="kerf" width="${LOGO_WIDTH_PX}" height="${LOGO_HEIGHT_PX}" style="display:block;width:${LOGO_WIDTH_PX}px;height:${LOGO_HEIGHT_PX}px;border:0;outline:none;text-decoration:none;margin-bottom:28px;">
             <div style="font-size:17px;font-weight:500;color:#211a14;margin-bottom:10px;">Sign in to kerf</div>
             <div style="font-size:14.5px;color:#4a3f33;margin-bottom:22px;">Click the button below to sign in. The link works once and expires in 10 minutes.</div>
             <a href="${url}" style="display:inline-block;background:#F59E0B;color:#211a14;padding:11px 22px;border-radius:6px;font-weight:500;font-size:14.5px;text-decoration:none;margin-bottom:24px;">Sign in to kerf</a>
@@ -76,7 +89,7 @@ If you didn't request this, you can ignore this email — no account changes wil
 export function renderMagicLinkEmail(input: MagicLinkEmailInput): RenderedEmail {
   return {
     subject: SUBJECT,
-    html: renderHtml(input.url),
+    html: renderHtml(input.url, input.logoUrl),
     text: renderText(input.url),
   };
 }

@@ -9,13 +9,13 @@
  * opentype.js (used by extract-favicon-glyphs.mjs) cannot apply variable-
  * font axis settings, so Playwright is used here for full-fidelity rendering.
  *
- * Outputs:
+ * Output:
  *   - public/email-logo.png — the asset, ~4x retina source so the ~30px
- *     CSS display height stays crisp on retina + 4K inboxes
- *   - src/server/email/emailLogo.gen.ts — exports the PNG inlined as a
- *     base64 data URI, plus the display width/height. Imported by
- *     src/server/email/magicLinkEmail.ts so the email body is fully
- *     self-contained (no external image hosting needed).
+ *     CSS display height stays crisp on retina + 4K inboxes. Served
+ *     statically by the app (see src/server/email/send.ts: EMAIL_LOGO_URL
+ *     env var or the AUTH_URL-derived fallback). The renderer references
+ *     it by absolute URL — Gmail strips inline data: URIs in <img> tags
+ *     as an anti-phishing measure, so hosting is required.
  *
  * Run: `node scripts/generate-email-logo.mjs`
  *
@@ -23,13 +23,12 @@
  */
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const ROOT = process.cwd();
 const FONT_PATH = join(ROOT, "public/fonts/Fraunces-Variable.woff2");
 const PNG_OUT = join(ROOT, "public/email-logo.png");
-const TS_OUT = join(ROOT, "src/server/email/emailLogo.gen.ts");
 
 // CSS pixel size we want the wordmark to render at in the email body.
 // Matches the visual weight of the prior text wordmark (font-size: 30px).
@@ -101,33 +100,17 @@ await wordmark.screenshot({
 
 await browser.close();
 
-// Read back the PNG to compute display dimensions and base64 size.
+// Echo dimensions so the operator can keep the LOGO_WIDTH_PX / LOGO_HEIGHT_PX
+// constants in src/server/email/magicLinkEmail.ts in sync (the renderer ships
+// width/height attrs on the <img> tag so email clients downscale correctly
+// when CSS is stripped).
 const pngBuf = readFileSync(PNG_OUT);
 const { width: srcW, height: srcH } = await sharp(pngBuf).metadata();
 const displayW = Math.round(srcW / RENDER_SCALE);
 const displayH = Math.round(srcH / RENDER_SCALE);
-const dataUri = `data:image/png;base64,${pngBuf.toString("base64")}`;
-
-const tsContent = `/**
- * AUTO-GENERATED — do not edit by hand.
- * Run \`node scripts/generate-email-logo.mjs\` to regenerate.
- *
- * Source asset: public/email-logo.png (${pngBuf.length} bytes)
- * Source dimensions: ${srcW}x${srcH}px (rendered at ${RENDER_SCALE}x)
- * Email display dimensions: ${displayW}x${displayH}px
- *
- * Inlined as a base64 data URI so the magic-link email is fully
- * self-contained — no external image hosting, no broken-image
- * placeholder if the kerf domain ever moves.
- */
-export const EMAIL_LOGO_DATA_URI =
-\t"${dataUri}";
-
-export const EMAIL_LOGO_WIDTH_PX = ${displayW};
-export const EMAIL_LOGO_HEIGHT_PX = ${displayH};
-`;
-
-writeFileSync(TS_OUT, tsContent);
 
 console.log(`wrote ${PNG_OUT} (${pngBuf.length} bytes, ${srcW}x${srcH}px source)`);
-console.log(`wrote ${TS_OUT} (display ${displayW}x${displayH}px)`);
+console.log(`display dimensions: ${displayW}x${displayH}px`);
+console.log(
+  `→ verify LOGO_WIDTH_PX=${displayW} and LOGO_HEIGHT_PX=${displayH} in src/server/email/magicLinkEmail.ts`,
+);
