@@ -39,7 +39,8 @@ describe("sendMagicLinkEmail — production", () => {
     vi.stubEnv("EMAIL_FROM", "kerf <hello@kerf.app>");
     await sendMagicLinkEmail({ email: "user@example.com", url: "https://kerf.app/x" });
     expect(sendSpy).toHaveBeenCalledTimes(1);
-    const args = sendSpy.mock.calls[0][0];
+    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
+    const args = sendSpy.mock.calls[0]![0];
     expect(args).toMatchObject({
       from: "kerf <hello@kerf.app>",
       to: "user@example.com",
@@ -51,7 +52,9 @@ describe("sendMagicLinkEmail — production", () => {
 
   it("defaults EMAIL_FROM to onboarding@resend.dev when unset", async () => {
     await sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" });
-    expect(sendSpy.mock.calls[0][0].from).toBe("kerf <onboarding@resend.dev>");
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
+    expect(sendSpy.mock.calls[0]![0].from).toBe("kerf <onboarding@resend.dev>");
   });
 
   it("rethrows + console.errors when Resend network fails", async () => {
@@ -84,7 +87,8 @@ describe("sendMagicLinkEmail — dev default", () => {
     await sendMagicLinkEmail({ email: "user@example.com", url: "https://kerf.app/x" });
     expect(sendSpy).not.toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    const logged = String(logSpy.mock.calls[0][0]);
+    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
+    const logged = String(logSpy.mock.calls[0]![0]);
     expect(logged).toContain("user@example.com");
     expect(logged).toContain("https://kerf.app/x");
     expect(logged).toContain(PREVIEW_PATH);
@@ -95,7 +99,8 @@ describe("sendMagicLinkEmail — dev default", () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     await sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" });
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
-    const [path, content, encoding] = writeFileSpy.mock.calls[0];
+    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
+    const [path, content, encoding] = writeFileSpy.mock.calls[0]!;
     expect(path).toBe(PREVIEW_PATH);
     expect(encoding).toBe("utf8");
     expect(content).toContain("Sign in to kerf");
@@ -145,7 +150,8 @@ describe("sendMagicLinkEmail — preview file write failure", () => {
     ).resolves.toBeUndefined();
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(String(warnSpy.mock.calls[0][0])).toContain("preview file write failed");
+    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
+    expect(String(warnSpy.mock.calls[0]![0])).toContain("preview file write failed");
     warnSpy.mockRestore();
   });
 });
