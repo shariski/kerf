@@ -36,22 +36,22 @@ describe("sendMagicLinkEmail — production", () => {
   });
 
   it("sends via Resend with EMAIL_FROM and rendered fields", async () => {
-    vi.stubEnv("EMAIL_FROM", "kerf <hello@kerf.app>");
-    await sendMagicLinkEmail({ email: "user@example.com", url: "https://kerf.app/x" });
+    vi.stubEnv("EMAIL_FROM", "kerf <hello@typekerf.com>");
+    await sendMagicLinkEmail({ email: "user@example.com", url: "https://typekerf.com/x" });
     expect(sendSpy).toHaveBeenCalledTimes(1);
     // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     const args = sendSpy.mock.calls[0]![0];
     expect(args).toMatchObject({
-      from: "kerf <hello@kerf.app>",
+      from: "kerf <hello@typekerf.com>",
       to: "user@example.com",
       subject: "Your kerf sign-in link",
     });
-    expect(args.html).toContain("https://kerf.app/x");
-    expect(args.text).toContain("https://kerf.app/x");
+    expect(args.html).toContain("https://typekerf.com/x");
+    expect(args.text).toContain("https://typekerf.com/x");
   });
 
   it("defaults EMAIL_FROM to onboarding@resend.dev when unset", async () => {
-    await sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" });
+    await sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" });
     expect(sendSpy).toHaveBeenCalledTimes(1);
     // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     expect(sendSpy.mock.calls[0]![0].from).toBe("kerf <onboarding@resend.dev>");
@@ -61,7 +61,7 @@ describe("sendMagicLinkEmail — production", () => {
     sendSpy.mockRejectedValue(new Error("network down"));
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(
-      sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" }),
+      sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" }),
     ).rejects.toThrow("network down");
     expect(errSpy).toHaveBeenCalledTimes(1);
     errSpy.mockRestore();
@@ -71,7 +71,7 @@ describe("sendMagicLinkEmail — production", () => {
     sendSpy.mockResolvedValue({ data: null, error: { message: "invalid from" } });
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(
-      sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" }),
+      sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" }),
     ).rejects.toThrow(/invalid from/);
     expect(errSpy).toHaveBeenCalledTimes(1);
     errSpy.mockRestore();
@@ -85,34 +85,34 @@ describe("sendMagicLinkEmail — dev default", () => {
 
   it("does not call Resend; logs URL + preview path", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    await sendMagicLinkEmail({ email: "user@example.com", url: "https://kerf.app/x" });
+    await sendMagicLinkEmail({ email: "user@example.com", url: "https://typekerf.com/x" });
     expect(sendSpy).not.toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     const logged = String(logSpy.mock.calls[0]![0]);
     expect(logged).toContain("user@example.com");
-    expect(logged).toContain("https://kerf.app/x");
+    expect(logged).toContain("https://typekerf.com/x");
     expect(logged).toContain(PREVIEW_PATH);
     logSpy.mockRestore();
   });
 
   it("writes preview file with rendered HTML", async () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
-    await sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" });
+    await sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" });
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
     // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     const [path, content, encoding] = writeFileSpy.mock.calls[0]!;
     expect(path).toBe(PREVIEW_PATH);
     expect(encoding).toBe("utf8");
     expect(content).toContain("Sign in to kerf");
-    expect(content).toContain("https://kerf.app/x");
+    expect(content).toContain("https://typekerf.com/x");
   });
 
   it("does not crash when RESEND_API_KEY is unset (lazy init)", async () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     // RESEND_API_KEY explicitly NOT stubbed
     await expect(
-      sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" }),
+      sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" }),
     ).resolves.toBeUndefined();
     expect(sendSpy).not.toHaveBeenCalled();
   });
@@ -126,12 +126,12 @@ describe("sendMagicLinkEmail — dev send opt-in", () => {
   });
 
   it("calls Resend like prod when EMAIL_DEV_MODE=send", async () => {
-    await sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" });
+    await sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" });
     expect(sendSpy).toHaveBeenCalledTimes(1);
   });
 
   it("still writes preview file in dev send mode", async () => {
-    await sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" });
+    await sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" });
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
   });
 });
@@ -147,7 +147,7 @@ describe("sendMagicLinkEmail — preview file write failure", () => {
     writeFileSpy.mockRejectedValueOnce(new Error("EROFS"));
 
     await expect(
-      sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" }),
+      sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" }),
     ).resolves.toBeUndefined();
 
     expect(warnSpy).toHaveBeenCalledTimes(1);

@@ -17,7 +17,7 @@ production secrets, the VPS, or external service dashboards lives here
   dashboard. Until verified, sends are restricted to
   `onboarding@resend.dev`.
 - [ ] Once verified, set `EMAIL_FROM` in the production `.env` to your
-  branded address — e.g. `kerf <hello@kerf.app>`. No code change is
+  branded address — e.g. `kerf <hello@typekerf.com>`. No code change is
   needed; `src/server/email/send.ts` reads this env var with the
   sandbox sender as the default fallback.
 - [ ] Smoke test after first deploy: trigger a magic-link send from the
