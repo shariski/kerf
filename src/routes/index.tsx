@@ -27,7 +27,7 @@ import { formatRelativeDay } from "#/domain/dashboard/aggregates";
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const session = await getAuthSession();
-    if (!session) throw redirect({ to: "/login" });
+    if (!session) throw redirect({ to: "/welcome" });
   },
   loader: async (): Promise<{ home: HomeData }> => {
     // Profile check up front so a user with an account but no profile
