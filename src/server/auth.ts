@@ -2,8 +2,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink } from "better-auth/plugins";
 import { db } from "./db/index";
-import { sendMagicLinkEmail } from "./email/send";
 import { users, authSessions, authAccounts, authVerifications } from "./db/schema";
+import { sendMagicLinkEmail } from "./email/send";
 
 /**
  * Build the social-providers config conditionally — each provider is
