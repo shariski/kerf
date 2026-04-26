@@ -5,20 +5,23 @@ import { useNavAutoHide } from "#/hooks/useNavAutoHide";
  * Global top navigation — 1:1 port of the `.app-nav` block in
  * design/home-wireframe.html (mirrored in all other wireframes).
  *
- * Spec: docs/05-information-architecture.md §5. Three primary links,
- * amber active-underline, gear + avatar on the right. Auto-hide
- * behaviour on `/practice` during active typing (IA §5) is intentionally
- * deferred to a later task — this component renders the chrome; the
- * hide/show timing lives alongside the keystroke capture logic.
+ * Spec: docs/05-information-architecture.md §5. Primary links, amber
+ * active-underline, avatar on the right. Auto-hide behaviour on
+ * `/practice` during active typing (IA §5) is intentionally deferred
+ * to a later task — this component renders the chrome; the hide/show
+ * timing lives alongside the keystroke capture logic.
  *
- * Avatar is visual-only for now (Phase 3 wires the user menu dropdown
- * per IA §5). Settings cog navigates to /settings.
+ * The avatar is visual-only for now; the user-menu dropdown (sign out,
+ * account) lands in Phase 3. Settings was originally reached via a cog
+ * icon in the right-hand cluster, but discoverability of a small icon
+ * proved poor in practice, so it was promoted to a top-level link.
  */
 
 const NAV_LINKS = [
   { to: "/practice", label: "Practice" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/keyboards", label: "Keyboards" },
+  { to: "/settings", label: "Settings" },
 ] as const;
 
 export function AppNav() {
@@ -54,9 +57,6 @@ export function AppNav() {
       </nav>
 
       <div className="kerf-nav-right" aria-label="Account">
-        <Link to="/settings" className="kerf-nav-cog" aria-label="Settings">
-          ⚙
-        </Link>
         <span className="kerf-nav-avatar" aria-label="User menu">
           U
         </span>
