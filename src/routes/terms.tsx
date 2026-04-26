@@ -1,9 +1,3 @@
-// TEMPLATE PLACEHOLDERS — replace before deploying to production:
-//   {{COMPANY_NAME}}    → legal entity name
-//   {{JURISDICTION}}    → governing law
-//   {{CONTACT_EMAIL}}   → public contact
-//   {{EFFECTIVE_DATE}}  → when these terms took effect
-
 import { createFileRoute } from "@tanstack/react-router";
 import { DocPage } from "#/components/doc/DocPage";
 
@@ -13,83 +7,50 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   return (
-    <DocPage title="Terms of service" effectiveDate="{{EFFECTIVE_DATE}}" isTemplate>
-      <h2>Who we are</h2>
+    <DocPage title="Terms" effectiveDate="2026-04-26">
       <p>
-        kerf is operated by <strong>{"{{COMPANY_NAME}}"}</strong>, based in{" "}
-        <strong>{"{{JURISDICTION}}"}</strong>. These terms apply every time you use the service.
+        kerf is open source — these terms cover what you can expect from the hosted service at
+        typekerf.com.
+      </p>
+
+      <h2>The code</h2>
+      <p>
+        The kerf source code is licensed under the{" "}
+        <a
+          href="https://github.com/shariski/kerf/blob/main/LICENSE"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          MIT License
+        </a>{" "}
+        (opens GitHub). You can read it, fork it, run your own copy — the LICENSE file has the full
+        text.
       </p>
 
       <h2>The service</h2>
       <p>
-        kerf is a typing-training platform designed for people transitioning between keyboard
-        layouts, with a specific focus on columnar split keyboards. The service provides adaptive
-        exercises, statistics, and insights based on your own typing data.
-      </p>
-
-      <h2>Accounts</h2>
-      <p>
-        You create an account by providing an email address and clicking the magic link we send you.
-        You're responsible for the security of the device + email account you use to sign in. If
-        someone else gains access to your email, they can access your kerf account.
+        The hosted service at typekerf.com is provided as-is. No warranty about uptime, accuracy,
+        how fast you'll type after using it, or anything else.
       </p>
 
       <h2>Acceptable use</h2>
-      <p>You agree not to:</p>
+      <p>A short list of things to please not do:</p>
       <ul>
-        <li>
-          Automate fake typing sessions, scrape the exercise corpus, or otherwise generate traffic
-          that doesn't come from a human typing at a keyboard.
-        </li>
-        <li>
-          Attempt to reverse-engineer the adaptive engine's server-side components, exploit
-          authentication, or access other users' data.
-        </li>
-        <li>Use the service in a way that imposes an unreasonable load on the infrastructure.</li>
+        <li>Generate fake typing sessions or scrape the exercise corpus with automation.</li>
+        <li>Access other accounts, exploit auth, or reverse-engineer server-side internals.</li>
+        <li>Put unreasonable load on the infrastructure.</li>
       </ul>
 
-      <h2>Intellectual property</h2>
+      <h2>Your account</h2>
       <p>
-        The kerf software, design, and content on this site are owned by{" "}
-        <strong>{"{{COMPANY_NAME}}"}</strong>. You retain ownership of your own typing data; we hold
-        it under the terms of the <a href="/privacy">privacy policy</a>.
-      </p>
-
-      <h2>Disclaimer</h2>
-      <p>
-        The service is provided "as is." We do our best to keep it running, accurate, and useful,
-        but we don't guarantee any particular outcome — including, but not limited to, how fast
-        you'll type after using it.
-      </p>
-
-      <h2>Limitation of liability</h2>
-      <p>
-        To the fullest extent permitted by <strong>{"{{JURISDICTION}}"}</strong> law,{" "}
-        <strong>{"{{COMPANY_NAME}}"}</strong> is not liable for any indirect, incidental, or
-        consequential damages arising out of your use of kerf.
-      </p>
-
-      <h2>Termination</h2>
-      <p>
-        You can delete your account at any time by emailing <strong>{"{{CONTACT_EMAIL}}"}</strong>.
-        We can suspend accounts that violate these terms, with notice when reasonable.
-      </p>
-
-      <h2>Governing law</h2>
-      <p>
-        These terms are governed by the laws of <strong>{"{{JURISDICTION}}"}</strong>. Any dispute
-        will be handled in the courts of that jurisdiction.
+        You can delete your account at any time — see <a href="/contact">contact</a> for how to get
+        in touch. Accounts that violate these terms can be suspended, with notice when reasonable.
       </p>
 
       <h2>Changes</h2>
       <p>
-        If we materially change these terms, we'll post the new version here and bump the effective
-        date. Continued use after a change means acceptance of the new terms.
-      </p>
-
-      <h2>Contact</h2>
-      <p>
-        <strong>{"{{CONTACT_EMAIL}}"}</strong>
+        If these terms materially change, the new version goes here and the effective date above
+        updates. Continued use after a change means acceptance.
       </p>
     </DocPage>
   );
