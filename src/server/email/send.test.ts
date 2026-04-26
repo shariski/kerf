@@ -73,6 +73,7 @@ describe("sendMagicLinkEmail — production", () => {
     await expect(
       sendMagicLinkEmail({ email: "u@x.com", url: "https://kerf.app/x" }),
     ).rejects.toThrow(/invalid from/);
+    expect(errSpy).toHaveBeenCalledTimes(1);
     errSpy.mockRestore();
   });
 });
