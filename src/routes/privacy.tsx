@@ -45,18 +45,6 @@ function PrivacyPage() {
         machine-learning models.
       </p>
 
-      <h2>Where it lives</h2>
-      <p>
-        In a PostgreSQL database on a VPS that operates the kerf service. Magic-link emails go
-        through{" "}
-        <a href="https://resend.com" target="_blank" rel="noopener noreferrer">
-          Resend
-        </a>{" "}
-        — they see your email address and the one-time link, nothing else. If you signed up via
-        Google or GitHub, those providers handled the initial authentication and may have logs per
-        their own privacy policies.
-      </p>
-
       <h2>Your rights</h2>
       <p>
         You can delete your account at any time — see <a href="/contact">contact</a> for how to get
