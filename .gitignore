@@ -17,9 +17,10 @@ dist-ssr
 __unconfig*
 todos.json
 
-# Local tooling artifacts (Serena MCP cache, Superpowers skill docs, Playwright MCP session files)
+# Local tooling artifacts (Serena MCP cache, Superpowers skill docs/state, Playwright MCP session files)
 .serena/
 # docs/superpowers/
+.superpowers/
 .playwright-mcp/
 
 # The repo uses pnpm (see CLAUDE.md §B13). A stray package-lock.json from
