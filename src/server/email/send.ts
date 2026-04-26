@@ -19,7 +19,7 @@ const DEFAULT_FROM = "kerf <onboarding@resend.dev>";
 /**
  * Default fallback when EMAIL_LOGO_URL and AUTH_URL are both unset.
  * Points at the committed asset on the main branch — once the kerf
- * domain is live, set EMAIL_LOGO_URL=https://kerf.app/email-logo.png
+ * domain is live, set EMAIL_LOGO_URL=https://typekerf.com/email-logo.png
  * in the production env (see DEPLOYMENT.md and .env.example).
  */
 const DEFAULT_LOGO_URL =

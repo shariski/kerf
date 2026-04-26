@@ -31,7 +31,7 @@ This is the only auth-triggered email pathway scaffolded in the app. There is no
 
 - Welcome / post-signup email. (Q1: chose A — magic-link only.)
 - Generic email-service abstraction with template registry / retry queue / multi-channel transport. (Q1: chose A; §B6 forbids pre-building.)
-- Custom-domain sending (`hello@kerf.app` etc.). Code is parameterized to swap via `EMAIL_FROM` once verified — but verification is developer scope.
+- Custom-domain sending (`hello@typekerf.com` etc.). Code is parameterized to swap via `EMAIL_FROM` once verified — but verification is developer scope.
 - Auto-retry on Resend failure. (Q6c: failure must be visible to user, not papered over.)
 - React Email components, MJML, or any template-build step. (Q5: chose A — single raw HTML file is simpler than abstracting for one template.)
 - E2E test of the magic-link round trip. (§B8 — manual verification of main flow is sufficient for MVP.)
@@ -226,7 +226,7 @@ RESEND_API_KEY=
 
 # Friendly-name + sender address. Until you verify your own domain in Resend,
 # you must send from "onboarding@resend.dev". Once your domain is verified,
-# swap to e.g. "kerf <hello@kerf.app>" — no code change needed.
+# swap to e.g. "kerf <hello@typekerf.com>" — no code change needed.
 EMAIL_FROM=kerf <onboarding@resend.dev>
 
 # Dev-only: "send" actually sends real emails to your inbox (handy for
@@ -304,7 +304,7 @@ Following §B8 — pure functions get exhaustive unit tests with deterministic i
 
 | Test | Assertion |
 |---|---|
-| Prod path | `NODE_ENV=production`, `EMAIL_FROM=kerf <hello@kerf.app>`, `RESEND_API_KEY=test`: calls `resend.emails.send` once with `{from, to, subject, html, text}` matching renderer output |
+| Prod path | `NODE_ENV=production`, `EMAIL_FROM=kerf <hello@typekerf.com>`, `RESEND_API_KEY=test`: calls `resend.emails.send` once with `{from, to, subject, html, text}` matching renderer output |
 | Default `EMAIL_FROM` | `EMAIL_FROM` unset → uses `"kerf <onboarding@resend.dev>"` |
 | Dev default | `NODE_ENV=development`, `EMAIL_DEV_MODE` unset: does NOT call Resend; console.log called with URL + preview path |
 | Dev send opt-in | `NODE_ENV=development`, `EMAIL_DEV_MODE=send`, key set: calls Resend (same as prod) |

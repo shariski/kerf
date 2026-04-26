@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { renderMagicLinkEmail } from "./magicLinkEmail";
 
-const URL_INPUT = "https://kerf.app/api/auth/magic-link/verify?token=abc&id=1";
+const URL_INPUT = "https://typekerf.com/api/auth/magic-link/verify?token=abc&id=1";
 const EMAIL_INPUT = "user@example.com";
-const LOGO_URL_INPUT = "https://kerf.app/email-logo.png";
+const LOGO_URL_INPUT = "https://typekerf.com/email-logo.png";
 
 describe("renderMagicLinkEmail", () => {
   it("returns {subject, html, text} of non-empty strings", () => {
@@ -41,7 +41,7 @@ describe("renderMagicLinkEmail", () => {
         logoUrl: LOGO_URL_INPUT,
       });
       // The & in the URL should be escaped to &amp; in HTML output.
-      const escapedUrl = "https://kerf.app/api/auth/magic-link/verify?token=abc&amp;id=1";
+      const escapedUrl = "https://typekerf.com/api/auth/magic-link/verify?token=abc&amp;id=1";
       const occurrences = r.html.split(escapedUrl).length - 1;
       expect(occurrences).toBe(2);
     });

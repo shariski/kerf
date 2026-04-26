@@ -10,7 +10,7 @@ and remove the amber "template" banner.
 |-------------|---------|-------|
 | `{{COMPANY_NAME}}` | `Kerf Typing Labs Ltd.` | Legal entity name |
 | `{{JURISDICTION}}` | `England and Wales` | Governing law |
-| `{{CONTACT_EMAIL}}` | `legal@kerf.app` | Public contact for rights requests |
+| `{{CONTACT_EMAIL}}` | `legal@typekerf.com` | Public contact for rights requests |
 | `{{EFFECTIVE_DATE}}` | `1 May 2026` | When the current version took effect |
 | `{{DATA_REGION}}` | `the European Union` | Where user data is stored |
 | `{{EMAIL_PROVIDER}}` | `Resend, Inc.` | Magic-link delivery service |
