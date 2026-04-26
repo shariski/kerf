@@ -206,19 +206,22 @@ The developer (solo, part-time) has already pushed back against multiple over-en
 - If a previous doc (`01-*.md`, `02-*.md`, etc.) says one thing and the current request implies another, ask which is authoritative.
 - Prefer asking one clarifying question over generating speculative code.
 
-## B11. Checkpoint Task Status on Completion
+## B11. Versioning and CHANGELOG
 
-The `## Status` checklist in `README.md` is the single fastest way for a new Claude Code session (or a returning developer) to orient. Keep it synchronized with reality.
+kerf follows [Semantic Versioning](https://semver.org/) and tracks notable changes in `CHANGELOG.md` per the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) convention. Releases are git-tagged as `vX.Y.Z`.
 
 **Rules:**
 
-- When a task tracked in `README.md` `## Status` is merged to `main`, flip its `[ ]` to `[x]`. If the merge completes an entire phase (e.g. all Phase 0 tasks done), flip the phase-level line too.
-- Include the checklist update **in the PR that completes the task**, not in a follow-up commit. The checkpoint must land with the work so git history stays coherent.
-- The checklist tracks **tasks**, not commits. Incidental chores (tooling, `.gitignore`, lockfile commits, unrelated bugfixes) do not get their own entry and must not be added.
-- If you complete a task explicitly numbered in `docs/03-task-breakdown.md`, bump its `Last updated: YYYY-MM-DD` header to today's date (use `currentDate` from session context).
-- If unsure whether the current work fully completes a tracked task (e.g. a multi-PR task where this is PR 1 of 3), **ask** — do not pre-tick.
+- `package.json` `version` is the single source of truth.
+- Notable changes go in `CHANGELOG.md` under `## [Unreleased]` **as part of the PR that ships them**, not in a follow-up commit. Subsections: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- At release time: move `[Unreleased]` entries under a new `## [X.Y.Z] - YYYY-MM-DD` heading, bump `package.json` `version`, commit, then tag (`git tag vX.Y.Z && git push origin vX.Y.Z`).
+- Pre-1.0 (`0.x.y`): pre-public-launch. UX, data, and APIs may change without notice.
+- `1.0.0`: first public launch.
+- Post-1.0: MAJOR for breaking changes (rare for a SaaS — reserve for user-data shape changes), MINOR for new features or notable additions, PATCH for fixes and copy/UI tweaks.
+- Trivial chores (typo fixes, whitespace, dependency bumps that don't affect behavior) do not need a CHANGELOG entry. Use judgment — if a future user would want to know about it, log it.
+- If unsure whether a change is notable, **ask**. Better to over-include than to retroactively backfill.
 
-**Why this exists:** a stale checklist is worse than no checklist — it silently lies about state. Without this rule, every future session pays the cost of re-inferring what's done from `git log`, branch names, and commit messages, and risks redoing completed work.
+**Why this exists:** the changelog is the release-notes draft and audit trail. Without it, "what shipped in 1.2.0" requires re-reading commit messages and PR descriptions — fine for the dev who lived through it, opaque for everyone else. Keeping the entry inline with the PR (not as a follow-up commit) avoids the same lying-checklist problem the prior version of §B11 (`README ## Status` checkbox flipping) was trying to prevent before that section was retired.
 
 ## B12. Lint + Format Discipline
 
@@ -259,7 +262,7 @@ The repo uses **pnpm** as its package manager. `pnpm-lock.yaml` is committed; `p
 4. Implement the minimum to pass tests.
 5. Run `biome format --write` on touched files and confirm `biome lint` delta vs main is ≈0 — see §B12.
 6. Report diff, test results, lint + format status, and any assumptions you made.
-7. If the task is tracked in `README.md` `## Status`, flip its checkbox as part of the PR — see §B11.
+7. Add a CHANGELOG entry under `## [Unreleased]` if the change is notable — see §B11.
 8. Wait for developer review before moving to next task.
 
 ---
