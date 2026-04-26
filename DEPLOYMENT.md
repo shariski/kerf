@@ -25,3 +25,14 @@ production secrets, the VPS, or external service dashboards lives here
   seconds and renders correctly in **at minimum** Gmail web + Apple
   Mail. (See `docs/superpowers/specs/2026-04-26-magic-link-email-design.md`
   §11 for the full manual test plan.)
+
+## Domain & Email forwarding (typekerf.com)
+
+- [ ] Set up DNS for `typekerf.com` to point at the production VPS.
+- [ ] Configure email forwarding for `hello@typekerf.com` → your personal inbox.
+  Cloudflare Email Routing (free, requires Cloudflare-managed DNS) and ImprovMX
+  (free tier) are both reasonable choices. The `/contact` page surfaces only
+  `hello@`; consider also setting up `support@typekerf.com` as an alias to the
+  same inbox so users who guess that pattern don't dead-end.
+- [ ] Smoke test after DNS lands: `mail hello@typekerf.com` from any external
+  address; confirm arrival in your inbox.
