@@ -43,6 +43,15 @@ describe("renderMagicLinkEmail", () => {
       expect(r.html).not.toMatch(/<link[\s>]/i);
       expect(r.html).not.toMatch(/<script[\s>]/i);
     });
+
+    it("renders the kerf wordmark as an inline base64 PNG with alt='kerf'", () => {
+      const r = renderMagicLinkEmail({ email: EMAIL_INPUT, url: URL_INPUT });
+      // Email clients strip @font-face / web fonts, so the brand wordmark
+      // ships as a pre-rendered raster image inlined as a data URI. This
+      // test catches accidental refactors back to font-dependent text.
+      expect(r.html).toMatch(/<img[^>]*alt="kerf"[^>]*>/);
+      expect(r.html).toContain("data:image/png;base64,");
+    });
   });
 
   describe("text", () => {

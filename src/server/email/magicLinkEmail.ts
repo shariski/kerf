@@ -1,3 +1,5 @@
+import { EMAIL_LOGO_DATA_URI, EMAIL_LOGO_HEIGHT_PX, EMAIL_LOGO_WIDTH_PX } from "./emailLogo.gen";
+
 export type MagicLinkEmailInput = {
   email: string;
   url: string;
@@ -40,7 +42,7 @@ function renderHtml(rawUrl: string): string {
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="520" style="max-width:520px;width:100%;background:#f5efe6;">
         <tr>
           <td style="padding:36px 28px 32px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#211a14;line-height:1.55;">
-            <div style="font-family:'Fraunces',Georgia,'Times New Roman',serif;font-weight:300;font-variation-settings:&quot;SOFT&quot; 100;font-size:30px;letter-spacing:-0.02em;color:#211a14;margin-bottom:28px;">kerf</div>
+            <img src="${EMAIL_LOGO_DATA_URI}" alt="kerf" width="${EMAIL_LOGO_WIDTH_PX}" height="${EMAIL_LOGO_HEIGHT_PX}" style="display:block;width:${EMAIL_LOGO_WIDTH_PX}px;height:${EMAIL_LOGO_HEIGHT_PX}px;border:0;outline:none;text-decoration:none;margin-bottom:28px;">
             <div style="font-size:17px;font-weight:500;color:#211a14;margin-bottom:10px;">Sign in to kerf</div>
             <div style="font-size:14.5px;color:#4a3f33;margin-bottom:22px;">Click the button below to sign in. The link works once and expires in 10 minutes.</div>
             <a href="${url}" style="display:inline-block;background:#F59E0B;color:#211a14;padding:11px 22px;border-radius:6px;font-weight:500;font-size:14.5px;text-decoration:none;margin-bottom:24px;">Sign in to kerf</a>
