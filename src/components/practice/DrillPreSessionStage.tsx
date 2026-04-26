@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import type { KeyboardType, DominantHand } from "#/server/profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import { KeyboardContextPill } from "./KeyboardContextPill";
@@ -47,17 +47,77 @@ export type PresetKey =
 const EST_MIN_LOW = 2;
 const EST_MIN_HIGH = 3;
 
-const VERTICAL_COLUMN_OPTIONS: { preset: PresetKey; label: string }[] = [
-  { preset: "verticalColumn-leftPinky", label: "Left pinky" },
-  { preset: "verticalColumn-leftRing", label: "Left ring" },
-  { preset: "verticalColumn-leftMiddle", label: "Left middle" },
-  { preset: "verticalColumn-leftIndexOuter", label: "Left index (outer)" },
-  { preset: "verticalColumn-leftIndexInner", label: "Left index (inner)" },
-  { preset: "verticalColumn-rightIndexInner", label: "Right index (inner)" },
-  { preset: "verticalColumn-rightIndexOuter", label: "Right index (outer)" },
-  { preset: "verticalColumn-rightMiddle", label: "Right middle" },
-  { preset: "verticalColumn-rightRing", label: "Right ring" },
-  { preset: "verticalColumn-rightPinky", label: "Right pinky" },
+type VerticalColumnOption = {
+  preset: PresetKey;
+  label: string;
+  ariaLabel: string;
+  fingerVar: string;
+};
+
+const LEFT_HAND_COLUMNS: VerticalColumnOption[] = [
+  {
+    preset: "verticalColumn-leftPinky",
+    label: "pinky",
+    ariaLabel: "Drill left pinky column",
+    fingerVar: "--color-kerf-finger-l-pinky",
+  },
+  {
+    preset: "verticalColumn-leftRing",
+    label: "ring",
+    ariaLabel: "Drill left ring column",
+    fingerVar: "--color-kerf-finger-l-ring",
+  },
+  {
+    preset: "verticalColumn-leftMiddle",
+    label: "middle",
+    ariaLabel: "Drill left middle column",
+    fingerVar: "--color-kerf-finger-l-middle",
+  },
+  {
+    preset: "verticalColumn-leftIndexOuter",
+    label: "index (outer)",
+    ariaLabel: "Drill left index outer column",
+    fingerVar: "--color-kerf-finger-l-index",
+  },
+  {
+    preset: "verticalColumn-leftIndexInner",
+    label: "index (inner)",
+    ariaLabel: "Drill left index inner column",
+    fingerVar: "--color-kerf-finger-l-index",
+  },
+];
+
+const RIGHT_HAND_COLUMNS: VerticalColumnOption[] = [
+  {
+    preset: "verticalColumn-rightPinky",
+    label: "pinky",
+    ariaLabel: "Drill right pinky column",
+    fingerVar: "--color-kerf-finger-r-pinky",
+  },
+  {
+    preset: "verticalColumn-rightRing",
+    label: "ring",
+    ariaLabel: "Drill right ring column",
+    fingerVar: "--color-kerf-finger-r-ring",
+  },
+  {
+    preset: "verticalColumn-rightMiddle",
+    label: "middle",
+    ariaLabel: "Drill right middle column",
+    fingerVar: "--color-kerf-finger-r-middle",
+  },
+  {
+    preset: "verticalColumn-rightIndexOuter",
+    label: "index (outer)",
+    ariaLabel: "Drill right index outer column",
+    fingerVar: "--color-kerf-finger-r-index",
+  },
+  {
+    preset: "verticalColumn-rightIndexInner",
+    label: "index (inner)",
+    ariaLabel: "Drill right index inner column",
+    fingerVar: "--color-kerf-finger-r-index",
+  },
 ];
 
 export function DrillPreSessionStage({
@@ -182,16 +242,42 @@ export function DrillPreSessionStage({
           </span>
           <fieldset className="kerf-vertical-column-picker">
             <legend className="sr-only">Pick a column</legend>
-            {VERTICAL_COLUMN_OPTIONS.map(({ preset, label }) => (
-              <button
-                key={preset}
-                type="button"
-                className="kerf-vertical-column-btn"
-                onClick={() => onSelectPreset(preset)}
-              >
-                {label}
-              </button>
-            ))}
+            <div className="kerf-vertical-column-group">
+              <span aria-hidden className="kerf-vertical-column-hand">
+                left hand
+              </span>
+              {LEFT_HAND_COLUMNS.map(({ preset, label, ariaLabel, fingerVar }) => (
+                <button
+                  key={preset}
+                  type="button"
+                  className="kerf-vertical-column-btn"
+                  onClick={() => onSelectPreset(preset)}
+                  aria-label={ariaLabel}
+                  style={{ "--kerf-finger-dot": `var(${fingerVar})` } as CSSProperties}
+                >
+                  <span aria-hidden className="kerf-vertical-column-dot" />
+                  <span className="kerf-vertical-column-label">{label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="kerf-vertical-column-group">
+              <span aria-hidden className="kerf-vertical-column-hand">
+                right hand
+              </span>
+              {RIGHT_HAND_COLUMNS.map(({ preset, label, ariaLabel, fingerVar }) => (
+                <button
+                  key={preset}
+                  type="button"
+                  className="kerf-vertical-column-btn"
+                  onClick={() => onSelectPreset(preset)}
+                  aria-label={ariaLabel}
+                  style={{ "--kerf-finger-dot": `var(${fingerVar})` } as CSSProperties}
+                >
+                  <span aria-hidden className="kerf-vertical-column-dot" />
+                  <span className="kerf-vertical-column-label">{label}</span>
+                </button>
+              ))}
+            </div>
           </fieldset>
         </div>
       </div>

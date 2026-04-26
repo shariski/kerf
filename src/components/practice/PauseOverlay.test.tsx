@@ -8,6 +8,7 @@ const SETTINGS: PauseSettings = {
   typingSize: "M",
   showKeyboard: true,
   expectedLetterHint: true,
+  focusedKeyHint: true,
 };
 
 afterEach(() => cleanup());
@@ -83,5 +84,27 @@ describe("PauseOverlay", () => {
     const overlay = container.querySelector(".kerf-pause-overlay");
     expect(overlay?.getAttribute("role")).toBe("dialog");
     expect(overlay?.getAttribute("aria-modal")).toBe("true");
+  });
+
+  it("toggles focusedKeyHint via the on/off pills", () => {
+    const onSettingsChange = vi.fn();
+    const { getByText } = render(
+      <PauseOverlay
+        settings={SETTINGS}
+        onSettingsChange={onSettingsChange}
+        onResume={() => {}}
+        onRestart={() => {}}
+        onEnd={() => {}}
+      />,
+    );
+    // Find the row by its label, then click the Off pill within that row.
+    const row = getByText("Focused-letter hint").closest(".kerf-pause-setting-row");
+    if (!row) throw new Error("Focused-letter hint row not found");
+    const offPill = Array.from(row.querySelectorAll("button")).find(
+      (b) => b.textContent === "Off",
+    );
+    if (!offPill) throw new Error("Off pill not found in Focused-letter hint row");
+    fireEvent.click(offPill);
+    expect(onSettingsChange).toHaveBeenCalledWith({ ...SETTINGS, focusedKeyHint: false });
   });
 });

@@ -121,7 +121,12 @@ function HourChart({ buckets }: { buckets: readonly HourBucket[] }) {
       </header>
       <div style={{ height: CHART_HEIGHT }}>
         {isClient ? (
-          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            minWidth={0}
+            initialDimension={{ width: 1, height: CHART_HEIGHT }}
+          >
             <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
               <Bar
                 dataKey="wpm"
@@ -166,7 +171,12 @@ function DayOfWeekChart({ buckets }: { buckets: readonly DayOfWeekBucket[] }) {
       </header>
       <div style={{ height: CHART_HEIGHT }}>
         {isClient ? (
-          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            minWidth={0}
+            initialDimension={{ width: 1, height: CHART_HEIGHT }}
+          >
             <BarChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>
               <Bar
                 dataKey="wpm"

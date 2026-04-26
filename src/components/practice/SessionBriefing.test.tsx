@@ -57,4 +57,37 @@ describe("SessionBriefing", () => {
     );
     expect(container.textContent).not.toMatch(/target met|target missed|amazing|crushing|!!/i);
   });
+
+  it("does not render Back button when onBack is omitted", () => {
+    render(<SessionBriefing target={target} briefingText={briefingText} onStart={() => {}} />);
+    expect(screen.queryByRole("button", { name: /back/i })).toBeNull();
+  });
+
+  it("renders Back button and calls onBack when provided", () => {
+    const onBack = vi.fn();
+    render(
+      <SessionBriefing
+        target={target}
+        briefingText={briefingText}
+        onStart={() => {}}
+        onBack={onBack}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /back/i }));
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it("Escape calls onBack when provided (mirrors tab-switch auto-cancel)", () => {
+    const onBack = vi.fn();
+    render(
+      <SessionBriefing
+        target={target}
+        briefingText={briefingText}
+        onStart={() => {}}
+        onBack={onBack}
+      />,
+    );
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onBack).toHaveBeenCalled();
+  });
 });

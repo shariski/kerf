@@ -22,43 +22,51 @@ export function IntentEchoBlock({ sessionTarget, perKeyBreakdown, nextTargetPrev
   }
 
   return (
-    <>
+    <section className="kerf-intent-echo" aria-label="Intent recap">
       {sessionTarget && (
-        <section className="space-y-2 mb-6">
-          <p className="text-sm text-kerf-text-secondary">You targeted:</p>
-          <p className="text-lg text-kerf-text-primary">{sessionTarget.label}</p>
-        </section>
+        <div className="kerf-intent-echo-block">
+          <div className="kerf-intent-echo-eyebrow">you targeted</div>
+          <div className="kerf-intent-echo-target">{sessionTarget.label}</div>
+        </div>
       )}
 
       {perKeyBreakdown && perKeyBreakdown.length > 0 && (
-        <section className="mb-6">
-          <h3 className="text-sm text-kerf-text-secondary mb-2">How it went on those keys</h3>
-          <table className="w-full text-sm">
-            <tbody>
-              {perKeyBreakdown.map((row) => (
-                <tr key={row.key}>
-                  <td className="font-mono text-kerf-text-primary pr-4">
-                    {row.key === " " ? "space" : row.key.toUpperCase()}
-                  </td>
-                  <td className="text-kerf-text-secondary">
-                    {(row.accuracy * 100).toFixed(0)}% accuracy · {row.attempts} attempts
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <div className="kerf-intent-echo-block">
+          <div className="kerf-intent-echo-eyebrow">how it went on those keys</div>
+          <ul className="kerf-intent-echo-key-list">
+            {perKeyBreakdown.map((row) => (
+              <li key={row.key} className="kerf-intent-echo-key-row">
+                <span className="kerf-intent-echo-key-cap" aria-hidden>
+                  {row.key === " " ? "␣" : row.key.toUpperCase()}
+                </span>
+                <span className="sr-only">
+                  Key {row.key === " " ? "space" : row.key.toUpperCase()}:
+                </span>
+                <span className="kerf-intent-echo-key-acc">{(row.accuracy * 100).toFixed(0)}%</span>
+                <span className="kerf-intent-echo-key-acc-label">accuracy</span>
+                <span className="kerf-intent-echo-key-sep" aria-hidden>
+                  ·
+                </span>
+                <span className="kerf-intent-echo-key-attempts">
+                  {row.attempts} attempt{row.attempts === 1 ? "" : "s"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {nextTargetPreview && (
-        <section className="mb-6">
-          <p className="text-sm text-kerf-text-secondary">
-            Next session will likely focus on:{" "}
-            <span className="text-kerf-text-primary">{nextTargetPreview}</span>. You can override by
-            picking a drill mode.
-          </p>
-        </section>
+        <div className="kerf-intent-echo-block">
+          <div className="kerf-intent-echo-eyebrow">next focus</div>
+          <div className="kerf-intent-echo-next">
+            <span className="kerf-intent-echo-next-value">{nextTargetPreview}</span>
+            <span className="kerf-intent-echo-next-note">
+              you can override by picking a drill mode
+            </span>
+          </div>
+        </div>
       )}
-    </>
+    </section>
   );
 }
