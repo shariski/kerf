@@ -32,8 +32,10 @@ export function AppFooter() {
         {LINKS.map((link, i) => (
           <span key={link.to} className="kerf-app-footer-cell">
             {link.kind === "internal" ? (
-              // biome-ignore lint/suspicious/noExplicitAny: /contact route registered in Task 2; cast avoids premature route-registration dependency
-              <Link to={link.to as any} className="kerf-app-footer-link">
+              // `as string` widens past TanStack Router's registered-routes union;
+              // /contact lands in routeTree.gen.ts via Task 2 (a sibling change in
+              // this same PR), so the narrow type would force a circular ordering.
+              <Link to={link.to as string} className="kerf-app-footer-link">
                 {link.label}
               </Link>
             ) : (
