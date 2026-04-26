@@ -52,14 +52,13 @@ export const auth = betterAuth({
    * better-auth/dist/api/rate-limiter/index.mjs:131. The path is
    * relative to the auth handler's mount point, not the full URL.
    *
-   * IMPORTANT — deployment dependency: the limiter buckets per client
-   * IP via getIp(req). Behind a reverse proxy (nginx/Caddy/Cloudflare)
-   * every request looks like it's from the proxy unless Better Auth
-   * is told which header carries the real client IP. When deploying,
-   * also set advanced.ipAddress.ipAddressHeaders to whatever your
-   * proxy uses (typically ["x-forwarded-for"] or
-   * ["cf-connecting-ip"]). Without it, every request shares one
-   * bucket and the limit becomes app-wide instead of per-IP.
+   * Reverse-proxy note: the limiter buckets per client IP via
+   * getIp(req). Behind a proxy (nginx/Caddy/Cloudflare) every request
+   * looks like it's from the proxy unless Better Auth is told which
+   * header carries the real client IP — see advanced.ipAddress below.
+   * If your proxy uses a non-standard header (e.g. cf-connecting-ip),
+   * extend that list. In dev the header is absent and Better Auth
+   * falls back to the socket address.
    *
    * enabled: defers to Better Auth's default (on in prod, off in dev)
    * so iterating on the login page locally doesn't trip the limiter.
@@ -87,6 +86,13 @@ export const auth = betterAuth({
     // the other auth_* tables use text ids, and UUID strings fit fine there.
     database: {
       generateId: () => crypto.randomUUID(),
+    },
+    // Trust X-Forwarded-For for client-IP derivation. Without this the
+    // rate-limiter buckets every request through the reverse proxy as
+    // a single IP — see the `rateLimit` block above. Falls back to the
+    // socket address when the header is absent (i.e. dev).
+    ipAddress: {
+      ipAddressHeaders: ["x-forwarded-for"],
     },
   },
   emailAndPassword: { enabled: false },

@@ -1,0 +1,80 @@
+# kerf — production compose file.
+#
+# Two long-running services + one one-shot. Both long-running services
+# read secrets from `.env` (NEVER committed; copy `.env.production.example`
+# on the VPS and populate). The reverse proxy (Caddy/Nginx) is expected
+# to live on the host, not in compose — `app` binds to 127.0.0.1 only,
+# so direct internet access is impossible without going through it.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: kerf:latest
+    restart: unless-stopped
+    env_file: .env
+    # Bind to localhost only — host reverse proxy fronts the public domain.
+    # If you ever expose this directly (no proxy), change to "0.0.0.0:3000:3000"
+    # and rely on the firewall (ufw) to restrict.
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://127.0.0.1:3000/api/health
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: .env
+    # Pinned again here so postgres rejects an empty .env — silent
+    # fallback to insecure defaults would be worse than a startup error.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - kerf_postgres_prod_data:/var/lib/postgresql/data
+      # Bind-mount for backups — see scripts/backup-db.sh (PR #3).
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One-shot migration runner. Profile-gated so `docker compose up`
+  # never accidentally triggers a migration. Run explicitly:
+  #
+  #   docker compose --profile migrate run --rm migrate
+  #
+  # Uses the `build` Dockerfile target which still has dev deps
+  # (drizzle-kit) and the source tree, neither of which are present in
+  # the lean `runtime` image.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build
+    env_file: .env
+    command: ["pnpm", "db:migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["migrate"]
+
+volumes:
+  kerf_postgres_prod_data:

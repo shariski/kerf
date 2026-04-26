@@ -24,6 +24,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PracticeDrillRouteImport } from './routes/practice_.drill'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const WhySplitIsHardRoute = WhySplitIsHardRouteImport.update({
@@ -101,6 +102,11 @@ const PracticeDrillRoute = PracticeDrillRouteImport.update({
   path: '/practice/drill',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/why-split-is-hard': typeof WhySplitIsHardRoute
+  '/api/health': typeof ApiHealthRoute
   '/practice/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/why-split-is-hard': typeof WhySplitIsHardRoute
+  '/api/health': typeof ApiHealthRoute
   '/practice/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/why-split-is-hard': typeof WhySplitIsHardRoute
+  '/api/health': typeof ApiHealthRoute
   '/practice_/drill': typeof PracticeDrillRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/welcome'
     | '/why-split-is-hard'
+    | '/api/health'
     | '/practice/drill'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/welcome'
     | '/why-split-is-hard'
+    | '/api/health'
     | '/practice/drill'
     | '/api/auth/$'
   id:
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/welcome'
     | '/why-split-is-hard'
+    | '/api/health'
     | '/practice_/drill'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -234,6 +246,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WelcomeRoute: typeof WelcomeRoute
   WhySplitIsHardRoute: typeof WhySplitIsHardRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   PracticeDrillRoute: typeof PracticeDrillRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -345,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticeDrillRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -370,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WelcomeRoute: WelcomeRoute,
   WhySplitIsHardRoute: WhySplitIsHardRoute,
+  ApiHealthRoute: ApiHealthRoute,
   PracticeDrillRoute: PracticeDrillRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

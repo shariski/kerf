@@ -1,0 +1,75 @@
+# Build context filter for `docker build`.
+#
+# Goal: ship the smallest possible context to the daemon and prevent
+# secrets / dev tooling from ending up in any image layer. Errs on the
+# side of excluding — `pnpm install` + `pnpm build` rebuild everything
+# the runtime needs from package.json, pnpm-lock.yaml, and src/.
+
+# ── Dependency outputs (rebuilt in container) ─────────────────────
+node_modules
+.pnpm-store
+
+# ── Build outputs (rebuilt in container) ──────────────────────────
+dist
+.tanstack
+.nitro
+.output
+.vinxi
+
+# ── Secrets — NEVER ship into image layers ────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Local tooling state ───────────────────────────────────────────
+.claude
+.kiro
+.serena
+.superpowers
+.playwright-mcp
+.code-review-graph
+.vscode
+.idea
+
+# ── Source-control + CI metadata ──────────────────────────────────
+.git
+.gitignore
+.git-blame-ignore-revs
+.dockerignore
+
+# ── Working trees + local checkouts ───────────────────────────────
+.worktrees
+
+# ── Test + report artifacts ───────────────────────────────────────
+test-results
+playwright-report
+coverage
+audit-*.png
+t2-*.png
+t3-*.png
+t4-*.png
+t6-*.png
+t7-*.png
+logo-fix-verify.png
+*.log
+
+# ── Tests are not needed for the prod build ───────────────────────
+tests
+
+# ── Docs / design / repo prose ────────────────────────────────────
+docs
+design
+README.md
+CHANGELOG.md
+LICENSE
+NOTES.md
+AGENTS.md
+CLAUDE.md
+
+# ── OS junk ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Stray lockfiles from accidental npm/yarn invocations ──────────
+package-lock.json
+yarn.lock
