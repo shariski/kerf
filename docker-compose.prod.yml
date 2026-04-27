@@ -105,7 +105,7 @@ networks:
   # a placeholder; common alternatives: `nginx-proxy`, `proxy`.
   web:
     external: true
-    name: web
+    name: deploy_web
   # Private compose-managed network for app ↔ postgres ↔ migrate
   # traffic. Declared explicitly so each service's `networks:` list
   # can reference it by name.
