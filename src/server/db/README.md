@@ -34,7 +34,7 @@ Expected: `postgres` service shows `healthy`.
 ### 3. Apply migrations
 
 ```bash
-npm run db:migrate
+pnpm run db:migrate
 ```
 
 This creates all tables in the `kerf_dev` database.
@@ -42,7 +42,7 @@ This creates all tables in the `kerf_dev` database.
 ### 4. Seed word corpus
 
 ```bash
-npm run db:seed
+pnpm run db:seed
 ```
 
 Downloads ~8,500 words from the Google 10k English list and inserts them into `word_corpus`. Takes ~10 seconds on a normal connection.
@@ -73,7 +73,7 @@ Expected: `count` ≈ 8500.
 docker compose -f docker-compose.dev.yml up -d
 
 # Start dev server
-npm run dev
+pnpm run dev
 ```
 
 ## Generating new migrations
@@ -81,8 +81,8 @@ npm run dev
 After modifying `src/server/db/schema.ts`:
 
 ```bash
-npm run db:generate   # generates SQL in src/server/db/migrations/
-npm run db:migrate    # applies to local DB
+pnpm run db:generate   # generates SQL in src/server/db/migrations/
+pnpm run db:migrate    # applies to local DB
 ```
 
 Always commit both the schema change and the generated migration together.
