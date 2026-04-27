@@ -19,6 +19,7 @@ All notable changes to kerf are documented here. Format follows [Keep a Changelo
 - `.github/workflows/build-deploy.yml` — GitHub Actions pipeline that builds the production image on every push to `main`, pushes to GHCR (tagged with the commit SHA + `latest`), scps the compose file to the VPS, and runs migrations + recreates the `app` container over SSH. Concurrency-grouped so deploys never run in parallel; cache-from/to GHA so subsequent builds are warm.
 - `scripts/migrate.mjs` — Drizzle runtime migrator (uses `drizzle-orm/postgres-js/migrator`, no drizzle-kit dependency) so migrations can run from the lean runtime image without shipping the dev toolchain to production.
 - `DEPLOYMENT.md` Step 7.5 — GitHub repo secrets + dedicated deploy SSH keypair instructions; clarifies how to make the GHCR image public on first publish.
+- `scripts/sync-ssr-css.mjs` and `scripts/check-asset-urls.mjs` — post-build steps wired into `pnpm build` after `vite build`. The first realigns the SSR-baked stylesheet URL with the client-emitted CSS file; the second fails the build if any `/assets/*` URL referenced from `dist/server/` does not exist in `dist/client/assets/`.
 
 ### Changed
 
