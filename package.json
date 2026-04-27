@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "build": "vite build && node scripts/sync-ssr-css.mjs && node scripts/check-asset-urls.mjs",
     "start": "node scripts/serve.mjs",
     "preview": "vite preview",
     "test": "vitest run",
