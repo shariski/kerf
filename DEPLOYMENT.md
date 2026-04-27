@@ -14,17 +14,21 @@ What you'll have at the end:
 - kerf running at `https://<your-domain>` on a VPS you control.
 - Postgres in a sibling container, persisted to a named Docker volume,
   with daily gzipped backups dumped to `./backups/`.
-- Reverse proxy (nginx + certbot) handling TLS termination via Let's Encrypt.
+- Reverse proxy via `nginxproxy/nginx-proxy` (Docker) with TLS
+  terminated at a Cloudflare Origin Certificate at the origin.
+  acme-companion runs alongside to handle Let's Encrypt certs for
+  any other domains you host on the same VPS.
 - Magic-link emails delivered through Resend with a verified domain.
 - (Optional) Google + GitHub social login.
+- GitHub Actions builds the production image, pushes to GHCR, and SSHes
+  into the VPS to deploy on every push to `main`.
 
 What this guide assumes:
 
 - You can SSH into a VPS and have `sudo`. Tested against Debian 12 /
   Ubuntu 22.04+, but should work on any modern Linux.
 - You own a domain with DNS you can edit.
-- You're shipping the local checkout — no CI/CD. (Per Task 4.6 in
-  `docs/03-task-breakdown.md`, CI/CD is explicitly out of scope.)
+- You have admin access to the GitHub repo (to add deploy secrets).
 
 ---
 
@@ -39,6 +43,8 @@ Before starting, gather these:
 - [ ] (Optional) GitHub OAuth app — github.com/settings/developers.
 - [ ] A way to receive forwarded mail at `hello@<your-domain>`
   (Cloudflare Email Routing or ImprovMX both work for free).
+- [ ] An SSH key pair dedicated to deploys (do **not** reuse your
+  personal key — see Step 8.5).
 
 ---
 
@@ -66,23 +72,48 @@ Before starting, gather these:
 
 ---
 
-## Step 2 — DNS
+## Step 2 — DNS via Cloudflare
 
-Point the domain at the VPS so TLS issuance works.
+We use Cloudflare for DNS so we can also use their bot detection / WAF
+/ caching layer in front of the VPS, plus their free Email Routing for
+inbound `hello@<domain>` mail (Step 6). The domain itself can stay
+registered wherever you bought it; only the nameservers move.
 
-- [ ] At your DNS provider, add an `A` record:
+- [ ] At Cloudflare: Add a site → enter `typekerf.com` → Free plan.
+      Cloudflare assigns you two nameservers (e.g.
+      `xxx.ns.cloudflare.com`, `yyy.ns.cloudflare.com`) — note them.
 
-      typekerf.com.        A  <VPS-IPv4>
-      www.typekerf.com.    A  <VPS-IPv4>
+- [ ] At your registrar (Hostinger panel → Domains → typekerf.com →
+      DNS / Nameservers): switch from the default nameservers to the
+      two Cloudflare ones. Save.
+
+- [ ] Wait for Cloudflare to detect the change and flip the site to
+      "Active" in their dashboard. Usually < 1 hour, max 24h. Don't
+      add DNS records below until activation is green — records added
+      pre-activation can land in the wrong zone.
+
+- [ ] Once active, in Cloudflare → DNS → Records, add:
+
+      typekerf.com.        A     <VPS-IPv4>     Proxied (orange cloud)
+      www.typekerf.com.    A     <VPS-IPv4>     Proxied (orange cloud)
 
   (Add `AAAA` records if your VPS has IPv6.)
 
-- [ ] Wait for propagation, then sanity-check from your laptop:
+  **Proxied (orange cloud) is required** — without it, Cloudflare is
+  just a DNS provider and you lose the WAF / bot-fight / caching that
+  motivated this setup.
+
+- [ ] Sanity-check from your laptop:
 
       dig +short typekerf.com
 
-  Should return your VPS IP. (If it doesn't, give it 5–30 minutes —
-  most DNS hosts are fast, but Namecheap-style budget hosts are slow.)
+  When proxied, this returns Cloudflare anycast IPs, **not** your VPS
+  IP — that's correct. To verify the origin route, use the host header:
+
+      curl -I --resolve typekerf.com:443:<VPS-IPv4> https://typekerf.com/
+
+  (Will 502 until the app is up; that's fine — we just want TLS to
+  negotiate without a cert error.)
 
 ---
 
@@ -98,120 +129,185 @@ Point the domain at the VPS so TLS issuance works.
       sudo ufw --force enable
       sudo ufw status
 
-- The compose file binds the app to `127.0.0.1:3000` only, so
-  port 3000 is *not* exposed publicly even without a firewall rule.
-  Belt + suspenders.
+- The compose file uses `expose: 3000` (Docker-network only — no host
+  port binding), so port 3000 is unreachable from outside Docker
+  regardless of firewall state. nginx-proxy reaches the app over the
+  shared `webproxy` Docker network. Belt + suspenders.
 
 ---
 
-## Step 4 — Reverse proxy + TLS (nginx)
+## Step 4 — Reverse proxy: nginx-proxy + acme-companion
 
-nginx + certbot is the standard pattern on Debian/Ubuntu. Fastest
-path: install nginx, drop in a basic HTTP-only server block that
-proxies to the app on `127.0.0.1:3000`, then run certbot to add TLS
-and the HTTP→HTTPS redirect automatically.
+We use the [`nginxproxy/nginx-proxy`](https://github.com/nginx-proxy/nginx-proxy)
++ [`nginxproxy/acme-companion`](https://github.com/nginx-proxy/acme-companion)
+stack — auto-routing reverse proxy for Docker. App containers declare
+`VIRTUAL_HOST=foo.com` env vars; nginx-proxy generates the vhost and
+routes traffic. acme-companion provisions Let's Encrypt certs for any
+container that also sets `LETSENCRYPT_HOST`.
 
-- [ ] Install nginx + certbot:
+For typekerf.com specifically we **skip Let's Encrypt** and use a
+Cloudflare Origin Certificate instead (Step 5). acme-companion stays
+running to handle other domains on the VPS.
 
-      sudo apt -y install nginx certbot python3-certbot-nginx
+If you don't already have nginx-proxy running, set it up in its own
+directory (sibling to `/opt/kerf`, not inside it).
 
-- [ ] Create `/etc/nginx/sites-available/kerf` with:
+- [ ] Pick a directory:
 
-      server {
-          listen 80;
-          listen [::]:80;
-          server_name typekerf.com www.typekerf.com;
+      sudo mkdir -p /opt/proxy && sudo chown "$USER:$USER" /opt/proxy
+      cd /opt/proxy
 
-          gzip on;
-          gzip_types text/html application/json text/css application/javascript image/svg+xml;
+- [ ] Create `/opt/proxy/docker-compose.yml`. Note the bind-mounted
+      `./certs` — that's so dropping a Cloudflare Origin Cert in
+      Step 5 is just `cp` to a known host path:
 
-          location / {
-              proxy_pass http://127.0.0.1:3000;
-              proxy_http_version 1.1;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              # X-Forwarded-For is required — the better-auth rate
-              # limiter buckets per real client IP via this header
-              # (see src/server/auth.ts advanced.ipAddress). Without
-              # this line every request looks like it's from the
-              # nginx host and the per-IP cap collapses into an
-              # app-wide cap.
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-Forwarded-Proto $scheme;
-              # WebSocket upgrade headers — not used by kerf today,
-              # cheap to include for future-proofing.
-              proxy_set_header Upgrade $http_upgrade;
-              proxy_set_header Connection "upgrade";
-          }
-      }
+      services:
+        nginx-proxy:
+          image: nginxproxy/nginx-proxy:1.6
+          restart: unless-stopped
+          ports:
+            - "80:80"
+            - "443:443"
+          volumes:
+            - ./certs:/etc/nginx/certs
+            - vhost:/etc/nginx/vhost.d
+            - html:/usr/share/nginx/html
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+          networks:
+            - webproxy
 
-- [ ] Activate the site + drop the default:
+        acme-companion:
+          image: nginxproxy/acme-companion:2.4
+          restart: unless-stopped
+          depends_on:
+            - nginx-proxy
+          volumes:
+            - ./certs:/etc/nginx/certs
+            - vhost:/etc/nginx/vhost.d
+            - html:/usr/share/nginx/html
+            - acme:/etc/acme.sh
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+          environment:
+            DEFAULT_EMAIL: you@example.com
+            NGINX_PROXY_CONTAINER: nginx-proxy
 
-      sudo ln -s /etc/nginx/sites-available/kerf /etc/nginx/sites-enabled/kerf
-      sudo rm /etc/nginx/sites-enabled/default
-      sudo nginx -t              # syntax check
-      sudo systemctl reload nginx
+      volumes:
+        vhost:
+        html:
+        acme:
 
-- [ ] Issue the Let's Encrypt cert + auto-add the HTTPS redirect
-      (certbot edits the nginx config in place):
+      networks:
+        webproxy:
+          name: webproxy
 
-      sudo certbot --nginx -d typekerf.com -d www.typekerf.com
+- [ ] Create the bind-mount target:
 
-  When prompted, choose option **2** to redirect all HTTP traffic to
-  HTTPS. Auto-renewal is set up via a systemd timer — verify with:
+      mkdir -p /opt/proxy/certs
 
-      systemctl list-timers | grep certbot
+- [ ] Bring it up:
 
-- [ ] From your laptop:
+      cd /opt/proxy
+      docker compose up -d
+      docker compose ps         # both containers running
+
+- [ ] Confirm the network name and update `docker-compose.prod.yml` in
+      the kerf repo if needed. The kerf compose file ships with
+      `name: webproxy` — if you used a different name above, edit
+      both `networks.webproxy.name` and the matching service entries:
+
+      docker network ls | grep -i proxy
+
+- [ ] If `X-Forwarded-For` is critical for the better-auth rate limiter
+      (see `src/server/auth.ts` `advanced.ipAddress`), nginx-proxy sets
+      it correctly by default — no extra config needed. Verify after
+      first deploy with a request and check that the limiter buckets
+      per IP, not globally.
+
+---
+
+## Step 5 — TLS via Cloudflare Origin Certificate
+
+Cloudflare in proxy mode (orange cloud) terminates browser TLS at its
+edge and re-encrypts to the origin. The origin needs a cert; we use a
+**Cloudflare Origin Certificate**, which CF issues for free, valid only
+for CF↔origin (browsers never see it) and good for 15 years.
+
+This sidesteps Let's Encrypt entirely for typekerf.com — no HTTP-01
+challenge to worry about, no 60-day renewal cron. acme-companion keeps
+running for other domains; we just don't enroll typekerf.com with it.
+
+- [ ] In Cloudflare → SSL/TLS → Overview, set encryption mode to
+      **Full (strict)**. (Anything less either accepts self-signed
+      certs at origin or sends plaintext over the public internet.)
+
+- [ ] Cloudflare → SSL/TLS → Origin Server → Create Certificate.
+      Defaults are fine: RSA 2048, hostnames `typekerf.com` +
+      `*.typekerf.com`, 15-year validity. Click Create.
+
+- [ ] Cloudflare shows you the **Origin Certificate** (`.pem`) and the
+      **Private Key** **once**. Copy both into your clipboard before
+      closing — they're not retrievable later.
+
+- [ ] On the VPS, drop the cert + key into `/opt/proxy/certs/` (the
+      directory you bind-mounted in Step 4). **Filenames must match
+      the `VIRTUAL_HOST` exactly** — that's how nginx-proxy auto-binds
+      certs to vhosts:
+
+      sudo $EDITOR /opt/proxy/certs/typekerf.com.crt   # paste the .pem cert
+      sudo $EDITOR /opt/proxy/certs/typekerf.com.key   # paste the private key
+      sudo chmod 600 /opt/proxy/certs/typekerf.com.key
+
+- [ ] Restart nginx-proxy to pick up the cert (it re-scans the certs
+      dir on startup; subsequent picks are auto-triggered when proxied
+      containers start):
+
+      docker compose -f /opt/proxy/docker-compose.yml restart nginx-proxy
+
+- [ ] Smoke-test from your laptop:
 
       curl -I https://typekerf.com/
-      # → 502 Bad Gateway is expected — nginx is up but kerf isn't
-      #   running yet. Cert chain should validate (no warning).
-
-### Caddy alternative
-
-Caddy is a one-block config and auto-issues + auto-renews Let's
-Encrypt certs without certbot. If you'd rather use it, install per
-<https://caddyserver.com/docs/install> and replace `/etc/caddy/Caddyfile`:
-
-    typekerf.com, www.typekerf.com {
-        encode gzip zstd
-        reverse_proxy 127.0.0.1:3000
-    }
-
-Caddy forwards `X-Forwarded-For` by default, so no extra config is
-needed for the rate limiter to work.
+      # → 502 Bad Gateway (kerf not up yet — TLS negotiating cleanly
+      #   through Cloudflare is what we're checking here)
 
 ---
 
-## Step 5 — Email (Resend)
+## Step 6 — Outbound email (Resend)
 
 - [ ] Sign up at <https://resend.com> (free tier: 3,000/month).
-- [ ] Paste the API key — you'll add it to `.env` in Step 8.
+- [ ] Paste the API key — you'll add it to `.env` in Step 9.
 - [ ] **Verify your sending domain** at <https://resend.com/domains>:
-      add the SPF + DKIM TXT records to your DNS provider, then click
-      "Verify" in the Resend dashboard. Until verified, real sends are
+      add the SPF + DKIM TXT records to **Cloudflare → DNS → Records**
+      (since Cloudflare is now your DNS provider), then click "Verify"
+      in the Resend dashboard. Until verified, real sends are
       restricted to `onboarding@resend.dev`.
 - [ ] Once verified, your `EMAIL_FROM` can use the branded address —
       e.g. `kerf <hello@typekerf.com>`. No code change is needed;
       `src/server/email/send.ts` reads this env var with the sandbox
       sender as the default fallback.
 
-## Step 6 — Inbound mail forwarding
+## Step 7 — Inbound mail (Cloudflare Email Routing)
 
 The `/contact` page surfaces `hello@<your-domain>`. You need that
-address to actually receive mail.
+address to actually receive mail. Cloudflare Email Routing forwards
+inbound mail to a real inbox of yours, and since DNS is already at
+Cloudflare it's the path of least resistance.
 
-- [ ] Configure email forwarding for `hello@typekerf.com` →
-      your personal inbox. Cloudflare Email Routing (free, requires
-      Cloudflare-managed DNS) and ImprovMX (free tier) are both
-      reasonable choices.
-- [ ] Consider also setting up `support@typekerf.com` as an alias to
-      the same inbox so users who guess that pattern don't dead-end.
+- [ ] Cloudflare → Email → Email Routing → Get started.
+- [ ] Add a destination address (e.g. your personal Gmail). Cloudflare
+      sends a verification email; click through.
+- [ ] Add a routing rule: `hello@typekerf.com` → that destination.
+      Add `support@typekerf.com` too if you want — saves users who
+      guess that pattern from dead-ending.
+- [ ] Cloudflare auto-adds the required MX records and an SPF TXT
+      record. Verify both landed under DNS → Records.
+- [ ] Important: the Email Routing SPF record will coexist with the
+      Resend SPF record from Step 6. Cloudflare merges them into a
+      single TXT value automatically. If you ever see two separate
+      `v=spf1 ...` records on the apex, that's wrong — flatten them.
 
 ---
 
-## Step 7 — OAuth providers (optional)
+## Step 8 — OAuth providers (optional)
 
 Skip this section if you only want magic-link auth at launch — magic-link
 works without any of these creds. Add providers later if you want them.
@@ -222,7 +318,7 @@ works without any of these creds. Add providers later if you want them.
 - [ ] Application type: Web application.
 - [ ] Authorized redirect URI: `https://typekerf.com/api/auth/callback/google`
       (and `http://localhost:3000/api/auth/callback/google` for dev).
-- [ ] Copy Client ID + Client Secret — they go in `.env` next step.
+- [ ] Copy Client ID + Client Secret — they go in `.env` in Step 9.
 
 ### GitHub
 
@@ -232,7 +328,54 @@ works without any of these creds. Add providers later if you want them.
 
 ---
 
-## Step 8 — Application secrets
+## Step 8.5 — GitHub repo secrets + deploy SSH key
+
+CI builds the image and SSHes into the VPS to deploy. That requires a
+dedicated keypair and three repo secrets.
+
+- [ ] On your laptop, generate a key pair just for deploys (no passphrase
+      so the workflow can use it non-interactively):
+
+      ssh-keygen -t ed25519 -f ~/.ssh/kerf_deploy -C "kerf-deploy" -N ""
+
+- [ ] Copy the **public** half to the VPS, into the deploy user's
+      `~/.ssh/authorized_keys`:
+
+      ssh-copy-id -i ~/.ssh/kerf_deploy.pub "$DEPLOY_USER@$VPS_HOST"
+
+  (The deploy user must already be in the `docker` group from Step 1.)
+
+- [ ] Verify the key works:
+
+      ssh -i ~/.ssh/kerf_deploy "$DEPLOY_USER@$VPS_HOST" "docker version"
+
+- [ ] In GitHub: repo → Settings → Secrets and variables → Actions →
+      New repository secret. Add three:
+
+      DEPLOY_HOST     <VPS hostname or IP>
+      DEPLOY_USER     <ssh username, e.g. deploy>
+      DEPLOY_SSH_KEY  <contents of ~/.ssh/kerf_deploy — the PRIVATE half>
+
+  Paste the private key including the `-----BEGIN OPENSSH PRIVATE
+  KEY-----` and `-----END OPENSSH PRIVATE KEY-----` lines and the
+  trailing newline.
+
+- [ ] After CI's first push to GHCR (Step 10), make the published image
+      **public** so the VPS can pull without authenticating:
+
+      GitHub → your profile → Packages → kerf → Package settings →
+      Change visibility → Public
+
+  (Skip this if you'd rather keep the image private. You'll then need
+  to `docker login ghcr.io` on the VPS with a PAT scoped to
+  `read:packages`.)
+
+---
+
+## Step 9 — VPS application directory
+
+The VPS holds only configuration — `.env`, the compose file (kept fresh
+by CI), and the backups directory. No source tree, no `git clone`.
 
 - [ ] Pick a directory on the VPS:
 
@@ -240,19 +383,18 @@ works without any of these creds. Add providers later if you want them.
       sudo chown "$USER:$USER" /opt/kerf
       cd /opt/kerf
 
-- [ ] Clone the repo (or `rsync` from your laptop — either works):
-
-      git clone https://github.com/shariski/kerf.git .
-
 - [ ] Generate fresh secrets:
 
       openssl rand -base64 32   # → AUTH_SECRET
       openssl rand -base64 32   # → POSTGRES_PASSWORD
 
-- [ ] Copy the template and edit:
+- [ ] From your laptop, copy the env template up:
 
-      cp .env.production.example .env
-      $EDITOR .env
+      scp .env.production.example "$DEPLOY_USER@$VPS_HOST:/opt/kerf/.env"
+
+  Then on the VPS, edit:
+
+      $EDITOR /opt/kerf/.env
 
   Fill in:
   - `POSTGRES_PASSWORD` (the one you just generated)
@@ -261,43 +403,62 @@ works without any of these creds. Add providers later if you want them.
   - `AUTH_URL=https://typekerf.com`
   - `RESEND_API_KEY`
   - `EMAIL_FROM=kerf <hello@typekerf.com>` (after Resend domain verified)
-  - `GOOGLE_*` / `GITHUB_*` if Step 7 was done
+  - `GOOGLE_*` / `GITHUB_*` if Step 8 was done
 
 - [ ] Lock the file down:
 
-      chmod 600 .env
+      chmod 600 /opt/kerf/.env
+
+- [ ] Create the backups directory (the compose file bind-mounts it):
+
+      mkdir -p /opt/kerf/backups
+
+- [ ] One-time-only: scp the compose file from your laptop checkout so
+      the very first deploy has something to run against. CI will
+      keep it fresh after that:
+
+      scp docker-compose.prod.yml "$DEPLOY_USER@$VPS_HOST:/opt/kerf/"
 
 ---
 
-## Step 9 — First deploy
+## Step 10 — First deploy
 
-The compose file separates `postgres`, `app`, and a profile-gated
-`migrate` one-shot. Order matters on first run:
+Trigger the workflow once to build and push the initial image and run
+the deploy end-to-end.
 
-- [ ] Bring up postgres alone first so it can initialize:
+- [ ] Push to `main` (or use Actions → "build and deploy" → Run workflow)
+      and watch the run in the GitHub Actions UI.
 
-      docker compose -f docker-compose.prod.yml up -d postgres
-      docker compose -f docker-compose.prod.yml ps  # wait for "healthy"
+- [ ] If the image push succeeded but the package is still private,
+      make it public per Step 8.5 and re-run the deploy job.
 
-- [ ] Run migrations (one-shot, exits when done):
+- [ ] When the workflow completes, ssh to the VPS and confirm both
+      services are up:
 
-      docker compose -f docker-compose.prod.yml --profile migrate run --rm migrate
-
-  This builds the `build` Dockerfile target (which has drizzle-kit)
-  and applies every migration in `src/server/db/migrations/`.
-
-- [ ] Build + start the app:
-
-      docker compose -f docker-compose.prod.yml up -d --build app
+      ssh "$DEPLOY_USER@$VPS_HOST"
+      cd /opt/kerf
+      docker compose -f docker-compose.prod.yml ps
+      # app: running (healthy), postgres: running (healthy)
 
 - [ ] Watch logs until you see the listen line:
 
       docker compose -f docker-compose.prod.yml logs -f app
       # → "Listening on: http://localhost:3000/ (all interfaces)"
 
+The CI workflow does the equivalent of:
+
+    docker compose -f docker-compose.prod.yml pull app postgres
+    docker compose -f docker-compose.prod.yml --profile migrate run --rm migrate
+    docker compose -f docker-compose.prod.yml up -d app
+    docker image prune -f
+
+If you ever need to deploy by hand (CI down, debugging), `cd /opt/kerf`
+and run those commands. `IMAGE_TAG=latest` is the implicit default; set
+`IMAGE_TAG=<short-sha>` to pin a specific build.
+
 ---
 
-## Step 10 — Smoke test
+## Step 11 — Smoke test
 
 - [ ] From your laptop:
 
@@ -322,7 +483,7 @@ The compose file separates `postgres`, `app`, and a profile-gated
 
 ---
 
-## Step 11 — Backups
+## Step 12 — Backups
 
 - [ ] Make the backup script executable (one-time):
 
@@ -369,10 +530,13 @@ For longer retention, see `/etc/docker/daemon.json` and the
 
 ### Updating to a new version
 
-    cd /opt/kerf
-    git pull
-    docker compose -f docker-compose.prod.yml --profile migrate run --rm migrate
-    docker compose -f docker-compose.prod.yml up -d --build app
+Push to `main`. CI builds the image, pushes to GHCR tagged with the
+commit SHA + `latest`, scps the (possibly updated) compose file to the
+VPS, runs pending migrations, and recreates the `app` container against
+the new image.
+
+To redeploy a known-good SHA without code changes (e.g. environment
+hiccup recovery): GitHub → Actions → "build and deploy" → Run workflow.
 
 The migrate step is a no-op if no new migrations exist; safe to run
 every deploy.
@@ -388,13 +552,20 @@ idempotent — it drops existing tables before recreating.
 
 ### Rolling back a release
 
+Every CI build pushes `ghcr.io/<owner>/kerf:<short-sha>` alongside
+`:latest`, so any prior build is one ssh + env-var away:
+
+    ssh "$DEPLOY_USER@$VPS_HOST"
     cd /opt/kerf
-    git checkout <previous-good-tag>
-    docker compose -f docker-compose.prod.yml up -d --build app
+    IMAGE_TAG=<previous-short-sha> docker compose -f docker-compose.prod.yml pull app
+    IMAGE_TAG=<previous-short-sha> docker compose -f docker-compose.prod.yml up -d app
+
+Find the SHA in the Actions history (the build job logs it as
+`short_sha`) or via `gh run list --workflow=build-deploy.yml`.
 
 If the rollback crosses a migration that's already been applied, you
-have to manually craft a down-migration — drizzle-kit doesn't auto-revert.
-This is rare in practice but worth knowing.
+have to manually craft a down-migration — Drizzle's runtime migrator
+doesn't auto-revert. This is rare in practice but worth knowing.
 
 ---
 
@@ -402,13 +573,13 @@ This is rare in practice but worth knowing.
 
 | Symptom | Likely cause |
 |---|---|
-| `502 Bad Gateway` from nginx | App isn't running, or it's bound to the wrong interface. `docker compose ps` to check status; `ss -tlnp \| grep 3000` on the host to confirm something is listening on `127.0.0.1:3000`. |
+| `502 Bad Gateway` from nginx-proxy | App isn't running, or app + nginx-proxy aren't on the same Docker network. `docker compose -f docker-compose.prod.yml ps` to check app status; `docker network inspect <webproxy-name>` and confirm both containers are listed. If `VIRTUAL_HOST` was changed, nginx-proxy needs a restart to regenerate its config. |
 | `[env] DATABASE_URL is required in production` on startup | `.env` not loaded or var unset. Confirm `chmod 600 .env` is in repo root, not under `/opt/kerf/foo/`. |
 | `Error: connect ECONNREFUSED 127.0.0.1:5432` | App tried to reach postgres on `localhost`. Check `DATABASE_URL` hostname is `postgres` (compose service name), not `localhost`. |
 | Magic-link emails go to spam | Resend domain not fully verified. Re-check SPF + DKIM in Resend dashboard. |
 | Magic-link link points to localhost | `AUTH_URL` not set to `https://<your-domain>` in `.env`. |
 | OAuth callback "Mismatch" error | Provider's redirect URI doesn't match `<AUTH_URL>/api/auth/callback/<provider>` exactly. Trailing slashes, `www.` prefix, http vs https — all matter. |
-| Rate limiter blocks requests too aggressively | Reverse proxy IP shows up as the client. Confirm the `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` line from Step 4 is present in `/etc/nginx/sites-enabled/kerf`. (Caddy forwards by default if you went that path.) |
+| Rate limiter blocks requests too aggressively | Cloudflare or nginx-proxy IP shows up as the client. nginx-proxy sets `X-Forwarded-For` correctly by default; the issue is usually that Cloudflare's IP is being read as the client because the app isn't trusting the chain. Confirm `src/server/auth.ts` has `advanced.ipAddress.ipAddressHeaders=["x-forwarded-for"]`, and that nginx-proxy is appending CF's `cf-connecting-ip` to the chain (or trust CF's IP ranges directly). |
 
 ---
 
@@ -417,9 +588,6 @@ This is rare in practice but worth knowing.
 - **Sentry / observability.** Optional. If you add it, drop the DSN
   into `.env` and follow Sentry's Node setup; nothing in kerf's code
   needs to change.
-- **CI/CD.** Out of scope (per Task 4.6). If you want it later, GitHub
-  Actions building the image + pushing to GHCR + SSH-deploying via
-  webhook is the standard pattern.
 - **Multi-host / load balancer.** kerf's session persistence is
   database-backed (no in-memory state), so horizontal scaling is
   possible — but the rate limiter is in-process, so two app

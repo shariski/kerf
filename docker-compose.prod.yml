@@ -2,24 +2,45 @@
 #
 # Two long-running services + one one-shot. Both long-running services
 # read secrets from `.env` (NEVER committed; copy `.env.production.example`
-# on the VPS and populate). The reverse proxy (Caddy/Nginx) is expected
-# to live on the host, not in compose — `app` binds to 127.0.0.1 only,
-# so direct internet access is impossible without going through it.
+# on the VPS and populate).
+#
+# Reverse proxy: an nginx-proxy + acme-companion stack runs on the
+# same Docker host (separate compose file outside /opt/kerf, see
+# DEPLOYMENT.md §5). The `app` service does NOT bind to a host port —
+# nginx-proxy reaches it over the shared `webproxy` network and routes
+# by VIRTUAL_HOST. The TLS cert at the origin is a Cloudflare Origin
+# Certificate dropped into nginx-proxy's certs volume by filename match
+# (`<VIRTUAL_HOST>.crt` / `.key`). LETSENCRYPT_HOST is intentionally
+# NOT set on `app` — we use the CF Origin Cert, not Let's Encrypt, for
+# this domain. acme-companion remains free to handle other domains on
+# the same VPS.
+#
+# Images come from GitHub Container Registry. CI builds + pushes on
+# every push to main; the VPS only pulls. Set IMAGE_TAG to deploy a
+# specific build (CI sets it to the commit SHA); falls back to `latest`
+# when running ad-hoc commands locally on the VPS. The `migrate` and
+# `app` services share the same image — migrations are baked into the
+# runtime image and applied via `node scripts/migrate.mjs`.
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: kerf:latest
+    image: ghcr.io/shariski/kerf:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
-    # Bind to localhost only — host reverse proxy fronts the public domain.
-    # If you ever expose this directly (no proxy), change to "0.0.0.0:3000:3000"
-    # and rely on the firewall (ufw) to restrict.
-    ports:
-      - "127.0.0.1:3000:3000"
+    # No host port binding — nginx-proxy reaches us via the webproxy
+    # network. `expose` makes 3000 visible on Docker networks without
+    # binding to the host.
+    expose:
+      - "3000"
+    environment:
+      # Picked up by nginx-proxy to generate the vhost + route traffic.
+      # Comma-separated values are supported; nginx-proxy emits one
+      # vhost per host.
+      VIRTUAL_HOST: typekerf.com,www.typekerf.com
+      VIRTUAL_PORT: "3000"
+    networks:
+      - webproxy
+      - default
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,33 +69,47 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - kerf_postgres_prod_data:/var/lib/postgresql/data
-      # Bind-mount for backups — see scripts/backup-db.sh (PR #3).
+      # Bind-mount for backups — see scripts/backup-db.sh.
       - ./backups:/backups
+    # Default network only — postgres must NOT be reachable from
+    # nginx-proxy or any other public-facing container.
+    networks:
+      - default
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # One-shot migration runner. Profile-gated so `docker compose up`
-  # never accidentally triggers a migration. Run explicitly:
+  # One-shot migration runner. Same image as `app` — the runtime image
+  # ships the migration SQL files at /app/drizzle/migrations and the
+  # runner script at /app/scripts/migrate.mjs. Profile-gated so a stray
+  # `docker compose up` cannot accidentally trigger a migration:
   #
   #   docker compose --profile migrate run --rm migrate
-  #
-  # Uses the `build` Dockerfile target which still has dev deps
-  # (drizzle-kit) and the source tree, neither of which are present in
-  # the lean `runtime` image.
   migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: build
+    image: ghcr.io/shariski/kerf:${IMAGE_TAG:-latest}
     env_file: .env
-    command: ["pnpm", "db:migrate"]
+    command: ["node", "scripts/migrate.mjs"]
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - default
     profiles: ["migrate"]
+
+networks:
+  # External nginx-proxy network — created by your proxy stack, NOT
+  # by this file. Update `name:` to match what `docker network ls`
+  # reports for the nginx-proxy network on this host. `webproxy` is
+  # a placeholder; common alternatives: `nginx-proxy`, `proxy`.
+  webproxy:
+    external: true
+    name: webproxy
+  # Private compose-managed network for app ↔ postgres ↔ migrate
+  # traffic. Declared explicitly so each service's `networks:` list
+  # can reference it by name.
+  default:
 
 volumes:
   kerf_postgres_prod_data:
