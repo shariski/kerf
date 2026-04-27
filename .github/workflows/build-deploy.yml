@@ -1,0 +1,117 @@
+# Build the production image, push to GHCR, then deploy to the VPS.
+#
+# Triggers:
+#   - push to main: full pipeline (build + deploy)
+#   - manual dispatch: same, useful for redeploying a known-good SHA
+#
+# The deploy job assumes /opt/kerf/.env exists on the VPS and that the
+# Postgres volume + reverse proxy are already configured per
+# DEPLOYMENT.md. CI only ships the compose file + image; everything
+# else is the developer's one-time setup.
+#
+# Required repo secrets:
+#   DEPLOY_HOST    — VPS hostname or IP
+#   DEPLOY_USER    — SSH user with docker group membership
+#   DEPLOY_SSH_KEY — private key (PEM); public half lives in ~/.ssh/authorized_keys on VPS
+
+name: build and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys concurrently. Queue them so a fast-follow push
+# does not race with the previous deploy's `compose up -d`.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/kerf
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.short_sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Use env-var indirection rather than expanding ${{ github.sha }}
+      # directly into the shell. Safe-by-default pattern even though
+      # github.sha is constrained to hex.
+      - id: meta
+        env:
+          SHA: ${{ github.sha }}
+        run: echo "short_sha=${SHA:0:12}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runtime
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.short_sha }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ship the latest compose file alongside the image. Idempotent —
+      # if the file is unchanged the VPS overwrites it with identical
+      # bytes. Cheap, removes "did I forget to scp the new compose?"
+      # as a failure mode.
+      - name: scp compose file to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: docker-compose.prod.yml
+          target: /opt/kerf/
+
+      - name: deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: IMAGE_TAG
+          script: |
+            set -euo pipefail
+            cd /opt/kerf
+            export IMAGE_TAG="${IMAGE_TAG}"
+            # Pull is explicit so a failed pull aborts before we touch
+            # the running app. `up -d` would also pull, but only after
+            # tearing down the old container.
+            docker compose -f docker-compose.prod.yml pull app postgres
+            # Run pending migrations in a one-shot before swapping the
+            # app. Exits non-zero on failure → the next step never runs
+            # and the previous app version keeps serving.
+            docker compose -f docker-compose.prod.yml --profile migrate run --rm migrate
+            # Recreate `app` against the new image. Postgres is left
+            # untouched (its image tag is pinned, not IMAGE_TAG-driven).
+            docker compose -f docker-compose.prod.yml up -d app
+            # Reclaim disk from old image layers. Safe because every
+            # tag we care about is referenced by the running container
+            # or by GHCR.
+            docker image prune -f

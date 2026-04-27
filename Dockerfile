@@ -46,6 +46,10 @@ RUN pnpm build
 # ─────────────────────────────────────────────────────────────────
 # 4) runtime — minimal image, non-root
 # ─────────────────────────────────────────────────────────────────
+# Carries the compiled app, the runtime entrypoint, AND the migration
+# files + runner script. The migrate one-shot reuses this same image
+# (see docker-compose.prod.yml) so production never needs drizzle-kit
+# or a source tree on the VPS. Migration SQL totals ~10 KB — free.
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
@@ -54,6 +58,8 @@ RUN addgroup -S kerf && adduser -S kerf -G kerf
 COPY --from=prod-deps --chown=kerf:kerf /app/node_modules ./node_modules
 COPY --from=build --chown=kerf:kerf /app/dist ./dist
 COPY --from=build --chown=kerf:kerf /app/scripts/serve.mjs ./scripts/serve.mjs
+COPY --from=build --chown=kerf:kerf /app/scripts/migrate.mjs ./scripts/migrate.mjs
+COPY --from=build --chown=kerf:kerf /app/src/server/db/migrations ./drizzle/migrations
 COPY --from=build --chown=kerf:kerf /app/package.json ./
 USER kerf
 EXPOSE 3000
