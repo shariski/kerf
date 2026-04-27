@@ -39,7 +39,7 @@ services:
       VIRTUAL_HOST: typekerf.com,www.typekerf.com
       VIRTUAL_PORT: "3000"
     networks:
-      - webproxy
+      - web
       - default
     depends_on:
       postgres:
@@ -103,9 +103,9 @@ networks:
   # by this file. Update `name:` to match what `docker network ls`
   # reports for the nginx-proxy network on this host. `webproxy` is
   # a placeholder; common alternatives: `nginx-proxy`, `proxy`.
-  webproxy:
+  web:
     external: true
-    name: webproxy
+    name: web
   # Private compose-managed network for app ↔ postgres ↔ migrate
   # traffic. Declared explicitly so each service's `networks:` list
   # can reference it by name.
