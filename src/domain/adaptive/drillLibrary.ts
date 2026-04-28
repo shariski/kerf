@@ -70,5 +70,6 @@ export function lookupDrill(
     throw new Error(`lookupDrill: no drill for target ${target.type}/${target.value}`);
   }
   const journeyMatch = matches.find((e) => e.appliesTo.includes(journey));
+  // biome-ignore lint/style/noNonNullAssertion: matches.length === 0 branch threw above; matches[0] is defined here.
   return journeyMatch ?? matches[0]!;
 }

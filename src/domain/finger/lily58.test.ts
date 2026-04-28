@@ -43,14 +43,14 @@ describe("LILY58_BASE_LAYER", () => {
     });
 
     it("places home-row index keys f and j at row 2", () => {
-      expect(LILY58_BASE_LAYER["f"]?.row).toBe(2);
-      expect(LILY58_BASE_LAYER["j"]?.row).toBe(2);
+      expect(LILY58_BASE_LAYER.f?.row).toBe(2);
+      expect(LILY58_BASE_LAYER.j?.row).toBe(2);
     });
   });
 
   describe("home row anchors", () => {
     it("'a' is left pinky home row", () => {
-      expect(LILY58_BASE_LAYER["a"]).toMatchObject({
+      expect(LILY58_BASE_LAYER.a).toMatchObject({
         hand: "left",
         finger: "pinky",
         row: 2,
@@ -58,7 +58,7 @@ describe("LILY58_BASE_LAYER", () => {
     });
 
     it("'f' is left index home row", () => {
-      expect(LILY58_BASE_LAYER["f"]).toMatchObject({
+      expect(LILY58_BASE_LAYER.f).toMatchObject({
         hand: "left",
         finger: "index",
         row: 2,
@@ -66,7 +66,7 @@ describe("LILY58_BASE_LAYER", () => {
     });
 
     it("'j' is right index home row", () => {
-      expect(LILY58_BASE_LAYER["j"]).toMatchObject({
+      expect(LILY58_BASE_LAYER.j).toMatchObject({
         hand: "right",
         finger: "index",
         row: 2,
@@ -84,14 +84,14 @@ describe("LILY58_BASE_LAYER", () => {
 
   describe("inner column", () => {
     it("'b' is left index, inner column", () => {
-      expect(LILY58_BASE_LAYER["b"]).toMatchObject({
+      expect(LILY58_BASE_LAYER.b).toMatchObject({
         hand: "left",
         finger: "index",
       });
     });
 
     it("'n' is right index, inner column", () => {
-      expect(LILY58_BASE_LAYER["n"]).toMatchObject({
+      expect(LILY58_BASE_LAYER.n).toMatchObject({
         hand: "right",
         finger: "index",
       });

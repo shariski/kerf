@@ -440,12 +440,14 @@ function PhotoHalf({ thumbs }: { thumbs: Array<"small" | "large"> }) {
     >
       <div className="grid grid-cols-6 gap-[3px]">
         {Array.from({ length: 24 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: decorative photo-thumbnail placeholders, no state, identical content — index is a stable identity here.
           <span key={i} className="bg-kerf-bg-overlay rounded-sm" style={{ aspectRatio: "1" }} />
         ))}
       </div>
       <div className="flex justify-center gap-1 mt-2">
         {thumbs.map((size, i) => (
           <span
+            // biome-ignore lint/suspicious/noArrayIndexKey: decorative size-thumb placeholders, no state — index is a stable identity here.
             key={i}
             className="bg-kerf-bg-overlay rounded-sm"
             style={{
@@ -525,7 +527,7 @@ function HandCard({
       style={{ padding: "40px 32px" }}
     >
       <div
-        className={"mb-4 " + (selected ? "text-kerf-amber-base" : "text-kerf-text-secondary")}
+        className={`mb-4 ${selected ? "text-kerf-amber-base" : "text-kerf-text-secondary"}`}
         style={{
           fontFamily: "var(--font-mono)",
           fontWeight: 700,
@@ -735,7 +737,7 @@ function Landing({
 function SummaryRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
     <div
-      className={"flex justify-between py-2 " + (last ? "" : "border-b border-kerf-border-subtle")}
+      className={`flex justify-between py-2 ${last ? "" : "border-b border-kerf-border-subtle"}`}
       style={{ fontSize: "13px" }}
     >
       <span className="text-kerf-text-secondary">{label}</span>

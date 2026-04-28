@@ -114,6 +114,7 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
       // in one line.
       const sessionStartedAt = working.startedAt ?? action.now;
 
+      // biome-ignore lint/style/noNonNullAssertion: invariant — keypress only dispatched while position < target.length (the complete-session transition guards this elsewhere).
       const targetChar = working.target[working.position]!;
       const isTargetKey = working.targetKeys.includes(targetChar);
       // Error latches until backspace: once we're in an error state, any

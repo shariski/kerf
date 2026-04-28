@@ -242,6 +242,7 @@ function nextRecommendation(
       ? "Next session will keep the same focus — accuracy first."
       : "Next session will lean into flow and speed while holding accuracy.";
   }
+  // biome-ignore lint/style/noNonNullAssertion: empty topAfter branch returned above; topAfter[0] is defined here.
   const name = unitName(topAfter[0]!);
   return phase === "transitioning"
     ? `We'll keep ${name} in your next rotation, leaning on careful accuracy.`

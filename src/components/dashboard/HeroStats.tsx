@@ -27,7 +27,7 @@ export function HeroStats({ data }: Props) {
 
       <SecondaryCard
         label="average wpm"
-        value={<>{data.avgWpm}</>}
+        value={data.avgWpm}
         trend={data.avgWpmTrend !== null ? signedWpm(data.avgWpmTrend) : null}
         trendCaption="vs first 7"
       />

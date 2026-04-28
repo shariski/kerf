@@ -300,6 +300,7 @@ function SwitchToast({
   onUndo: () => void;
   onDismiss: () => void;
 }) {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: toast is the trigger — a new toast object should reset the auto-dismiss timer even if onDismiss/undoing are unchanged. Removing it would let stale toasts time out on the wrong schedule.
   useEffect(() => {
     if (undoing) return;
     const t = window.setTimeout(onDismiss, TOAST_TTL_MS);
@@ -339,6 +340,7 @@ function AddKeyboardModal({
   const router = useRouter();
   const addedTypes = new Set(profiles.map((p) => p.keyboardType));
   const allTypes = Object.keys(KEYBOARD_META) as KeyboardType[];
+  // biome-ignore lint/style/noNonNullAssertion: KEYBOARD_META has compile-time entries; allTypes is non-empty.
   const defaultType = allTypes.find((t) => !addedTypes.has(t)) ?? allTypes[0]!;
   const prefilledHand = profiles[0]?.dominantHand;
 

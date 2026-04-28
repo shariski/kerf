@@ -106,8 +106,7 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
       };
     }
 
-    // Safe: we returned the zero-session branch above, so the array
-    // is non-empty. TS's noUncheckedIndexedAccess can't see that.
+    // biome-ignore lint/style/noNonNullAssertion: zero-session branch returned above; sessionRows is non-empty here. TS's noUncheckedIndexedAccess can't see that.
     const latest = sessionRows[sessionRows.length - 1]!;
     const endedAtDate = latest.endedAt ?? null;
     const durationSec =

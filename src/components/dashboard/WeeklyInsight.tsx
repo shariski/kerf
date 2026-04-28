@@ -54,7 +54,7 @@ export function WeeklyInsight({ data }: Props) {
 
 function ComparisonStrip({ data }: { data: WeeklyInsightData }) {
   return (
-    <div className="kerf-dash-weekly-strip" aria-label="Weekly comparison">
+    <section className="kerf-dash-weekly-strip" aria-label="Weekly comparison">
       <ComparisonCell
         label="This week"
         sessions={data.thisWeek.sessions}
@@ -68,7 +68,7 @@ function ComparisonStrip({ data }: { data: WeeklyInsightData }) {
         accuracy={data.lastWeek.accuracyPct}
         wpm={data.lastWeek.wpm}
       />
-    </div>
+    </section>
   );
 }
 

@@ -39,7 +39,9 @@ export function TrajectoryCharts({ data }: Props) {
     );
   }
 
+  // biome-ignore lint/style/noNonNullAssertion: empty-points branch returned above; array is non-empty here.
   const first = points[0]!;
+  // biome-ignore lint/style/noNonNullAssertion: empty-points branch returned above; array is non-empty here.
   const last = points[points.length - 1]!;
 
   return (
