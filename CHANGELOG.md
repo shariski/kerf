@@ -23,6 +23,9 @@ All notable changes to kerf are documented here. Format follows [Keep a Changelo
 
 ### Changed
 
+- **Biome `noNonNullAssertion` is now disabled in test files** (`**/*.test.ts`, `**/*.test.tsx`, `**/*.integration.test.ts`) via `biome.json` override. Test fixtures legitimately use `!` for "this lookup definitely succeeds" patterns (`arr.find(...)!`, `mock.calls[0]!`, etc.); rewriting all 110+ occurrences as type-narrowing or per-line `// biome-ignore` comments is ceremony with no quality benefit. Source-file occurrences remain flagged. Also removed 8 now-redundant `// biome-ignore lint/style/noNonNullAssertion` comments from `AppFooter.test.tsx` and `email/send.test.ts`. Net: 110 warnings → 0 in tests; baseline drops from 141 → 33 noNonNullAssertion warnings repo-wide. (`biome.json`)
+
+
 - `Dockerfile` runtime stage now ships `scripts/migrate.mjs` and the migration SQL files at `/app/drizzle/migrations`. Adds ~12 KB to the image; removes the need for a separate migrate-image build target.
 - `docker-compose.prod.yml` references `ghcr.io/shariski/kerf:${IMAGE_TAG:-latest}` instead of building locally on the VPS. The `migrate` service shares the same image as `app` and runs `node scripts/migrate.mjs`. VPS-side build is retired — CI is now the only image producer.
 - `docker-compose.prod.yml` integrates with `nginxproxy/nginx-proxy` running on the VPS host. The `app` service drops its host port binding (`127.0.0.1:3000`) in favor of `expose: 3000` + `VIRTUAL_HOST` / `VIRTUAL_PORT` env vars; nginx-proxy reaches it over an external `webproxy` Docker network and routes by host. Postgres + migrate stay on the private compose-managed network only.

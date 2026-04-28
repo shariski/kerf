@@ -39,7 +39,6 @@ describe("sendMagicLinkEmail — production", () => {
     vi.stubEnv("EMAIL_FROM", "kerf <hello@typekerf.com>");
     await sendMagicLinkEmail({ email: "user@example.com", url: "https://typekerf.com/x" });
     expect(sendSpy).toHaveBeenCalledTimes(1);
-    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     const args = sendSpy.mock.calls[0]![0];
     expect(args).toMatchObject({
       from: "kerf <hello@typekerf.com>",
@@ -53,7 +52,6 @@ describe("sendMagicLinkEmail — production", () => {
   it("defaults EMAIL_FROM to onboarding@resend.dev when unset", async () => {
     await sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" });
     expect(sendSpy).toHaveBeenCalledTimes(1);
-    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     expect(sendSpy.mock.calls[0]![0].from).toBe("kerf <onboarding@resend.dev>");
   });
 
@@ -88,7 +86,6 @@ describe("sendMagicLinkEmail — dev default", () => {
     await sendMagicLinkEmail({ email: "user@example.com", url: "https://typekerf.com/x" });
     expect(sendSpy).not.toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     const logged = String(logSpy.mock.calls[0]![0]);
     expect(logged).toContain("user@example.com");
     expect(logged).toContain("https://typekerf.com/x");
@@ -100,7 +97,6 @@ describe("sendMagicLinkEmail — dev default", () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     await sendMagicLinkEmail({ email: "u@x.com", url: "https://typekerf.com/x" });
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
-    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     const [path, content, encoding] = writeFileSpy.mock.calls[0]!;
     expect(path).toBe(PREVIEW_PATH);
     expect(encoding).toBe("utf8");
@@ -151,7 +147,6 @@ describe("sendMagicLinkEmail — preview file write failure", () => {
     ).resolves.toBeUndefined();
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
-    // biome-ignore lint/style/noNonNullAssertion: prior toHaveBeenCalledTimes(1) guarantees calls[0] exists
     expect(String(warnSpy.mock.calls[0]![0])).toContain("preview file write failed");
     warnSpy.mockRestore();
   });

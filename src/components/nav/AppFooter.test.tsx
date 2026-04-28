@@ -48,13 +48,10 @@ describe("AppFooter", () => {
       .getAllByRole("link")
       .find((el) => el.getAttribute("href") === "https://github.com/shariski/kerf");
     expect(github, "missing github external link").toBeTruthy();
-    // biome-ignore lint/style/noNonNullAssertion: prior toBeTruthy guarantees defined
     expect(github!.getAttribute("target")).toBe("_blank");
-    // biome-ignore lint/style/noNonNullAssertion: prior toBeTruthy guarantees defined
     const rel = github!.getAttribute("rel") ?? "";
     expect(rel).toContain("noopener");
     expect(rel).toContain("noreferrer");
-    // biome-ignore lint/style/noNonNullAssertion: prior toBeTruthy guarantees defined
     expect(github!.getAttribute("aria-label")).toMatch(/opens in new tab/i);
   });
 
