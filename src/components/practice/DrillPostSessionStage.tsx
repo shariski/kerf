@@ -101,38 +101,29 @@ export function DrillPostSessionStage({
 
       <IntentEchoBlock sessionTarget={sessionTarget} perKeyBreakdown={perKeyBreakdown} />
 
-      <div className="kerf-post-stats" role="list" aria-label="Drill results">
-        <div className="kerf-post-stat" role="listitem">
+      <ul className="kerf-post-stats" aria-label="Drill results">
+        <li className="kerf-post-stat">
           <div className="kerf-post-stat-label">accuracy</div>
-          <div
-            className="kerf-post-stat-value featured"
-            aria-label={`Accuracy ${accuracyPct} percent`}
-          >
-            {accuracyPct}%
-          </div>
+          <div className="kerf-post-stat-value featured">{accuracyPct}%</div>
           <div className="kerf-post-stat-delta neutral">
             {uniqueErrorCount === 0
               ? "clean run"
               : `${uniqueErrorCount} error${uniqueErrorCount === 1 ? "" : "s"}`}
           </div>
-        </div>
-        <div className="kerf-post-stat" role="listitem">
+        </li>
+        <li className="kerf-post-stat">
           <div className="kerf-post-stat-label">speed</div>
-          <div className="kerf-post-stat-value" aria-label={`Speed ${wpm} words per minute`}>
-            {wpm}
-          </div>
+          <div className="kerf-post-stat-value">{wpm}</div>
           <div className="kerf-post-stat-delta neutral">wpm</div>
-        </div>
-        <div className="kerf-post-stat" role="listitem">
+        </li>
+        <li className="kerf-post-stat">
           <div className="kerf-post-stat-label">time</div>
-          <div className="kerf-post-stat-value" aria-label={`Time ${elapsedLabel}`}>
-            {elapsedLabel}
-          </div>
+          <div className="kerf-post-stat-value">{elapsedLabel}</div>
           <div className="kerf-post-stat-delta neutral">
             {wordCount} word{wordCount === 1 ? "" : "s"}
           </div>
-        </div>
-      </div>
+        </li>
+      </ul>
 
       <div className="kerf-post-section-label">
         <span>Error review</span>
@@ -304,15 +295,15 @@ function ErrorReviewText({ target, errors }: { target: string; errors: readonly 
     const err = errorByIndex.get(i);
     if (err) {
       nodes.push(
-        <span
+        <button
+          type="button"
           key={i}
           className="kerf-error-char"
           data-expected={`typed '${err.typed}', expected '${err.expected}'`}
-          tabIndex={0}
           aria-label={`Error at position ${i + 1}: typed ${err.typed}, expected ${err.expected}`}
         >
           {ch}
-        </span>,
+        </button>,
       );
     } else {
       nodes.push(ch);
