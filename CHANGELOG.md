@@ -40,10 +40,15 @@ All notable changes to kerf are documented here. Format follows [Keep a Changelo
 
 ### Fixed
 
+- **TypingArea + edge-case a11y / quality cleanup** — closes the last 10 errors:
+  - `TypingArea.tsx`: added `tabIndex={0}` so the `role="textbox"` element is keyboard-focusable; suppressed `useSemanticElements` with reason (canonical ARIA pattern for a custom typing widget that renders per-char correctness — `<input>`/`<textarea>` can't render that). Replaced `key={ci}` (chunk index) with `key={chunk.start}` (stable position). Suppressed `useExhaustiveDependencies` with reason (the `[position]` dep is the trigger; the effect re-queries the DOM for the new active char element).
+  - `routes/onboarding.tsx`: suppressed two `noArrayIndexKey` for decorative photo-thumbnail placeholder spans (no state, identical content).
+  - `routes/keyboards.tsx`: suppressed `useExhaustiveDependencies` on the toast auto-dismiss effect (toast is the trigger — a new toast object should reset the timer).
+  - `routes/__root.tsx`: suppressed `noDangerouslySetInnerHtml` on the theme init script (compile-time module constant, no user input — inlined to avoid FOUC).
 - **Dashboard, nav, and practice-pill a11y semantics** — eliminates 12 a11y errors across 10 files via the same "let HTML carry the meaning instead of ARIA" principle as the post-session fix:
   - `ActivityLog.tsx`, `WeaknessRanking.tsx`: `<div role="list">` / `role="listitem"` → semantic `<ul>` / `<li>`. CSS reset added for `.kerf-dash-latest-list` and new `.kerf-dash-weakness-rows` (both `list-style: none; margin: 0; padding: 0`).
   - `PhaseSuggestionBanner.tsx`: `<aside role="region" aria-label="...">` → `<section aria-label="...">` — section with aria-label is already a region landmark.
-  - `WeeklyInsight.tsx`: added `role="group"` to make the `aria-label="Weekly comparison"` valid on the wrapper div.
+  - `WeeklyInsight.tsx`: comparison strip wrapper `<div aria-label="Weekly comparison">` → `<section aria-label="...">` so aria-label is valid (section is a region landmark when labeled).
   - `KeyboardSwitcherPill.tsx`: added `tabIndex={-1}` to the disabled-current `role="menuitem"` so it satisfies focusable-interactive (already excluded from arrow-key nav by design).
   - `AppNav.tsx`: dropped redundant `role="banner"` on `<header>` (implicit), and dropped misleading `aria-label="User menu"` on a non-interactive avatar `<span>` (the dropdown lands in Phase 3).
   - `KeyboardSVG.tsx`: dropped redundant `role="presentation"` on encoder `<g>`.

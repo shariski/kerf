@@ -95,6 +95,7 @@ export function TypingArea({
   // which renders above the current char. No partial "cut" lines appear at
   // any scroll position or font-size. `scroll-behavior: smooth` handles
   // the animation; `prefers-reduced-motion` overrides it in styles.css.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: position is the trigger — the effect re-queries the DOM for the new .kerf-typing-current/.kerf-typing-error element, which is updated elsewhere from position. Removing it would freeze the scroll-follow on first paint.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -114,15 +115,17 @@ export function TypingArea({
   }, [position]);
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: custom typing surface that renders per-char correctness highlighting; <input>/<textarea> can't render that. role="textbox" + aria-label is the canonical ARIA pattern for custom typing widgets.
     <div
       ref={containerRef}
       className="kerf-typing"
       role="textbox"
+      tabIndex={0}
       aria-label="Typing exercise"
       aria-readonly="false"
       data-testid="typing-area"
     >
-      {chunks.map((chunk, ci) => {
+      {chunks.map((chunk) => {
         const charElements = chunk.chars.map((ch, offset) => {
           const index = chunk.start + offset;
           const isTargetKey = targetKeySet?.has(ch) ?? false;
@@ -138,11 +141,11 @@ export function TypingArea({
           );
         });
         return chunk.kind === "word" ? (
-          <span key={ci} className="kerf-typing-word">
+          <span key={chunk.start} className="kerf-typing-word">
             {charElements}
           </span>
         ) : (
-          <Fragment key={ci}>{charElements}</Fragment>
+          <Fragment key={chunk.start}>{charElements}</Fragment>
         );
       })}
     </div>

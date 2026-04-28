@@ -300,6 +300,7 @@ function SwitchToast({
   onUndo: () => void;
   onDismiss: () => void;
 }) {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: toast is the trigger — a new toast object should reset the auto-dismiss timer even if onDismiss/undoing are unchanged. Removing it would let stale toasts time out on the wrong schedule.
   useEffect(() => {
     if (undoing) return;
     const t = window.setTimeout(onDismiss, TOAST_TTL_MS);
