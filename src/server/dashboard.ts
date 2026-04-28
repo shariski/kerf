@@ -621,6 +621,7 @@ export const getDashboardTrajectory = createServerFn({
     accuracyPct: Math.round((r.accuracy ?? 0) * 100),
   }));
 
+  // biome-ignore lint/style/noNonNullAssertion: rows.length === 0 returned above; points is non-empty here.
   const last = points[points.length - 1]!;
   const wpmSeries = points.map((p) => p.wpm).filter((w) => w > 0);
   const accSeries = points.map((p) => p.accuracyPct);
@@ -843,6 +844,7 @@ export const getDashboardPhaseSuggestion = createServerFn({
     insufficientData: (r.totalChars ?? 0) < INSUFFICIENT_DATA_THRESHOLD,
   }));
 
+  // biome-ignore lint/style/noNonNullAssertion: guarded by rows.length > 0 ternary.
   const lastSessionAt = rows.length > 0 ? rows[rows.length - 1]!.startedAt : undefined;
 
   const signal = suggestPhaseTransition({

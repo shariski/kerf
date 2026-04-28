@@ -81,20 +81,26 @@ export function computeTemporalPatterns(input: TemporalPatternsInput): TemporalP
     dayCounts[d] = (dayCounts[d] ?? 0) + 1;
   }
 
-  const byHour: HourBucket[] = Array.from({ length: 24 }, (_, i) => ({
-    hour: i,
-    sampleCount: hourCounts[i]!,
-    meanWpm:
-      hourCounts[i]! >= MIN_SAMPLES_PER_BUCKET ? Math.round(hourSums[i]! / hourCounts[i]!) : null,
-  }));
+  const byHour: HourBucket[] = Array.from({ length: 24 }, (_, i) => {
+    const count = hourCounts[i] ?? 0;
+    const sum = hourSums[i] ?? 0;
+    return {
+      hour: i,
+      sampleCount: count,
+      meanWpm: count >= MIN_SAMPLES_PER_BUCKET ? Math.round(sum / count) : null,
+    };
+  });
 
-  const byDayOfWeek: DayOfWeekBucket[] = DAY_LABELS.map((label, i) => ({
-    dayOfWeek: i,
-    dayLabel: label,
-    sampleCount: dayCounts[i]!,
-    meanWpm:
-      dayCounts[i]! >= MIN_SAMPLES_PER_BUCKET ? Math.round(daySums[i]! / dayCounts[i]!) : null,
-  }));
+  const byDayOfWeek: DayOfWeekBucket[] = DAY_LABELS.map((label, i) => {
+    const count = dayCounts[i] ?? 0;
+    const sum = daySums[i] ?? 0;
+    return {
+      dayOfWeek: i,
+      dayLabel: label,
+      sampleCount: count,
+      meanWpm: count >= MIN_SAMPLES_PER_BUCKET ? Math.round(sum / count) : null,
+    };
+  });
 
   const hasMeaningfulData =
     byHour.some((h) => h.meanWpm !== null) || byDayOfWeek.some((d) => d.meanWpm !== null);

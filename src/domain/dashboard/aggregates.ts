@@ -173,6 +173,7 @@ export function buildSparklineValues(values: readonly number[], maxPoints: numbe
   const out: number[] = [];
   for (let i = 0; i < maxPoints; i++) {
     const idx = Math.round(i * step);
+    // biome-ignore lint/style/noNonNullAssertion: idx is bounded by step calculation; idx ∈ [0, values.length-1] for i ∈ [0, maxPoints-1].
     out.push(values[idx]!);
   }
   return out;
@@ -498,6 +499,7 @@ export function computeWeaknessRanking(input: {
   candidates.sort((a, b) => b.rawScore - a.rawScore);
   const top = candidates.slice(0, topN);
 
+  // biome-ignore lint/style/noNonNullAssertion: guarded by top.length > 0 ternary.
   const maxRaw = top.length > 0 ? top[0]!.rawScore : 0;
   return top.map(({ entry, rawScore }) => ({
     ...entry,

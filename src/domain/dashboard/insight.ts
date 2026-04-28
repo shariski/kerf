@@ -163,6 +163,7 @@ function directionOf(delta: number | null, threshold: number): "up" | "down" | "
 
 function formatFocusList(units: readonly WeaknessRankEntry[]): string {
   const parts = units.map((u) => `${u.unit} (score ${u.score.toFixed(1)})`);
+  // biome-ignore lint/style/noNonNullAssertion: guarded by parts.length === 1.
   if (parts.length === 1) return parts[0]!;
   if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
   return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;

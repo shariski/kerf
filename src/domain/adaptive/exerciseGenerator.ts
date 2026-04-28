@@ -151,6 +151,7 @@ const weightedSampleWithoutReplacement = (
 const shuffleInPlace = <T>(arr: T[], rng: () => number): T[] => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
+    // biome-ignore lint/style/noNonNullAssertion: Fisher-Yates — i and j are both bounded by arr.length, so arr[i] and arr[j] are defined.
     [arr[i], arr[j]] = [arr[j]!, arr[i]!];
   }
   return arr;
@@ -187,6 +188,7 @@ export function generateExercise(options: ExerciseOptions): string[] {
 
     const matches = (w: CorpusWord): boolean => {
       if (widenToComponentChars) {
+        // biome-ignore lint/style/noNonNullAssertion: widenToComponentChars requires unit.length === 2, so unit[0] and unit[1] are defined.
         return w.chars.includes(unit[0]!) || w.chars.includes(unit[1]!);
       }
       return w.chars.includes(unit) || w.bigrams.includes(unit);

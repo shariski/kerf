@@ -109,6 +109,7 @@ export const createKeyboardProfile = createServerFn({ method: "POST" })
           isActive: true,
         })
         .returning();
+      // biome-ignore lint/style/noNonNullAssertion: drizzle .returning() emits exactly one row for a single .insert() of one row.
       return inserted!;
     });
     return row;

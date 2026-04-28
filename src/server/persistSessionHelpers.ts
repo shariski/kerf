@@ -255,8 +255,10 @@ export function enrichEvents(
   let firstAtPos = true;
 
   for (let i = 0; i < events.length; i++) {
+    // biome-ignore lint/style/noNonNullAssertion: bounded-loop index — i < events.length.
     const e = events[i]!;
     const clampedPos = Math.min(pos, target.length - 1);
+    // biome-ignore lint/style/noNonNullAssertion: clampedPos is guarded by target.length === 0 ternary; wordStart is parallel-indexed to target.
     const positionInWord = target.length === 0 ? -1 : clampedPos - wordStart[clampedPos]!;
 
     out.push({

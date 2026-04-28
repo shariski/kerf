@@ -183,7 +183,9 @@ export function generateCrossHandBigramDrill(options: CrossHandDrillOptions): st
   for (const w of corpus.words) {
     for (const bg of w.bigrams) {
       if (bg.length !== 2) continue;
+      // biome-ignore lint/style/noNonNullAssertion: guarded by bg.length !== 2 check above.
       const l = getFingerForKey(layout, bg[0]!);
+      // biome-ignore lint/style/noNonNullAssertion: guarded by bg.length !== 2 check above.
       const r = getFingerForKey(layout, bg[1]!);
       if (!l || !r) continue;
       if (l.hand === r.hand) continue;

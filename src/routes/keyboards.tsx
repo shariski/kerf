@@ -340,6 +340,7 @@ function AddKeyboardModal({
   const router = useRouter();
   const addedTypes = new Set(profiles.map((p) => p.keyboardType));
   const allTypes = Object.keys(KEYBOARD_META) as KeyboardType[];
+  // biome-ignore lint/style/noNonNullAssertion: KEYBOARD_META has compile-time entries; allTypes is non-empty.
   const defaultType = allTypes.find((t) => !addedTypes.has(t)) ?? allTypes[0]!;
   const prefilledHand = profiles[0]?.dominantHand;
 

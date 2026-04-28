@@ -597,6 +597,7 @@ function PracticePage() {
     for (const ev of sessionState.events) {
       if (!keySet.has(ev.targetChar)) continue;
       if (!acc[ev.targetChar]) acc[ev.targetChar] = { attempts: 0, errors: 0 };
+      // biome-ignore lint/style/noNonNullAssertion: just-set on the line above.
       const entry = acc[ev.targetChar]!;
       entry.attempts++;
       if (ev.isError) entry.errors++;

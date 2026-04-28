@@ -45,6 +45,7 @@ function chunkTarget(target: string): Chunk[] {
   const chunks: Chunk[] = [];
   let current: Chunk | null = null;
   for (let i = 0; i < target.length; i++) {
+    // biome-ignore lint/style/noNonNullAssertion: bounded-loop index — i < target.length, so target[i] is defined.
     const ch = target[i]!;
     const kind: Chunk["kind"] = ch === " " ? "space" : "word";
     if (!current || current.kind !== kind) {

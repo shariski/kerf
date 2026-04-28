@@ -266,6 +266,7 @@ function ErrorReviewText({ target, errors }: { target: string; errors: readonly 
   const errorByIndex = new Map(errors.map((e) => [e.index, e]));
   const nodes: React.ReactNode[] = [];
   for (let i = 0; i < target.length; i++) {
+    // biome-ignore lint/style/noNonNullAssertion: bounded-loop index — i < target.length, so target[i] is defined.
     const ch = target[i]!;
     const err = errorByIndex.get(i);
     if (err) {
