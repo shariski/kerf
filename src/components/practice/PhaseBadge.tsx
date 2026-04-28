@@ -14,7 +14,7 @@ type Props = {
 
 export function PhaseBadge({ phase }: Props) {
   return (
-    <span className="kerf-phase-badge" aria-label={`Current phase: ${phase}`} data-phase={phase}>
+    <span className="kerf-phase-badge" data-phase={phase}>
       <span className="kerf-phase-badge-dot" aria-hidden />
       {phase}
     </span>

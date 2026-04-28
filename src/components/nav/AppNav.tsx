@@ -31,7 +31,6 @@ export function AppNav() {
   return (
     <header
       className="kerf-app-nav"
-      role="banner"
       data-hidden={hidden || undefined}
       aria-hidden={hidden || undefined}
     >
@@ -56,10 +55,8 @@ export function AppNav() {
         })}
       </nav>
 
-      <div className="kerf-nav-right" aria-label="Account">
-        <span className="kerf-nav-avatar" aria-label="User menu">
-          U
-        </span>
+      <div className="kerf-nav-right">
+        <span className="kerf-nav-avatar">U</span>
       </div>
     </header>
   );

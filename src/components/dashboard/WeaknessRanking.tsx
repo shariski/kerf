@@ -42,28 +42,30 @@ export function WeaknessRanking({ data }: Props) {
         <span className="kerf-dash-weakness-num">score</span>
       </header>
 
-      {data.entries.map((entry, i) => (
-        <div key={entry.unit} className="kerf-dash-weakness-row" role="listitem">
-          <span className="kerf-dash-weakness-rank">{(i + 1).toString().padStart(2, "0")}</span>
-          <span className="kerf-dash-weakness-key">{entry.unit}</span>
-          <div
-            className="kerf-dash-weakness-bar"
-            role="progressbar"
-            aria-valuenow={entry.relativeWeightPct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Relative weakness: ${entry.relativeWeightPct}%`}
-          >
+      <ul className="kerf-dash-weakness-rows">
+        {data.entries.map((entry, i) => (
+          <li key={entry.unit} className="kerf-dash-weakness-row">
+            <span className="kerf-dash-weakness-rank">{(i + 1).toString().padStart(2, "0")}</span>
+            <span className="kerf-dash-weakness-key">{entry.unit}</span>
             <div
-              className="kerf-dash-weakness-bar-fill"
-              style={{ width: `${entry.relativeWeightPct}%` }}
-            />
-          </div>
-          <span className="kerf-dash-weakness-stat">{entry.errorRatePct}%</span>
-          <span className="kerf-dash-weakness-stat">{entry.avgTimeMs}ms</span>
-          <span className="kerf-dash-weakness-score">{entry.score.toFixed(1)}</span>
-        </div>
-      ))}
+              className="kerf-dash-weakness-bar"
+              role="progressbar"
+              aria-valuenow={entry.relativeWeightPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Relative weakness: ${entry.relativeWeightPct}%`}
+            >
+              <div
+                className="kerf-dash-weakness-bar-fill"
+                style={{ width: `${entry.relativeWeightPct}%` }}
+              />
+            </div>
+            <span className="kerf-dash-weakness-stat">{entry.errorRatePct}%</span>
+            <span className="kerf-dash-weakness-stat">{entry.avgTimeMs}ms</span>
+            <span className="kerf-dash-weakness-score">{entry.score.toFixed(1)}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

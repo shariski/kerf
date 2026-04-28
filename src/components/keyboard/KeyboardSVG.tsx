@@ -172,7 +172,7 @@ export const KeyboardSVG = forwardRef<KeyboardSVGHandle, Props>(function Keyboar
   };
 
   const renderEncoder = (e: EncoderGeometry) => (
-    <g key={e.id} transform={encoderTransform(e)} role="presentation">
+    <g key={e.id} transform={encoderTransform(e)}>
       <circle className="kb-encoder-body" cx={e.cx} cy={e.cy} r={e.r} />
       <circle className="kb-encoder-inner" cx={e.cx} cy={e.cy} r={6} />
       <line

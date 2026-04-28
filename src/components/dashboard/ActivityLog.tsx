@@ -78,9 +78,9 @@ function LatestSessions({ sessions }: { sessions: DashboardActivityData["recentS
   return (
     <div className="kerf-dash-latest">
       <div className="kerf-dash-latest-title">Latest {sessions.length} sessions</div>
-      <div className="kerf-dash-latest-list" role="list">
+      <ul className="kerf-dash-latest-list">
         {sessions.map((s) => (
-          <div key={s.id} className="kerf-dash-session-row" role="listitem">
+          <li key={s.id} className="kerf-dash-session-row">
             <span className="kerf-dash-session-time">{s.relativeTime}</span>
             <span className="kerf-dash-session-mode">
               <span className="kerf-dash-session-badge" data-mode={s.mode}>
@@ -91,9 +91,9 @@ function LatestSessions({ sessions }: { sessions: DashboardActivityData["recentS
             <span className="kerf-dash-session-stat">{s.wpm} wpm</span>
             <span className="kerf-dash-session-stat">{s.accuracyPct}%</span>
             <span className="kerf-dash-session-duration">{s.durationLabel}</span>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

@@ -108,7 +108,7 @@ export function PhaseSuggestionBanner({ signal, currentPhase }: Props) {
   };
 
   return (
-    <aside className="kerf-dash-phase-banner" role="region" aria-label="Phase suggestion">
+    <section className="kerf-dash-phase-banner" aria-label="Phase suggestion">
       <div className="kerf-dash-phase-banner-body">
         <span className="kerf-dash-phase-banner-label">Phase suggestion</span>
         <p className="kerf-dash-phase-banner-reason">{signal.reason}</p>
@@ -136,6 +136,6 @@ export function PhaseSuggestionBanner({ signal, currentPhase }: Props) {
           Not yet
         </button>
       </div>
-    </aside>
+    </section>
   );
 }

@@ -91,6 +91,7 @@ export function KeyboardSwitcherPill({ profiles, onSwitchProfile }: Props) {
               <div
                 key={p.id}
                 role="menuitem"
+                tabIndex={-1}
                 aria-disabled="true"
                 className="kerf-kb-switcher-item kerf-kb-switcher-item--current"
               >

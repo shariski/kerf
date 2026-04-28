@@ -3298,6 +3298,9 @@ body {
 .kerf-dash-latest-list {
   display: flex;
   flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .kerf-dash-session-row {
@@ -3471,6 +3474,12 @@ body {
 }
 
 .kerf-dash-weakness-head,
+.kerf-dash-weakness-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .kerf-dash-weakness-row {
   display: grid;
   grid-template-columns: 40px 60px 1fr 70px 80px 60px;

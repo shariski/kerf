@@ -14,7 +14,7 @@ type Props = {
 
 export function KeyboardContextPill({ keyboardType }: Props) {
   return (
-    <div className="kerf-pill" aria-label={`Active keyboard: ${keyboardType}`}>
+    <div className="kerf-pill">
       <span className="kerf-pill-icon" aria-hidden>
         ⊞
       </span>
