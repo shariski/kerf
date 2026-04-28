@@ -11,3 +11,6 @@
 
 # chore: apply biome format to practice_.drill.tsx drift (2026-04-23)
 b433777565681b374166ca249bf9d6ca798f557b
+
+# chore: apply biome format to PauseOverlay.test.tsx drift (2026-04-28)
+db9db798aaccc282a384821168ae5f70e7f9b5cf
