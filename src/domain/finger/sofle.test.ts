@@ -43,14 +43,14 @@ describe("SOFLE_BASE_LAYER", () => {
     });
 
     it("places home-row index keys f and j at row 2", () => {
-      expect(SOFLE_BASE_LAYER["f"]?.row).toBe(2);
-      expect(SOFLE_BASE_LAYER["j"]?.row).toBe(2);
+      expect(SOFLE_BASE_LAYER.f?.row).toBe(2);
+      expect(SOFLE_BASE_LAYER.j?.row).toBe(2);
     });
   });
 
   describe("home row anchors", () => {
     it("'a' is left pinky home row", () => {
-      expect(SOFLE_BASE_LAYER["a"]).toMatchObject({
+      expect(SOFLE_BASE_LAYER.a).toMatchObject({
         hand: "left",
         finger: "pinky",
         row: 2,
@@ -58,7 +58,7 @@ describe("SOFLE_BASE_LAYER", () => {
     });
 
     it("'f' is left index home row", () => {
-      expect(SOFLE_BASE_LAYER["f"]).toMatchObject({
+      expect(SOFLE_BASE_LAYER.f).toMatchObject({
         hand: "left",
         finger: "index",
         row: 2,
@@ -66,7 +66,7 @@ describe("SOFLE_BASE_LAYER", () => {
     });
 
     it("'j' is right index home row", () => {
-      expect(SOFLE_BASE_LAYER["j"]).toMatchObject({
+      expect(SOFLE_BASE_LAYER.j).toMatchObject({
         hand: "right",
         finger: "index",
         row: 2,
@@ -84,31 +84,31 @@ describe("SOFLE_BASE_LAYER", () => {
 
   describe("inner column (the columnar-stagger trouble zone)", () => {
     it("'b' is left index, inner column", () => {
-      expect(SOFLE_BASE_LAYER["b"]).toMatchObject({
+      expect(SOFLE_BASE_LAYER.b).toMatchObject({
         hand: "left",
         finger: "index",
       });
     });
 
     it("'n' is right index, inner column", () => {
-      expect(SOFLE_BASE_LAYER["n"]).toMatchObject({
+      expect(SOFLE_BASE_LAYER.n).toMatchObject({
         hand: "right",
         finger: "index",
       });
     });
 
     it("'g' and 't' are left index", () => {
-      expect(SOFLE_BASE_LAYER["g"]?.finger).toBe("index");
-      expect(SOFLE_BASE_LAYER["g"]?.hand).toBe("left");
-      expect(SOFLE_BASE_LAYER["t"]?.finger).toBe("index");
-      expect(SOFLE_BASE_LAYER["t"]?.hand).toBe("left");
+      expect(SOFLE_BASE_LAYER.g?.finger).toBe("index");
+      expect(SOFLE_BASE_LAYER.g?.hand).toBe("left");
+      expect(SOFLE_BASE_LAYER.t?.finger).toBe("index");
+      expect(SOFLE_BASE_LAYER.t?.hand).toBe("left");
     });
 
     it("'h' and 'y' are right index", () => {
-      expect(SOFLE_BASE_LAYER["h"]?.finger).toBe("index");
-      expect(SOFLE_BASE_LAYER["h"]?.hand).toBe("right");
-      expect(SOFLE_BASE_LAYER["y"]?.finger).toBe("index");
-      expect(SOFLE_BASE_LAYER["y"]?.hand).toBe("right");
+      expect(SOFLE_BASE_LAYER.h?.finger).toBe("index");
+      expect(SOFLE_BASE_LAYER.h?.hand).toBe("right");
+      expect(SOFLE_BASE_LAYER.y?.finger).toBe("index");
+      expect(SOFLE_BASE_LAYER.y?.hand).toBe("right");
     });
   });
 

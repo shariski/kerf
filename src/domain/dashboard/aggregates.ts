@@ -83,8 +83,8 @@ function dayKey(d: Date): string {
 }
 
 function isNextDay(prevKey: string, currentKey: string): boolean {
-  const prev = new Date(prevKey + "T00:00:00");
-  const curr = new Date(currentKey + "T00:00:00");
+  const prev = new Date(`${prevKey}T00:00:00`);
+  const curr = new Date(`${currentKey}T00:00:00`);
   const diffMs = curr.getTime() - prev.getTime();
   // 24h ± 1h window to tolerate DST transitions.
   return diffMs >= 23 * 3_600_000 && diffMs <= 25 * 3_600_000;
