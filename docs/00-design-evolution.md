@@ -3,16 +3,17 @@
 > Architectural Decision Records (ADRs) documenting major shifts in product philosophy, positioning, or structure.
 > **Read this first** if you're picking up the project after time away, onboarding a new collaborator, or feeding Claude Code fresh context.
 
-## ⚠ Current Status (2026-04-24)
+## ⚠ Current Status (2026-04-28)
 
-Four ADRs exist in this document. **Current canonical product intent is ADR-003; distribution/licensing intent is ADR-004.**
+Five ADRs exist in this document. **Current canonical product intent is ADR-003 + ADR-005; distribution/licensing intent is ADR-004.**
 
 - **ADR-001** (Meta-cognition loop): **Superseded by ADR-003** — content kept as historical record.
 - **ADR-002** (Split-specific practice mechanisms): **Superseded by ADR-003** — content kept as historical record.
 - **ADR-003** (Deliberate-practice architecture): **Accepted** 2026-04-22. Merges ADR-001 and ADR-002 into one synthesis; adopts three-stage session loop, setup-awareness, and columnar-motion drill library. Pending Pass 1 spec-doc propagation.
 - **ADR-004** (Open-core licensing and distribution): **Accepted** 2026-04-24. Public MIT-licensed repo; hosted paid layer deferred until 500 WAU milestone validates it. Orthogonal to product ADRs — does not affect Phase A scope.
+- **ADR-005** (Phase-aware journey weights): **Accepted** 2026-04-28. Refines ADR-003 §5 in light of prod-data audit on a 172-session profile. Splits `TARGET_JOURNEY_WEIGHTS` along `TransitionPhase`; refining phase collapses all weights to 1.0 to fix a structural rotation trap where common-letter weaknesses got eaten by their containing columns. Transitioning phase weights unchanged.
 
-When orienting on kerf's current intended direction, read ADR-003 for product and ADR-004 for distribution. ADR-001 and ADR-002 are preserved below because they contain the reasoning chain that led to ADR-003 — useful context for any future session reconsidering the decision.
+When orienting on kerf's current intended direction, read ADR-003 + ADR-005 for product and ADR-004 for distribution. ADR-001 and ADR-002 are preserved below because they contain the reasoning chain that led to ADR-003 — useful context for any future session reconsidering the decision.
 
 ## Purpose of This Document
 
@@ -1064,6 +1065,168 @@ Relevant facts shaping the decision:
 - **LICENSE file committed**: ✅ 2026-04-24 (same PR as this ADR)
 - **Trademark reservation**: pending — developer scope, out of repo
 - **500 WAU revisit**: future
+
+---
+
+## ADR-005: Phase-Aware Journey Weights (refining-phase rotation fix)
+
+**Date**: 2026-04-28
+**Status**: Accepted
+**Refines**: ADR-003 §5 (target-selection journey weights)
+**Version bump**: PATCH (engine-tuning behavior change; no API or schema change)
+
+### Context
+
+Prod-data audit on the developer's own lily58 profile (`falahudin6@gmail.com`, 172 sessions, refining phase, `unsure` journey) surfaced a recurring complaint: "exercises feel limited to the same 4–5 things; new bigrams from the weakness panel never appear." The user could see top-10 bigrams ranked in the dashboard but never received them as targets.
+
+A diagnostic run against the production database (read-only, via SSH-tunneled psql) confirmed the symptom is real and quantified the cause.
+
+#### Findings from the audit
+
+**1. Priors are not the issue.** Every letter has cleared `LOW_CONFIDENCE_THRESHOLD = 5` by 20–250×. The "Building familiarity" prior path is dead well past session 10. `q` has 587 attempts — surfacing as a *measured* weakness, not a prior.
+
+**2. The rotation pool over the last 50 sessions was 9 distinct targets**, with 5 of them accounting for 66%:
+
+| Target (last 50) | Picks | Letters covered |
+|---|---|---|
+| inner-column inner-left (`bgt`) | 9 | b, g, **t** |
+| vertical-column right-ring (`ol.`) | 7 | o, l, . |
+| character `q` | 6 | q |
+| vertical-column right-middle (`ik,`) | 6 | i, k, , |
+| bigram `uo` | 5 | u, o |
+| vertical-column left-pinky (`qaz`) | 4 | q, a, z |
+| diagnostic | 4 | (broad capture) |
+| character `w` | 3 | w |
+| inner-column inner-right (`hny`) | 3 | h, n, y |
+
+**3. Common unmastered letters never surface as character targets.** `t` (6.07% error, 922 attempts — clearly the strongest error signal among unmastered letters) was picked **0 times** as a `character` in 50 sessions. Yet `inner-column inner-left` (which contains `t`) won **9 times**. Same story for `i` (right-middle: 6 picks, 0 as char) and `o` (right-ring: 7, `uo`: 5, 0 as char).
+
+**4. `q` and `w` survived as character targets** because their hesitation rates (11.41% and 9.06% respectively) are 2–4× higher than the unmastered-but-fast letters (`t` at 4.66%, `i` at 2.25%, `o` at 3.55%). In refining phase `BETA = 0.35` weights hesitation almost as hard as `ALPHA = 0.3` weights error, so a "fast but error-prone" letter scores categorically lower than a "slow and hesitant" letter — even when the error rate is comparable.
+
+**5. The bigram tail is suppressed.** Bigrams `yi`, `zq`, `oy`, `ji`, `io`, `eu`, `bt`, `sa`, `ey` all have measured stats (>5 attempts) and ranked in the user-facing top-10 panel. After the `TARGET_JOURNEY_WEIGHTS[bigram] = 0.8` penalty they could never beat the column pool.
+
+#### The structural cause
+
+`TARGET_JOURNEY_WEIGHTS` per ADR-003 §5 was tuned with a single goal in mind: surface split-specific motion targets often enough to "justify owning the keyboard" during the **transitioning phase**, when the user is still building motor patterns. Columns get 1.3–1.8× weights; bigrams get 0.8×. Characters at 1.0× compete in the middle.
+
+That tune was carried over into the **refining phase** unchanged, with no recognition that the goals diverge:
+
+- **Transitioning** — user learning split-keyboard motor patterns. Boosting motion targets is correct.
+- **Refining** — user has the motor patterns; what's left is per-letter and per-bigram polish.
+
+In refining, the column boost no longer reflects an active learning goal. It instead creates a **structural rotation trap**:
+
+1. A letter's error contributes both to its own character weakness score (multiplied by 1.0) AND to its containing column's aggregate score (multiplied by 1.5).
+2. Whichever wins gets practiced, but the column is permanently inflated by 50% on the journey weight that the character cannot match.
+3. The letter only receives practice through the column's word-picker filter (mixed with the column's two other letters), so error-rate convergence is diffuse and slow.
+4. The column's aggregate cannot fall below the character's standalone weakness threshold until *all three letters* in the column converge — a rare alignment.
+5. Cooldown (3-in-a-row exact-value match) and recency decay (×0.7 per recent appearance) shuffle a small pool of dominant targets but never reach into the bigram tail or the suppressed character weaknesses.
+
+The user perceives this as "exercises don't refresh." The engine perceives it as "argmax is doing its job." Both are accurate descriptions of the same mechanic.
+
+#### Quantitative confirmation
+
+Approximate raw weakness scores from the prod audit (refining-phase coefficients, prod baseline `meanErrorRate ≈ 0.045`):
+
+```
+char `t`        ≈ 1.04   ×1.0 (char weight)         =  1.04
+inner-left col  ≈ 1.05   ×1.5 (inner-column weight) =  1.58   ← always beats char t
+char `q`        ≈ 1.63   ×1.0                       =  1.63   ← q beats qaz column
+qaz col         ≈ 1.04   ×1.3                       =  1.35
+char `o`        ≈ 1.0    ×1.0                       =  1.00
+right-ring col  ≈ 1.18   ×1.3                       =  1.54   ← always beats char o
+bigram `uo`     ≈ 3.1    ×0.8                       =  2.48   ← only bigram that breaks through
+```
+
+The character `t` raw weakness is *equal* to inner-left's raw weakness — they're competing on the same signal (t's error rate, which dominates both). The 1.5× journey weight on the column is the entire reason the character can never win.
+
+### Decision
+
+**Phase-key `TARGET_JOURNEY_WEIGHTS`. Keep transitioning weights as-is. In refining phase, collapse all target-type weights to 1.0.**
+
+Schema change: `Record<JourneyCode, Record<TargetType, number>>` → `Record<TransitionPhase, Record<JourneyCode, Record<TargetType, number>>>`.
+
+Refining-phase weights for all journeys (`conventional`, `columnar`, `unsure`):
+
+| Target type | Refining weight |
+|---|---|
+| character | 1.0 |
+| bigram | 1.0 *(was 0.8 — Option 4 in the diagnostic write-up)* |
+| vertical-column | 1.0 *(was 1.3 — Option 1)* |
+| inner-column | 1.0 *(was 1.5/1.8)* |
+| thumb-cluster | 1.0 *(was 1.5/1.8)* |
+| hand-isolation | 1.0 |
+| cross-hand-bigram | 1.0 |
+| diagnostic | 0 |
+
+Transitioning-phase weights are **unchanged** — ADR-003's "justify owning the keyboard" rationale still applies during motor-pattern acquisition.
+
+### Consequences
+
+**Immediate (engine behavior):**
+
+- Character and bigram targets compete with columns on raw weakness score in refining. Common-letter weaknesses (`t`, `i`, `o`) can now surface as their own targets.
+- The bigram-penalty headwind is gone in refining. The bigram top-10 can break through more often, addressing the "the panel shows weaknesses I never practice" complaint.
+- The `unsure → conventional fallback` table identity is preserved within each phase; the journey-bonus structure is still there, just with refining values that happen to be uniform.
+
+**Acknowledged limitation:**
+
+The fix does not equalize the underlying scoring formulas. Motion-pattern candidates use pure error-rate normalization (`agg.rate / baseline.meanErrorRate`); character candidates use a multi-factor score (`α·normErr + β·normHes + γ·normSlow − δ·freq`). In refining, `α = 0.3`, so character scores are naturally smaller-scaled than column scores. Removing the 1.5× *amplifier* loosens the trap without fully eliminating it — a column with a strong rare-letter contribution can still edge out the character. The behavioral test in `targetSelection.test.ts` asserts "char `t` rank improves vs transitioning," not "char `t` becomes #1," to reflect this honestly. A future ADR may revisit the formula asymmetry; for now it's an accepted shortcoming because the rotation pool is materially wider.
+
+**Test coverage:**
+
+- `targetSelection.test.ts` adds two behavioral tests using prod-derived stats: "character `t` ranks higher (lower index) in refining than transitioning" and "inner-column rank does not improve in refining (column boost removed)." Both compare *rank position* across phases rather than absolute identity, to be robust to formula-asymmetry edge cases.
+- The existing weights-table sanity test is split into transitioning and refining variants.
+- All 49 `targetSelection` tests pass; all 581 domain tests pass.
+
+**Unchanged:**
+
+- `computeWeaknessScore` formula and coefficients.
+- Cooldown (`COOLDOWN_RUN_LENGTH = 3`), recency decay (`RECENCY_DECAY = 0.7`), rank exploration (`RANK_EXPLORATION_PERIOD = 4`), and diagnostic period (`DIAGNOSTIC_PERIOD = 10`) — all of these still fire as before.
+- Transitioning-phase target selection — fully preserved per ADR-003 §5.
+- The motion-pattern scoring formula in `motionPatterns.ts` — left as-is; the asymmetry between motion and character formulas is a known quirk, not addressed here.
+
+**Explicit non-consequences:**
+
+- No data migration. `session_targets.selection_score` rows from before this change are *historical* values under the old formula; new rows use the new weights. The dashboard does not aggregate selection scores across versions, so there is no display impact.
+- No transparency-panel copy change. The journey-weight table the panel displays will simply show 1.0 across the board for refining-phase users, which is honest and easier to explain than the old non-uniform values.
+- No change to drill mode. User-picked targets are unaffected by `TARGET_JOURNEY_WEIGHTS` (per `selectTarget` flow).
+
+### Alternatives Considered
+
+1. **Suppress columns when their constituent characters are individually unmastered** (Option 2 in the diagnostic write-up). More invasive: requires a new dependency between character ranking and column candidate filtering. Risks over-correction — could starve columns even when the column-as-motion-pattern is genuinely the right target. Rejected as too aggressive without observed need.
+
+2. **Broaden cooldown to overlap-based** (Option 3). Currently cooldown only excludes the exact same `value`; overlap would exclude any candidate whose `keys` array overlaps with recent picks. Forces wider exploration but adds significant complexity (a multi-target dependency graph). Rejected for now; revisit if the phase-aware fix proves insufficient.
+
+3. **Reformulate motion-pattern scoring to match `computeWeaknessScore`** (apply phase coefficients and frequency penalty to the column aggregate). The most principled fix — would close the formula-asymmetry gap noted above. Rejected as scope creep for this ADR; the symptom can be loosened without it.
+
+4. **Lower refining column weights to a non-1.0 value** (e.g. 0.6 or `ALPHA`-derived) to compensate for the formula scale mismatch. Rejected as ad-hoc tuning that would require more empirical data to justify a specific value. Uniform 1.0 is principled (no journey bias) and easy to explain in the transparency panel.
+
+5. **Lower the bigram penalty alone (Option 4 only)** without touching column weights. Rejected: addresses only the bigram-tail-suppression symptom. The dominant complaint is the column-eats-character trap, which only Option 1 fixes.
+
+### Related Changes
+
+- `src/domain/adaptive/targetSelection.ts` — `TARGET_JOURNEY_WEIGHTS` schema and values; `rankTargets` lookup uses `[phase][journey]`.
+- `src/domain/adaptive/targetSelection.test.ts` — split sanity test, added two phase-aware behavioral tests.
+- `CHANGELOG.md` — Unreleased / Fixed entry.
+- No changes to `02-architecture.md` § Target Selection — that doc still describes the cross-candidate weighting concept correctly; the weights specifically are tracked by code constants, not duplicated in spec.
+
+### Forward Indicators
+
+How to tell if this fix is working in production data:
+
+1. **Distinct values in last 50 session_targets** rises from ~9 to ≥12 for a refining-phase user past session 100.
+2. **Common unmastered letters surface as `character` targets** at non-zero frequency. Specifically: `t`, `i`, `o` should each appear ≥1 time in any 50-session window where they are unmastered.
+3. **The bigram tail breaks through.** Bigrams beyond `uo` (the prod rank-1) — like `yi`, `zq`, `oy`, `ji` — appear as targets in any 50-session window where they have measured stats and are in the user-facing top-10.
+4. **Column targets continue to appear.** This isn't about killing columns — they should still pick up the slack when the user genuinely has a motion-pattern weakness independent of any single letter.
+
+### Execution Status
+
+- **ADR drafted and accepted**: ✅ 2026-04-28
+- **Code change committed**: ⏳ pending PR
+- **Behavioral tests added**: ✅ in same diff
+- **Spec-doc propagation**: not required (`02-architecture.md` references the constant by name; the constant is now phase-keyed but the architectural concept is unchanged)
+- **Beta-feedback revisit**: future — particularly whether the formula asymmetry calls for a follow-up ADR
 
 ---
 

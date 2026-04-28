@@ -38,6 +38,7 @@ All notable changes to kerf are documented here. Format follows [Keep a Changelo
 ### Fixed
 
 - Pinned `zod@^4` as a direct dependency. Better Auth requires zod 4 APIs (`z.coerce.boolean().meta(...)`), but TanStack Router's build toolchain hoisted zod 3.25 to top-level, and Vite's prod bundler resolved the wrong copy when bundling `@better-auth/core`. The bug only surfaced once the production server started running (`pnpm start` was added in this release); `pnpm dev` resolved correctly via a separate code path.
+- **Adaptive engine rotation trap in refining phase** (per [ADR-005](docs/00-design-evolution.md)): `TARGET_JOURNEY_WEIGHTS` is now phase-keyed. Refining phase collapses all weights to `1.0` (column boosts and the bigram penalty both removed); transitioning phase keeps existing values. Prod-data audit on a 172-session lily58 profile showed common-letter weaknesses (`t`, `i`, `o`) being eaten by their containing columns (inner-left, right-middle, right-ring) — chars never surfaced as their own targets because the column's 1.5× journey boost permanently outranked the character's 1.0×. Fix lets characters and bigrams compete on equal footing with columns once motor patterns are established. (`src/domain/adaptive/targetSelection.ts`)
 
 ## [0.1.0] - 2026-04-26
 

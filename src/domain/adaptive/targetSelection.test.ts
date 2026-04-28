@@ -89,15 +89,104 @@ describe("selectTarget — journey weighting (ADR-003 §4.2)", () => {
     );
   });
 
-  it("weights table sanity", () => {
-    expect(TARGET_JOURNEY_WEIGHTS.conventional.bigram).toBe(0.8);
-    expect(TARGET_JOURNEY_WEIGHTS.conventional["vertical-column"]).toBe(1.3);
-    expect(TARGET_JOURNEY_WEIGHTS.conventional["inner-column"]).toBe(1.5);
-    expect(TARGET_JOURNEY_WEIGHTS.conventional["thumb-cluster"]).toBe(1.8);
-    expect(TARGET_JOURNEY_WEIGHTS.columnar["inner-column"]).toBe(1.8);
-    expect(TARGET_JOURNEY_WEIGHTS.columnar["vertical-column"]).toBe(1.3);
-    expect(TARGET_JOURNEY_WEIGHTS.columnar["thumb-cluster"]).toBe(1.5);
-    expect(TARGET_JOURNEY_WEIGHTS.unsure).toEqual(TARGET_JOURNEY_WEIGHTS.conventional);
+  it("weights table sanity — transitioning phase", () => {
+    const t = TARGET_JOURNEY_WEIGHTS.transitioning;
+    expect(t.conventional.bigram).toBe(0.8);
+    expect(t.conventional["vertical-column"]).toBe(1.3);
+    expect(t.conventional["inner-column"]).toBe(1.5);
+    expect(t.conventional["thumb-cluster"]).toBe(1.8);
+    expect(t.columnar["inner-column"]).toBe(1.8);
+    expect(t.columnar["vertical-column"]).toBe(1.3);
+    expect(t.columnar["thumb-cluster"]).toBe(1.5);
+    expect(t.unsure).toEqual(t.conventional);
+  });
+
+  it("weights table sanity — refining phase collapses to 1.0 across types (ADR-005)", () => {
+    // Refining-phase rationale: motor patterns are established, so target-type
+    // bias is dropped and the strongest weakness wins on its own merits. This
+    // fixes the rotation trap where common-letter weaknesses were eaten by
+    // their containing columns.
+    const r = TARGET_JOURNEY_WEIGHTS.refining;
+    for (const journey of ["conventional", "columnar", "unsure"] as const) {
+      expect(r[journey].character).toBe(1.0);
+      expect(r[journey].bigram).toBe(1.0);
+      expect(r[journey]["vertical-column"]).toBe(1.0);
+      expect(r[journey]["inner-column"]).toBe(1.0);
+      expect(r[journey]["thumb-cluster"]).toBe(1.0);
+      expect(r[journey].diagnostic).toBe(0);
+    }
+  });
+});
+
+describe("rankTargets — refining-phase rotation fix (ADR-005)", () => {
+  // Behavioral claim: the rotation trap that prod-data audit exposed
+  // (common-letter weaknesses like `t` getting eaten by their containing
+  // columns, never surfacing as their own targets) loosens in refining
+  // phase. Equal weights mean character/bigram targets rank closer to the
+  // columns containing them, so the rotation pool is wider.
+  //
+  // Asserts use *relative rank position* across phases rather than "char
+  // wins #1" because the underlying scoring formulas for character vs.
+  // motion-pattern produce naturally different scales (motion uses pure
+  // error normalization; character uses α·err + β·hes + γ·slow). The fix
+  // removes the amplifying journey-weight boost that turned a small
+  // natural advantage into permanent column dominance — it does not
+  // equalize the formulas themselves.
+  const findRank = (ranked: ReturnType<typeof rankTargets>, type: string, value: string): number =>
+    ranked.findIndex((c) => c.type === type && c.value === value);
+
+  // Prod-like baseline tuned to surface the rotation trap. Real prod values
+  // for the falahudin6@gmail.com / lily58 profile that motivated ADR-005.
+  const prodBaseline = (): UserBaseline => ({
+    meanErrorRate: 0.045,
+    meanKeystrokeTime: 120,
+    meanHesitationRate: 0.04,
+    journey: "unsure",
+  });
+
+  it("character `t` ranks higher (lower index) in refining than in transitioning", () => {
+    // Reproduction of the prod-data scenario:
+    // - char `t`: 6.07% err, 4.66% hes, 156ms avg — strong but balanced weakness
+    // - b, g: solid (3% error, low hesitation)
+    // - Inner-column inner-left (b, g, t) raw aggregate ≈ char t's raw weakness
+    // - In transitioning, inner-column ×1.5 weight pulls column above char t
+    // - In refining, equal weights let char t surface above the diluted column
+    const stats = statsWith([
+      { character: "t", attempts: 922, errors: 56, sumTime: 144_000, hesitationCount: 43 },
+      { character: "b", attempts: 368, errors: 11, sumTime: 70_000, hesitationCount: 20 },
+      { character: "g", attempts: 381, errors: 12, sumTime: 64_000, hesitationCount: 20 },
+    ]);
+    const transRanked = rankTargets(stats, prodBaseline(), "transitioning", freq);
+    const refRanked = rankTargets(stats, prodBaseline(), "refining", freq);
+
+    const transTRank = findRank(transRanked, "character", "t");
+    const refTRank = findRank(refRanked, "character", "t");
+
+    expect(transTRank).toBeGreaterThanOrEqual(0); // t exists as candidate in both
+    expect(refTRank).toBeGreaterThanOrEqual(0);
+    // Refining promotes t's rank vs transitioning (smaller index = higher rank).
+    expect(refTRank).toBeLessThan(transTRank);
+  });
+
+  it("inner-column rank does not improve in refining (column boost removed)", () => {
+    // Counterpart to the previous test: confirm that the column's ranking
+    // doesn't artificially climb in refining. With the ×1.5 boost gone,
+    // its raw score competes on its own merits.
+    const stats = statsWith([
+      { character: "t", attempts: 922, errors: 56, sumTime: 144_000, hesitationCount: 43 },
+      { character: "b", attempts: 368, errors: 11, sumTime: 70_000, hesitationCount: 20 },
+      { character: "g", attempts: 381, errors: 12, sumTime: 64_000, hesitationCount: 20 },
+    ]);
+    const transRanked = rankTargets(stats, prodBaseline(), "transitioning", freq);
+    const refRanked = rankTargets(stats, prodBaseline(), "refining", freq);
+
+    const transColRank = findRank(transRanked, "inner-column", "inner-left");
+    const refColRank = findRank(refRanked, "inner-column", "inner-left");
+
+    expect(transColRank).toBeGreaterThanOrEqual(0);
+    expect(refColRank).toBeGreaterThanOrEqual(0);
+    // Refining should not promote inner-left's rank.
+    expect(refColRank).toBeGreaterThanOrEqual(transColRank);
   });
 });
 
