@@ -34,44 +34,100 @@ export type SessionTarget = {
 };
 
 /**
- * Weights per ADR-003 §5 — hand-tuned starting values. Transparency panel
- * must state this honestly; revisit with beta feedback.
+ * Weights per ADR-003 §5 (transitioning) and ADR-005 (refining). Phase-keyed
+ * because the two phases have categorically different goals:
  *
- * Columnar row was boosted above the initial ADR-003 tune (0.8/1.2/1.0 →
- * 1.5/1.8/1.5) so split-specific motions surface often enough in adaptive
- * selection to justify owning the keyboard. Character/bigram weaknesses
- * still compete; they just have to be noticeably worse to win.
+ * **Transitioning** — the user is still building split-specific motor patterns.
+ * Column and thumb-cluster motions get boosted (1.3-1.8) so split-specific
+ * targets surface often enough in adaptive selection to justify owning the
+ * keyboard. Character/bigram weaknesses still compete; they just have to be
+ * noticeably worse to win. Bigrams penalized to 0.8 because diffuse two-key
+ * targets are less actionable than concrete single-key or motion targets
+ * during the motor-pattern-building phase.
+ *
+ * **Refining** — the user has the motor patterns; what's left is per-letter
+ * and per-bigram polish. All weights collapse to 1.0 so target type is no
+ * longer biased — the strongest weakness wins on its own merits. Per ADR-005,
+ * keeping column boosts in refining created a structural rotation trap:
+ * common-letter weaknesses (t/i/o) got eaten by their containing columns
+ * (inner-left, right-middle, right-ring) because the column's 1.5× weight
+ * outranked the character's 1.0×, so the letter never surfaced as its own
+ * target and the column's aggregate score couldn't drop until the letter
+ * mastered through column-mode practice — a slow, indirect loop that the
+ * user perceived as "the same 5 targets on rotation." Equal weights in
+ * refining let characters and bigrams compete on equal footing with the
+ * columns containing them, so practice surfaces match where the user
+ * actually needs it.
+ *
+ * Hand-tuned. Revisit with beta feedback.
  */
-export const TARGET_JOURNEY_WEIGHTS: Record<JourneyCode, Record<TargetType, number>> = {
-  conventional: {
-    character: 1.0,
-    bigram: 0.8,
-    "vertical-column": 1.3,
-    "inner-column": 1.5,
-    "thumb-cluster": 1.8,
-    "hand-isolation": 1.0,
-    "cross-hand-bigram": 1.0,
-    diagnostic: 0,
+export const TARGET_JOURNEY_WEIGHTS: Record<
+  TransitionPhase,
+  Record<JourneyCode, Record<TargetType, number>>
+> = {
+  transitioning: {
+    conventional: {
+      character: 1.0,
+      bigram: 0.8,
+      "vertical-column": 1.3,
+      "inner-column": 1.5,
+      "thumb-cluster": 1.8,
+      "hand-isolation": 1.0,
+      "cross-hand-bigram": 1.0,
+      diagnostic: 0,
+    },
+    columnar: {
+      character: 1.0,
+      bigram: 0.8,
+      "vertical-column": 1.3,
+      "inner-column": 1.8,
+      "thumb-cluster": 1.5,
+      "hand-isolation": 1.0,
+      "cross-hand-bigram": 1.0,
+      diagnostic: 0,
+    },
+    unsure: {
+      character: 1.0,
+      bigram: 0.8,
+      "vertical-column": 1.3,
+      "inner-column": 1.5,
+      "thumb-cluster": 1.8,
+      "hand-isolation": 1.0,
+      "cross-hand-bigram": 1.0,
+      diagnostic: 0,
+    },
   },
-  columnar: {
-    character: 1.0,
-    bigram: 0.8,
-    "vertical-column": 1.3,
-    "inner-column": 1.8,
-    "thumb-cluster": 1.5,
-    "hand-isolation": 1.0,
-    "cross-hand-bigram": 1.0,
-    diagnostic: 0,
-  },
-  unsure: {
-    character: 1.0,
-    bigram: 0.8,
-    "vertical-column": 1.3,
-    "inner-column": 1.5,
-    "thumb-cluster": 1.8,
-    "hand-isolation": 1.0,
-    "cross-hand-bigram": 1.0,
-    diagnostic: 0,
+  refining: {
+    conventional: {
+      character: 1.0,
+      bigram: 1.0,
+      "vertical-column": 1.0,
+      "inner-column": 1.0,
+      "thumb-cluster": 1.0,
+      "hand-isolation": 1.0,
+      "cross-hand-bigram": 1.0,
+      diagnostic: 0,
+    },
+    columnar: {
+      character: 1.0,
+      bigram: 1.0,
+      "vertical-column": 1.0,
+      "inner-column": 1.0,
+      "thumb-cluster": 1.0,
+      "hand-isolation": 1.0,
+      "cross-hand-bigram": 1.0,
+      diagnostic: 0,
+    },
+    unsure: {
+      character: 1.0,
+      bigram: 1.0,
+      "vertical-column": 1.0,
+      "inner-column": 1.0,
+      "thumb-cluster": 1.0,
+      "hand-isolation": 1.0,
+      "cross-hand-bigram": 1.0,
+      diagnostic: 0,
+    },
   },
 };
 
@@ -400,7 +456,7 @@ export function rankTargets(
   const hasPriorCandidates = charSupport !== undefined && charSupport.size > 0;
   if (!hasConfidentData && !hasPriorCandidates) return [];
 
-  const weights = TARGET_JOURNEY_WEIGHTS[baseline.journey];
+  const weights = TARGET_JOURNEY_WEIGHTS[phase][baseline.journey];
   const candidates: SessionTarget[] = [
     ...characterCandidates(stats.characters, baseline, phase, frequencyInLanguage, charSupport),
     ...bigramCandidates(stats.bigrams, baseline, phase, frequencyInLanguage),
