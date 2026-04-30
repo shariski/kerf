@@ -26,16 +26,37 @@ const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getIte
 export const Route = createRootRoute({
   head: () => ({
     meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "kerf — adaptive typing practice for split keyboards" },
       {
-        charSet: "utf-8",
+        name: "description",
+        content:
+          "Adaptive typing practice that targets the keys you're still building muscle memory for. Built for split keyboards like Sofle and Lily58.",
       },
+      { name: "theme-color", content: "#181410" },
+
+      // Open Graph defaults — overridden per route where appropriate
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "kerf" },
+      { property: "og:title", content: "kerf — adaptive typing practice for split keyboards" },
       {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        property: "og:description",
+        content:
+          "Adaptive typing practice that targets the keys you're still building muscle memory for.",
       },
+      { property: "og:image", content: "https://typekerf.com/og-image.png" },
+      { property: "og:url", content: "https://typekerf.com/" },
+
+      // Twitter Card
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "kerf — adaptive typing practice for split keyboards" },
       {
-        title: "kerf",
+        name: "twitter:description",
+        content:
+          "Adaptive typing practice that targets the keys you're still building muscle memory for.",
       },
+      { name: "twitter:image", content: "https://typekerf.com/og-image.png" },
     ],
     links: [
       {
@@ -50,6 +71,8 @@ export const Route = createRootRoute({
         type: "image/svg+xml",
         href: "/favicon.svg",
       },
+      // Default canonical — per-route configs override this with the route's own URL.
+      { rel: "canonical", href: "https://typekerf.com/" },
     ],
   }),
   shellComponent: RootDocument,
