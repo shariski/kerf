@@ -9,6 +9,7 @@
 
 import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
+import { canonicalLink } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/welcome")({
   beforeLoad: async () => {
@@ -18,6 +19,30 @@ export const Route = createFileRoute("/welcome")({
     const session = await getAuthSession();
     if (session) throw redirect({ to: "/" });
   },
+  head: () => ({
+    meta: [
+      { title: "Adaptive typing practice for split keyboards | kerf" },
+      {
+        name: "description",
+        content:
+          "Adaptive typing practice for Sofle and Lily58. Sessions adapt to the keys you're still building muscle memory for. Slower, tighter, stronger.",
+      },
+      { property: "og:title", content: "Adaptive typing practice for split keyboards | kerf" },
+      {
+        property: "og:description",
+        content:
+          "Adaptive typing practice for Sofle and Lily58. Sessions target the keys you're still learning.",
+      },
+      { property: "og:url", content: "https://typekerf.com/welcome" },
+      { name: "twitter:title", content: "Adaptive typing practice for split keyboards | kerf" },
+      {
+        name: "twitter:description",
+        content:
+          "Adaptive typing practice for Sofle and Lily58. Sessions target the keys you're still learning.",
+      },
+    ],
+    links: [canonicalLink("/welcome")],
+  }),
   component: WelcomePage,
 });
 
