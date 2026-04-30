@@ -71,8 +71,6 @@ export const Route = createRootRoute({
         type: "image/svg+xml",
         href: "/favicon.svg",
       },
-      // Default canonical — per-route configs override this with the route's own URL.
-      { rel: "canonical", href: "https://typekerf.com/" },
     ],
   }),
   shellComponent: RootDocument,
