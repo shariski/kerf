@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>kerf og-image</title>
+    <style>
+      :root {
+        --bg: #181410;
+        --fg: #f5efe6;
+        --accent: #f59e0b;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 1200px;
+        height: 630px;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      }
+      .frame {
+        width: 1200px;
+        height: 630px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 96px;
+      }
+      h1 {
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 100;
+        font-size: 220px;
+        letter-spacing: -0.04em;
+        margin: 0 0 24px 0;
+        line-height: 1;
+      }
+      .dot { color: var(--accent); }
+      p {
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+        font-size: 28px;
+        color: rgba(245, 239, 230, 0.7);
+        margin: 0;
+        letter-spacing: 0.01em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <h1>kerf<span class="dot">.</span></h1>
+      <p>adaptive typing practice for split keyboards</p>
+    </div>
+  </body>
+</html>
