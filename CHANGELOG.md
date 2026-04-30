@@ -20,6 +20,7 @@ All notable changes to kerf are documented here. Format follows [Keep a Changelo
 - `scripts/migrate.mjs` — Drizzle runtime migrator (uses `drizzle-orm/postgres-js/migrator`, no drizzle-kit dependency) so migrations can run from the lean runtime image without shipping the dev toolchain to production.
 - `DEPLOYMENT.md` Step 7.5 — GitHub repo secrets + dedicated deploy SSH keypair instructions; clarifies how to make the GHCR image public on first publish.
 - `scripts/sync-ssr-css.mjs` and `scripts/check-asset-urls.mjs` — post-build steps wired into `pnpm build` after `vite build`. The first realigns the SSR-baked stylesheet URL with the client-emitted CSS file; the second fails the build if any `/assets/*` URL referenced from `dist/server/` does not exist in `dist/client/assets/`.
+- SEO baseline — per-route `<title>`, `<meta name="description">`, Open Graph, Twitter Card, and canonical tags via Tanstack Router's head API. Adds `public/sitemap.xml` (8 URLs), rewrites `public/robots.txt` to declare the sitemap and disallow gated routes (`/dashboard`, `/practice`, `/onboarding`, `/settings`, `/api/`), and ships an `og-image.png` placeholder. Gated routes now emit `<meta name="robots" content="noindex, nofollow">` via a shared `noindexHead()` helper at `src/lib/seo-head.ts`.
 
 ### Changed
 
