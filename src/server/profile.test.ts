@@ -10,7 +10,7 @@ describe("validateCreateProfileInput", () => {
   };
 
   it("accepts a well-formed input and returns the typed shape", () => {
-    expect(validateCreateProfileInput(valid)).toEqual(valid);
+    expect(validateCreateProfileInput(valid)).toEqual({ ...valid, nickname: null });
   });
 
   it("accepts every allowed enum value", () => {

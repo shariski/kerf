@@ -1,7 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DocPage } from "#/components/doc/DocPage";
+import { canonicalLink } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/privacy")({
+  head: () => ({
+    meta: [
+      { title: "Privacy policy | kerf" },
+      {
+        name: "description",
+        content:
+          "kerf privacy policy: what data is collected (keystrokes, accounts), how it's stored, and your rights.",
+      },
+      { property: "og:url", content: "https://typekerf.com/privacy" },
+    ],
+    links: [canonicalLink("/privacy")],
+  }),
   component: PrivacyPage,
 });
 

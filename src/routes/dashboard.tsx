@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, redirect, Link, useRouter } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
+import { noindexHead } from "#/lib/seo-head";
 import {
   getDashboardActivity,
   getDashboardHeatmap,
@@ -91,6 +92,7 @@ export const Route = createFileRoute("/dashboard")({
       profiles,
     };
   },
+  head: () => noindexHead(),
   component: DashboardPage,
 });
 

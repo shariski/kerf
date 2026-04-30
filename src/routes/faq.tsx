@@ -1,7 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DocPage } from "#/components/doc/DocPage";
+import { canonicalLink } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/faq")({
+  head: () => ({
+    meta: [
+      { title: "Frequently asked questions | kerf" },
+      {
+        name: "description",
+        content:
+          "Common questions about kerf: how the adaptive engine picks exercises, supported keyboards, accuracy-first philosophy, and what's not on the roadmap.",
+      },
+      { property: "og:title", content: "Frequently asked questions | kerf" },
+      {
+        property: "og:description",
+        content:
+          "Common questions about kerf: how the engine works, supported keyboards, philosophy.",
+      },
+      { property: "og:url", content: "https://typekerf.com/faq" },
+      { name: "twitter:title", content: "Frequently asked questions | kerf" },
+      {
+        name: "twitter:description",
+        content:
+          "Common questions about kerf: how the engine works, supported keyboards, philosophy.",
+      },
+    ],
+    links: [canonicalLink("/faq")],
+  }),
   component: FaqPage,
 });
 

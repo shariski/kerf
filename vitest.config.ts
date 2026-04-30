@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 /**
  * Dedicated vitest config. Kept separate from vite.config.ts so the
@@ -29,5 +29,10 @@ export default defineConfig({
       },
     },
     setupFiles: ["./vitest.setup.ts"],
+    // Playwright specs live under `tests/` (see playwright.config.ts).
+    // Vitest's default include pattern matches `.spec.ts`, so without
+    // this exclude vitest tries to run the Playwright file and fails
+    // with "test() not expected to be called here".
+    exclude: [...configDefaults.exclude, "tests/**"],
   },
 });

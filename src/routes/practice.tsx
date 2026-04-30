@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
+import { noindexHead } from "#/lib/seo-head";
 import {
   getActiveProfile,
   getEngineStatsAndBaseline,
@@ -109,6 +110,7 @@ export const Route = createFileRoute("/practice")({
     };
   },
   validateSearch: validatePracticeSearch,
+  head: () => noindexHead(),
   component: PracticePage,
 });
 

@@ -6,6 +6,7 @@ import type { InitialLevel } from "#/domain/profile/initialPhase";
 import type { JourneyCode } from "#/domain/adaptive/journey";
 import { JourneyQuestion } from "#/components/onboarding/JourneyQuestion";
 import { getAuthSession } from "#/lib/require-auth";
+import { noindexHead } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/onboarding")({
   beforeLoad: async () => {
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/onboarding")({
     const profile = await getActiveProfile();
     if (profile) throw redirect({ to: "/" });
   },
+  head: () => noindexHead(),
   component: OnboardingPage,
 });
 

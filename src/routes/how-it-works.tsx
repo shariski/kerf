@@ -1,7 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DocPage } from "#/components/doc/DocPage";
+import { canonicalLink } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/how-it-works")({
+  head: () => ({
+    meta: [
+      { title: "How the adaptive engine works | kerf" },
+      {
+        name: "description",
+        content:
+          "How kerf picks exercises: weakness scoring per character and bigram, target selection by phase, accuracy-first feedback. No LLMs, no gamified meta-score.",
+      },
+      { property: "og:title", content: "How the adaptive engine works | kerf" },
+      {
+        property: "og:description",
+        content:
+          "How kerf picks exercises: weakness scoring, target selection, accuracy-first feedback.",
+      },
+      { property: "og:url", content: "https://typekerf.com/how-it-works" },
+      { name: "twitter:title", content: "How the adaptive engine works | kerf" },
+      {
+        name: "twitter:description",
+        content:
+          "How kerf picks exercises: weakness scoring, target selection, accuracy-first feedback.",
+      },
+    ],
+    links: [canonicalLink("/how-it-works")],
+  }),
   component: HowItWorksPage,
 });
 

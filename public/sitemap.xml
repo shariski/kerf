@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static sitemap. Update when public routes change.
+  Sync with public/robots.txt and route head:noindex annotations.
+  / is intentionally omitted because it 302-redirects to /welcome;
+  sitemaps should list 200-OK URLs only (per Google's sitemap protocol).
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://typekerf.com/welcome</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://typekerf.com/how-it-works</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://typekerf.com/why-split-is-hard</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://typekerf.com/keyboards</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://typekerf.com/faq</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://typekerf.com/contact</loc>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://typekerf.com/privacy</loc>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://typekerf.com/terms</loc>
+    <priority>0.2</priority>
+  </url>
+</urlset>

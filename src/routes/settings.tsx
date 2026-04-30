@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getAuthSession } from "#/lib/require-auth";
+import { noindexHead } from "#/lib/seo-head";
 import { getAccountSummary, type SettingsData } from "#/server/account";
 import { SettingsLayout } from "#/components/settings/SettingsLayout";
 import { AccountSection } from "#/components/settings/sections/AccountSection";
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/settings")({
     if (!session) throw redirect({ to: "/login" });
   },
   loader: async (): Promise<SettingsData> => getAccountSummary(),
+  head: () => noindexHead(),
   component: SettingsPage,
 });
 

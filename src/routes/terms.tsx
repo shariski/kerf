@@ -1,7 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DocPage } from "#/components/doc/DocPage";
+import { canonicalLink } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/terms")({
+  head: () => ({
+    meta: [
+      { title: "Terms of service | kerf" },
+      {
+        name: "description",
+        content:
+          "kerf terms of service. Use at your own discretion; the platform is in active development.",
+      },
+      { property: "og:url", content: "https://typekerf.com/terms" },
+    ],
+    links: [canonicalLink("/terms")],
+  }),
   component: TermsPage,
 });
 

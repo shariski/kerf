@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>kerf og-image</title>
+    <style>
+      /*
+        Self-hosted variable fonts mirrored from /public/fonts/. The
+        relative path works when this file is loaded via file:// from
+        the repo root (Playwright opens it that way). Fraunces axes:
+        opsz 144 (display optical size), SOFT 100 (the soft variant
+        kerf uses for its wordmark per CLAUDE.md §B5).
+      */
+      @font-face {
+        font-family: "Fraunces";
+        src: url("../public/fonts/Fraunces-Variable.woff2") format("woff2-variations");
+        font-weight: 100 900;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("../public/fonts/JetBrainsMono-Variable.woff2") format("woff2-variations");
+        font-weight: 100 800;
+        font-style: normal;
+      }
+
+      :root {
+        /* Tokens mirror src/styles.css exactly. */
+        --bg: #181410;          /* --color-kerf-bg-base */
+        --fg: #F2EAE0;          /* --color-kerf-text-primary */
+        --muted: #9A8E80;       /* --color-kerf-text-secondary */
+        --accent: #F59E0B;      /* --color-kerf-amber-base */
+      }
+
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 1200px;
+        height: 630px;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      .frame {
+        width: 1200px;
+        height: 630px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 96px;
+        gap: 28px;
+      }
+      .wordmark {
+        /* Mirrors .kerf-nav-logo from src/styles.css, scaled up. */
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 700;
+        font-variation-settings: "opsz" 144, "SOFT" 100;
+        font-size: 240px;
+        line-height: 1;
+        letter-spacing: -0.01em;
+        margin: 0;
+        display: inline-flex;
+        align-items: baseline;
+      }
+      .dot { color: var(--accent); }
+      .tagline {
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+        font-size: 26px;
+        color: var(--muted);
+        margin: 0;
+        letter-spacing: 0.01em;
+        font-weight: 400;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="wordmark">kerf<span class="dot">.</span></div>
+      <div class="tagline">adaptive typing practice for split keyboards</div>
+    </div>
+  </body>
+</html>

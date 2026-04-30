@@ -1,3 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /practice
+Disallow: /onboarding
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://typekerf.com/sitemap.xml

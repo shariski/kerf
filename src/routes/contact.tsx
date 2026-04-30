@@ -1,7 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DocPage } from "#/components/doc/DocPage";
+import { canonicalLink } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/contact")({
+  head: () => ({
+    meta: [
+      { title: "Contact | kerf" },
+      {
+        name: "description",
+        content: "Get in touch with kerf — feedback, bug reports, beta requests.",
+      },
+      { property: "og:url", content: "https://typekerf.com/contact" },
+    ],
+    links: [canonicalLink("/contact")],
+  }),
   component: ContactPage,
 });
 

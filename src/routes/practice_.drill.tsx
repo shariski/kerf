@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
+import { noindexHead } from "#/lib/seo-head";
 import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import {
@@ -109,6 +110,7 @@ export const Route = createFileRoute("/practice_/drill")({
     };
   },
   validateSearch: validateDrillSearch,
+  head: () => noindexHead(),
   component: DrillPage,
 });
 
