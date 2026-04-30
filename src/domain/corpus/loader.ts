@@ -6,10 +6,14 @@ import type { Corpus, CorpusWord } from "./types";
  * fetched blob whose `version` doesn't match this constant, so stale
  * service-worker / browser caches fail loudly instead of silently
  * serving a corpus that doesn't match the runtime's expectations.
+ *
+ * Also rides along as the `?v=` cache-bust on the default fetch URL so
+ * a long-lived (`Cache-Control: immutable`) browser cache can be re-
+ * pointed by a single bump here.
  */
 export const CORPUS_VERSION = 1;
 
-const DEFAULT_CORPUS_URL = "/corpus.json";
+const DEFAULT_CORPUS_URL = `/corpus.json?v=${CORPUS_VERSION}`;
 
 export type FetchJson = (url: string) => Promise<unknown>;
 

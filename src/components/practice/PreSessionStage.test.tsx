@@ -124,6 +124,28 @@ describe("PreSessionStage", () => {
     expect(container.querySelector(".kerf-pre-filters-content")).not.toBeNull();
   });
 
+  it("surfaces a 'loading word list' meta + aria-busy on the CTA when awaitingCorpus", () => {
+    const { container } = render(
+      <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" awaitingCorpus />,
+    );
+    const cta = container.querySelector(".kerf-pre-cta-primary") as HTMLButtonElement;
+    expect(cta.getAttribute("aria-busy")).toBe("true");
+    expect(container.querySelector(".kerf-pre-cta-primary-meta")?.textContent).toBe(
+      "loading word list…",
+    );
+  });
+
+  it("omits aria-busy and shows the default meta line when not awaiting corpus", () => {
+    const { container } = render(
+      <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
+    );
+    const cta = container.querySelector(".kerf-pre-cta-primary") as HTMLButtonElement;
+    expect(cta.hasAttribute("aria-busy")).toBe(false);
+    expect(container.querySelector(".kerf-pre-cta-primary-meta")?.textContent).toBe(
+      "balanced practice · 30 words · ~90 sec",
+    );
+  });
+
   it("propagates filter changes to onFilterChange", () => {
     const onChange = vi.fn();
     const { container } = render(

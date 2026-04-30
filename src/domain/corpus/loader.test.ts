@@ -107,13 +107,13 @@ describe("createCorpusLoader", () => {
   });
 
   describe("defaults", () => {
-    it("uses the default corpus URL when none is provided", async () => {
+    it("uses the default corpus URL (with version cache-bust) when none is provided", async () => {
       const fetchJson = vi.fn().mockResolvedValue(validCorpus());
       const loader = createCorpusLoader({ fetchJson });
 
       await loader.load();
 
-      expect(fetchJson).toHaveBeenCalledWith("/corpus.json");
+      expect(fetchJson).toHaveBeenCalledWith(`/corpus.json?v=${CORPUS_VERSION}`);
     });
 
     it("respects a custom URL", async () => {

@@ -138,6 +138,13 @@ function PracticePage() {
   const [filters, setFilters] = useState<PreSessionFilterValues>(DEFAULT_FILTERS);
   const [paused, setPaused] = useState(false);
   const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
+  // True once the user has fired the "Continue adaptive practice" CTA
+  // (click or Enter) while `corpus.status !== "ready"`. Without this,
+  // the early-return in `generateSessionAndShowBriefing` would silently
+  // swallow the input and the page would feel unresponsive until the
+  // 1.6 MB corpus.json finished loading. We drain the queued intent in
+  // the effect below as soon as corpus flips to ready.
+  const [awaitingCorpus, setAwaitingCorpus] = useState(false);
 
   // Mode used by the session currently running (or just finished). The
   // persist effect reads this so the DB row carries the right mode. A
@@ -187,7 +194,12 @@ function PracticePage() {
       return;
     }
 
-    if (corpus.status !== "ready") return;
+    if (corpus.status !== "ready") {
+      // Queue the intent — the corpus-ready effect will drain it.
+      setAwaitingCorpus(true);
+      return;
+    }
+    setAwaitingCorpus(false);
 
     const stats = engineData?.stats ?? { characters: [], bigrams: [] };
     const baseline = engineData?.baseline ?? {
@@ -279,6 +291,21 @@ function PracticePage() {
     generateSessionRef.current();
     void navigate({ to: "/practice", search: {}, replace: true });
   }, [search.autostart, status, pendingSession, useDiagnostic, corpus.status, navigate]);
+
+  // Drain a queued start once the corpus finishes loading. The user
+  // clicked / pressed Enter while corpus.status was still "loading";
+  // `generateSessionAndShowBriefing` flagged that intent rather than
+  // dropping it, and now that the corpus is ready we run the briefing
+  // they asked for. Guarded on `status === "idle"` and no pending
+  // briefing so we never auto-fire over an active or already-staged
+  // session.
+  useEffect(() => {
+    if (!awaitingCorpus) return;
+    if (corpus.status !== "ready") return;
+    if (status !== "idle") return;
+    if (pendingSession !== null) return;
+    generateSessionRef.current();
+  }, [awaitingCorpus, corpus.status, status, pendingSession]);
 
   // Esc toggles the manual pause overlay during a live session. We
   // listen while active *or* paused — the latter because idle auto-
@@ -386,6 +413,7 @@ function PracticePage() {
     if (search.autostart) return;
     setPendingSession(null);
     setPaused(false);
+    setAwaitingCorpus(false);
     const state = sessionStore.getState();
     if (state.status !== "idle") {
       state.dispatch({ type: "reset" });
@@ -767,6 +795,7 @@ function PracticePage() {
               })
             }
             isFirstSession={useDiagnostic}
+            awaitingCorpus={awaitingCorpus && !useDiagnostic}
           />
           {otherTabActive && (
             <p className="kerf-multitab-banner" role="status" aria-live="polite">
