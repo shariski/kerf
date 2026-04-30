@@ -39,6 +39,15 @@ type Props = {
    * existing baseline data. Task 4.1.
    */
   isFirstSession?: boolean;
+  /**
+   * True after the user has clicked / pressed Enter while the corpus
+   * (`/corpus.json`, ~1.6 MB) is still loading. The parent queues the
+   * start intent and auto-fires once corpus is ready; we surface that
+   * with a calmer meta line + `aria-busy` so the click doesn't feel
+   * dropped. The button stays enabled — extra clicks are no-ops the
+   * parent collapses into the same queued intent.
+   */
+  awaitingCorpus?: boolean;
 };
 
 const TARGET_WORD_COUNT = 30;
@@ -58,6 +67,7 @@ export function PreSessionStage({
   onDrillWeakness,
   onDrillInnerColumn,
   isFirstSession = false,
+  awaitingCorpus = false,
 }: Props) {
   // Enter triggers the primary CTA — matches the affordance promised by
   // the <kbd>⏎</kbd> chip on the button. Skip when focus is in a text
@@ -79,9 +89,10 @@ export function PreSessionStage({
   }, [onStartAdaptive]);
 
   const approxSeconds = TARGET_WORD_COUNT * APPROX_SECONDS_PER_WORD;
-  const metaLine = isFirstSession
+  const defaultMetaLine = isFirstSession
     ? `baseline capture · ~${FIRST_SESSION_SECONDS} sec`
     : `balanced practice · ${TARGET_WORD_COUNT} words · ~${approxSeconds} sec`;
+  const metaLine = awaitingCorpus ? "loading word list…" : defaultMetaLine;
   const title = isFirstSession ? "Your first session" : "What will you practice?";
   const subtitle = isFirstSession
     ? "We'll capture a baseline on your split layout, then tailor future exercises to your real weaknesses."
@@ -98,7 +109,12 @@ export function PreSessionStage({
       <h1 className="kerf-pre-title">{title}</h1>
       <p className="kerf-pre-subtitle">{subtitle}</p>
 
-      <button type="button" className="kerf-pre-cta-primary" onClick={onStartAdaptive}>
+      <button
+        type="button"
+        className="kerf-pre-cta-primary"
+        onClick={onStartAdaptive}
+        aria-busy={awaitingCorpus || undefined}
+      >
         <span className="kerf-pre-cta-primary-text">
           <span className="kerf-pre-cta-primary-label">{ctaLabel}</span>
           <span className="kerf-pre-cta-primary-meta">{metaLine}</span>

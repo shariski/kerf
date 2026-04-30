@@ -17,8 +17,31 @@ import handler from "../dist/server/server.js";
 
 const distRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "dist");
 
+// /corpus.json is a 1.6 MB build artifact whose contents are pinned by
+// the runtime's CORPUS_VERSION (see src/domain/corpus/loader.ts). The
+// client fetches it as `/corpus.json?v=${CORPUS_VERSION}`, so a long-
+// lived browser cache is always invalidated by a version bump — making
+// the response safely `immutable`. srvx.serveStatic doesn't expose a
+// cache-headers hook, so we wrap it with a small post-response
+// middleware. Without this, refreshes pay the full ~4s download
+// (Cloudflare doesn't cache .json by default; cf-cache-status: DYNAMIC).
+const IMMUTABLE_PATHS = new Set(["/corpus.json"]);
+const immutableCacheHeaders = async (req, next) => {
+  const res = await next();
+  if (res.status !== 200) return res;
+  const pathname = new URL(req.url).pathname;
+  if (!IMMUTABLE_PATHS.has(pathname)) return res;
+  const headers = new Headers(res.headers);
+  headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  return new Response(res.body, {
+    status: res.status,
+    statusText: res.statusText,
+    headers,
+  });
+};
+
 serve({
   hostname: "0.0.0.0",
-  middleware: [serveStatic({ dir: join(distRoot, "client") })],
+  middleware: [immutableCacheHeaders, serveStatic({ dir: join(distRoot, "client") })],
   fetch: (req) => handler.fetch(req),
 });
