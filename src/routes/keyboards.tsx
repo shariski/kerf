@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
+import { canonicalLink } from "#/lib/seo-head";
 import {
   createKeyboardProfile,
   listKeyboardProfiles,
@@ -40,6 +41,28 @@ export const Route = createFileRoute("/keyboards")({
     const profiles = await listKeyboardProfiles();
     return { profiles };
   },
+  head: () => ({
+    meta: [
+      { title: "Supported keyboards: Sofle, Lily58 | kerf" },
+      {
+        name: "description",
+        content:
+          "kerf supports Sofle and Lily58 split keyboards. See key layouts, finger maps, and how the adaptive engine maps weakness to your specific board.",
+      },
+      { property: "og:title", content: "Supported keyboards: Sofle, Lily58 | kerf" },
+      {
+        property: "og:description",
+        content: "kerf supports Sofle and Lily58 split keyboards. Key layouts and finger maps.",
+      },
+      { property: "og:url", content: "https://typekerf.com/keyboards" },
+      { name: "twitter:title", content: "Supported keyboards: Sofle, Lily58 | kerf" },
+      {
+        name: "twitter:description",
+        content: "kerf supports Sofle and Lily58 split keyboards. Key layouts and finger maps.",
+      },
+    ],
+    links: [canonicalLink("/keyboards")],
+  }),
   component: KeyboardsPage,
 });
 

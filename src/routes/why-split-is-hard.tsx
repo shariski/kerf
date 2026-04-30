@@ -1,7 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DocPage } from "#/components/doc/DocPage";
+import { canonicalLink } from "#/lib/seo-head";
 
 export const Route = createFileRoute("/why-split-is-hard")({
+  head: () => ({
+    meta: [
+      { title: "Why split keyboards are hard to learn | kerf" },
+      {
+        name: "description",
+        content:
+          "Why columnar split keyboards (Sofle, Lily58) reset your muscle memory and what makes the plateau hard to push through.",
+      },
+      { property: "og:title", content: "Why split keyboards are hard to learn | kerf" },
+      {
+        property: "og:description",
+        content:
+          "Why columnar split keyboards reset your muscle memory and how to push through the plateau.",
+      },
+      { property: "og:url", content: "https://typekerf.com/why-split-is-hard" },
+      { name: "twitter:title", content: "Why split keyboards are hard to learn | kerf" },
+      {
+        name: "twitter:description",
+        content:
+          "Why columnar split keyboards reset your muscle memory and how to push through the plateau.",
+      },
+    ],
+    links: [canonicalLink("/why-split-is-hard")],
+  }),
   component: WhySplitIsHardPage,
 });
 
