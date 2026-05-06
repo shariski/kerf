@@ -2,7 +2,7 @@
 <!--
   Static sitemap. Update when public routes change.
   Sync with public/robots.txt and route head:noindex annotations.
-  / is intentionally omitted because it 302-redirects to /welcome;
+  / is intentionally omitted because it 301-redirects to /welcome;
   sitemaps should list 200-OK URLs only (per Google's sitemap protocol).
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
