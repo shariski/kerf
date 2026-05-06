@@ -27,7 +27,10 @@ import { formatRelativeDay } from "#/domain/dashboard/aggregates";
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const session = await getAuthSession();
-    if (!session) throw redirect({ to: "/welcome" });
+    // 301 (not the 307 default) so Google consolidates canonical signals
+    // to /welcome — temp redirects leave /welcome flagged as "duplicate,
+    // Google chose different canonical than user" in Search Console.
+    if (!session) throw redirect({ to: "/welcome", statusCode: 301 });
   },
   loader: async (): Promise<{ home: HomeData }> => {
     // Profile check up front so a user with an account but no profile
