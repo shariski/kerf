@@ -271,6 +271,68 @@ running for other domains; we just don't enroll typekerf.com with it.
 
 ---
 
+## Step 5.5 — Proxy customizations: `www` → apex 301
+
+Search Console treats `www.typekerf.com` and `typekerf.com` as
+separate hosts. Even though every page declares `<link rel="canonical"
+href="https://typekerf.com/...">`, the `www` variant still gets
+crawled and logged as "Alternate page with proper canonical tag" — a
+distraction in the index report and a small but persistent
+canonicalization tax. The clean fix is to never serve the `www` host
+content at all: redirect the entire host to apex at the proxy edge.
+
+Two reasonable layers to do this. **Pick one, not both:**
+
+- **Cloudflare Redirect Rule** (recommended if you're on Cloudflare
+  proxy mode — orange cloud — from Step 2). The redirect happens at
+  Cloudflare's edge; the origin never sees `www` traffic, so latency
+  drops and origin load is unaffected by stray `www` crawls.
+  Configure under **Cloudflare → Rules → Redirect Rules**: trigger on
+  `Hostname eq www.typekerf.com`, action 301 redirect to apex
+  preserving path and query string. Cloudflare's UI evolves; if the
+  exact field names have moved, the search term is "redirect rule
+  301 path preservation". This option is **not under git control** —
+  re-document the rule's existence in your ops notes.
+
+- **nginx-proxy `vhost.d` override** (use this if you ever leave
+  Cloudflare or want the redirect under git/SSH control). nginx-proxy
+  reads per-vhost custom directives from files inside its `vhost.d`
+  volume. A file named `<HOSTNAME>_location` is included inside that
+  vhost's `location /` block; a `return 301` short-circuits before
+  nginx-proxy's default `proxy_pass` runs. The kerf app keeps
+  advertising `www.typekerf.com` in `VIRTUAL_HOST` (so nginx-proxy
+  generates the server block + binds the wildcard cert) — only the
+  per-vhost override changes the response:
+
+      # vhost.d is a docker-named volume mounted in Step 4. Write
+      # into it via a one-shot container (volume name follows the
+      # compose project — typically `proxy_vhost` when the proxy
+      # compose lives at /opt/proxy/docker-compose.yml):
+
+      docker volume ls | grep vhost   # confirm volume name
+      docker run --rm -v proxy_vhost:/vhost.d nginx:alpine \
+        sh -c 'echo "return 301 https://typekerf.com\$request_uri;" \
+        > /vhost.d/www.typekerf.com_location'
+
+      docker compose -f /opt/proxy/docker-compose.yml \
+        exec nginx-proxy nginx -s reload
+
+- [ ] Smoke-test the redirect from your laptop (works for either
+      layer). Status `301`, `Location` is the apex equivalent:
+
+      curl -sIL https://www.typekerf.com/welcome | grep -iE 'HTTP/|location:'
+      # → HTTP/2 301
+      # → location: https://typekerf.com/welcome
+      # → HTTP/2 200
+
+- [ ] In Search Console, request re-indexing of the apex URL
+      (`https://typekerf.com/welcome`) so Google re-crawls and sees
+      the now-redirecting `www` host. Existing "Alternate page with
+      proper canonical tag" reports for `www.*` URLs will clear over
+      Google's normal re-crawl cycle (days to weeks).
+
+---
+
 ## Step 6 — Outbound email (Resend)
 
 - [ ] Sign up at <https://resend.com> (free tier: 3,000/month).
