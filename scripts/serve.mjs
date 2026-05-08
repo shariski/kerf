@@ -40,8 +40,35 @@ const immutableCacheHeaders = async (req, next) => {
   });
 };
 
+// HTML responses must revalidate on every navigation. Without this,
+// browsers cache the SSR document and on subsequent visits replay it
+// against bundle hashes from a stale deploy — JS chunks 404, React
+// fails to hydrate, and pages render visually but with no event
+// handlers wired up (symptom: buttons un-clickable until hard refresh).
+// `no-cache` allows the browser to keep the document but forces a
+// conditional revalidation request; `must-revalidate` forbids serving
+// stale on network error. Static assets are unaffected — they're
+// served with content-hashed filenames and are safe to cache long.
+const htmlNoCacheHeaders = async (_req, next) => {
+  const res = await next();
+  if (res.status !== 200) return res;
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) return res;
+  const headers = new Headers(res.headers);
+  headers.set("Cache-Control", "no-cache, must-revalidate");
+  return new Response(res.body, {
+    status: res.status,
+    statusText: res.statusText,
+    headers,
+  });
+};
+
 serve({
   hostname: "0.0.0.0",
-  middleware: [immutableCacheHeaders, serveStatic({ dir: join(distRoot, "client") })],
+  middleware: [
+    htmlNoCacheHeaders,
+    immutableCacheHeaders,
+    serveStatic({ dir: join(distRoot, "client") }),
+  ],
   fetch: (req) => handler.fetch(req),
 });
