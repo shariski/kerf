@@ -1,25 +1,25 @@
 {
   "hooks": {
-    "PostToolUse": [
+    "PreToolUse": [
       {
-        "matcher": "Edit|Write|Bash",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "code-review-graph update --skip-flows",
-            "timeout": 30
+            "command": "jq -r '.tool_input.command // \"\"' | grep -qE '(^|[;&|(]|[[:space:]])npm[[:space:]]+(install|i|ci|add)([[:space:]]|$)' && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"This repo is pnpm-only (CLAUDE.md B13). npm writes package-lock.json, which drifts against pnpm-lock.yaml and produces a hybrid node_modules with mixed framework versions (see PR #59). Use pnpm instead: pnpm install / pnpm add <pkg>.\"}}' || true",
+            "timeout": 10
           }
         ]
       }
     ],
-    "SessionStart": [
+    "PostToolUse": [
       {
-        "matcher": "",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "code-review-graph status",
-            "timeout": 10
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; \"${CLAUDE_PROJECT_DIR:-.}/node_modules/.bin/biome\" format --files-ignore-unknown=true --write \"$f\"; } >/dev/null 2>&1 || true",
+            "timeout": 15
           }
         ]
       }
