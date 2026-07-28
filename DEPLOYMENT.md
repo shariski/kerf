@@ -422,15 +422,23 @@ dedicated keypair and three repo secrets.
   KEY-----` and `-----END OPENSSH PRIVATE KEY-----` lines and the
   trailing newline.
 
-- [ ] After CI's first push to GHCR (Step 10), make the published image
-      **public** so the VPS can pull without authenticating:
+- [ ] Nothing to do for registry auth. The deploy job logs into GHCR
+      itself, using the workflow's own `GITHUB_TOKEN` (`packages: read`),
+      so the image works whether it is public or private.
 
-      GitHub → your profile → Packages → kerf → Package settings →
-      Change visibility → Public
+  The login writes to `DOCKER_CONFIG=/opt/kerf/.docker`, **not** the
+  SSH user's shared `~/.docker/config.json`, and logs out on exit. Two
+  reasons, both learned the hard way:
 
-  (Skip this if you'd rather keep the image private. You'll then need
-  to `docker login ghcr.io` on the VPS with a PAT scoped to
-  `read:packages`.)
+  - If the VPS hosts other stacks, they keep their own credentials in
+    the shared config. Writing there would clobber them.
+  - A stale credential in the shared config breaks pulls even for
+    *public* images — GHCR answers a bad credential with `denied`
+    rather than falling back to anonymous. See Troubleshooting.
+
+  Do **not** run a manual `docker login ghcr.io` on the VPS for kerf's
+  benefit. It is not needed, and a short-lived token left behind there
+  is precisely the failure mode above.
 
 ---
 
@@ -641,6 +649,7 @@ doesn't auto-revert. This is rare in practice but worth knowing.
 | Magic-link emails go to spam | Resend domain not fully verified. Re-check SPF + DKIM in Resend dashboard. |
 | Magic-link link points to localhost | `AUTH_URL` not set to `https://<your-domain>` in `.env`. |
 | OAuth callback "Mismatch" error | Provider's redirect URI doesn't match `<AUTH_URL>/api/auth/callback/<provider>` exactly. Trailing slashes, `www.` prefix, http vs https — all matter. |
+| Deploy fails at `docker compose pull` with `error from registry: denied` | A stale credential for `ghcr.io` is being sent. GHCR rejects a bad credential outright instead of falling back to anonymous, so this breaks public images too. CI now pulls under its own `DOCKER_CONFIG=/opt/kerf/.docker`, so this points at a hand-run `docker login` on the VPS. Confirm with `docker manifest inspect <image>` vs `DOCKER_CONFIG=$(mktemp -d) docker manifest inspect <image>` — if the second succeeds and the first fails, the shared `~/.docker/config.json` is the problem. Fix with `docker logout ghcr.io`, then re-login only if *other* stacks on the box need it, using a long-lived PAT scoped to `read:packages` — never a `ghs_` Actions token, which expires with the run that minted it. |
 | Rate limiter blocks requests too aggressively | Cloudflare or nginx-proxy IP shows up as the client. nginx-proxy sets `X-Forwarded-For` correctly by default; the issue is usually that Cloudflare's IP is being read as the client because the app isn't trusting the chain. Confirm `src/server/auth.ts` has `advanced.ipAddress.ipAddressHeaders=["x-forwarded-for"]`, and that nginx-proxy is appending CF's `cf-connecting-ip` to the chain (or trust CF's IP ranges directly). |
 
 ---
