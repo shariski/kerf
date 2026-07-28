@@ -71,6 +71,11 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Lets GITHUB_TOKEN pull the image we just pushed. Read-only —
+      # the deploy job never needs to write to the registry.
+      packages: read
     steps:
       - uses: actions/checkout@v4
 
@@ -91,15 +96,42 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: IMAGE_TAG
+          envs: IMAGE_TAG,GHCR_USER,GHCR_TOKEN
           script: |
             set -euo pipefail
             cd /opt/kerf
             export IMAGE_TAG="${IMAGE_TAG}"
+            # Authenticate to GHCR in a docker config owned by this
+            # deploy, not the shared ~/.docker/config.json.
+            #
+            # Why: the VPS hosts other stacks that keep their own
+            # registry credentials in the shared config. Reading from it
+            # makes our deploy hostage to whatever hand-run `docker
+            # login` last touched it; writing to it clobbers theirs.
+            #
+            # This is not hypothetical — it is exactly what broke deploys
+            # between 2026-05-31 and 2026-07-28. A short-lived `ghs_`
+            # Actions token got written to the shared config, expired,
+            # and every subsequent pull died with `denied`. GHCR rejects
+            # a bad credential outright rather than falling back to
+            # anonymous, so even our *public* image stopped pulling.
+            # Isolating the config makes the deploy immune to that, and
+            # logging in fresh each run means it keeps working if the
+            # package is ever flipped back to private.
+            export DOCKER_CONFIG=/opt/kerf/.docker
+            mkdir -p "$DOCKER_CONFIG"
+            chmod 700 "$DOCKER_CONFIG"
+            printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
+            # GHCR_TOKEN dies with this workflow run. Drop it from disk
+            # however we exit, so we never leave the same rotting
+            # credential behind that caused the outage above.
+            trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
             # Pull is explicit so a failed pull aborts before we touch
             # the running app. `up -d` would also pull, but only after
             # tearing down the old container.
