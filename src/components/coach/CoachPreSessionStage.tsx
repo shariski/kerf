@@ -50,7 +50,7 @@ export function CoachPreSessionStage({ report, quota, passage, onStart }: Props)
       <footer className="kerf-coach-actions">
         <button
           type="button"
-          className="kerf-coach-start"
+          className="kerf-btn-primary"
           onClick={onStart}
           disabled={exhausted}
         >

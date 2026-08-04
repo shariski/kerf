@@ -20,9 +20,7 @@ export function CoachPanel({ preview, onStart }: Props) {
     <section className="kerf-coach-panel" aria-label="Coach">
       <header className="kerf-coach-panel-head">
         <span className="kerf-coach-panel-name">Coach</span>
-        {preview && !exhausted && (
-          <span className="kerf-coach-panel-tag">free session</span>
-        )}
+        {preview && !exhausted && <span className="kerf-mode-card-tag">free session</span>}
       </header>
 
       <p className="kerf-coach-panel-desc">
@@ -47,23 +45,23 @@ export function CoachPanel({ preview, onStart }: Props) {
         <p className="kerf-coach-panel-teaser">Not enough data yet to diagnose your typing.</p>
       )}
 
-      <footer className="kerf-coach-panel-actions">
+      <footer className="kerf-coach-actions">
         <button
           type="button"
-          className="kerf-coach-panel-start"
+          className="kerf-btn-primary"
           onClick={onStart}
           disabled={exhausted}
         >
           Start coach session
         </button>
-        <button type="button" className="kerf-coach-panel-subscribe" disabled>
+        <button type="button" className="kerf-coach-subscribe" disabled>
           <span>Subscribe</span>
           <span className="kerf-mode-card-tag">coming soon</span>
         </button>
       </footer>
 
       {preview && (
-        <p className="kerf-coach-panel-quota">
+        <p className="kerf-coach-quota">
           {exhausted
             ? "Free: today's session used · Subscribe for more"
             : `Free: ${preview.quota.remaining} session available today · Subscribe for more`}
