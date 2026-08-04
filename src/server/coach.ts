@@ -11,6 +11,7 @@ import type { KeyboardLayout, FingerTable } from "#/domain/finger/types";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 import { computeWhyReport, type WhyReport } from "#/domain/coach/whyReport";
 import { evaluateGate, type GateResult } from "#/domain/coach/gate";
+import { normalizePassageText } from "#/domain/coach/normalize";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
   targetKeyFor, findPassage, insertPassage, incrementUsage, type PassageRecord,
@@ -208,6 +209,10 @@ export const getCoachSession = createServerFn({ method: "POST" })
     if (!gateResult?.passed) {
       throw new CoachError("GATE_REJECTED", `passage failed gate: ${gateResult?.violations.join("; ")}`);
     }
+    // The gate validates the raw multi-paragraph text; the typing engine
+    // types character-by-character and cannot type newlines, so the stored
+    // passage is normalized to a single line of regular spaces.
+    passageText = normalizePassageText(passageText);
 
     const parsed = extractJsonObject(generationRaw) as {
       test_cases?: { mechanism?: string; title?: string; topic?: string; text?: string }[];
