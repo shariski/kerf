@@ -38,10 +38,7 @@ export function evaluateGate(
     violations.push(`length: ${measured.nWords} words (need 120-350)`);
   }
 
-  const paragraphs = Math.min(
-    (text.match(/\n\n/g)?.length ?? 0) + (text.includes("\n") ? 1 : 0) + 1,
-    3,
-  );
+  const paragraphs = (text.match(/\n\n/g)?.length ?? 0) + 1;
   if (paragraphs < 1 || paragraphs > 3) {
     violations.push(`paragraphs: ${paragraphs} (need 1-3)`);
   }
