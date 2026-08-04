@@ -22,17 +22,17 @@ export type LlmClient = (
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export function loadPromptFile(name: "analysis.md" | "generation.md"): string {
+function loadPromptFile(name: "analysis.md" | "generation.md"): string {
   return readFileSync(path.join(__dirname, "prompts", name), "utf8");
 }
 
 function parsePromptFile(text: string): { system: string; user: string } {
   const parts = text.split("\n## system\n");
   if (parts.length < 2) throw new CoachError("LLM_PROMPT", `bad prompt file: ${text.slice(0, 40)}`);
-  const [beforeSystem = "", rest = ""] = parts;
+  const rest = parts[1] ?? "";
   const userParts = rest.split("\n## user\n");
   if (userParts.length < 2) throw new CoachError("LLM_PROMPT", "bad prompt file: no user section");
-  return { system: beforeSystem.replace(/^# .*\n/, "").trim(), user: (userParts[1] ?? "").trim() };
+  return { system: (userParts[0] ?? "").trim(), user: (userParts[1] ?? "").trim() };
 }
 
 export function buildAnalysisMessages(
@@ -115,7 +115,13 @@ export function createLlmClient(
         });
         if (!res.ok) {
           if (res.status === 429 || res.status >= 500) {
-            await new Promise((r) => setTimeout(r, 5000 * (attempt + 1)));
+            lastError = new CoachError(
+              "LLM_HTTP",
+              `DeepSeek unavailable after retries (status ${res.status})`,
+            );
+            if (attempt < 3) {
+              await new Promise((r) => setTimeout(r, 5000 * (attempt + 1)));
+            }
             continue;
           }
           throw new CoachError("LLM_HTTP", `DeepSeek HTTP ${res.status}: ${await res.text()}`);

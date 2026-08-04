@@ -65,6 +65,14 @@ describe("createLlmClient", () => {
     expect(res.content).toBe("{}");
     expect(fakeFetch).toHaveBeenCalledTimes(2);
   }, 15000);
+
+  it("rejects with CoachError LLM_HTTP when retries are exhausted", async () => {
+    const fakeFetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+    const client = createLlmClient(fakeFetch as unknown as typeof fetch, "sk-test");
+    const promise = client([{ role: "user", content: "hi" }]);
+    await expect(promise).rejects.toMatchObject({ code: "LLM_HTTP" });
+    expect(fakeFetch).toHaveBeenCalledTimes(4);
+  }, 40000);
 });
 
 describe("prompt assembly", () => {
@@ -76,6 +84,13 @@ describe("prompt assembly", () => {
     expect(user).toContain("v1");
     expect(user).toContain("v3");
     expect(msgs[0].role).toBe("system");
+  });
+
+  it("sends the full V6 system prompt, not an empty string", () => {
+    const msgs = buildAnalysisMessages('{"total":1}', "digest", ["v1", "v2", "v3"]);
+    expect(msgs[0].content.length).toBeGreaterThan(100);
+    expect(msgs[0].content).toMatch(/\S/);
+    expect(msgs[0].content).toContain("root_causes");
   });
 
   it("builds generation messages with the analysis result injected", () => {
