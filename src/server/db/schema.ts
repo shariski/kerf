@@ -12,6 +12,7 @@ import {
   index,
   uniqueIndex,
   numeric,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -62,6 +63,7 @@ export const sessions = pgTable("sessions", {
   mode: text("mode").notNull(), // 'adaptive' | 'targeted_drill' | 'diagnostic'
   phaseAtSession: text("phase_at_session").notNull(), // 'transitioning' | 'refining'
   filterConfig: jsonb("filter_config"),
+  passageId: uuid("passage_id").references(() => passages.id, { onDelete: "set null" }),
   startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
   endedAt: timestamp("ended_at", { withTimezone: true }),
   totalChars: integer("total_chars").default(0),
@@ -216,6 +218,48 @@ export const wordCorpus = pgTable("word_corpus", {
   bigrams: text("bigrams").array().notNull(),
   frequencyRank: integer("frequency_rank"),
 });
+
+// ── passages (Coach catalog) ─────────────────────────────────────────────────
+
+export const passages = pgTable(
+  "passages",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    title: text("title").notNull(),
+    topic: text("topic").notNull(),
+    difficulty: text("difficulty").notNull(), // 'easy' | 'medium' | 'hard'
+    mechanisms: jsonb("mechanisms").notNull(), // MechanismKey[]
+    triggerTargets: jsonb("trigger_targets"),
+    measuredDensity: jsonb("measured_density"),
+    qualityGate: jsonb("quality_gate").notNull(), // GateResult
+    text: text("text").notNull(),
+    wordCount: integer("word_count").notNull(),
+    paragraphs: integer("paragraphs").notNull(),
+    source: text("source").notNull(), // 'ai:deepseek-v4-flash:v6'
+    status: text("status").notNull().default("active"), // 'active' | 'retired' | 'needs_review'
+    targetKey: text("target_key").notNull(),
+    usageCount: integer("usage_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("passages_key_topic_diff_idx").on(t.targetKey, t.topic, t.difficulty),
+    index("passages_status_idx").on(t.status),
+  ],
+);
+
+// ── coach_quota (daily free tier) ────────────────────────────────────────────
+
+export const coachQuota = pgTable(
+  "coach_quota",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // 'YYYY-MM-DD' UTC
+    sessionsUsed: integer("sessions_used").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.date] })],
+);
 
 // ── auth_sessions (better-auth internal) ─────────────────────────────────────
 export const authSessions = pgTable("auth_sessions", {
