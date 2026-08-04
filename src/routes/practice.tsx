@@ -8,6 +8,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import { noindexHead } from "#/lib/seo-head";
+import { getCoachPreview, type CoachPreview } from "#/server/coach";
 import {
   getActiveProfile,
   getEngineStatsAndBaseline,
@@ -158,6 +159,23 @@ function PracticePage() {
   // diagnostic. The "Practice again" CTA after a diagnostic should run
   // adaptive, not another diagnostic.
   const diagnosticConsumedRef = useRef(false);
+
+  // Coach panel data (why-report teaser + quota). Fetched once per mount,
+  // fire-and-forget — the panel degrades gracefully while null.
+  const [coachPreview, setCoachPreview] = useState<CoachPreview | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getCoachPreview({ data: { keyboardProfileId: profile.id } })
+      .then((preview) => {
+        if (!cancelled) setCoachPreview(preview);
+      })
+      .catch(() => {
+        // Leave the panel in its neutral (null) state.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile.id]);
 
   // ADR-003 §4 — briefing state machine (Gap 2).
   // generateSession result is held here until the user confirms start.
@@ -797,6 +815,7 @@ function PracticePage() {
               })
             }
             onCoach={() => navigate({ to: "/practice/coach" })}
+            coachPreview={coachPreview}
             isFirstSession={useDiagnostic}
             awaitingCorpus={awaitingCorpus && !useDiagnostic}
           />

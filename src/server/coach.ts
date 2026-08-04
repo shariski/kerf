@@ -12,6 +12,7 @@ import type { KeystrokeEvent } from "#/domain/stats/types";
 import { computeWhyReport, type WhyReport } from "#/domain/coach/whyReport";
 import { evaluateGate, gateTargetsFor, type GateResult } from "#/domain/coach/gate";
 import { normalizePassageText } from "#/domain/coach/normalize";
+import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
   targetKeyFor, findPassage, insertPassage, incrementUsage, countActiveForKey,
   type PassageRecord,
@@ -106,43 +107,90 @@ export function buildLlmDigest(events: KeystrokeEvent[]): string {
   });
 }
 
+type CoachContext = {
+  userId: string;
+  fingerTable: FingerTable;
+  report: WhyReport;
+  topMechanisms: MechanismKey[];
+  events: KeystrokeEvent[];
+};
+
+async function loadCoachContext(
+  keyboardProfileId: string,
+  requestHeaders: Headers,
+): Promise<CoachContext> {
+  const authSession = await auth.api.getSession({ headers: requestHeaders });
+  if (!authSession) throw new CoachError("UNAUTHORIZED", "not signed in");
+  const userId = authSession.user.id;
+
+  const [profile] = await db
+    .select({ id: keyboardProfiles.id, keyboardType: keyboardProfiles.keyboardType })
+    .from(keyboardProfiles)
+    .where(and(eq(keyboardProfiles.id, keyboardProfileId), eq(keyboardProfiles.userId, userId)))
+    .limit(1);
+  if (!profile) throw new CoachError("PROFILE_NOT_FOUND", "profile not found");
+
+  const layout = profile.keyboardType as KeyboardLayout;
+  const fingerTable = fingerTableFor(layout);
+
+  const recent = await db
+    .select({ id: sessions.id, startedAt: sessions.startedAt, phase: sessions.phaseAtSession })
+    .from(sessions)
+    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
+    .orderBy(desc(sessions.startedAt))
+    .limit(RECENT_SESSION_LIMIT);
+  const sessionIds = recent.map((s) => s.id);
+  const events = sessionIds.length
+    ? ((await db
+        .select()
+        .from(keystrokeEvents)
+        .where(inArray(keystrokeEvents.sessionId, sessionIds))) as unknown as KeystrokeEvent[])
+    : [];
+
+  const report = computeWhyReport(events, fingerTable);
+  const topMechanisms = report.mechanisms
+    .filter((m) => m.mechanism !== "non-alpha")
+    .slice(0, TOP_MECHANISMS)
+    .map((m) => m.mechanism);
+
+  return { userId, fingerTable, report, topMechanisms, events };
+}
+
+export type CoachPreview = {
+  report: WhyReport;
+  dominantMechanism: MechanismKey | null;
+  quota: { usedToday: number; remaining: number };
+};
+
+/**
+ * Non-consuming preview for the practice-page Coach panel: why-report,
+ * dominant mechanism, and quota state. Does NOT serve or generate a
+ * passage and does NOT touch coach_quota.
+ */
+export const getCoachPreview = createServerFn({ method: "POST" })
+  .inputValidator(getCoachSessionSchema)
+  .handler(async ({ data }): Promise<CoachPreview> => {
+    const context = await loadCoachContext(data.keyboardProfileId, getRequest().headers);
+    const today = utcDateString();
+    const usedToday = await coachQuotaUsed(db, context.userId, today);
+    return {
+      report: context.report,
+      dominantMechanism: context.topMechanisms[0] ?? null,
+      quota: {
+        usedToday,
+        remaining: Math.max(0, DAILY_COACH_LIMIT - usedToday),
+      },
+    };
+  });
+
 export const getCoachSession = createServerFn({ method: "POST" })
   .inputValidator(getCoachSessionSchema)
   .handler(async ({ data }): Promise<CoachResponse> => {
     const request = getRequest();
-    const authSession = await auth.api.getSession({ headers: request.headers });
-    if (!authSession) throw new CoachError("UNAUTHORIZED", "not signed in");
-    const userId = authSession.user.id;
-
-    const [profile] = await db
-      .select({ id: keyboardProfiles.id, keyboardType: keyboardProfiles.keyboardType })
-      .from(keyboardProfiles)
-      .where(and(eq(keyboardProfiles.id, data.keyboardProfileId), eq(keyboardProfiles.userId, userId)))
-      .limit(1);
-    if (!profile) throw new CoachError("PROFILE_NOT_FOUND", "profile not found");
-
-    const layout = profile.keyboardType as KeyboardLayout;
-    const fingerTable = fingerTableFor(layout);
-
-    const recent = await db
-      .select({ id: sessions.id, startedAt: sessions.startedAt, phase: sessions.phaseAtSession })
-      .from(sessions)
-      .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
-      .orderBy(desc(sessions.startedAt))
-      .limit(RECENT_SESSION_LIMIT);
-    const sessionIds = recent.map((s) => s.id);
-    const events = sessionIds.length
-      ? ((await db
-          .select()
-          .from(keystrokeEvents)
-          .where(inArray(keystrokeEvents.sessionId, sessionIds))) as unknown as KeystrokeEvent[])
-      : [];
-
-    const report = computeWhyReport(events, fingerTable);
-    const topMechanisms = report.mechanisms
-      .filter((m) => m.mechanism !== "non-alpha")
-      .slice(0, TOP_MECHANISMS)
-      .map((m) => m.mechanism);
+    const { userId, fingerTable, report, topMechanisms, events } = await loadCoachContext(
+      data.keyboardProfileId,
+      request.headers,
+    );
     if (topMechanisms.length === 0) {
       throw new CoachError("INSUFFICIENT_DATA", "not enough typing data yet");
     }

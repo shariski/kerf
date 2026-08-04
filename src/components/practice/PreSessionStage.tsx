@@ -18,9 +18,11 @@
 import { useEffect } from "react";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import type { KeyboardType } from "#/server/profile";
+import type { CoachPreview } from "#/server/coach";
 import { KeyboardContextPill } from "./KeyboardContextPill";
 import { PhaseBadge } from "./PhaseBadge";
 import { ModeCard } from "./ModeCard";
+import { CoachPanel } from "../coach/CoachPanel";
 import { PreSessionFilters, type PreSessionFilterValues } from "./PreSessionFilters";
 
 type Props = {
@@ -33,8 +35,10 @@ type Props = {
   onDrillWeakness: () => void;
   /** Shortcut to /practice/drill?preset=innerColumn. */
   onDrillInnerColumn: () => void;
-  /** Navigate to /practice/coach — one personalized session a day. */
+  /** Navigate to /practice/coach — the personalized Coach session flow. */
   onCoach: () => void;
+  /** Coach preview (why-report + quota) for the highlighted panel. Null while loading. */
+  coachPreview?: CoachPreview | null;
   /**
    * True on first-ever session for this profile — swaps in curated
    * diagnostic copy and hides the drill cards + filters, which assume
@@ -69,6 +73,7 @@ export function PreSessionStage({
   onDrillWeakness,
   onDrillInnerColumn,
   onCoach,
+  coachPreview = null,
   isFirstSession = false,
   awaitingCorpus = false,
 }: Props) {
@@ -130,6 +135,8 @@ export function PreSessionStage({
 
       {!isFirstSession && (
         <>
+          <CoachPanel preview={coachPreview} onStart={onCoach} />
+
           <div className="kerf-pre-modes-label">or pick a different mode</div>
           <div className="kerf-pre-modes">
             <ModeCard
@@ -143,12 +150,6 @@ export function PreSessionStage({
               name="Inner column"
               description="Focus drill on B, G, H, N, T, Y — classic split pain points"
               onSelect={onDrillInnerColumn}
-            />
-            <ModeCard
-              icon="🎯"
-              name="Coach"
-              description="One personalized session a day, built around how you actually type"
-              onSelect={onCoach}
             />
             <ModeCard
               icon="◷"

@@ -13,9 +13,22 @@ import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import { getCoachSession } from "#/server/coach";
 import type { WhyReport } from "#/domain/coach/whyReport";
 import type { PassageRecord } from "#/server/coach/catalog";
-import { ActiveSessionStage, PauseOverlay, type PauseSettings } from "#/components/practice";
+import {
+  ActiveSessionStage,
+  PauseOverlay,
+  TargetRibbon,
+  type PauseSettings,
+} from "#/components/practice";
 import { CoachPreSessionStage } from "#/components/coach/CoachPreSessionStage";
 import { CoachPostSessionStage } from "#/components/coach/CoachPostSessionStage";
+import { computeMechanismPerformance } from "#/domain/coach/mechanismPerformance";
+import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
+import { LILY58_BASE_LAYER } from "#/domain/finger/lily58";
+import type { FingerTable } from "#/domain/finger/types";
+
+function fingerTableFor(keyboardType: KeyboardType): FingerTable {
+  return keyboardType === "sofle" ? SOFLE_BASE_LAYER : LILY58_BASE_LAYER;
+}
 import { useSessionStore, sessionStore } from "#/stores/sessionStore";
 import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
@@ -370,11 +383,18 @@ function CoachPage() {
 
   if (stage === "typing") {
     const idleAutoPaused = status === "paused" && !paused;
+    const targetedMechanism = report?.mechanisms[0]?.mechanism;
     return (
       <main
         id="main-content"
         className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in"
       >
+        {targetedMechanism && (
+          <TargetRibbon
+            label={`Coach · ${targetedMechanism}`}
+            keys={[]}
+          />
+        )}
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
           showKeyboard={pauseSettings.showKeyboard}
@@ -411,7 +431,12 @@ function CoachPage() {
         <div className="kerf-practice-container kerf-stage-fade-in">
           {stage === "loading" && <p className="kerf-coach-loading">Preparing your session — the first passage takes about a minute</p>}
           {stage === "pre" && report && passage && (
-            <CoachPreSessionStage report={report} quota={quota} onStart={startSession} />
+            <CoachPreSessionStage
+              report={report}
+              quota={quota}
+              passage={passage}
+              onStart={startSession}
+            />
           )}
           {stage === "post" && status === "complete" && (
             <CoachPostSessionStage
@@ -425,6 +450,11 @@ function CoachPage() {
                 pausedMs: sessionStore.getState().pausedMs,
                 phase: profile.transitionPhase,
               })}
+              mechanismPerformance={computeMechanismPerformance(
+                sessionStore.getState().events,
+                fingerTableFor(profile.keyboardType),
+              )}
+              targetedMechanism={report?.mechanisms[0]?.mechanism ?? "cross-hand"}
               onAgain={restartSamePassage}
             />
           )}

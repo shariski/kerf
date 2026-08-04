@@ -689,6 +689,196 @@ body {
   letter-spacing: 0.02em;
 }
 
+/* Coach panel — highlighted entry on the pre-session screen */
+.kerf-coach-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 18px 18px 14px;
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 10px;
+  background: var(--color-kerf-bg-elevated);
+  color: var(--color-kerf-text-primary);
+}
+.kerf-coach-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kerf-coach-panel-name {
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.kerf-coach-panel-tag {
+  padding: 2px 6px;
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 4px;
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+}
+.kerf-coach-panel-desc {
+  font-size: 13px;
+  color: var(--color-kerf-text-secondary);
+}
+.kerf-coach-panel-teaser {
+  font-size: 13px;
+  color: var(--color-kerf-text-primary);
+}
+.kerf-coach-panel-teaser code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.kerf-coach-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.kerf-coach-panel-start {
+  padding: 8px 16px;
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 6px;
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-bg-base);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.kerf-coach-panel-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.kerf-coach-panel-subscribe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-secondary);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.kerf-coach-panel-quota {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--color-kerf-text-tertiary);
+}
+
+/* Coach session briefing (route) */
+.kerf-coach-pre {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+  padding: 8px 4px;
+}
+.kerf-coach-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+.kerf-coach-subtitle {
+  font-size: 14px;
+  color: var(--color-kerf-text-secondary);
+}
+.kerf-coach-brief {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+}
+.kerf-coach-mechanism,
+.kerf-coach-detail,
+.kerf-coach-notice,
+.kerf-coach-passage {
+  font-size: 13px;
+}
+.kerf-coach-detail code,
+.kerf-coach-mechanism code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.kerf-coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.kerf-coach-start {
+  padding: 8px 16px;
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 6px;
+  background: var(--color-kerf-amber-base);
+  color: var(--color-kerf-bg-base);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.kerf-coach-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.kerf-coach-subscribe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 6px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-secondary);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.kerf-coach-quota {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--color-kerf-text-tertiary);
+}
+
+/* Coach post-session */
+.kerf-coach-post {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+  padding: 8px 4px;
+}
+.kerf-coach-post-intent {
+  padding: 14px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kerf-coach-post-intent-line,
+.kerf-coach-post-intent-result,
+.kerf-coach-post-intent-other {
+  font-size: 13px;
+}
+
 /* Mode cards */
 .kerf-pre-modes-label {
   margin-top: 16px;
