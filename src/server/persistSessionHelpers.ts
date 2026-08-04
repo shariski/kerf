@@ -38,7 +38,7 @@ export type PersistSessionInput = {
    * retries (we ON CONFLICT DO NOTHING on the sessions table). */
   sessionId: string;
   keyboardProfileId: string;
-  mode: "adaptive" | "targeted_drill" | "diagnostic";
+  mode: "adaptive" | "targeted_drill" | "diagnostic" | "coach";
   /** The exact exercise text the user typed. Used to derive
    * positionInWord for each event. */
   target: string;
@@ -55,13 +55,15 @@ export type PersistSessionInput = {
   /** The adaptive-engine target that generated this session. Optional
    * for backward compat — Task 17 will update callers to always pass it. */
   sessionTarget?: PersistSessionInputTarget;
+  /** Passage UUID from the coach catalog that generated this session. */
+  passageId?: string | null;
 };
 
 // --- validator -------------------------------------------------------------
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const MODES = new Set(["adaptive", "targeted_drill", "diagnostic"]);
+const MODES = new Set(["adaptive", "targeted_drill", "diagnostic", "coach"]);
 const PHASES = new Set(["transitioning", "refining"]);
 
 /**
@@ -110,6 +112,11 @@ export function validatePersistSessionInput(input: unknown): PersistSessionInput
   const phase = requireString("phase");
   if (!PHASES.has(phase)) {
     throw new Error(`persistSession: "phase" must be one of ${[...PHASES].join(", ")}`);
+  }
+
+  let passageId: string | null = null;
+  if (i.passageId !== undefined && i.passageId !== null) {
+    passageId = requireUuid("passageId");
   }
 
   if (!Array.isArray(i.events)) {
@@ -217,6 +224,7 @@ export function validatePersistSessionInput(input: unknown): PersistSessionInput
     phase: phase as TransitionPhase,
     filterConfig,
     ...(sessionTarget !== undefined ? { sessionTarget } : {}),
+    passageId,
   };
 }
 

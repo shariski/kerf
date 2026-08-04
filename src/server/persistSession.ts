@@ -105,6 +105,7 @@ export const persistSession = createServerFn({ method: "POST" })
           mode: data.mode,
           phaseAtSession: data.phase,
           filterConfig: data.filterConfig,
+          passageId: data.passageId ?? null,
           startedAt: new Date(data.startedAt),
           endedAt: new Date(data.endedAt),
           totalChars: header.totalChars,
