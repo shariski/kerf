@@ -14,7 +14,8 @@ import { evaluateGate, type GateResult } from "#/domain/coach/gate";
 import { normalizePassageText } from "#/domain/coach/normalize";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
-  targetKeyFor, findPassage, insertPassage, incrementUsage, type PassageRecord,
+  targetKeyFor, findPassage, insertPassage, incrementUsage, countActiveForKey,
+  type PassageRecord,
 } from "./coach/catalog";
 import {
   coachQuotaUsed, incrementQuota, DAILY_COACH_LIMIT, utcDateString,
@@ -155,8 +156,14 @@ export const getCoachSession = createServerFn({ method: "POST" })
 
     const difficulty = "hard";
     const targetKey = targetKeyFor(topMechanisms, difficulty);
-    const existing = await findPassage(db, targetKey, difficulty);
-    if (existing) {
+    // Catalog rotation: once a weakness-set has 2+ active variants, serve the
+    // least-used one (variety + balanced usage); while fewer exist, generate a
+    // new variant so the catalog grows.
+    const [existing, existingCount] = await Promise.all([
+      findPassage(db, targetKey, difficulty),
+      countActiveForKey(db, targetKey, difficulty),
+    ]);
+    if (existing && existingCount >= 2) {
       await db.transaction(async (tx) => {
         const txDb = tx as unknown as Database;
         await incrementUsage(txDb, existing.id);

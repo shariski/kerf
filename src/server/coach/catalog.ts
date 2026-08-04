@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Database } from "#/server/db";
 import { passages } from "#/server/db/schema";
 import type { GateResult } from "#/domain/coach/gate";
@@ -43,8 +43,27 @@ export async function findPassage(
         eq(passages.status, "active"),
       ),
     )
+    .orderBy(asc(passages.usageCount), asc(passages.createdAt))
     .limit(1);
   return (rows[0] as PassageRecord | undefined) ?? null;
+}
+
+export async function countActiveForKey(
+  tx: Database,
+  targetKey: string,
+  difficulty: string,
+): Promise<number> {
+  const rows = await tx
+    .select({ count: sql<number>`count(*)::int` })
+    .from(passages)
+    .where(
+      and(
+        eq(passages.targetKey, targetKey),
+        eq(passages.difficulty, difficulty),
+        eq(passages.status, "active"),
+      ),
+    );
+  return rows[0]?.count ?? 0;
 }
 
 export async function insertPassage(
