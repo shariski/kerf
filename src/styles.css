@@ -969,6 +969,10 @@ body {
 .kerf-btn-primary:hover:not(:disabled) {
   background: var(--color-kerf-amber-subtle);
 }
+.kerf-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .kerf-coach-loading {
   text-align: center;
