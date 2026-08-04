@@ -796,6 +796,7 @@ function PracticePage() {
                 search: { preset: "innerColumn" },
               })
             }
+            onCoach={() => navigate({ to: "/practice/coach" })}
             isFirstSession={useDiagnostic}
             awaitingCorpus={awaitingCorpus && !useDiagnostic}
           />

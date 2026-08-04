@@ -5,8 +5,8 @@
  *   - Keyboard context pill + transition phase badge (top row)
  *   - Title + subtitle ("What will you practice?" / "Accuracy first…")
  *   - Primary CTA (Enter key shortcut) → fires generateExercise + dispatch start
- *   - Secondary mode cards (Drill / Inner column / Warm up) — disabled for
- *     Task 2.4; they unlock in Tasks 2.6+
+ *   - Secondary mode cards (Drill / Inner column / Coach / Warm up) —
+ *     disabled for Task 2.4; they unlock in Tasks 2.6+
  *   - Collapsible filters panel
  *
  * Cold-start copy: until session history is persisted (Phase 3), the CTA
@@ -33,6 +33,8 @@ type Props = {
   onDrillWeakness: () => void;
   /** Shortcut to /practice/drill?preset=innerColumn. */
   onDrillInnerColumn: () => void;
+  /** Navigate to /practice/coach — one personalized session a day. */
+  onCoach: () => void;
   /**
    * True on first-ever session for this profile — swaps in curated
    * diagnostic copy and hides the drill cards + filters, which assume
@@ -66,6 +68,7 @@ export function PreSessionStage({
   onStartAdaptive,
   onDrillWeakness,
   onDrillInnerColumn,
+  onCoach,
   isFirstSession = false,
   awaitingCorpus = false,
 }: Props) {
@@ -140,6 +143,12 @@ export function PreSessionStage({
               name="Inner column"
               description="Focus drill on B, G, H, N, T, Y — classic split pain points"
               onSelect={onDrillInnerColumn}
+            />
+            <ModeCard
+              icon="🎯"
+              name="Coach"
+              description="One personalized session a day, built around how you actually type"
+              onSelect={onCoach}
             />
             <ModeCard
               icon="◷"

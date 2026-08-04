@@ -44,6 +44,7 @@ const baseProps = {
   onStartAdaptive: () => {},
   onDrillWeakness: () => {},
   onDrillInnerColumn: () => {},
+  onCoach: () => {},
 } as const;
 
 afterEach(() => cleanup());
@@ -79,21 +80,23 @@ describe("PreSessionStage", () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 
-  it("enables Drill and Inner-column mode cards, keeps Warm up disabled", () => {
+  it("enables Drill, Inner-column, and Coach cards, keeps Warm up disabled", () => {
     const { container } = render(
       <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
     );
     const cards = Array.from(container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"));
-    expect(cards).toHaveLength(3);
-    const [drill, innerColumn, warmUp] = cards;
+    expect(cards).toHaveLength(4);
+    const [drill, innerColumn, coach, warmUp] = cards;
     expect(drill!.disabled).toBe(false);
     expect(innerColumn!.disabled).toBe(false);
+    expect(coach!.disabled).toBe(false);
     expect(warmUp!.disabled).toBe(true);
   });
 
-  it("fires onDrillWeakness / onDrillInnerColumn when the respective cards are clicked", () => {
+  it("fires onDrillWeakness / onDrillInnerColumn / onCoach when the respective cards are clicked", () => {
     const onDrill = vi.fn();
     const onInner = vi.fn();
+    const onCoach = vi.fn();
     const { container } = render(
       <PreSessionStage
         {...baseProps}
@@ -101,15 +104,18 @@ describe("PreSessionStage", () => {
         phase="transitioning"
         onDrillWeakness={onDrill}
         onDrillInnerColumn={onInner}
+        onCoach={onCoach}
       />,
     );
-    const [drillCard, innerColumnCard] = Array.from(
+    const [drillCard, innerColumnCard, coachCard] = Array.from(
       container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"),
     );
     fireEvent.click(drillCard!);
     fireEvent.click(innerColumnCard!);
+    fireEvent.click(coachCard!);
     expect(onDrill).toHaveBeenCalledTimes(1);
     expect(onInner).toHaveBeenCalledTimes(1);
+    expect(onCoach).toHaveBeenCalledTimes(1);
   });
 
   it("toggles the filters panel open/closed via the header button", () => {

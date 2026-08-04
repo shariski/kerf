@@ -639,6 +639,53 @@ doesn't auto-revert. This is rare in practice but worth knowing.
 
 ---
 
+## Coach (AI adaptive mode)
+
+Coach is the AI-adaptive practice mode at `/practice/coach` — one
+personalized session per user per day, built around their measured
+typing weaknesses. It is a paid feature rolled out progressively; the
+rest of kerf works without it.
+
+### Runtime env
+
+Add to `/opt/kerf/.env` (Step 9), alongside the existing vars:
+
+    DEEPSEEK_API_KEY=<deepseek api key>
+    DEEPSEEK_MODEL=deepseek-v4-flash
+    DEEPSEEK_BASE_URL=https://api.deepseek.com/v1/chat/completions
+
+All three are read lazily by `src/server/coach/llm.ts` and only needed
+when a Coach session actually runs. `DEEPSEEK_MODEL` and
+`DEEPSEEK_BASE_URL` fall back to the defaults above if unset; an unset
+`DEEPSEEK_API_KEY` fails the Coach LLM call with a clear error without
+affecting any other mode. No restart order concern: the app reads
+`.env` at boot, so apply them before recreating the `app` container.
+
+### Quota model
+
+1 Coach session per day per user. The quota is charged at serve time —
+when a session is generated (LLM) or a catalog passage is served —
+and tracked in the `coach_quota` table (`user_id` + `date` primary
+key, `sessions_used` counter). Hitting the daily cap returns a
+quota error to the UI; it resets automatically the next day (UTC).
+
+### Passage catalog
+
+Generated passages are vetted by a quality gate (see `src/domain/coach`)
+before they can be served; vetted passages live in the `passages`
+table (`status`, `target_key`, `topic`, `difficulty`, `mechanisms`,
+`quality_gate`, …). `sessions.passage_id` links a persisted coach
+session to the passage that generated it.
+
+### Migration
+
+Schema ships in migration `0006_clever_lionheart.sql` (`coach_quota`,
+`passages`, and `sessions.passage_id`). No action needed: CI runs the
+migrate profile on every deploy, and the migrate step is a no-op on
+subsequent deploys.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Likely cause |
