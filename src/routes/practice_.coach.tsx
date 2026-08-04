@@ -409,7 +409,7 @@ function CoachPage() {
     <>
       <main id="main-content" className="kerf-practice-main">
         <div className="kerf-practice-container kerf-stage-fade-in">
-          {stage === "loading" && <p className="kerf-coach-loading">Preparing your session…</p>}
+          {stage === "loading" && <p className="kerf-coach-loading">Preparing your session — the first passage takes about a minute</p>}
           {stage === "pre" && report && passage && (
             <CoachPreSessionStage report={report} quota={quota} onStart={startSession} />
           )}

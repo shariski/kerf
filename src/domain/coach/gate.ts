@@ -75,3 +75,28 @@ export function evaluateGate(
 
   return { passed: violations.length === 0, mechanism, measured, violations };
 }
+
+/**
+ * The exact minimum rates the gate enforces for a mechanism, rounded UP to
+ * 3 decimals so that meeting an injected target guarantees passing the
+ * gate. Single source of truth shared with the LLM generation prompt.
+ * Returns null for mechanisms with no density requirement.
+ */
+export function gateTargetsFor(
+  mechanism: MechanismKey,
+  baseline: TransitionProfile = BASELINE_PROFILE,
+): Record<string, number> | null {
+  const ceil3 = (x: number) => Math.ceil(x * 1000) / 1000;
+  switch (mechanism) {
+    case "cross-hand":
+      return { cross_hand_rate: ceil3(baseline.crossHand * 1.2) };
+    case "row-cross":
+      return { row_cross_rate: ceil3(baseline.rowCross * 1.1) };
+    case "same-finger":
+      return { same_finger_rate: ceil3(baseline.sameFinger * 0.9) };
+    case "space/timing":
+      return { vowel_initial_words: ceil3(baseline.vowelInitialWords * 1.5) };
+    default:
+      return null;
+  }
+}

@@ -10,9 +10,8 @@ import { LILY58_BASE_LAYER } from "#/domain/finger/lily58";
 import type { KeyboardLayout, FingerTable } from "#/domain/finger/types";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 import { computeWhyReport, type WhyReport } from "#/domain/coach/whyReport";
-import { evaluateGate, type GateResult } from "#/domain/coach/gate";
+import { evaluateGate, gateTargetsFor, type GateResult } from "#/domain/coach/gate";
 import { normalizePassageText } from "#/domain/coach/normalize";
-import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
   targetKeyFor, findPassage, insertPassage, incrementUsage, countActiveForKey,
   type PassageRecord,
@@ -194,11 +193,29 @@ export const getCoachSession = createServerFn({ method: "POST" })
     };
     const topic = analysis.suggested_topics?.[0] ?? "general knowledge";
 
+    // The passage always targets the priority mechanism (hard passage).
+    // The gate enforces it too, so the model gets the exact required rates.
+    const targetMechanism = topMechanisms[0]!;
+    const targets = gateTargetsFor(targetMechanism);
+    const requirementsBlock = targets
+      ? [
+          "REQUIRED TRIGGER MINIMUMS — the quality gate enforces these on your",
+          "passage text (measured on the passage you return). Below these, the",
+          "passage is rejected:",
+          ...Object.entries(targets).map(([k, v]) => `- ${k} >= ${v}`),
+          `Targeted mechanism for this passage: ${targetMechanism}`,
+        ].join("\n")
+      : `Targeted mechanism for this passage: ${targetMechanism}`;
+
     let gateResult: GateResult | undefined;
     let passageText = "";
     let generationRaw = "";
     for (let attempt = 0; attempt < 3; attempt++) {
       const genMsgs = buildGenerationMessages(analysisRes.content);
+      const feedback = gateResult?.violations?.length
+        ? `\nPrevious attempt was rejected by the gate: ${gateResult.violations.join("; ")}. Rewrite the passage so it passes.`
+        : "";
+      genMsgs[genMsgs.length - 1]!.content += `\n\n${requirementsBlock}${feedback}`;
       const genRes = await llm(genMsgs, { thinkingOff: true });
       generationRaw = genRes.content;
       const gen = extractJsonObject(generationRaw) as {
@@ -207,10 +224,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
       const tc = gen.test_cases?.[0];
       if (!tc?.text) throw new CoachError("LLM_PARSE", "generation missing test_cases[0].text");
       passageText = tc.text;
-      const mech = topMechanisms.includes(tc.mechanism as MechanismKey)
-        ? (tc.mechanism as MechanismKey)
-        : topMechanisms[0]!;
-      gateResult = evaluateGate(mech, passageText, fingerTable);
+      gateResult = evaluateGate(targetMechanism, passageText, fingerTable);
       if (gateResult.passed) break;
     }
     if (!gateResult?.passed) {

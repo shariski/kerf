@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
-import { evaluateGate, BASELINE_PROFILE } from "./gate";
+import { evaluateGate, gateTargetsFor, BASELINE_PROFILE } from "./gate";
 import type { MechanismKey } from "./mechanisms";
 
 const crossHandHeavy = [
@@ -72,5 +72,24 @@ describe("evaluateGate", () => {
     expect(BASELINE_PROFILE.sameFinger).toBeGreaterThan(0.1);
     expect(BASELINE_PROFILE.rowCross).toBeGreaterThan(0.3);
     expect(BASELINE_PROFILE.crossHand).toBeGreaterThan(0.4);
+  });
+
+  it("exposes gate targets rounded up from the baseline multipliers", () => {
+    expect(gateTargetsFor("cross-hand")).toEqual({ cross_hand_rate: 0.527 });
+    expect(gateTargetsFor("row-cross")).toEqual({ row_cross_rate: 0.38 });
+    expect(gateTargetsFor("same-finger")).toEqual({ same_finger_rate: 0.195 });
+    expect(gateTargetsFor("space/timing")).toEqual({ vowel_initial_words: 0.266 });
+    expect(gateTargetsFor("adjacent-finger")).toBeNull();
+    expect(gateTargetsFor("non-alpha")).toBeNull();
+  });
+
+  it("meeting the injected target guarantees passing the gate threshold", () => {
+    const t = gateTargetsFor("cross-hand")!;
+    // measured crossHand >= target must satisfy evaluateGate's own check
+    const measured = {
+      ...BASELINE_PROFILE,
+      crossHand: t.cross_hand_rate,
+    };
+    expect(measured.crossHand).toBeGreaterThanOrEqual(BASELINE_PROFILE.crossHand * 1.2);
   });
 });
