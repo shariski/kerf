@@ -11,6 +11,7 @@ import type { KeyboardLayout, FingerTable } from "#/domain/finger/types";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 import { computeWhyReport, type WhyReport } from "#/domain/coach/whyReport";
 import { evaluateGate, type GateResult } from "#/domain/coach/gate";
+import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
   targetKeyFor, findPassage, insertPassage, incrementUsage, type PassageRecord,
 } from "./coach/catalog";
@@ -153,7 +154,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
 
     const difficulty = "hard";
     const targetKey = targetKeyFor(topMechanisms, difficulty);
-    const existing = await findPassage(db, targetKey, "general", difficulty);
+    const existing = await findPassage(db, targetKey, difficulty);
     if (existing) {
       await db.transaction(async (tx) => {
         const txDb = tx as unknown as Database;
@@ -198,7 +199,9 @@ export const getCoachSession = createServerFn({ method: "POST" })
       const tc = gen.test_cases?.[0];
       if (!tc?.text) throw new CoachError("LLM_PARSE", "generation missing test_cases[0].text");
       passageText = tc.text;
-      const mech = (tc.mechanism ?? topMechanisms[0]) as (typeof topMechanisms)[number];
+      const mech = topMechanisms.includes(tc.mechanism as MechanismKey)
+        ? (tc.mechanism as MechanismKey)
+        : topMechanisms[0]!;
       gateResult = evaluateGate(mech, passageText, fingerTable);
       if (gateResult.passed) break;
     }
@@ -230,7 +233,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
       const inserted = await insertPassage(txDb, passage);
       const id =
         inserted?.id ??
-        (await findPassage(txDb, passage.targetKey, passage.topic, passage.difficulty))!.id;
+        (await findPassage(txDb, passage.targetKey, passage.difficulty))!.id;
       await incrementQuota(txDb, userId, today);
       await incrementUsage(txDb, id);
       return id;

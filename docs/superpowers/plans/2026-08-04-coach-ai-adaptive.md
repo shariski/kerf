@@ -541,10 +541,7 @@ export function evaluateGate(
     violations.push(`length: ${measured.nWords} words (need 120-350)`);
   }
 
-  const paragraphs = Math.min(
-    (text.match(/\n\n/g)?.length ?? 0) + (text.includes("\n") ? 1 : 0) + 1,
-    3,
-  );
+  const paragraphs = (text.match(/\n\n/g)?.length ?? 0) + 1;
   if (paragraphs < 1 || paragraphs > 3) {
     violations.push(`paragraphs: ${paragraphs} (need 1-3)`);
   }
@@ -1509,16 +1506,20 @@ export const getCoachSession = createServerFn({ method: "POST" })
       targetKey,
     } satisfies Omit<PassageRecord, "id" | "usageCount" | "status">;
 
+    let passageId: string;
     await db.transaction(async (tx) => {
       const inserted = await insertPassage(tx, passage);
+      passageId =
+        inserted?.id ??
+        (await findPassage(tx, passage.targetKey, passage.topic, passage.difficulty))!.id;
       await incrementQuota(tx, userId, today);
-      if (inserted) await incrementUsage(tx, inserted.id);
+      await incrementUsage(tx, passageId);
     });
 
     return {
       quota: { usedToday: usedToday + 1, remaining: 0 },
       report,
-      passage: { ...passage, id: "new", usageCount: 1, status: "active" } as PassageRecord,
+      passage: { ...passage, id: passageId, usageCount: 1, status: "active" } as PassageRecord,
     };
   });
 ```

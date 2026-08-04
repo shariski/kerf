@@ -78,23 +78,23 @@ describe("createLlmClient", () => {
 describe("prompt assembly", () => {
   it("builds analysis messages with data substituted", () => {
     const msgs = buildAnalysisMessages('{"total":1}', "digest", ["v1", "v2", "v3"]);
-    const user = msgs[1].content;
+    const user = msgs[1]!.content;
     expect(user).toContain('"total":1');
     expect(user).toContain("digest");
     expect(user).toContain("v1");
     expect(user).toContain("v3");
-    expect(msgs[0].role).toBe("system");
+    expect(msgs[0]!.role).toBe("system");
   });
 
   it("sends the full V6 system prompt, not an empty string", () => {
     const msgs = buildAnalysisMessages('{"total":1}', "digest", ["v1", "v2", "v3"]);
-    expect(msgs[0].content.length).toBeGreaterThan(100);
-    expect(msgs[0].content).toMatch(/\S/);
-    expect(msgs[0].content).toContain("root_causes");
+    expect(msgs[0]!.content.length).toBeGreaterThan(100);
+    expect(msgs[0]!.content).toMatch(/\S/);
+    expect(msgs[0]!.content).toContain("root_causes");
   });
 
   it("builds generation messages with the analysis result injected", () => {
     const msgs = buildGenerationMessages('{"root_causes":[]}');
-    expect(msgs[1].content).toContain('{"root_causes":[]}');
+    expect(msgs[1]!.content).toContain('{"root_causes":[]}');
   });
 });

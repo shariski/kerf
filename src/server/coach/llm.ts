@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import analysisPrompt from "./prompts/analysis.md?raw";
+import generationPrompt from "./prompts/generation.md?raw";
 
 export class CoachError extends Error {
   code: string;
@@ -20,10 +19,13 @@ export type LlmClient = (
   opts?: { thinkingOff?: boolean; maxTokens?: number },
 ) => Promise<LlmResponse>;
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PROMPTS: Record<"analysis.md" | "generation.md", string> = {
+  "analysis.md": analysisPrompt,
+  "generation.md": generationPrompt,
+};
 
 function loadPromptFile(name: "analysis.md" | "generation.md"): string {
-  return readFileSync(path.join(__dirname, "prompts", name), "utf8");
+  return PROMPTS[name];
 }
 
 function parsePromptFile(text: string): { system: string; user: string } {

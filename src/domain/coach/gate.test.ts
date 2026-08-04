@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
 import { evaluateGate, BASELINE_PROFILE } from "./gate";
+import type { MechanismKey } from "./mechanisms";
 
 const crossHandHeavy = [
   "data time world base", // every word alternates hands
@@ -37,6 +38,16 @@ describe("evaluateGate", () => {
     const result = evaluateGate("cross-hand", metaSalad, SOFLE_BASE_LAYER);
     expect(result.passed).toBe(false);
     expect(result.violations.some((v) => v.includes("meta"))).toBe(true);
+  });
+
+  it("rejects unknown mechanism keys instead of skipping the gate", () => {
+    const result = evaluateGate(
+      "cross_hand" as MechanismKey,
+      crossHandHeavy,
+      SOFLE_BASE_LAYER,
+    );
+    expect(result.passed).toBe(false);
+    expect(result.violations.some((v) => v.includes("mechanism"))).toBe(true);
   });
 
   it("rejects under-saturated passages", () => {

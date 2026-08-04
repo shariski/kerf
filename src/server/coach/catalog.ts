@@ -31,7 +31,6 @@ export function targetKeyFor(mechanisms: MechanismKey[], difficulty: string): st
 export async function findPassage(
   tx: Database,
   targetKey: string,
-  topic: string,
   difficulty: string,
 ): Promise<PassageRecord | null> {
   const rows = await tx
@@ -40,7 +39,6 @@ export async function findPassage(
     .where(
       and(
         eq(passages.targetKey, targetKey),
-        eq(passages.topic, topic),
         eq(passages.difficulty, difficulty),
         eq(passages.status, "active"),
       ),

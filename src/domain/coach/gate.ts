@@ -56,9 +56,21 @@ export function evaluateGate(
     "same-finger": (m) => m.sameFinger >= baseline.sameFinger * 0.9,
     "space/timing": (m) => m.vowelInitialWords >= baseline.vowelInitialWords * 1.5,
   };
-  const check = thresholds[mechanism];
-  if (check && !check(measured)) {
-    violations.push(`saturation: ${mechanism} below threshold`);
+  const KNOWN: ReadonlySet<MechanismKey> = new Set([
+    "space/timing",
+    "same-finger",
+    "adjacent-finger",
+    "row-cross",
+    "cross-hand",
+    "non-alpha",
+  ]);
+  if (!KNOWN.has(mechanism)) {
+    violations.push(`saturation: unknown mechanism "${mechanism}"`);
+  } else {
+    const check = thresholds[mechanism];
+    if (check && !check(measured)) {
+      violations.push(`saturation: ${mechanism} below threshold`);
+    }
   }
 
   return { passed: violations.length === 0, mechanism, measured, violations };
