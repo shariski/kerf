@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLlmDigest, pickTopic, reviewTopic } from "./coach";
+import { buildLlmDigest, passageTopicFor, pickTopic, reviewTopic } from "./coach";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 
 const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
@@ -48,6 +48,18 @@ describe("reviewTopic", () => {
   });
   it("matches used topics case-insensitively", () => {
     expect(reviewTopic("the silk road", ["The Silk Road"])).toBe("the silk road — review #2");
+  });
+});
+
+describe("passageTopicFor", () => {
+  it("prefers the cycled topic in review mode", () => {
+    expect(passageTopicFor(true, "The Space Race", "The Silk Road")).toBe("The Space Race");
+  });
+  it("keeps the LLM's refined topic outside review mode", () => {
+    expect(passageTopicFor(false, "The Space Race", "The Silk Road")).toBe("The Silk Road");
+  });
+  it("falls back to the cycled topic when the LLM omits one", () => {
+    expect(passageTopicFor(false, "The Space Race", undefined)).toBe("The Space Race");
   });
 });
 

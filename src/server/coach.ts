@@ -115,6 +115,21 @@ export function reviewTopic(topic: string, used: string[]): string {
     : topic;
 }
 
+/**
+ * The passage topic is part of the catalog's unique key, so in review
+ * mode the cycled topic is authoritative — the LLM's echoed topic would
+ * otherwise re-collide with an existing row (the model tends to repeat
+ * the first suggested topic). Outside review mode the model's refined
+ * topic wins, falling back to the cycled one.
+ */
+export function passageTopicFor(
+  reviewMode: boolean,
+  cycledTopic: string,
+  llmTopic: string | undefined,
+): string {
+  return reviewMode ? cycledTopic : (llmTopic ?? cycledTopic);
+}
+
 /** Append `ms` to the bucket for `key`, creating the bucket on first use. */
 function pushTiming(buckets: Map<string, number[]>, key: string, ms: number): void {
   const bucket = buckets.get(key);
@@ -383,7 +398,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
       if (!userMsg) {
         throw new CoachError("LLM_PROMPT", "generation prompt has no user message");
       }
-      userMsg.content += `\n\n${requirementsBlock}${feedback}`;
+      userMsg.content += `\n\nWrite the passage on the topic: ${topic}\n\n${requirementsBlock}${feedback}`;
       const genRes = await llm(genMsgs, { thinkingOff: true });
       lastGenRes = genRes;
       const gen = extractJsonObject(genRes.content) as { test_cases?: GeneratedCase[] };
@@ -419,7 +434,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
 
     const passage = {
       title: testCase?.title ?? "Coach passage",
-      topic: testCase?.topic ?? topic,
+      topic: passageTopicFor(reviewMode, topic, testCase?.topic),
       difficulty,
       mechanisms: topMechanisms,
       triggerTargets: null,
