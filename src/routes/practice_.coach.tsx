@@ -140,6 +140,10 @@ function CoachPage() {
     setPassage(res.passage);
     setReviewMode(res.reviewMode);
     passageRef.current = res.passage;
+    // Annotation state is per-passage: reset on every new session, and
+    // reflect a verdict that was already stored on the passage (e.g. a
+    // refresh restoring an annotated candidate).
+    setAnnotated(res.passage.reviewVerdict != null);
     setStage("pre");
   }, []);
 
