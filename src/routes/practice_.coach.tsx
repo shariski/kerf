@@ -633,9 +633,12 @@ function CoachPage() {
               quota={quota}
               onAgain={nextSession}
             />
+            <CoachGenerationDetails passage={passage!} reviewMode={reviewMode} />
             <CoachPassageAnnotation
               reviewMode={reviewMode}
               saved={annotated}
+              gatePassed={passage!.qualityGate.passed}
+              gateViolations={passage!.qualityGate.violations}
               onSave={async (input) => {
                 await annotateCoachPassage({
                   data: { passageId: passage!.id, ...input },

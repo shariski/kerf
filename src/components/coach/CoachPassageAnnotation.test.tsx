@@ -36,4 +36,23 @@ describe("CoachPassageAnnotation", () => {
     render(<CoachPassageAnnotation reviewMode saved onSave={vi.fn()} />);
     expect(screen.getByText(/saved/i)).toBeTruthy();
   });
+
+  it("shows the gate verdict and violations", () => {
+    render(
+      <CoachPassageAnnotation
+        reviewMode
+        saved={false}
+        gatePassed={false}
+        gateViolations={["saturation: cross-hand below threshold"]}
+        onSave={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/failed/i)).toBeTruthy();
+    expect(screen.getByText(/saturation: cross-hand below threshold/i)).toBeTruthy();
+  });
+
+  it("shows a passing gate without violations", () => {
+    render(<CoachPassageAnnotation reviewMode saved={false} gatePassed onSave={vi.fn()} />);
+    expect(screen.getByText(/passed/i)).toBeTruthy();
+  });
 });

@@ -4,6 +4,9 @@ import { REVIEW_TAGS, type ReviewTag, type ReviewVerdict } from "#/domain/coach/
 type Props = {
   reviewMode: boolean;
   saved: boolean;
+  /** Gate verdict of the annotated passage (review mode). */
+  gatePassed?: boolean;
+  gateViolations?: string[];
   onSave: (input: {
     verdict: ReviewVerdict;
     rating: number;
@@ -13,7 +16,13 @@ type Props = {
 };
 
 /** Review-mode only: human verdict card shown after a Coach session. */
-export function CoachPassageAnnotation({ reviewMode, saved, onSave }: Props) {
+export function CoachPassageAnnotation({
+  reviewMode,
+  saved,
+  gatePassed,
+  gateViolations,
+  onSave,
+}: Props) {
   const [verdict, setVerdict] = useState<ReviewVerdict | null>(null);
   const [rating, setRating] = useState<number | null>(null);
   const [tags, setTags] = useState<ReviewTag[]>([]);
@@ -36,6 +45,12 @@ export function CoachPassageAnnotation({ reviewMode, saved, onSave }: Props) {
 
   return (
     <section className="kerf-coach-review" aria-label="Passage annotation">
+      {gatePassed !== undefined && (
+        <p>
+          Gate: <strong>{gatePassed ? "passed" : "failed"}</strong>
+          {!gatePassed && gateViolations?.length ? ` — ${gateViolations.join("; ")}` : ""}
+        </p>
+      )}
       <p>How was this passage?</p>
       <div className="kerf-coach-review-row">
         {(["good", "not_good"] as const).map((v) => (
