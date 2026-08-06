@@ -84,7 +84,11 @@ function LatestSessions({ sessions }: { sessions: DashboardActivityData["recentS
             <span className="kerf-dash-session-time">{s.relativeTime}</span>
             <span className="kerf-dash-session-mode">
               <span className="kerf-dash-session-badge" data-mode={s.mode}>
-                {s.mode === "targeted_drill" ? "drill" : "adaptive"}
+                {s.mode === "targeted_drill"
+                  ? "drill"
+                  : s.mode === "coach"
+                    ? "coach"
+                    : "adaptive"}
               </span>{" "}
               <span className="kerf-dash-session-desc">{s.description}</span>
             </span>

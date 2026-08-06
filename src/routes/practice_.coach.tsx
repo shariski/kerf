@@ -47,6 +47,27 @@ type LoadedProfile = {
 
 type Stage = "loading" | "pre" | "typing" | "post" | "error";
 
+/**
+ * Map server CoachError messages to flat user copy. Raw server strings
+ * (LLM internals, gate violations, HTTP details) never surface verbatim.
+ */
+function coachErrorCopy(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/daily coach limit/i.test(msg)) {
+    return "You have used today's session. Come back tomorrow.";
+  }
+  if (/not enough typing data/i.test(msg)) {
+    return "Not enough typing data yet to build a personalized passage. Keep practicing — Coach will be ready soon.";
+  }
+  if (/failed gate|quality/i.test(msg)) {
+    return "The passage didn't meet the quality check. Please try again in a moment.";
+  }
+  if (/deepseek|unavailable|empty content|missing test_cases|json|reasoning|llm/i.test(msg)) {
+    return "Passage generation is temporarily unavailable. Please try again in a moment.";
+  }
+  return "Coach couldn't prepare your session. Please try again.";
+}
+
 const DEFAULT_PAUSE_SETTINGS: PauseSettings = {
   typingSize: "M",
   showKeyboard: true,
@@ -118,12 +139,7 @@ function CoachPage() {
         setStage("pre");
       })
       .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (/daily coach limit/i.test(msg)) {
-          setError("You have used today's session. Come back tomorrow.");
-        } else {
-          setError(msg);
-        }
+        setError(coachErrorCopy(err));
         setStage("error");
       })
       .finally(() => {

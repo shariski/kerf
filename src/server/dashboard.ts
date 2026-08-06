@@ -294,7 +294,7 @@ function roundOrNull(value: number | null, decimals = 0): number | null {
 export type RecentSession = {
   id: string;
   relativeTime: string; // "2h ago" / "today" / "yesterday" / "Nd ago" / YYYY-MM-DD
-  mode: "adaptive" | "targeted_drill";
+  mode: "adaptive" | "targeted_drill" | "coach";
   /** Human-readable "52 words" or "drill on B" built from totals + filter config. */
   description: string;
   wpm: number;
@@ -506,7 +506,7 @@ export const getDashboardHeatmap = createServerFn({
 });
 
 function buildSessionDescription(input: {
-  mode: "adaptive" | "targeted_drill";
+  mode: "adaptive" | "targeted_drill" | "coach";
   totalChars: number;
   filterConfig: Record<string, unknown>;
 }): string {
@@ -529,6 +529,9 @@ function buildSessionDescription(input: {
   const hand = input.filterConfig.handIsolation;
   const handSuffix =
     hand === "left" ? " · left hand only" : hand === "right" ? " · right hand only" : "";
+  if (input.mode === "coach") {
+    return `coach passage · ${words} words`;
+  }
   return `${words} words${handSuffix}`;
 }
 

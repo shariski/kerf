@@ -359,16 +359,3 @@ export const getCoachSession = createServerFn({ method: "POST" })
       passage: { ...passage, id: passageId, usageCount: 1, status: "active" } as PassageRecord,
     };
   });
-
-export function coachErrorStatus(code: string): number {
-  switch (code) {
-    case "UNAUTHORIZED":
-      return 401;
-    case "QUOTA_EXCEEDED":
-      return 402;
-    case "INSUFFICIENT_DATA":
-      return 422;
-    default:
-      return 503;
-  }
-}

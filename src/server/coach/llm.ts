@@ -123,7 +123,7 @@ export function createLlmClient(fetchImpl: typeof fetch = fetch, apiKey?: string
             }
             continue;
           }
-          throw new CoachError("LLM_HTTP", `DeepSeek HTTP ${res.status}: ${await res.text()}`);
+          throw new CoachError("LLM_HTTP", `DeepSeek HTTP ${res.status}`);
         }
         const data = (await res.json()) as {
           choices: { message: { content: string } }[];
