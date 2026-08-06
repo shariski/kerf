@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLlmDigest } from "./coach";
+import { buildLlmDigest, pickTopic } from "./coach";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 
 const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
@@ -10,6 +10,21 @@ const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
   prevChar: "a",
   timestamp: new Date("2026-08-01T12:00:00Z"),
   ...over,
+});
+
+describe("pickTopic", () => {
+  it("prefers the first suggested topic not already used", () => {
+    expect(pickTopic(["space", "the sea"], ["space"])).toBe("the sea");
+  });
+  it("falls back to the first suggestion when all are used", () => {
+    expect(pickTopic(["space", "the sea"], ["space", "the sea"])).toBe("space");
+  });
+  it("falls back to the default when there are no suggestions", () => {
+    expect(pickTopic([], [])).toBe("general knowledge");
+  });
+  it("matches used topics case-insensitively", () => {
+    expect(pickTopic(["The Sea", "Space"], ["the sea"])).toBe("Space");
+  });
 });
 
 describe("buildLlmDigest", () => {

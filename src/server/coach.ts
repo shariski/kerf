@@ -20,6 +20,7 @@ import {
   insertPassage,
   incrementUsage,
   countActiveForKey,
+  listTopicsForTargetKey,
   type PassageRecord,
 } from "./coach/catalog";
 import {
@@ -54,6 +55,18 @@ type CoachResponse = {
 
 function fingerTableFor(layout: KeyboardLayout): FingerTable {
   return layout === "sofle" ? SOFLE_BASE_LAYER : LILY58_BASE_LAYER;
+}
+
+/**
+ * Choose the generation topic. The analysis call suggests several topics;
+ * prefer one not yet used for this weakness-set so repeated generations
+ * (same analysis input → same suggestions) produce visibly distinct
+ * passages instead of repeating the first suggestion.
+ */
+export function pickTopic(suggested: string[], used: string[]): string {
+  const usedLower = new Set(used.map((t) => t.toLowerCase()));
+  const fresh = suggested.find((t) => !usedLower.has(t.toLowerCase()));
+  return fresh ?? suggested[0] ?? "general knowledge";
 }
 
 /** Append `ms` to the bucket for `key`, creating the bucket on first use. */
@@ -289,7 +302,10 @@ export const getCoachSession = createServerFn({ method: "POST" })
       suggested_topics?: string[];
       priority_order?: string[];
     };
-    const topic = analysis.suggested_topics?.[0] ?? "general knowledge";
+    // Cycle suggested topics (prefer one unused for this weakness-set) so
+    // consecutive generations don't repeat the same theme.
+    const usedTopics = await listTopicsForTargetKey(db, targetKey);
+    const topic = pickTopic(analysis.suggested_topics ?? [], usedTopics);
 
     // The gate enforces the same target, so the model gets the exact
     // required trigger rates for it.

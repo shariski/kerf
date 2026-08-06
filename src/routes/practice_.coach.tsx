@@ -125,6 +125,10 @@ function CoachPage() {
   // a second concurrent fetch would throw QUOTA_EXCEEDED and clobber
   // the first one's pre-stage.
   const coachFetchInFlight = useRef(false);
+  // True when "next session" explicitly requested a fresh fetch. On a
+  // plain arrival the cached/prefetched session is restored instead of
+  // re-fetching (the /practice page prefetches it in the background).
+  const explicitFetchRef = useRef(false);
   useEffect(() => {
     if (stage !== "loading") return;
     if (coachFetchInFlight.current) return;
@@ -172,6 +176,16 @@ function CoachPage() {
         return false;
       }
     };
+
+    // Arrival with a fresh cached/prefetched session: restore it instead
+    // of re-fetching (the /practice page prefetched it in the background).
+    // "Next session" sets explicitFetchRef to bypass this and force a
+    // new generation.
+    if (!explicitFetchRef.current) {
+      explicitFetchRef.current = false;
+      if (restoreCoachSession()) return;
+    }
+    explicitFetchRef.current = false;
 
     getCoachSession({ data: { keyboardProfileId: profile.id } })
       .then((res) => {
@@ -311,6 +325,7 @@ function CoachPage() {
       restartSamePassage();
       return;
     }
+    explicitFetchRef.current = true;
     setStage("loading");
   };
 
@@ -516,7 +531,7 @@ function CoachPage() {
         <div className="kerf-practice-container kerf-stage-fade-in">
           {stage === "loading" && (
             <p className="kerf-coach-loading" role="status" aria-live="polite">
-              Preparing your session — the first passage takes about a minute
+              Preparing your session — the first passage can take a few minutes
             </p>
           )}
           {stage === "pre" && report && passage && targetMechanism && (

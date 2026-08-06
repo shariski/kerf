@@ -80,6 +80,21 @@ export async function findPassageAny(
   return (rows[0] as PassageRecord | undefined) ?? null;
 }
 
+/**
+ * All topics ever used for a weakness-set (any status). Drives topic
+ * cycling in generation so repeated generations stay distinct.
+ */
+export async function listTopicsForTargetKey(
+  tx: Database,
+  targetKey: string,
+): Promise<string[]> {
+  const rows = await tx
+    .select({ topic: passages.topic })
+    .from(passages)
+    .where(eq(passages.targetKey, targetKey));
+  return [...new Set(rows.map((r) => r.topic))];
+}
+
 export async function countActiveForKey(
   tx: Database,
   targetKey: string,
