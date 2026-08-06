@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { REVIEW_TAGS } from "#/domain/coach/review";
-import { buildLlmOutput, passageStatusFor } from "./review";
+import { annotateCoachPassageSchema, buildLlmOutput, passageStatusFor } from "./review";
 
 describe("passageStatusFor", () => {
   it("returns needs_review in review mode", () => {
@@ -36,5 +37,35 @@ describe("REVIEW_TAGS", () => {
       "good density",
       "good title",
     ]);
+  });
+});
+
+describe("annotateCoachPassageSchema", () => {
+  const valid = {
+    passageId: "92898d6c-9538-43f6-92b4-198e87a11cbf",
+    verdict: "good",
+    rating: 4,
+    tags: ["good density"],
+    note: "nice passage",
+  };
+  it("accepts a valid payload", () => {
+    expect(annotateCoachPassageSchema.safeParse(valid).success).toBe(true);
+  });
+  it("rejects an unknown verdict", () => {
+    const r = annotateCoachPassageSchema.safeParse({ ...valid, verdict: "maybe" });
+    expect(r.success).toBe(false);
+  });
+  it("rejects rating out of range", () => {
+    expect(annotateCoachPassageSchema.safeParse({ ...valid, rating: 6 }).success).toBe(false);
+  });
+  it("rejects unknown tags", () => {
+    expect(annotateCoachPassageSchema.safeParse({ ...valid, tags: ["spam"] }).success).toBe(false);
+  });
+  it("rejects more than 5 tags", () => {
+    const tags = ["too easy", "too hard", "bad density", "meta words", "good density", "good title"];
+    expect(annotateCoachPassageSchema.safeParse({ ...valid, tags }).success).toBe(false);
+  });
+  it("allows an empty note", () => {
+    expect(annotateCoachPassageSchema.safeParse({ ...valid, note: "" }).success).toBe(true);
   });
 });
