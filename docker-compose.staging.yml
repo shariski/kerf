@@ -5,17 +5,17 @@
 #   - project/container prefix: `kerf-staging` (explicit `name:`)
 #   - app bound to 127.0.0.1:8081 ONLY — no VIRTUAL_HOST, no nginx-proxy
 #   - own postgres volume + database (kerf_staging)
-#   - NODE_ENV=development override so EMAIL_DEV_MODE=log prints magic
-#     links to the container logs. The runtime image hardcodes
-#     NODE_ENV=production, which would force Resend sends and break
-#     magic-link login (staging has no RESEND_API_KEY by design).
-#     Side effects of the override are benign: env.ts falls back only
-#     when vars are unset (all are set in .env), and auth.ts merely
-#     trusts http://localhost:* as an extra origin.
 #
 # Access: host-level `tailscale serve` (outside Docker) forwards HTTPS
 # from the tailnet to 127.0.0.1:8081 — nothing is publicly routable.
 # AUTH_URL in .env must match the tailnet URL so magic links work.
+#
+# Magic links are EMAILED via Resend (RESEND_API_KEY + EMAIL_FROM live
+# in .env, copied from prod). EMAIL_DEV_MODE=log does NOT work in this
+# image: the build inlines NODE_ENV=production, so the dev-log branch
+# is compiled out of the bundle — a runtime NODE_ENV override changes
+# nothing. There is no code path in the built image that prints magic
+# links to logs.
 #
 # Images come from GHCR. CI (deploy-staging.yml) builds + pushes on
 # pushes to feat/coach-ai-adaptive and ships this file to
@@ -31,8 +31,6 @@ services:
     env_file: .env
     ports:
       - "127.0.0.1:8081:3000"
-    environment:
-      NODE_ENV: development
     depends_on:
       postgres:
         condition: service_healthy
