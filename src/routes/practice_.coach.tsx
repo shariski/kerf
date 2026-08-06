@@ -22,6 +22,7 @@ import {
 import { CoachPreSessionStage } from "#/components/coach/CoachPreSessionStage";
 import { CoachPostSessionStage } from "#/components/coach/CoachPostSessionStage";
 import { computeMechanismPerformance } from "#/domain/coach/mechanismPerformance";
+import type { MechanismKey } from "#/domain/coach/mechanisms";
 import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
 import { LILY58_BASE_LAYER } from "#/domain/finger/lily58";
 import type { FingerTable } from "#/domain/finger/types";
@@ -82,6 +83,7 @@ function CoachPage() {
 
   const [stage, setStage] = useState<Stage>("loading");
   const [report, setReport] = useState<WhyReport | null>(null);
+  const [targetMechanism, setTargetMechanism] = useState<MechanismKey | null>(null);
   const [passage, setPassage] = useState<PassageRecord | null>(null);
   const [quota, setQuota] = useState<{ usedToday: number; remaining: number }>({
     usedToday: 0,
@@ -104,12 +106,13 @@ function CoachPage() {
     getCoachSession({ data: { keyboardProfileId: profile.id } })
       .then((res) => {
         setReport(res.report);
-        // The server consumes the day's quota inside this call and
-        // always reports remaining: 0 on success — the fetched passage
-        // IS today's allocation, so the pre-stage must treat it as
-        // startable. True exhaustion surfaces as a QUOTA_EXCEEDED
-        // server error instead, mapped to the flat message below.
-        setQuota({ usedToday: res.quota.usedToday, remaining: Math.max(1, res.quota.remaining) });
+        setTargetMechanism(res.targetMechanism);
+        // The server consumes the day's quota inside this call, so on a
+        // one-per-day plan `remaining` is honestly 0 here. The pre-stage
+        // does not gate its start button on that — the fetched passage IS
+        // today's allocation. True exhaustion never reaches this branch;
+        // it surfaces as a QUOTA_EXCEEDED error, mapped below.
+        setQuota(res.quota);
         setPassage(res.passage);
         passageRef.current = res.passage;
         setStage("pre");
@@ -383,18 +386,12 @@ function CoachPage() {
 
   if (stage === "typing") {
     const idleAutoPaused = status === "paused" && !paused;
-    const targetedMechanism = report?.mechanisms[0]?.mechanism;
     return (
       <main
         id="main-content"
         className="kerf-practice-main kerf-practice-main--active kerf-stage-fade-in"
       >
-        {targetedMechanism && (
-          <TargetRibbon
-            label={`Coach · ${targetedMechanism}`}
-            keys={[]}
-          />
-        )}
+        {targetMechanism && <TargetRibbon label={`Coach · ${targetMechanism}`} keys={[]} />}
         <ActiveSessionStage
           keyboardType={profile.keyboardType}
           showKeyboard={pauseSettings.showKeyboard}
@@ -429,10 +426,15 @@ function CoachPage() {
     <>
       <main id="main-content" className="kerf-practice-main">
         <div className="kerf-practice-container kerf-stage-fade-in">
-          {stage === "loading" && <p className="kerf-coach-loading">Preparing your session — the first passage takes about a minute</p>}
-          {stage === "pre" && report && passage && (
+          {stage === "loading" && (
+            <p className="kerf-coach-loading" role="status" aria-live="polite">
+              Preparing your session — the first passage takes about a minute
+            </p>
+          )}
+          {stage === "pre" && report && passage && targetMechanism && (
             <CoachPreSessionStage
               report={report}
+              targetMechanism={targetMechanism}
               quota={quota}
               passage={passage}
               onStart={startSession}
@@ -454,7 +456,8 @@ function CoachPage() {
                 sessionStore.getState().events,
                 fingerTableFor(profile.keyboardType),
               )}
-              targetedMechanism={report?.mechanisms[0]?.mechanism ?? "cross-hand"}
+              targetedMechanism={targetMechanism}
+              quota={quota}
               onAgain={restartSamePassage}
             />
           )}

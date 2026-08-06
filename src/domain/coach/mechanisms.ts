@@ -32,8 +32,7 @@ export function classifyMechanism(
 
   if (t.hand === a.hand) {
     if (t.finger === a.finger) return "same-finger";
-    const adjacent =
-      Math.abs((FINGER_ORDER[t.finger] ?? 0) - (FINGER_ORDER[a.finger] ?? 0)) === 1;
+    const adjacent = Math.abs((FINGER_ORDER[t.finger] ?? 0) - (FINGER_ORDER[a.finger] ?? 0)) === 1;
     if (adjacent && t.row === a.row) return "adjacent-finger";
     if (adjacent && t.row !== a.row) return "row-cross";
     if (!adjacent) return "row-cross"; // non-adjacent same-hand: aim drift

@@ -35,7 +35,7 @@ describe("createLlmClient", () => {
     const fakeFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        choices: [{ message: { content: "{\"ok\":true}" } }],
+        choices: [{ message: { content: '{"ok":true}' } }],
         usage: { prompt_tokens: 10, completion_tokens: 5 },
       }),
     });

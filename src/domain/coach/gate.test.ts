@@ -6,18 +6,17 @@ import type { MechanismKey } from "./mechanisms";
 const crossHandHeavy = [
   "data time world base", // every word alternates hands
   "quiet theme water mind",
-  "The wide world of data time and mind is a base of quiet theme. "
-    + "The wide world of data time and mind is a base of quiet theme. "
-    + "The wide world of data time and mind is a base of quiet theme. "
-    + "The wide world of data time and mind is a base of quiet theme. "
-    + "The wide world of data time and mind is a base of quiet theme. "
-    + "The wide world of data time and mind is a base of quiet theme. "
-    + "The wide world of data time and mind is a base of quiet theme. "
-    + "The wide world of data time and mind is a base of quiet theme.",
+  "The wide world of data time and mind is a base of quiet theme. " +
+    "The wide world of data time and mind is a base of quiet theme. " +
+    "The wide world of data time and mind is a base of quiet theme. " +
+    "The wide world of data time and mind is a base of quiet theme. " +
+    "The wide world of data time and mind is a base of quiet theme. " +
+    "The wide world of data time and mind is a base of quiet theme. " +
+    "The wide world of data time and mind is a base of quiet theme. " +
+    "The wide world of data time and mind is a base of quiet theme.",
 ].join("\n\n");
 
-const metaSalad =
-  "The sequence of practice and rhythm mistakes is a finger typing error letter.";
+const metaSalad = "The sequence of practice and rhythm mistakes is a finger typing error letter.";
 
 const fiveParagraphPassage = [
   "The wide world of data time and mind is a base of quiet theme. The wide world of data time and mind is a base of quiet theme. The wide world of data time and mind is a base of quiet theme.",
@@ -41,11 +40,7 @@ describe("evaluateGate", () => {
   });
 
   it("rejects unknown mechanism keys instead of skipping the gate", () => {
-    const result = evaluateGate(
-      "cross_hand" as MechanismKey,
-      crossHandHeavy,
-      SOFLE_BASE_LAYER,
-    );
+    const result = evaluateGate("cross_hand" as MechanismKey, crossHandHeavy, SOFLE_BASE_LAYER);
     expect(result.passed).toBe(false);
     expect(result.violations.some((v) => v.includes("mechanism"))).toBe(true);
   });

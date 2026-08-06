@@ -1,8 +1,12 @@
+import type { MechanismKey } from "#/domain/coach/mechanisms";
 import type { WhyReport } from "#/domain/coach/whyReport";
 import type { PassageRecord } from "#/server/coach/catalog";
 
 type Props = {
   report: WhyReport;
+  /** The mechanism the passage was generated for — may differ from the
+      report's first row, which can be `non-alpha`. */
+  targetMechanism: MechanismKey;
   quota: { usedToday: number; remaining: number };
   passage: PassageRecord;
   onStart: () => void;
@@ -13,9 +17,8 @@ type Props = {
  * target (mechanism), the why (evidence), the attention directive, and the
  * exercise (passage title). Flat copy, no verdicts.
  */
-export function CoachPreSessionStage({ report, quota, passage, onStart }: Props) {
-  const top = report.mechanisms[0];
-  const exhausted = quota.remaining <= 0;
+export function CoachPreSessionStage({ report, targetMechanism, quota, passage, onStart }: Props) {
+  const top = report.mechanisms.find((m) => m.mechanism === targetMechanism);
 
   return (
     <section className="kerf-coach-pre" aria-label="Coach session briefing">
@@ -27,8 +30,8 @@ export function CoachPreSessionStage({ report, quota, passage, onStart }: Props)
       {top ? (
         <div className="kerf-coach-brief">
           <p className="kerf-coach-mechanism">
-            <strong>{top.mechanism}</strong> — {top.sharePct}% of your slips, averaging{" "}
-            {top.avgMs}ms per keystroke.
+            <strong>{top.mechanism}</strong> — {top.sharePct}% of your slips, averaging {top.avgMs}
+            ms per keystroke.
           </p>
           {top.topConfusions[0] && (
             <p className="kerf-coach-detail">
@@ -48,12 +51,10 @@ export function CoachPreSessionStage({ report, quota, passage, onStart }: Props)
       )}
 
       <footer className="kerf-coach-actions">
-        <button
-          type="button"
-          className="kerf-btn-primary"
-          onClick={onStart}
-          disabled={exhausted}
-        >
+        {/* Never gated on remaining quota: reaching this stage means the
+            passage below is already today's allocation. Genuine exhaustion
+            fails earlier, in the route's fetch. */}
+        <button type="button" className="kerf-coach-btn-primary" onClick={onStart}>
           Start coach session
         </button>
         <button type="button" className="kerf-coach-subscribe" disabled>
@@ -63,9 +64,9 @@ export function CoachPreSessionStage({ report, quota, passage, onStart }: Props)
       </footer>
 
       <p className="kerf-coach-quota">
-        {exhausted
-          ? "Free: today's session used · Subscribe for more"
-          : `Free: ${quota.remaining} session available today · Subscribe for more`}
+        {quota.remaining > 0
+          ? `Free: ${quota.remaining} more ${quota.remaining === 1 ? "session" : "sessions"} today · Subscribe for more`
+          : "Free: this is today's session · Subscribe for more"}
       </p>
     </section>
   );

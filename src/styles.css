@@ -751,43 +751,103 @@ body {
   color: var(--color-kerf-text-tertiary);
 }
 
-/* Coach session briefing (route) */
+/* Coach session briefing (/practice/coach). Mirrors the pre-session
+   tokens 1:1 — display title, surface panel, mono meta text. */
 .kerf-coach-pre {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  width: 100%;
   max-width: 560px;
-  padding: 8px 4px;
 }
 .kerf-coach-title {
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 24px;
-  font-weight: 600;
+  font-family: var(--font-display, "Inter", sans-serif);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-kerf-text-primary);
+  margin: 24px 0 0;
 }
 .kerf-coach-subtitle {
-  font-size: 14px;
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 15px;
   color: var(--color-kerf-text-secondary);
+  margin: 0;
 }
 .kerf-coach-brief {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 8px;
+  width: 100%;
   padding: 16px 20px;
   border: 1px solid var(--color-kerf-border-subtle);
   border-radius: 8px;
   background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-primary);
+  text-align: left;
 }
 .kerf-coach-mechanism,
-.kerf-coach-detail,
 .kerf-coach-notice,
 .kerf-coach-passage {
-  font-size: 13px;
+  margin: 0;
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.kerf-coach-detail {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-kerf-text-secondary);
 }
 .kerf-coach-detail code,
 .kerf-coach-mechanism code {
   font-family: var(--font-mono);
   font-size: 12px;
+  color: var(--color-kerf-amber-base);
+}
+
+/* Coach primary action — same amber-outline treatment as the pre-session
+   CTA, sized for an inline button row. */
+.kerf-coach-btn-primary {
+  padding: 10px 20px;
+  border: 1px solid var(--color-kerf-amber-base);
+  border-radius: 6px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-amber-base);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.kerf-coach-btn-primary:hover:not(:disabled) {
+  background: var(--color-kerf-amber-subtle);
+}
+.kerf-coach-btn-primary:focus-visible {
+  outline: 2px solid var(--color-kerf-amber-base);
+  outline-offset: 2px;
+}
+.kerf-coach-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kerf-coach-loading {
+  padding: 64px 24px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-kerf-text-secondary);
+}
+.kerf-coach-error {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-kerf-error-base);
 }
 
 /* Coach post-session */
@@ -795,22 +855,35 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
   max-width: 560px;
-  padding: 8px 4px;
 }
 .kerf-coach-post-intent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 16px 20px;
   border: 1px solid var(--color-kerf-border-subtle);
   border-radius: 8px;
   background: var(--color-kerf-bg-surface);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 .kerf-coach-post-intent-line,
 .kerf-coach-post-intent-result,
 .kerf-coach-post-intent-other {
+  margin: 0;
+  font-family: var(--font-sans, "Inter", sans-serif);
   font-size: 13px;
+  line-height: 1.5;
+}
+.kerf-coach-post-intent-result,
+.kerf-coach-post-intent-other {
+  color: var(--color-kerf-text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kerf-coach-btn-primary {
+    transition: none;
+  }
 }
 
 /* Mode cards */
@@ -892,101 +965,6 @@ body {
   .kerf-mode-card--vertical-reach {
     grid-column: auto;
   }
-}
-
-/* Coach mode — /practice/coach pre-session briefing. Mirrors the
-   pre-session tokens: surface panel, amber CTA, mono meta text. */
-.kerf-coach-pre {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 16px;
-}
-
-.kerf-coach-title {
-  font-family: var(--font-display, "Inter", sans-serif);
-  font-size: 40px;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  color: var(--color-kerf-text-primary);
-  margin: 24px 0 0;
-  text-align: center;
-}
-
-.kerf-coach-subtitle {
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 14px;
-  color: var(--color-kerf-text-secondary);
-  line-height: 1.5;
-}
-
-.kerf-coach-brief {
-  width: 100%;
-  padding: 16px;
-  border: 1px solid var(--color-kerf-border-subtle);
-  border-radius: 8px;
-  background: var(--color-kerf-bg-surface);
-  color: var(--color-kerf-text-primary);
-}
-
-.kerf-coach-mechanism {
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.kerf-coach-detail {
-  margin: 8px 0 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-kerf-text-secondary);
-}
-
-.kerf-coach-detail code {
-  color: var(--color-kerf-amber-base);
-}
-
-.kerf-coach-quota {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--color-kerf-text-secondary);
-}
-
-.kerf-btn-primary {
-  padding: 10px 20px;
-  border: 1px solid var(--color-kerf-amber-base);
-  border-radius: 6px;
-  background: var(--color-kerf-bg-surface);
-  color: var(--color-kerf-amber-base);
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 120ms ease;
-}
-.kerf-btn-primary:hover:not(:disabled) {
-  background: var(--color-kerf-amber-subtle);
-}
-.kerf-btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.kerf-coach-loading {
-  text-align: center;
-  padding: 64px 24px;
-  color: var(--color-kerf-text-secondary);
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-.kerf-coach-error {
-  margin-top: 12px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-kerf-error-base);
 }
 
 /* Two-column hand picker. Left and right hands stack their 5 columns

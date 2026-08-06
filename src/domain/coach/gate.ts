@@ -14,8 +14,21 @@ export const BASELINE_PROFILE: TransitionProfile = {
 };
 
 const META_WORDS = new Set([
-  "sequence", "bigram", "transition", "finger", "typing", "practice", "drill",
-  "pattern", "rhythm", "mistake", "error", "letter", "exercise", "keyboard", "keystroke",
+  "sequence",
+  "bigram",
+  "transition",
+  "finger",
+  "typing",
+  "practice",
+  "drill",
+  "pattern",
+  "rhythm",
+  "mistake",
+  "error",
+  "letter",
+  "exercise",
+  "keyboard",
+  "keystroke",
 ]);
 
 export type GateResult = {
@@ -43,9 +56,7 @@ export function evaluateGate(
     violations.push(`paragraphs: ${paragraphs} (need 1-3)`);
   }
 
-  const metaFound = [...META_WORDS].filter((w) =>
-    text.toLowerCase().split(/\b/).includes(w),
-  );
+  const metaFound = [...META_WORDS].filter((w) => text.toLowerCase().split(/\b/).includes(w));
   if (metaFound.length > 0) {
     violations.push(`meta words: ${metaFound.join(", ")}`);
   }

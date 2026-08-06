@@ -13,7 +13,10 @@ type Props = {
  * normal session flow — nothing about typing changes.
  */
 export function CoachPanel({ preview, onStart }: Props) {
-  const top = preview?.report.mechanisms[0];
+  // `dominantMechanism` — not `report.mechanisms[0]` — is what a coach
+  // session would actually target: the report's first row can be `non-alpha`,
+  // which the session pipeline filters out.
+  const top = preview?.report.mechanisms.find((m) => m.mechanism === preview.dominantMechanism);
   const exhausted = preview !== null && preview.quota.remaining <= 0;
 
   return (
@@ -28,7 +31,9 @@ export function CoachPanel({ preview, onStart }: Props) {
       </p>
 
       {preview === null && (
-        <p className="kerf-coach-panel-teaser">Checking today's session…</p>
+        <p className="kerf-coach-panel-teaser" role="status" aria-live="polite">
+          Checking today's session…
+        </p>
       )}
       {preview && top && (
         <p className="kerf-coach-panel-teaser">
@@ -48,7 +53,7 @@ export function CoachPanel({ preview, onStart }: Props) {
       <footer className="kerf-coach-actions">
         <button
           type="button"
-          className="kerf-btn-primary"
+          className="kerf-coach-btn-primary"
           onClick={onStart}
           disabled={exhausted}
         >
@@ -64,7 +69,7 @@ export function CoachPanel({ preview, onStart }: Props) {
         <p className="kerf-coach-quota">
           {exhausted
             ? "Free: today's session used · Subscribe for more"
-            : `Free: ${preview.quota.remaining} session available today · Subscribe for more`}
+            : `Free: ${preview.quota.remaining} ${preview.quota.remaining === 1 ? "session" : "sessions"} available today · Subscribe for more`}
         </p>
       )}
     </section>

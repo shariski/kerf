@@ -83,10 +83,7 @@ export function extractJsonObject(content: string): unknown {
 const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_BASE_URL = "https://api.deepseek.com/v1/chat/completions";
 
-export function createLlmClient(
-  fetchImpl: typeof fetch = fetch,
-  apiKey?: string,
-): LlmClient {
+export function createLlmClient(fetchImpl: typeof fetch = fetch, apiKey?: string): LlmClient {
   const key = apiKey ?? process.env.DEEPSEEK_API_KEY ?? "";
   if (!key) {
     return async () => {
@@ -144,7 +141,11 @@ export function createLlmClient(
           },
         };
       } catch (e) {
-        if (e instanceof CoachError && e.code === "LLM_HTTP" && e.message.startsWith("DeepSeek HTTP 5")) {
+        if (
+          e instanceof CoachError &&
+          e.code === "LLM_HTTP" &&
+          e.message.startsWith("DeepSeek HTTP 5")
+        ) {
           lastError = e;
           await new Promise((r) => setTimeout(r, 5000 * (attempt + 1)));
           continue;

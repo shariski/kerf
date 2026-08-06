@@ -34,7 +34,7 @@ export function computeMechanismPerformance(
       mechanism,
       attempts: n,
       errors: errors.get(mechanism) ?? 0,
-      errorRate: n > 0 ? Math.round((errors.get(mechanism) ?? 0) / n * 1000) / 1000 : 0,
+      errorRate: n > 0 ? Math.round(((errors.get(mechanism) ?? 0) / n) * 1000) / 1000 : 0,
     }))
     .sort((a, b) => b.errors - a.errors);
 }

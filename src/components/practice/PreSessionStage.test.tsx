@@ -80,20 +80,29 @@ describe("PreSessionStage", () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 
-  it("enables Drill, Inner-column, and Coach cards, keeps Warm up disabled", () => {
+  it("enables the Drill and Inner-column cards, keeps Warm up disabled", () => {
     const { container } = render(
       <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
     );
     const cards = Array.from(container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"));
-    expect(cards).toHaveLength(4);
-    const [drill, innerColumn, coach, warmUp] = cards;
+    expect(cards).toHaveLength(3);
+    const [drill, innerColumn, warmUp] = cards;
     expect(drill!.disabled).toBe(false);
     expect(innerColumn!.disabled).toBe(false);
-    expect(coach!.disabled).toBe(false);
     expect(warmUp!.disabled).toBe(true);
   });
 
-  it("fires onDrillWeakness / onDrillInnerColumn / onCoach when the respective cards are clicked", () => {
+  // Coach is deliberately NOT a mode card — it renders above the "or pick a
+  // different mode" label as its own highlighted panel.
+  it("renders Coach as a highlighted panel rather than a mode card", () => {
+    const { container } = render(
+      <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
+    );
+    expect(container.querySelector(".kerf-coach-panel")).not.toBeNull();
+    expect(container.querySelector(".kerf-coach-btn-primary")).not.toBeNull();
+  });
+
+  it("fires onDrillWeakness / onDrillInnerColumn / onCoach when the respective controls are clicked", () => {
     const onDrill = vi.fn();
     const onInner = vi.fn();
     const onCoach = vi.fn();
@@ -107,12 +116,12 @@ describe("PreSessionStage", () => {
         onCoach={onCoach}
       />,
     );
-    const [drillCard, innerColumnCard, coachCard] = Array.from(
+    const [drillCard, innerColumnCard] = Array.from(
       container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"),
     );
     fireEvent.click(drillCard!);
     fireEvent.click(innerColumnCard!);
-    fireEvent.click(coachCard!);
+    fireEvent.click(container.querySelector<HTMLButtonElement>(".kerf-coach-btn-primary")!);
     expect(onDrill).toHaveBeenCalledTimes(1);
     expect(onInner).toHaveBeenCalledTimes(1);
     expect(onCoach).toHaveBeenCalledTimes(1);

@@ -22,10 +22,7 @@ export type WhyReport = {
  * (isError && actual !== target) into finger-mechanism buckets.
  * Correction/retype events (actual === target) are noise.
  */
-export function computeWhyReport(
-  events: KeystrokeEvent[],
-  fingerTable: FingerTable,
-): WhyReport {
+export function computeWhyReport(events: KeystrokeEvent[], fingerTable: FingerTable): WhyReport {
   const counters = new Map<
     MechanismKey,
     { count: number; ms: number[]; confusions: Map<string, number>; bigrams: Map<string, number> }

@@ -14,15 +14,20 @@ import { evaluateGate, gateTargetsFor, type GateResult } from "#/domain/coach/ga
 import { normalizePassageText } from "#/domain/coach/normalize";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
-  targetKeyFor, findPassage, insertPassage, incrementUsage, countActiveForKey,
+  targetKeyFor,
+  findPassage,
+  insertPassage,
+  incrementUsage,
+  countActiveForKey,
   type PassageRecord,
 } from "./coach/catalog";
+import { coachQuotaUsed, incrementQuota, DAILY_COACH_LIMIT, utcDateString } from "./coach/quota";
 import {
-  coachQuotaUsed, incrementQuota, DAILY_COACH_LIMIT, utcDateString,
-} from "./coach/quota";
-import {
-  createLlmClient, buildAnalysisMessages, buildGenerationMessages,
-  extractJsonObject, CoachError,
+  createLlmClient,
+  buildAnalysisMessages,
+  buildGenerationMessages,
+  extractJsonObject,
+  CoachError,
 } from "./coach/llm";
 
 const RECENT_SESSION_LIMIT = 50;
@@ -35,11 +40,20 @@ export const getCoachSessionSchema = z.object({
 type CoachResponse = {
   quota: { usedToday: number; remaining: number };
   report: WhyReport;
+  /** The mechanism the passage was generated and gated for. */
+  targetMechanism: MechanismKey;
   passage: PassageRecord;
 };
 
 function fingerTableFor(layout: KeyboardLayout): FingerTable {
   return layout === "sofle" ? SOFLE_BASE_LAYER : LILY58_BASE_LAYER;
+}
+
+/** Append `ms` to the bucket for `key`, creating the bucket on first use. */
+function pushTiming(buckets: Map<string, number[]>, key: string, ms: number): void {
+  const bucket = buckets.get(key);
+  if (bucket) bucket.push(ms);
+  else buckets.set(key, [ms]);
 }
 
 export function buildLlmDigest(events: KeystrokeEvent[]): string {
@@ -54,12 +68,12 @@ export function buildLlmDigest(events: KeystrokeEvent[]): string {
   for (const e of events) {
     charAttempts.set(e.targetChar, (charAttempts.get(e.targetChar) ?? 0) + 1);
     if (e.isError) charErrors.set(e.targetChar, (charErrors.get(e.targetChar) ?? 0) + 1);
-    (charMs.get(e.targetChar) ?? charMs.set(e.targetChar, []).get(e.targetChar)!).push(e.keystrokeMs);
+    pushTiming(charMs, e.targetChar, e.keystrokeMs);
     if (e.prevChar) {
       const bg = e.prevChar + e.targetChar;
       bgAttempts.set(bg, (bgAttempts.get(bg) ?? 0) + 1);
       if (e.isError) bgErrors.set(bg, (bgErrors.get(bg) ?? 0) + 1);
-      (bgMs.get(bg) ?? bgMs.set(bg, []).get(bg)!).push(e.keystrokeMs);
+      pushTiming(bgMs, bg, e.keystrokeMs);
     }
     if (e.isError && e.actualChar !== e.targetChar) {
       const k = `${e.targetChar}->${e.actualChar}`;
@@ -67,7 +81,8 @@ export function buildLlmDigest(events: KeystrokeEvent[]): string {
     }
   }
 
-  const avg = (ms: number[]) => (ms.length ? Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) : 0);
+  const avg = (ms: number[]) =>
+    ms.length ? Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) : 0;
   const charStats = [...charAttempts.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 35)
@@ -106,6 +121,14 @@ export function buildLlmDigest(events: KeystrokeEvent[]): string {
       .map(([k, n]) => ({ pair: k, count: n })),
   });
 }
+
+/** One entry of the generation call's `test_cases` array. */
+type GeneratedCase = {
+  mechanism?: string;
+  title?: string;
+  topic?: string;
+  text?: string;
+};
 
 type CoachContext = {
   userId: string;
@@ -191,7 +214,12 @@ export const getCoachSession = createServerFn({ method: "POST" })
       data.keyboardProfileId,
       request.headers,
     );
-    if (topMechanisms.length === 0) {
+    // The mechanism this session is built around. `topMechanisms` already has
+    // `non-alpha` filtered out, so this can differ from `report.mechanisms[0]`
+    // — it is returned explicitly so the UI names the same target the passage
+    // was generated (and gated) for.
+    const targetMechanism = topMechanisms[0];
+    if (!targetMechanism) {
       throw new CoachError("INSUFFICIENT_DATA", "not enough typing data yet");
     }
 
@@ -217,23 +245,21 @@ export const getCoachSession = createServerFn({ method: "POST" })
         await incrementQuota(txDb, userId, today);
       });
       return {
-        quota: { usedToday: usedToday + 1, remaining: 0 },
+        quota: {
+          usedToday: usedToday + 1,
+          remaining: Math.max(0, DAILY_COACH_LIMIT - usedToday - 1),
+        },
         report,
+        targetMechanism,
         passage: existing,
       };
     }
 
     const digest = buildLlmDigest(events);
     const llm = createLlmClient();
-    const analysisMsgs = buildAnalysisMessages(
-      JSON.stringify(report),
-      digest,
-      [
-        events.slice(0, 305),
-        [],
-        [],
-      ].map(() => ""), // verbatim sessions are post-MVP; analysis call gets digest + report only
-    );
+    // Verbatim session transcripts are post-MVP — the analysis call gets the
+    // why-report plus the digest only, so the three verbatim slots stay empty.
+    const analysisMsgs = buildAnalysisMessages(JSON.stringify(report), digest, ["", "", ""]);
     const analysisRes = await llm(analysisMsgs);
     const analysis = extractJsonObject(analysisRes.content) as {
       suggested_topics?: string[];
@@ -241,9 +267,8 @@ export const getCoachSession = createServerFn({ method: "POST" })
     };
     const topic = analysis.suggested_topics?.[0] ?? "general knowledge";
 
-    // The passage always targets the priority mechanism (hard passage).
-    // The gate enforces it too, so the model gets the exact required rates.
-    const targetMechanism = topMechanisms[0]!;
+    // The gate enforces the same target, so the model gets the exact
+    // required trigger rates for it.
     const targets = gateTargetsFor(targetMechanism);
     const requirementsBlock = targets
       ? [
@@ -256,40 +281,46 @@ export const getCoachSession = createServerFn({ method: "POST" })
       : `Targeted mechanism for this passage: ${targetMechanism}`;
 
     let gateResult: GateResult | undefined;
-    let passageText = "";
-    let generationRaw = "";
+    let testCase: GeneratedCase | undefined;
+    let rawPassageText = "";
     for (let attempt = 0; attempt < 3; attempt++) {
       const genMsgs = buildGenerationMessages(analysisRes.content);
       const feedback = gateResult?.violations?.length
         ? `\nPrevious attempt was rejected by the gate: ${gateResult.violations.join("; ")}. Rewrite the passage so it passes.`
         : "";
-      genMsgs[genMsgs.length - 1]!.content += `\n\n${requirementsBlock}${feedback}`;
+      const userMsg = genMsgs[genMsgs.length - 1];
+      if (!userMsg) {
+        throw new CoachError("LLM_PROMPT", "generation prompt has no user message");
+      }
+      userMsg.content += `\n\n${requirementsBlock}${feedback}`;
       const genRes = await llm(genMsgs, { thinkingOff: true });
-      generationRaw = genRes.content;
-      const gen = extractJsonObject(generationRaw) as {
-        test_cases?: { mechanism?: string; title?: string; topic?: string; text?: string }[];
-      };
-      const tc = gen.test_cases?.[0];
-      if (!tc?.text) throw new CoachError("LLM_PARSE", "generation missing test_cases[0].text");
-      passageText = tc.text;
-      gateResult = evaluateGate(targetMechanism, passageText, fingerTable);
+      const gen = extractJsonObject(genRes.content) as { test_cases?: GeneratedCase[] };
+      testCase = gen.test_cases?.[0];
+      if (!testCase?.text) {
+        throw new CoachError("LLM_PARSE", "generation missing test_cases[0].text");
+      }
+      rawPassageText = testCase.text;
+      gateResult = evaluateGate(targetMechanism, rawPassageText, fingerTable);
       if (gateResult.passed) break;
     }
     if (!gateResult?.passed) {
-      throw new CoachError("GATE_REJECTED", `passage failed gate: ${gateResult?.violations.join("; ")}`);
+      throw new CoachError(
+        "GATE_REJECTED",
+        `passage failed gate: ${gateResult?.violations.join("; ")}`,
+      );
     }
+
+    // Paragraph count must be read off the raw text — the normalization
+    // below collapses the very blank lines that delimit paragraphs.
+    const paragraphs = Math.min((rawPassageText.match(/\n\s*\n/g)?.length ?? 0) + 1, 3);
     // The gate validates the raw multi-paragraph text; the typing engine
     // types character-by-character and cannot type newlines, so the stored
     // passage is normalized to a single line of regular spaces.
-    passageText = normalizePassageText(passageText);
+    const passageText = normalizePassageText(rawPassageText);
 
-    const parsed = extractJsonObject(generationRaw) as {
-      test_cases?: { mechanism?: string; title?: string; topic?: string; text?: string }[];
-    };
-    const tc = parsed.test_cases?.[0];
     const passage = {
-      title: tc?.title ?? "Coach passage",
-      topic: tc?.topic ?? topic,
+      title: testCase?.title ?? "Coach passage",
+      topic: testCase?.topic ?? topic,
       difficulty,
       mechanisms: topMechanisms,
       triggerTargets: null,
@@ -297,25 +328,34 @@ export const getCoachSession = createServerFn({ method: "POST" })
       qualityGate: gateResult,
       text: passageText,
       wordCount: passageText.split(/\s+/).filter(Boolean).length,
-      paragraphs: Math.min((passageText.match(/\n\n/g)?.length ?? 0) + 1, 3),
+      paragraphs,
       source: "ai:deepseek-v4-flash:v6",
       targetKey,
     } satisfies Omit<PassageRecord, "id" | "usageCount" | "status">;
 
     const passageId = await db.transaction(async (tx) => {
       const txDb = tx as unknown as Database;
+      // `insertPassage` returns no row when the unique-key upsert collides
+      // with a concurrent insert; fall back to reading the winner's id.
       const inserted = await insertPassage(txDb, passage);
-      const id =
-        inserted?.id ??
-        (await findPassage(txDb, passage.targetKey, passage.difficulty))!.id;
+      const existingRow =
+        inserted ?? (await findPassage(txDb, passage.targetKey, passage.difficulty));
+      if (!existingRow) {
+        throw new CoachError("CATALOG_WRITE", "passage insert produced no row");
+      }
+      const id = existingRow.id;
       await incrementQuota(txDb, userId, today);
       await incrementUsage(txDb, id);
       return id;
     });
 
     return {
-      quota: { usedToday: usedToday + 1, remaining: 0 },
+      quota: {
+        usedToday: usedToday + 1,
+        remaining: Math.max(0, DAILY_COACH_LIMIT - usedToday - 1),
+      },
       report,
+      targetMechanism,
       passage: { ...passage, id: passageId, usageCount: 1, status: "active" } as PassageRecord,
     };
   });
