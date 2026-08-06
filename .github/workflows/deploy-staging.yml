@@ -1,0 +1,157 @@
+# Staging deployment for the Coach feature — mirrors build-deploy.yml
+# (build image → push to GHCR → scp compose → SSH deploy) but for the
+# feature branch and the isolated /opt/kerf-staging stack. Never
+# touches /opt/kerf (prod).
+#
+# Triggers:
+#   - push to feat/coach-ai-adaptive: full pipeline
+#   - manual dispatch: same, with a `ref` input to deploy any branch or
+#     SHA (defaults to feat/coach-ai-adaptive)
+#
+# Pushes two tags: ghcr.io/shariski/kerf:staging-<short_sha> (pinned
+# build) and ghcr.io/shariski/kerf:staging (rolling). Prod's `latest`
+# tag is never touched.
+#
+# The deploy job assumes /opt/kerf-staging/.env exists on the VPS
+# (one-time setup, see DEPLOYMENT.md for the prod equivalent). CI only
+# ships the compose file + image.
+#
+# Required repo secrets (same as prod):
+#   DEPLOY_HOST    — VPS hostname or IP
+#   DEPLOY_USER    — SSH user with docker group membership
+#   DEPLOY_SSH_KEY — private key (PEM)
+
+name: deploy staging
+
+on:
+  push:
+    branches: [feat/coach-ai-adaptive]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or SHA to build and deploy
+        required: false
+        default: feat/coach-ai-adaptive
+
+# Never run two staging deploys concurrently. Queue them so a
+# fast-follow push does not race with the previous deploy's
+# `compose up -d`. Separate group from prod (`deploy-prod`).
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/kerf
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.short_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # For push events inputs.ref is empty → the pushed branch.
+          # For dispatch it is the (defaultable) ref input, which can
+          # differ from github.sha.
+          ref: ${{ inputs.ref || github.ref_name }}
+
+      # Derive short_sha from the checked-out commit — for
+      # workflow_dispatch github.sha is not guaranteed to be the
+      # dispatched ref.
+      - id: meta
+        run: echo "short_sha=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runtime
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:staging-${{ steps.meta.outputs.short_sha }}
+            ${{ env.IMAGE_NAME }}:staging
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Lets GITHUB_TOKEN pull the image we just pushed. Read-only —
+      # the deploy job never needs to write to the registry.
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref_name }}
+
+      # Ship the compose file alongside the image, matching the code
+      # that was actually built. Idempotent — if the file is unchanged
+      # the VPS overwrites it with identical bytes.
+      - name: scp compose file to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: docker-compose.staging.yml
+          target: /opt/kerf-staging/
+
+      - name: deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          script: |
+            set -euo pipefail
+            cd /opt/kerf-staging
+            # Pin to the build we just pushed (staging-<short_sha>).
+            export IMAGE_TAG="staging-${IMAGE_TAG}"
+            # Authenticate to GHCR in a docker config owned by this
+            # deploy, not the shared ~/.docker/config.json. A stale
+            # credential in the shared config breaks pulls even for
+            # public images — GHCR answers a bad credential with
+            # `denied` rather than falling back to anonymous. See
+            # build-deploy.yml for the outage this pattern prevents.
+            export DOCKER_CONFIG=/opt/kerf-staging/.docker
+            mkdir -p "$DOCKER_CONFIG"
+            chmod 700 "$DOCKER_CONFIG"
+            printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
+            # GHCR_TOKEN dies with this workflow run. Drop it from disk
+            # however we exit, so we never leave a rotting credential
+            # behind.
+            trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+            # Pull is explicit so a failed pull aborts before we touch
+            # the running app. `up -d` would also pull, but only after
+            # tearing down the old container.
+            docker compose -f docker-compose.staging.yml pull app postgres
+            # Run pending migrations (0006: passages, coach_quota,
+            # sessions.passage_id) in a one-shot before swapping the
+            # app. Exits non-zero on failure → the next step never
+            # runs and the previous version keeps serving.
+            docker compose -f docker-compose.staging.yml --profile migrate run --rm migrate
+            # `up -d` (not `up -d app`) so the first deploy creates
+            # the postgres container; idempotent afterwards.
+            docker compose -f docker-compose.staging.yml up -d
+            # Reclaim disk from old image layers. Safe because every
+            # tag we care about is referenced by the running container
+            # or by GHCR.
+            docker image prune -f

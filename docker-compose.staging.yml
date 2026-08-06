@@ -1,0 +1,86 @@
+# kerf — staging compose file (isolated Coach test environment).
+#
+# Mirrors docker-compose.prod.yml (same image, same migration flow) but
+# runs as a fully isolated project on the VPS — never touches /opt/kerf:
+#   - project/container prefix: `kerf-staging` (explicit `name:`)
+#   - app bound to 127.0.0.1:8081 ONLY — no VIRTUAL_HOST, no nginx-proxy
+#   - own postgres volume + database (kerf_staging)
+#   - NODE_ENV=development override so EMAIL_DEV_MODE=log prints magic
+#     links to the container logs. The runtime image hardcodes
+#     NODE_ENV=production, which would force Resend sends and break
+#     magic-link login (staging has no RESEND_API_KEY by design).
+#     Side effects of the override are benign: env.ts falls back only
+#     when vars are unset (all are set in .env), and auth.ts merely
+#     trusts http://localhost:* as an extra origin.
+#
+# Access: host-level `tailscale serve` (outside Docker) forwards HTTPS
+# from the tailnet to 127.0.0.1:8081 — nothing is publicly routable.
+# AUTH_URL in .env must match the tailnet URL so magic links work.
+#
+# Images come from GHCR. CI (deploy-staging.yml) builds + pushes on
+# pushes to feat/coach-ai-adaptive and ships this file to
+# /opt/kerf-staging/. IMAGE_TAG pins a specific build
+# (staging-<short_sha>); falls back to the rolling `staging` tag.
+
+name: kerf-staging
+
+services:
+  app:
+    image: ghcr.io/shariski/kerf:${IMAGE_TAG:-staging}
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:8081:3000"
+    environment:
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://127.0.0.1:3000/api/health
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: .env
+    # Pinned again here so postgres rejects an empty .env — silent
+    # fallback to insecure defaults would be worse than a startup error.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One-shot migration runner. Same image as `app` — the runtime image
+  # ships the migration SQL files at /app/drizzle/migrations and the
+  # runner script at /app/scripts/migrate.mjs. Profile-gated so a stray
+  # `docker compose up` cannot accidentally trigger a migration:
+  #
+  #   docker compose -f docker-compose.staging.yml --profile migrate run --rm migrate
+  migrate:
+    image: ghcr.io/shariski/kerf:${IMAGE_TAG:-staging}
+    env_file: .env
+    command: ["node", "scripts/migrate.mjs"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["migrate"]
+
+volumes:
+  postgres_data:
