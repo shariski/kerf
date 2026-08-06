@@ -329,6 +329,22 @@ function CoachPage() {
     setStage("loading");
   };
 
+  /**
+   * Review-mode only: discard today's cached session and generate a fresh
+   * candidate. The cache is sticky per day (quota protection), which on
+   * staging would otherwise keep serving the same passage on every visit.
+   */
+  const freshPassage = () => {
+    const cacheKey = `coach:v1:${profile.id}:${new Date().toISOString().slice(0, 10)}`;
+    try {
+      sessionStorage.removeItem(cacheKey);
+    } catch {
+      // Cache unavailable — the explicit fetch still runs.
+    }
+    explicitFetchRef.current = true;
+    setStage("loading");
+  };
+
   // Post-session persistence — same dedup + event DTO mapping as the
   // practice/drill routes, with the passage attached for the coach
   // pipeline. `sessionTarget` is intentionally omitted: the coach
@@ -544,6 +560,11 @@ function CoachPage() {
                 passage={passage}
                 onStart={startSession}
               />
+              {reviewMode && (
+                <button type="button" className="kerf-coach-fresh" onClick={freshPassage}>
+                  Generate another passage
+                </button>
+              )}
             </>
           )}
           {stage === "post" && status === "complete" && (

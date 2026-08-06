@@ -25,6 +25,16 @@ describe("pickTopic", () => {
   it("matches used topics case-insensitively", () => {
     expect(pickTopic(["The Sea", "Space"], ["the sea"])).toBe("Space");
   });
+  it("skips themes overlapping with used topics", () => {
+    expect(
+      pickTopic(["The Silk Road", "The Space Race"], ["The history of the Silk Road and its impact on trade"]),
+    ).toBe("The Space Race");
+  });
+  it("falls back to the first suggestion when every theme overlaps", () => {
+    expect(pickTopic(["The Silk Road"], ["The Silk Road and its trade routes"])).toBe(
+      "The Silk Road",
+    );
+  });
 });
 
 describe("buildLlmDigest", () => {

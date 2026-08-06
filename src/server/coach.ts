@@ -57,15 +57,49 @@ function fingerTableFor(layout: KeyboardLayout): FingerTable {
   return layout === "sofle" ? SOFLE_BASE_LAYER : LILY58_BASE_LAYER;
 }
 
+const TOPIC_STOPWORDS = new Set([
+  "the",
+  "and",
+  "its",
+  "of",
+  "to",
+  "in",
+  "on",
+  "for",
+  "with",
+  "from",
+  "a",
+  "an",
+  "was",
+  "not",
+  "are",
+  "is",
+]);
+
+/** Significant tokens of a topic — stopwords + 1-2 letter words dropped. */
+function significantTokens(topic: string): Set<string> {
+  return new Set(
+    topic
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length > 2 && !TOPIC_STOPWORDS.has(w)),
+  );
+}
+
 /**
  * Choose the generation topic. The analysis call suggests several topics;
- * prefer one not yet used for this weakness-set so repeated generations
- * (same analysis input → same suggestions) produce visibly distinct
- * passages instead of repeating the first suggestion.
+ * prefer one that does not overlap with any topic already used for this
+ * weakness-set, so repeated generations (same analysis input → same theme
+ * suggestions) produce visibly distinct passages. Overlap is judged on
+ * significant tokens, so "The Silk Road" and "The history of the Silk Road
+ * and its impact on trade" count as the same theme.
  */
 export function pickTopic(suggested: string[], used: string[]): string {
-  const usedLower = new Set(used.map((t) => t.toLowerCase()));
-  const fresh = suggested.find((t) => !usedLower.has(t.toLowerCase()));
+  const usedTokens = used.map((t) => significantTokens(t));
+  const fresh = suggested.find((s) => {
+    const tokens = significantTokens(s);
+    return tokens.size > 0 && !usedTokens.some((u) => [...tokens].some((t) => u.has(t)));
+  });
   return fresh ?? suggested[0] ?? "general knowledge";
 }
 
