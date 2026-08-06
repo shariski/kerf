@@ -13,6 +13,7 @@ import {
   uniqueIndex,
   numeric,
   primaryKey,
+  smallint,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -239,6 +240,12 @@ export const passages = pgTable(
     status: text("status").notNull().default("active"), // 'active' | 'retired' | 'needs_review'
     targetKey: text("target_key").notNull(),
     usageCount: integer("usage_count").notNull().default(0),
+    llmOutput: jsonb("llm_output"), // LlmOutput — raw analysis/generation payload
+    reviewVerdict: text("review_verdict"), // 'good' | 'not_good' | null
+    reviewRating: smallint("review_rating"), // 1-5 | null
+    reviewTags: text("review_tags").array(), // ReviewTag[] | null
+    reviewNote: text("review_note"), // free text | null
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

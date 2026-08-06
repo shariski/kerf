@@ -4,6 +4,7 @@ import type { Database } from "#/server/db";
 import { passages } from "#/server/db/schema";
 import type { GateResult } from "#/domain/coach/gate";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
+import type { LlmOutput } from "./review";
 
 export type PassageRecord = {
   id: string;
@@ -21,6 +22,12 @@ export type PassageRecord = {
   status: string;
   targetKey: string;
   usageCount: number;
+  llmOutput?: LlmOutput | null;
+  reviewVerdict?: string | null;
+  reviewRating?: number | null;
+  reviewTags?: string[] | null;
+  reviewNote?: string | null;
+  reviewedAt?: Date | string | null;
 };
 
 export function targetKeyFor(mechanisms: MechanismKey[], difficulty: string): string {
