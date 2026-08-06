@@ -21,7 +21,9 @@ import {
   countActiveForKey,
   type PassageRecord,
 } from "./coach/catalog";
-import { coachQuotaUsed, incrementQuota, DAILY_COACH_LIMIT, utcDateString } from "./coach/quota";
+import {
+  coachQuotaUsed, claimCoachQuota, DAILY_COACH_LIMIT, utcDateString,
+} from "./coach/quota";
 import {
   createLlmClient,
   buildAnalysisMessages,
@@ -239,11 +241,15 @@ export const getCoachSession = createServerFn({ method: "POST" })
       countActiveForKey(db, targetKey, difficulty),
     ]);
     if (existing && existingCount >= 2) {
+      let claimed = false;
       await db.transaction(async (tx) => {
         const txDb = tx as unknown as Database;
+        claimed = await claimCoachQuota(txDb, userId, today);
         await incrementUsage(txDb, existing.id);
-        await incrementQuota(txDb, userId, today);
       });
+      if (!claimed) {
+        throw new CoachError("QUOTA_EXCEEDED", `daily coach limit reached (${DAILY_COACH_LIMIT})`);
+      }
       return {
         quota: {
           usedToday: usedToday + 1,
@@ -333,6 +339,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
       targetKey,
     } satisfies Omit<PassageRecord, "id" | "usageCount" | "status">;
 
+    let claimed = false;
     const passageId = await db.transaction(async (tx) => {
       const txDb = tx as unknown as Database;
       // `insertPassage` returns no row when the unique-key upsert collides
@@ -344,10 +351,15 @@ export const getCoachSession = createServerFn({ method: "POST" })
         throw new CoachError("CATALOG_WRITE", "passage insert produced no row");
       }
       const id = existingRow.id;
-      await incrementQuota(txDb, userId, today);
+      claimed = await claimCoachQuota(txDb, userId, today);
       await incrementUsage(txDb, id);
       return id;
     });
+    if (!claimed) {
+      // Another fetch won the daily slot; the passage stays cached for
+      // tomorrow's session.
+      throw new CoachError("QUOTA_EXCEEDED", `daily coach limit reached (${DAILY_COACH_LIMIT})`);
+    }
 
     return {
       quota: {

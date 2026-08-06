@@ -124,8 +124,50 @@ function CoachPage() {
     if (stage !== "loading") return;
     if (coachFetchInFlight.current) return;
     coachFetchInFlight.current = true;
+
+    // Session cache: the server consumes the daily quota at fetch time, so
+    // a refresh mid-flow would otherwise hit QUOTA_EXCEEDED with the fetched
+    // passage unrecoverable. Cache today's session in sessionStorage and
+    // restore it on quota exhaustion. Keyed per profile + UTC day.
+    const cacheKey = `coach:v1:${profile.id}:${new Date().toISOString().slice(0, 10)}`;
+    const cacheCoachSession = (res: {
+      report: WhyReport;
+      targetMechanism: MechanismKey;
+      quota: { usedToday: number; remaining: number };
+      passage: PassageRecord;
+    }) => {
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify(res));
+      } catch {
+        // Quota/sessionStorage unavailable — fetch still works.
+      }
+    };
+    const restoreCoachSession = (): boolean => {
+      try {
+        const raw = sessionStorage.getItem(cacheKey);
+        if (!raw) return false;
+        const cached = JSON.parse(raw) as {
+          report: WhyReport;
+          targetMechanism: MechanismKey;
+          quota: { usedToday: number; remaining: number };
+          passage: PassageRecord;
+        };
+        if (!cached.report || !cached.passage) return false;
+        setReport(cached.report);
+        setTargetMechanism(cached.targetMechanism);
+        setQuota(cached.quota);
+        setPassage(cached.passage);
+        passageRef.current = cached.passage;
+        setStage("pre");
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
     getCoachSession({ data: { keyboardProfileId: profile.id } })
       .then((res) => {
+        cacheCoachSession(res);
         setReport(res.report);
         setTargetMechanism(res.targetMechanism);
         // The server consumes the day's quota inside this call, so on a
@@ -139,6 +181,12 @@ function CoachPage() {
         setStage("pre");
       })
       .catch((err: unknown) => {
+        // Refresh after a successful fetch lands here (quota spent on the
+        // first fetch). Restore the cached session instead of erroring.
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/daily coach limit/i.test(msg) && restoreCoachSession()) {
+          return;
+        }
         setError(coachErrorCopy(err));
         setStage("error");
       })

@@ -16,12 +16,26 @@ export async function coachQuotaUsed(tx: Database, userId: string, date: string)
   return row?.sessionsUsed ?? 0;
 }
 
-export async function incrementQuota(tx: Database, userId: string, date: string): Promise<void> {
-  await tx
-    .insert(coachQuota)
-    .values({ userId, date, sessionsUsed: 1 })
-    .onConflictDoUpdate({
-      target: [coachQuota.userId, coachQuota.date],
-      set: { sessionsUsed: sql`${coachQuota.sessionsUsed} + 1` },
-    });
+/**
+ * Atomically claim one quota slot for (userId, date). A single conditional
+ * upsert returns a row only when the slot was available, so two concurrent
+ * fetches can never both claim the last slot (the previous read-then-
+ * increment pattern had a TOCTOU window). Returns false when the limit is
+ * already reached.
+ */
+export async function claimCoachQuota(
+  tx: Database,
+  userId: string,
+  date: string,
+  limit: number = DAILY_COACH_LIMIT,
+): Promise<boolean> {
+  const rows = await tx.execute(sql`
+    INSERT INTO coach_quota (user_id, date, sessions_used)
+    VALUES (${userId}, ${date}, 1)
+    ON CONFLICT (user_id, date) DO UPDATE
+      SET sessions_used = coach_quota.sessions_used + 1
+      WHERE coach_quota.sessions_used < ${limit}
+    RETURNING sessions_used
+  `);
+  return rows.length > 0;
 }
