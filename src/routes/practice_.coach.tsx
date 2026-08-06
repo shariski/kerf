@@ -290,6 +290,21 @@ function CoachPage() {
     setStage("typing");
   };
 
+  /**
+   * "Practice again" after a finished session — mirrors basic adaptive
+   * practice's generateSessionAndShowBriefing: start a NEW session
+   * (fresh passage fetch → briefing). The quota gates it: when today's
+   * sessions are spent (prod, remaining 0) fall back to replaying the
+   * fetched passage — free repetition of the day's passage.
+   */
+  const nextSession = () => {
+    if (quota.remaining <= 0) {
+      restartSamePassage();
+      return;
+    }
+    setStage("loading");
+  };
+
   // Post-session persistence — same dedup + event DTO mapping as the
   // practice/drill routes, with the passage attached for the coach
   // pipeline. `sessionTarget` is intentionally omitted: the coach
@@ -342,9 +357,9 @@ function CoachPage() {
 
   // Post-session keyboard shortcuts — mirrors practice.tsx's handler
   // for parity with the hint strip PostSessionStage renders (Enter
-  // practice again, D drill, ⌘D dashboard, j/k/gg/G scroll).
-  const restartRef = useRef(restartSamePassage);
-  restartRef.current = restartSamePassage;
+  // next session, D drill, ⌘D dashboard, j/k/gg/G scroll).
+  const nextSessionRef = useRef(nextSession);
+  nextSessionRef.current = nextSession;
   useEffect(() => {
     if (status !== "complete") return;
     if (stage !== "post") return;
@@ -379,7 +394,7 @@ function CoachPage() {
 
       if (e.key === "Enter") {
         e.preventDefault();
-        restartRef.current();
+        nextSessionRef.current();
         return;
       }
 
@@ -522,7 +537,7 @@ function CoachPage() {
               )}
               targetedMechanism={targetMechanism}
               quota={quota}
-              onAgain={restartSamePassage}
+              onAgain={nextSession}
             />
           )}
           {stage === "error" && (

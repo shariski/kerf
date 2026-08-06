@@ -236,11 +236,17 @@ export const getCoachSession = createServerFn({ method: "POST" })
     // Catalog rotation: once a weakness-set has 2+ active variants, serve the
     // least-used one (variety + balanced usage); while fewer exist, generate a
     // new variant so the catalog grows.
+    //
+    // COACH_FORCE_GENERATION=true (staging test lever only; unset in prod)
+    // skips the catalog entirely and always runs the LLM generation path, so
+    // the AI pipeline can be exercised repeatedly without waiting for the
+    // catalog to drain or resetting the DB.
+    const forceGeneration = process.env.COACH_FORCE_GENERATION === "true";
     const [existing, existingCount] = await Promise.all([
       findPassage(db, targetKey, difficulty),
       countActiveForKey(db, targetKey, difficulty),
     ]);
-    if (existing && existingCount >= 2) {
+    if (!forceGeneration && existing && existingCount >= 2) {
       let claimed = false;
       await db.transaction(async (tx) => {
         const txDb = tx as unknown as Database;
