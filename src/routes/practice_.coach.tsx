@@ -11,6 +11,7 @@ import { noindexHead } from "#/lib/seo-head";
 import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import { getCoachSession } from "#/server/coach";
+import { annotateCoachPassage } from "#/server/coach/review";
 import type { WhyReport } from "#/domain/coach/whyReport";
 import type { PassageRecord } from "#/server/coach/catalog";
 import {
@@ -21,6 +22,8 @@ import {
 } from "#/components/practice";
 import { CoachPreSessionStage } from "#/components/coach/CoachPreSessionStage";
 import { CoachPostSessionStage } from "#/components/coach/CoachPostSessionStage";
+import { CoachGenerationDetails } from "#/components/coach/CoachGenerationDetails";
+import { CoachPassageAnnotation } from "#/components/coach/CoachPassageAnnotation";
 import { computeMechanismPerformance } from "#/domain/coach/mechanismPerformance";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
 import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
@@ -110,6 +113,8 @@ function CoachPage() {
     usedToday: 0,
     remaining: 1,
   });
+  const [reviewMode, setReviewMode] = useState(false);
+  const [annotated, setAnnotated] = useState(false);
   const [error, setError] = useState("");
   const [paused, setPaused] = useState(false);
   const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
@@ -135,6 +140,7 @@ function CoachPage() {
       targetMechanism: MechanismKey;
       quota: { usedToday: number; remaining: number };
       passage: PassageRecord;
+      reviewMode: boolean;
     }) => {
       try {
         sessionStorage.setItem(cacheKey, JSON.stringify(res));
@@ -151,12 +157,14 @@ function CoachPage() {
           targetMechanism: MechanismKey;
           quota: { usedToday: number; remaining: number };
           passage: PassageRecord;
+          reviewMode: boolean;
         };
         if (!cached.report || !cached.passage) return false;
         setReport(cached.report);
         setTargetMechanism(cached.targetMechanism);
         setQuota(cached.quota);
         setPassage(cached.passage);
+        setReviewMode(cached.reviewMode);
         passageRef.current = cached.passage;
         setStage("pre");
         return true;
@@ -177,6 +185,7 @@ function CoachPage() {
         // it surfaces as a QUOTA_EXCEEDED error, mapped below.
         setQuota(res.quota);
         setPassage(res.passage);
+        setReviewMode(res.reviewMode);
         passageRef.current = res.passage;
         setStage("pre");
       })
@@ -511,26 +520,30 @@ function CoachPage() {
             </p>
           )}
           {stage === "pre" && report && passage && targetMechanism && (
-            <CoachPreSessionStage
-              report={report}
-              targetMechanism={targetMechanism}
-              quota={quota}
-              passage={passage}
-              onStart={startSession}
-            />
+            <>
+              <CoachGenerationDetails passage={passage} reviewMode={reviewMode} />
+              <CoachPreSessionStage
+                report={report}
+                targetMechanism={targetMechanism}
+                quota={quota}
+                passage={passage}
+                onStart={startSession}
+              />
+            </>
           )}
           {stage === "post" && status === "complete" && (
-            <CoachPostSessionStage
-              target={sessionStore.getState().target}
-              summary={summarizeSession({
-                target: sessionStore.getState().target,
-                events: sessionStore.getState().events,
-                keyboardType: profile.keyboardType,
-                startedAt: sessionStore.getState().startedAt,
-                completedAt: sessionStore.getState().completedAt,
-                pausedMs: sessionStore.getState().pausedMs,
-                phase: profile.transitionPhase,
-              })}
+            <>
+              <CoachPostSessionStage
+                target={sessionStore.getState().target}
+                summary={summarizeSession({
+                  target: sessionStore.getState().target,
+                  events: sessionStore.getState().events,
+                  keyboardType: profile.keyboardType,
+                  startedAt: sessionStore.getState().startedAt,
+                  completedAt: sessionStore.getState().completedAt,
+                  pausedMs: sessionStore.getState().pausedMs,
+                  phase: profile.transitionPhase,
+                })}
               mechanismPerformance={computeMechanismPerformance(
                 sessionStore.getState().events,
                 fingerTableFor(profile.keyboardType),
@@ -539,6 +552,17 @@ function CoachPage() {
               quota={quota}
               onAgain={nextSession}
             />
+            <CoachPassageAnnotation
+              reviewMode={reviewMode}
+              saved={annotated}
+              onSave={async (input) => {
+                await annotateCoachPassage({
+                  data: { passageId: passage!.id, ...input },
+                });
+                setAnnotated(true);
+              }}
+            />
+            </>
           )}
           {stage === "error" && (
             <p className="kerf-coach-error" role="alert" aria-live="polite">
