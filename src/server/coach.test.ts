@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLlmDigest, pickTopic } from "./coach";
+import { buildLlmDigest, pickTopic, reviewTopic } from "./coach";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 
 const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
@@ -34,6 +34,20 @@ describe("pickTopic", () => {
     expect(pickTopic(["The Silk Road"], ["The Silk Road and its trade routes"])).toBe(
       "The Silk Road",
     );
+  });
+});
+
+describe("reviewTopic", () => {
+  it("uniquifies an exact topic repeat in review mode", () => {
+    expect(reviewTopic("The Silk Road", ["The Silk Road", "The Apollo 11 Moon Landing"])).toBe(
+      "The Silk Road — review #3",
+    );
+  });
+  it("leaves a fresh topic alone", () => {
+    expect(reviewTopic("The Space Race", ["The Silk Road"])).toBe("The Space Race");
+  });
+  it("matches used topics case-insensitively", () => {
+    expect(reviewTopic("the silk road", ["The Silk Road"])).toBe("the silk road — review #2");
   });
 });
 

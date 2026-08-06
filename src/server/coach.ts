@@ -103,6 +103,18 @@ export function pickTopic(suggested: string[], used: string[]): string {
   return fresh ?? suggested[0] ?? "general knowledge";
 }
 
+/**
+ * Review mode: candidates are evaluated individually, so a repeated exact
+ * topic must never silently re-serve an existing row via the unique-key
+ * collision fallback. When the LLM repeats a used topic (cycling
+ * exhausted), append a variant marker to make the insert unique.
+ */
+export function reviewTopic(topic: string, used: string[]): string {
+  return used.some((t) => t.toLowerCase() === topic.toLowerCase())
+    ? `${topic} — review #${used.length + 1}`
+    : topic;
+}
+
 /** Append `ms` to the bucket for `key`, creating the bucket on first use. */
 function pushTiming(buckets: Map<string, number[]>, key: string, ms: number): void {
   const bucket = buckets.get(key);
@@ -337,9 +349,12 @@ export const getCoachSession = createServerFn({ method: "POST" })
       priority_order?: string[];
     };
     // Cycle suggested topics (prefer one unused for this weakness-set) so
-    // consecutive generations don't repeat the same theme.
+    // consecutive generations don't repeat the same theme. In review mode
+    // a repeated exact topic is uniquified so a fresh row always inserts.
     const usedTopics = await listTopicsForTargetKey(db, targetKey);
-    const topic = pickTopic(analysis.suggested_topics ?? [], usedTopics);
+    const topic = reviewMode
+      ? reviewTopic(pickTopic(analysis.suggested_topics ?? [], usedTopics), usedTopics)
+      : pickTopic(analysis.suggested_topics ?? [], usedTopics);
 
     // The gate enforces the same target, so the model gets the exact
     // required trigger rates for it.
