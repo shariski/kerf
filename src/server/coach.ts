@@ -16,6 +16,7 @@ import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
   targetKeyFor,
   findPassage,
+  findPassageAny,
   insertPassage,
   incrementUsage,
   countActiveForKey,
@@ -30,7 +31,9 @@ import {
   buildGenerationMessages,
   extractJsonObject,
   CoachError,
+  type LlmResponse,
 } from "./coach/llm";
+import { buildLlmOutput, passageStatusFor } from "./coach/review";
 
 const RECENT_SESSION_LIMIT = 50;
 const TOP_MECHANISMS = 3;
@@ -45,6 +48,8 @@ type CoachResponse = {
   /** The mechanism the passage was generated and gated for. */
   targetMechanism: MechanismKey;
   passage: PassageRecord;
+  /** True when COACH_REVIEW_MODE is on (staging) — drives the review UI. */
+  reviewMode: boolean;
 };
 
 function fingerTableFor(layout: KeyboardLayout): FingerTable {
@@ -212,6 +217,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
   .inputValidator(getCoachSessionSchema)
   .handler(async ({ data }): Promise<CoachResponse> => {
     const request = getRequest();
+    const reviewMode = process.env.COACH_REVIEW_MODE === "true";
     const { userId, fingerTable, report, topMechanisms, events } = await loadCoachContext(
       data.keyboardProfileId,
       request.headers,
@@ -263,6 +269,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
         },
         report,
         targetMechanism,
+        reviewMode,
         passage: existing,
       };
     }
@@ -295,6 +302,8 @@ export const getCoachSession = createServerFn({ method: "POST" })
     let gateResult: GateResult | undefined;
     let testCase: GeneratedCase | undefined;
     let rawPassageText = "";
+    let lastGenRes: LlmResponse | undefined;
+    const generationStartedAt = Date.now();
     for (let attempt = 0; attempt < 3; attempt++) {
       const genMsgs = buildGenerationMessages(analysisRes.content);
       const feedback = gateResult?.violations?.length
@@ -306,6 +315,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
       }
       userMsg.content += `\n\n${requirementsBlock}${feedback}`;
       const genRes = await llm(genMsgs, { thinkingOff: true });
+      lastGenRes = genRes;
       const gen = extractJsonObject(genRes.content) as { test_cases?: GeneratedCase[] };
       testCase = gen.test_cases?.[0];
       if (!testCase?.text) {
@@ -315,11 +325,18 @@ export const getCoachSession = createServerFn({ method: "POST" })
       gateResult = evaluateGate(targetMechanism, rawPassageText, fingerTable);
       if (gateResult.passed) break;
     }
-    if (!gateResult?.passed) {
+    // Review mode treats the gate as advisory: the verdict is stored and
+    // shown, but a miss never blocks the owner from typing + annotating.
+    if (!reviewMode && !gateResult?.passed) {
       throw new CoachError(
         "GATE_REJECTED",
         `passage failed gate: ${gateResult?.violations.join("; ")}`,
       );
+    }
+    // The generation loop always assigns gateResult (3 attempts); keep the
+    // type narrowed for the code below.
+    if (!gateResult) {
+      throw new CoachError("GATE_REJECTED", "passage failed gate: no measurement");
     }
 
     // Paragraph count must be read off the raw text — the normalization
@@ -343,7 +360,11 @@ export const getCoachSession = createServerFn({ method: "POST" })
       paragraphs,
       source: "ai:deepseek-v4-flash:v6",
       targetKey,
-    } satisfies Omit<PassageRecord, "id" | "usageCount" | "status">;
+      status: passageStatusFor(reviewMode),
+      ...(lastGenRes
+        ? { llmOutput: buildLlmOutput(analysisRes, lastGenRes, generationStartedAt) }
+        : {}),
+    } satisfies Omit<PassageRecord, "id" | "usageCount">;
 
     let claimed = false;
     const passageId = await db.transaction(async (tx) => {
@@ -352,7 +373,8 @@ export const getCoachSession = createServerFn({ method: "POST" })
       // with a concurrent insert; fall back to reading the winner's id.
       const inserted = await insertPassage(txDb, passage);
       const existingRow =
-        inserted ?? (await findPassage(txDb, passage.targetKey, passage.difficulty));
+        inserted ??
+        (await findPassageAny(txDb, passage.targetKey, passage.topic, passage.difficulty));
       if (!existingRow) {
         throw new CoachError("CATALOG_WRITE", "passage insert produced no row");
       }
@@ -374,6 +396,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
       },
       report,
       targetMechanism,
-      passage: { ...passage, id: passageId, usageCount: 1, status: "active" } as PassageRecord,
+      reviewMode,
+      passage: { ...passage, id: passageId, usageCount: 1, status: passage.status } as PassageRecord,
     };
   });

@@ -55,6 +55,31 @@ export async function findPassage(
   return (rows[0] as PassageRecord | undefined) ?? null;
 }
 
+/**
+ * Look up a passage by the full unique key regardless of status. Used as
+ * the conflict fallback in review mode, where the colliding row may be
+ * `needs_review` (invisible to findPassage's active-only filter).
+ */
+export async function findPassageAny(
+  tx: Database,
+  targetKey: string,
+  topic: string,
+  difficulty: string,
+): Promise<PassageRecord | null> {
+  const rows = await tx
+    .select()
+    .from(passages)
+    .where(
+      and(
+        eq(passages.targetKey, targetKey),
+        eq(passages.topic, topic),
+        eq(passages.difficulty, difficulty),
+      ),
+    )
+    .limit(1);
+  return (rows[0] as PassageRecord | undefined) ?? null;
+}
+
 export async function countActiveForKey(
   tx: Database,
   targetKey: string,
@@ -75,7 +100,7 @@ export async function countActiveForKey(
 
 export async function insertPassage(
   tx: Database,
-  passage: Omit<PassageRecord, "id" | "usageCount" | "status">,
+  passage: Omit<PassageRecord, "id" | "usageCount">,
 ): Promise<PassageRecord> {
   const [row] = await tx
     .insert(passages)
@@ -92,6 +117,8 @@ export async function insertPassage(
       paragraphs: passage.paragraphs,
       source: passage.source,
       targetKey: passage.targetKey,
+      status: passage.status,
+      ...(passage.llmOutput ? { llmOutput: passage.llmOutput } : {}),
     })
     .onConflictDoNothing({
       target: [passages.targetKey, passages.topic, passages.difficulty],
