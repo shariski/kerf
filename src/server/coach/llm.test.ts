@@ -162,4 +162,18 @@ describe("prompt assembly", () => {
     const msgs = buildGenerationMessages('{"root_causes":[]}');
     expect(msgs[1]!.content).toContain('{"root_causes":[]}');
   });
+
+  it("appends an avoid-list directive when topics are already used", () => {
+    const msgs = buildAnalysisMessages('{"total":1}', "digest", ["", "", ""], [
+      "The history of the Silk Road and its impact on trade",
+    ]);
+    const user = msgs[1]!.content;
+    expect(user).toContain("TOPICS TO AVOID");
+    expect(user).toContain("The history of the Silk Road and its impact on trade");
+  });
+
+  it("omits the avoid directive when no topics are supplied", () => {
+    const msgs = buildAnalysisMessages('{"total":1}', "digest", ["", "", ""]);
+    expect(msgs[1]!.content).not.toContain("TOPICS TO AVOID");
+  });
 });

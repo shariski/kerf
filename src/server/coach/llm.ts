@@ -41,11 +41,15 @@ export function buildAnalysisMessages(
   whyReportJson: string,
   digest: string,
   verbatim: string[],
+  avoidTopics: string[] = [],
 ): { role: "system" | "user"; content: string }[] {
   const { system, user } = parsePromptFile(loadPromptFile("analysis.md"));
   let content = user.replace("<WHY_REPORT>", whyReportJson).replace("<DIGEST>", digest);
   for (let i = 0; i < 3; i++) {
     content = content.replace(`<VERBATIM_${i + 1}>`, verbatim[i] ?? "");
+  }
+  if (avoidTopics.length > 0) {
+    content += `\n\nTOPICS TO AVOID — do NOT suggest these topics (already in use for this weakness-set):\n${avoidTopics.join("\n")}`;
   }
   return [
     { role: "system", content: system },

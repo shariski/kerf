@@ -355,7 +355,17 @@ export const getCoachSession = createServerFn({ method: "POST" })
     // COACH_ANALYSIS_THINKING_OFF (staging lever) drops the reasoning mode,
     // cutting the analysis call from ~60-90s to a few seconds — quality
     // tradeoff, so it stays off in prod by default.
-    const analysisMsgs = buildAnalysisMessages(JSON.stringify(report), digest, ["", "", ""]);
+    //
+    // Review mode: seed the analysis with the topics already used for this
+    // weakness-set so the model stops re-suggesting the same theme (the
+    // cycling below can only pick from what the model suggests).
+    const usedTopics = await listTopicsForTargetKey(db, targetKey);
+    const analysisMsgs = buildAnalysisMessages(
+      JSON.stringify(report),
+      digest,
+      ["", "", ""],
+      reviewMode ? usedTopics : [],
+    );
     const analysisRes = await llm(analysisMsgs, {
       thinkingOff: process.env.COACH_ANALYSIS_THINKING_OFF === "true",
     });
@@ -366,7 +376,6 @@ export const getCoachSession = createServerFn({ method: "POST" })
     // Cycle suggested topics (prefer one unused for this weakness-set) so
     // consecutive generations don't repeat the same theme. In review mode
     // a repeated exact topic is uniquified so a fresh row always inserts.
-    const usedTopics = await listTopicsForTargetKey(db, targetKey);
     const topic = reviewMode
       ? reviewTopic(pickTopic(analysis.suggested_topics ?? [], usedTopics), usedTopics)
       : pickTopic(analysis.suggested_topics ?? [], usedTopics);
