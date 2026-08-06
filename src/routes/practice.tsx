@@ -170,12 +170,12 @@ function PracticePage() {
         if (cancelled) return;
         setCoachPreview(preview);
         // Prefetch the day's Coach session while the user browses the
-        // practice page, so arriving at /practice/coach is instant
-        // (the route restores this cached session instead of re-fetching).
+        // practice page, so arriving at /practice/coach is instant (the
+        // route promotes this `next:` slot instead of re-fetching).
         // Quota is consumed at fetch time — that's the existing design —
         // so only prefetch while a session is still available today.
         if (preview.quota.remaining <= 0) return;
-        const cacheKey = `coach:v1:${profile.id}:${new Date().toISOString().slice(0, 10)}`;
+        const cacheKey = `coach:v1:next:${profile.id}:${new Date().toISOString().slice(0, 10)}`;
         let hasCache = false;
         try {
           hasCache = sessionStorage.getItem(cacheKey) !== null;

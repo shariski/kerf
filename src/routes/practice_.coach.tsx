@@ -143,6 +143,38 @@ function CoachPage() {
     setStage("pre");
   }, []);
 
+  /** Read the main (current-briefing) cache slot, if it holds a session. */
+  const readMainCache = useCallback((): CachedCoachSession | null => {
+    try {
+      const raw = sessionStorage.getItem(dayKey());
+      if (!raw) return null;
+      const cached = JSON.parse(raw) as CachedCoachSession;
+      return cached.report && cached.passage ? cached : null;
+    } catch {
+      return null;
+    }
+  }, [dayKey]);
+
+  /**
+   * Promote the prefetched `next:` candidate into the briefing (moves it
+   * to the main slot). Returns true when a candidate was ready — making
+   * "Practice again" and refreshes instant.
+   */
+  const promoteNextCache = useCallback((): boolean => {
+    try {
+      const raw = sessionStorage.getItem(dayKey("next:"));
+      if (!raw) return false;
+      const cached = JSON.parse(raw) as CachedCoachSession;
+      if (!cached.report || !cached.passage) return false;
+      sessionStorage.setItem(dayKey(), raw);
+      sessionStorage.removeItem(dayKey("next:"));
+      applySession(cached);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [dayKey, applySession]);
+
   // Coach session fetch. Guarded against StrictMode's double-invoked
   // dev effect: the server consumes the daily quota at fetch time, so
   // a second concurrent fetch would throw QUOTA_EXCEEDED and clobber
@@ -170,25 +202,26 @@ function CoachPage() {
       }
     };
     const restoreCoachSession = (): boolean => {
-      try {
-        const raw = sessionStorage.getItem(cacheKey);
-        if (!raw) return false;
-        const cached = JSON.parse(raw) as CachedCoachSession;
-        if (!cached.report || !cached.passage) return false;
-        applySession(cached);
-        return true;
-      } catch {
-        return false;
-      }
+      const cached = readMainCache();
+      if (!cached) return false;
+      applySession(cached);
+      return true;
     };
 
-    // Arrival with a fresh cached/prefetched session: restore it instead
-    // of re-fetching (the /practice page prefetched it in the background).
-    // "Next session" sets explicitFetchRef to bypass this and force a
-    // new generation.
+    // Arrival with a prefetched candidate (`next:` key — written by the
+    // /practice page or by the while-typing prefetch): promote it so the
+    // briefing shows the freshest passage, not the sticky day's first.
+    // Outside review mode the main cache is the day's quota allocation —
+    // restore it (prod semantics). In review mode (staging) refreshes
+    // must produce fresh candidates, so fall through to a real fetch.
     if (!explicitFetchRef.current) {
       explicitFetchRef.current = false;
-      if (restoreCoachSession()) return;
+      if (promoteNextCache()) return;
+      const sticky = readMainCache();
+      if (sticky && !sticky.reviewMode) {
+        applySession(sticky);
+        return;
+      }
     }
     explicitFetchRef.current = false;
 
@@ -215,7 +248,7 @@ function CoachPage() {
       .finally(() => {
         coachFetchInFlight.current = false;
       });
-  }, [stage, profile.id, applySession, dayKey]);
+  }, [stage, profile.id, applySession, dayKey, promoteNextCache, readMainCache]);
 
   // Esc toggles the manual pause overlay during a live session —
   // mirrors the practice/drill routes' handling.
@@ -326,25 +359,11 @@ function CoachPage() {
       restartSamePassage();
       return;
     }
-    let promoted = false;
-    try {
-      const raw = sessionStorage.getItem(dayKey("next:"));
-      if (raw) {
-        const cached = JSON.parse(raw) as CachedCoachSession;
-        if (cached.report && cached.passage) {
-          sessionStorage.setItem(dayKey(), raw);
-          sessionStorage.removeItem(dayKey("next:"));
-          applySession(cached);
-          promoted = true;
-        }
-      }
-    } catch {
-      // Cache unavailable — fall through to a synchronous fetch.
-    }
-    if (!promoted) {
-      explicitFetchRef.current = true;
-      setStage("loading");
-    }
+    // Normally the next candidate was prefetched while typing — promote
+    // it instantly. Otherwise fetch synchronously (brief loading).
+    if (promoteNextCache()) return;
+    explicitFetchRef.current = true;
+    setStage("loading");
   };
 
   // While the user types the current passage, prefetch the NEXT
