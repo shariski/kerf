@@ -2,7 +2,18 @@ import { and, eq, sql } from "drizzle-orm";
 import type { Database } from "#/server/db";
 import { coachQuota } from "#/server/db/schema";
 
-export const DAILY_COACH_LIMIT = 1;
+/**
+ * Daily Coach session limit. Env-overridable so the isolated staging
+ * instance can lift the cap for manual testing
+ * (COACH_DAILY_LIMIT=999 in /opt/kerf-staging/.env) without changing
+ * production defaults. Unset/invalid values fall back to 1.
+ */
+function readDailyLimit(): number {
+  const parsed = Number(process.env.COACH_DAILY_LIMIT);
+  return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+}
+
+export const DAILY_COACH_LIMIT = readDailyLimit();
 
 export function utcDateString(now: Date = new Date()): string {
   return now.toISOString().slice(0, 10);
