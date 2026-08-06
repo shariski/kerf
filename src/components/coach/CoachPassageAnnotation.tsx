@@ -37,11 +37,12 @@ export function CoachPassageAnnotation({ reviewMode, saved, onSave }: Props) {
   return (
     <section className="kerf-coach-review" aria-label="Passage annotation">
       <p>How was this passage?</p>
-      <div>
+      <div className="kerf-coach-review-row">
         {(["good", "not_good"] as const).map((v) => (
           <button
             key={v}
             type="button"
+            className="kerf-coach-chip"
             onClick={() => setVerdict(v)}
             aria-pressed={verdict === v}
           >
@@ -49,11 +50,12 @@ export function CoachPassageAnnotation({ reviewMode, saved, onSave }: Props) {
           </button>
         ))}
       </div>
-      <div>
+      <div className="kerf-coach-review-row">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
             type="button"
+            className="kerf-coach-chip"
             onClick={() => setRating(n)}
             aria-pressed={rating === n}
           >
@@ -61,11 +63,12 @@ export function CoachPassageAnnotation({ reviewMode, saved, onSave }: Props) {
           </button>
         ))}
       </div>
-      <div>
+      <div className="kerf-coach-review-row">
         {REVIEW_TAGS.map((tag) => (
           <button
             key={tag}
             type="button"
+            className="kerf-coach-chip"
             onClick={() => toggleTag(tag)}
             aria-pressed={tags.includes(tag)}
           >
@@ -81,6 +84,7 @@ export function CoachPassageAnnotation({ reviewMode, saved, onSave }: Props) {
       />
       <button
         type="button"
+        className="kerf-coach-btn-primary"
         disabled={!canSave || saving}
         onClick={async () => {
           if (!verdict || rating === null) return;

@@ -836,6 +836,99 @@ body {
   cursor: not-allowed;
 }
 
+/* Review-mode UI — generation details + annotation card. */
+.kerf-coach-details {
+  width: 100%;
+  max-width: 560px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-secondary);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+}
+.kerf-coach-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-kerf-text-primary);
+}
+.kerf-coach-details section {
+  margin-top: 8px;
+}
+.kerf-coach-details ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+.kerf-coach-details pre {
+  overflow-x: auto;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.kerf-coach-review {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+  padding: 16px 20px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-primary);
+  font-family: var(--font-sans, "Inter", sans-serif);
+}
+.kerf-coach-review > p {
+  margin: 0;
+  font-size: 14px;
+}
+.kerf-coach-review-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kerf-coach-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--color-kerf-border-default);
+  border-radius: 999px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-primary);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.kerf-coach-chip:hover:not(:disabled) {
+  border-color: var(--color-kerf-amber-base);
+}
+.kerf-coach-chip[aria-pressed="true"] {
+  border-color: var(--color-kerf-amber-base);
+  background: var(--color-kerf-amber-subtle);
+  color: var(--color-kerf-amber-base);
+  font-weight: 600;
+}
+.kerf-coach-review textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--color-kerf-border-default);
+  border-radius: 6px;
+  background: var(--color-kerf-bg-surface);
+  color: var(--color-kerf-text-primary);
+  font-family: var(--font-sans, "Inter", sans-serif);
+  font-size: 13px;
+  resize: vertical;
+}
+.kerf-coach-review textarea:focus-visible {
+  outline: 2px solid var(--color-kerf-amber-base);
+  outline-offset: 1px;
+}
+
 .kerf-coach-loading {
   padding: 64px 24px;
   text-align: center;
