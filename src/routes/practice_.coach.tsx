@@ -5,7 +5,7 @@ import {
   useRouter,
   useRouterState,
 } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthSession } from "#/lib/require-auth";
 import { noindexHead } from "#/lib/seo-head";
 import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
@@ -120,6 +120,29 @@ function CoachPage() {
   const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
   const passageRef = useRef<PassageRecord | null>(null);
 
+  type CachedCoachSession = {
+    report: WhyReport;
+    targetMechanism: MechanismKey;
+    quota: { usedToday: number; remaining: number };
+    passage: PassageRecord;
+    reviewMode: boolean;
+  };
+  const dayKey = useCallback(
+    (suffix = "") => `coach:v1:${suffix}${profile.id}:${new Date().toISOString().slice(0, 10)}`,
+    [profile.id],
+  );
+
+  /** Promote a fetched/cached session into the briefing state. */
+  const applySession = useCallback((res: CachedCoachSession) => {
+    setReport(res.report);
+    setTargetMechanism(res.targetMechanism);
+    setQuota(res.quota);
+    setPassage(res.passage);
+    setReviewMode(res.reviewMode);
+    passageRef.current = res.passage;
+    setStage("pre");
+  }, []);
+
   // Coach session fetch. Guarded against StrictMode's double-invoked
   // dev effect: the server consumes the daily quota at fetch time, so
   // a second concurrent fetch would throw QUOTA_EXCEEDED and clobber
@@ -138,14 +161,8 @@ function CoachPage() {
     // a refresh mid-flow would otherwise hit QUOTA_EXCEEDED with the fetched
     // passage unrecoverable. Cache today's session in sessionStorage and
     // restore it on quota exhaustion. Keyed per profile + UTC day.
-    const cacheKey = `coach:v1:${profile.id}:${new Date().toISOString().slice(0, 10)}`;
-    const cacheCoachSession = (res: {
-      report: WhyReport;
-      targetMechanism: MechanismKey;
-      quota: { usedToday: number; remaining: number };
-      passage: PassageRecord;
-      reviewMode: boolean;
-    }) => {
+    const cacheKey = dayKey();
+    const cacheCoachSession = (res: CachedCoachSession) => {
       try {
         sessionStorage.setItem(cacheKey, JSON.stringify(res));
       } catch {
@@ -156,21 +173,9 @@ function CoachPage() {
       try {
         const raw = sessionStorage.getItem(cacheKey);
         if (!raw) return false;
-        const cached = JSON.parse(raw) as {
-          report: WhyReport;
-          targetMechanism: MechanismKey;
-          quota: { usedToday: number; remaining: number };
-          passage: PassageRecord;
-          reviewMode: boolean;
-        };
+        const cached = JSON.parse(raw) as CachedCoachSession;
         if (!cached.report || !cached.passage) return false;
-        setReport(cached.report);
-        setTargetMechanism(cached.targetMechanism);
-        setQuota(cached.quota);
-        setPassage(cached.passage);
-        setReviewMode(cached.reviewMode);
-        passageRef.current = cached.passage;
-        setStage("pre");
+        applySession(cached);
         return true;
       } catch {
         return false;
@@ -190,18 +195,12 @@ function CoachPage() {
     getCoachSession({ data: { keyboardProfileId: profile.id } })
       .then((res) => {
         cacheCoachSession(res);
-        setReport(res.report);
-        setTargetMechanism(res.targetMechanism);
         // The server consumes the day's quota inside this call, so on a
         // one-per-day plan `remaining` is honestly 0 here. The pre-stage
         // does not gate its start button on that — the fetched passage IS
         // today's allocation. True exhaustion never reaches this branch;
         // it surfaces as a QUOTA_EXCEEDED error, mapped below.
-        setQuota(res.quota);
-        setPassage(res.passage);
-        setReviewMode(res.reviewMode);
-        passageRef.current = res.passage;
-        setStage("pre");
+        applySession(res);
       })
       .catch((err: unknown) => {
         // Refresh after a successful fetch lands here (quota spent on the
@@ -216,7 +215,7 @@ function CoachPage() {
       .finally(() => {
         coachFetchInFlight.current = false;
       });
-  }, [stage, profile.id]);
+  }, [stage, profile.id, applySession, dayKey]);
 
   // Esc toggles the manual pause overlay during a live session —
   // mirrors the practice/drill routes' handling.
@@ -315,35 +314,67 @@ function CoachPage() {
 
   /**
    * "Practice again" after a finished session — mirrors basic adaptive
-   * practice's generateSessionAndShowBriefing: start a NEW session
-   * (fresh passage fetch → briefing). The quota gates it: when today's
-   * sessions are spent (prod, remaining 0) fall back to replaying the
-   * fetched passage — free repetition of the day's passage.
+   * practice's generateSessionAndShowBriefing: start a NEW session. The
+   * next candidate was prefetched while the user typed the previous one,
+   * so this is normally an instant promotion from the `next` cache key.
+   * Falls back to a synchronous fetch (brief loading) when the prefetch
+   * hasn't landed yet, or to replaying the fetched passage when today's
+   * quota is spent (prod).
    */
   const nextSession = () => {
     if (quota.remaining <= 0) {
       restartSamePassage();
       return;
     }
-    explicitFetchRef.current = true;
-    setStage("loading");
+    let promoted = false;
+    try {
+      const raw = sessionStorage.getItem(dayKey("next:"));
+      if (raw) {
+        const cached = JSON.parse(raw) as CachedCoachSession;
+        if (cached.report && cached.passage) {
+          sessionStorage.setItem(dayKey(), raw);
+          sessionStorage.removeItem(dayKey("next:"));
+          applySession(cached);
+          promoted = true;
+        }
+      }
+    } catch {
+      // Cache unavailable — fall through to a synchronous fetch.
+    }
+    if (!promoted) {
+      explicitFetchRef.current = true;
+      setStage("loading");
+    }
   };
 
-  /**
-   * Review-mode only: discard today's cached session and generate a fresh
-   * candidate. The cache is sticky per day (quota protection), which on
-   * staging would otherwise keep serving the same passage on every visit.
-   */
-  const freshPassage = () => {
-    const cacheKey = `coach:v1:${profile.id}:${new Date().toISOString().slice(0, 10)}`;
+  // While the user types the current passage, prefetch the NEXT
+  // candidate in the background so "Practice again" is instant. Quota is
+  // consumed at fetch time, so only prefetch while sessions remain today
+  // (on prod that's after the day's single fetch → no-op). Failures are
+  // swallowed — nextSession falls back to a synchronous fetch.
+  useEffect(() => {
+    if (stage !== "typing") return;
+    if (quota.remaining <= 0) return;
+    const nextKey = dayKey("next:");
+    let hasNext = false;
     try {
-      sessionStorage.removeItem(cacheKey);
+      hasNext = sessionStorage.getItem(nextKey) !== null;
     } catch {
-      // Cache unavailable — the explicit fetch still runs.
+      // sessionStorage unavailable — fall through.
     }
-    explicitFetchRef.current = true;
-    setStage("loading");
-  };
+    if (hasNext) return;
+    getCoachSession({ data: { keyboardProfileId: profile.id } })
+      .then((res) => {
+        try {
+          sessionStorage.setItem(nextKey, JSON.stringify(res));
+        } catch {
+          // Cache write failure — nextSession fetches synchronously.
+        }
+      })
+      .catch(() => {
+        // Generation can fail (LLM hiccups); nextSession will surface it.
+      });
+  }, [stage, quota.remaining, profile.id, dayKey]);
 
   // Post-session persistence — same dedup + event DTO mapping as the
   // practice/drill routes, with the passage attached for the coach
@@ -560,11 +591,6 @@ function CoachPage() {
                 passage={passage}
                 onStart={startSession}
               />
-              {reviewMode && (
-                <button type="button" className="kerf-coach-fresh" onClick={freshPassage}>
-                  Generate another passage
-                </button>
-              )}
             </>
           )}
           {stage === "post" && status === "complete" && (
