@@ -98,7 +98,10 @@ export function createLlmClient(fetchImpl: typeof fetch = fetch, apiKey?: string
       model,
       messages,
       temperature: 0.3,
-      max_tokens: opts.maxTokens ?? 16000,
+      // Reasoning models count reasoning_content against this budget; 32k
+      // gives deep thinking room without starving the actual content
+      // (empty-content responses were the failure mode at 16k).
+      max_tokens: opts.maxTokens ?? 32000,
       response_format: { type: "json_object" },
     };
     if (opts.thinkingOff) body.thinking = { type: "disabled" };
@@ -141,13 +144,17 @@ export function createLlmClient(fetchImpl: typeof fetch = fetch, apiKey?: string
           },
         };
       } catch (e) {
+        // Retry transient failures: 5xx and empty-content responses
+        // (reasoning budget exhaustion). Everything else is fatal.
         if (
           e instanceof CoachError &&
-          e.code === "LLM_HTTP" &&
-          e.message.startsWith("DeepSeek HTTP 5")
+          (e.code === "LLM_EMPTY" ||
+            (e.code === "LLM_HTTP" && e.message.startsWith("DeepSeek HTTP 5")))
         ) {
           lastError = e;
-          await new Promise((r) => setTimeout(r, 5000 * (attempt + 1)));
+          if (attempt < 3) {
+            await new Promise((r) => setTimeout(r, 5000 * (attempt + 1)));
+          }
           continue;
         }
         throw e;

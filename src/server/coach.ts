@@ -278,8 +278,13 @@ export const getCoachSession = createServerFn({ method: "POST" })
     const llm = createLlmClient();
     // Verbatim session transcripts are post-MVP — the analysis call gets the
     // why-report plus the digest only, so the three verbatim slots stay empty.
+    // COACH_ANALYSIS_THINKING_OFF (staging lever) drops the reasoning mode,
+    // cutting the analysis call from ~60-90s to a few seconds — quality
+    // tradeoff, so it stays off in prod by default.
     const analysisMsgs = buildAnalysisMessages(JSON.stringify(report), digest, ["", "", ""]);
-    const analysisRes = await llm(analysisMsgs);
+    const analysisRes = await llm(analysisMsgs, {
+      thinkingOff: process.env.COACH_ANALYSIS_THINKING_OFF === "true",
+    });
     const analysis = extractJsonObject(analysisRes.content) as {
       suggested_topics?: string[];
       priority_order?: string[];

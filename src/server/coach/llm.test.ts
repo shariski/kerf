@@ -73,6 +73,71 @@ describe("createLlmClient", () => {
     await expect(promise).rejects.toMatchObject({ code: "LLM_HTTP" });
     expect(fakeFetch).toHaveBeenCalledTimes(4);
   }, 40000);
+
+  it("retries on empty content (reasoning budget) then succeeds", async () => {
+    const fakeFetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: "" } }],
+          usage: { prompt_tokens: 1, completion_tokens: 0 },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: "{}" } }],
+          usage: { prompt_tokens: 1, completion_tokens: 1 },
+        }),
+      });
+    const client = createLlmClient(fakeFetch as unknown as typeof fetch, "sk-test");
+    const res = await client([{ role: "user", content: "hi" }]);
+    expect(res.content).toBe("{}");
+    expect(fakeFetch).toHaveBeenCalledTimes(2);
+  }, 15000);
+
+  it("rejects with CoachError LLM_EMPTY when empty content persists", async () => {
+    const fakeFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: "" } }],
+        usage: { prompt_tokens: 1, completion_tokens: 0 },
+      }),
+    });
+    const client = createLlmClient(fakeFetch as unknown as typeof fetch, "sk-test");
+    const promise = client([{ role: "user", content: "hi" }]);
+    await expect(promise).rejects.toMatchObject({ code: "LLM_EMPTY" });
+    expect(fakeFetch).toHaveBeenCalledTimes(4);
+  }, 40000);
+
+  it("sends a generous max_tokens budget for reasoning models", async () => {
+    const fakeFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: "{}" } }],
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      }),
+    });
+    const client = createLlmClient(fakeFetch as unknown as typeof fetch, "sk-test");
+    await client([{ role: "user", content: "hi" }]);
+    const body = JSON.parse(fakeFetch.mock.calls[0]![1].body);
+    expect(body.max_tokens).toBe(32000);
+  });
+
+  it("disables thinking when thinkingOff is set", async () => {
+    const fakeFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: "{}" } }],
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      }),
+    });
+    const client = createLlmClient(fakeFetch as unknown as typeof fetch, "sk-test");
+    await client([{ role: "user", content: "hi" }], { thinkingOff: true });
+    const body = JSON.parse(fakeFetch.mock.calls[0]![1].body);
+    expect(body.thinking).toEqual({ type: "disabled" });
+  });
 });
 
 describe("prompt assembly", () => {
