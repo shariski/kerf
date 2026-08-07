@@ -94,6 +94,26 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
       return { ...working, activeError: null, charStatus };
     }
 
+    case "skip": {
+      // Skip the current target char — for characters the user's keyboard
+      // cannot produce (smart quotes, em dashes, accented letters, …). The
+      // char is marked skipped, never counted as an attempt or error, and
+      // any latched error clears. Bound to Shift+Tab in useKeystrokeCapture.
+      if (state.status !== "active") return state;
+      const charStatus = [...state.charStatus];
+      charStatus[state.position] = "skipped";
+      const nextPosition = state.position + 1;
+      const isComplete = nextPosition === state.target.length;
+      return {
+        ...state,
+        charStatus,
+        activeError: null,
+        position: nextPosition,
+        completedAt: isComplete ? (state.lastKeystrokeAt ?? Date.now()) : state.completedAt,
+        status: isComplete ? "complete" : "active",
+      };
+    }
+
     case "keypress": {
       // Auto-resume first: any typed character during a paused session
       // folds the pause slice into pausedMs and continues as if the user

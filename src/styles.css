@@ -414,6 +414,15 @@ body {
   color: var(--color-kerf-text-secondary);
 }
 
+/* Skipped via Shift+Tab — the char wasn't typed (keyboard can't produce
+   it); shown faintly so the user can see what was passed over. */
+.kerf-typing-skipped {
+  color: var(--color-kerf-text-secondary);
+  opacity: 0.35;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
 .kerf-typing-current {
   color: var(--color-kerf-text-primary);
   background: var(--color-kerf-amber-subtle);

@@ -13,7 +13,7 @@ export type { KeystrokeEvent } from "#/domain/stats/types";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 
 /** Per-character display status, parallel-indexed to SessionState.target. */
-export type CharStatus = "pending" | "correct" | "error";
+export type CharStatus = "pending" | "correct" | "error" | "skipped";
 
 /**
  * Lifecycle of a typing session.
@@ -81,6 +81,7 @@ export type SessionAction =
   | { type: "start"; target: string; now: number; targetKeys: string[] }
   | { type: "keypress"; char: string; now: number }
   | { type: "backspace" }
+  | { type: "skip" }
   | { type: "pause"; now: number }
   | { type: "resume"; now: number }
   | { type: "reset" };

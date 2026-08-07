@@ -392,3 +392,44 @@ describe("keystrokeReducer — pause/resume", () => {
     expect(s.status).toBe("active");
   });
 });
+
+describe("keystrokeReducer — skip", () => {
+  it("advances past an untypable char without an error event", () => {
+    let s = start("a-b", 1000);
+    s = type(s, "a", 1000, 100);
+    s = keystrokeReducer(s, { type: "skip" });
+    expect(s.position).toBe(2);
+    expect(s.charStatus).toEqual(["correct", "skipped", "pending"]);
+    expect(s.activeError).toBeNull();
+    expect(s.events).toHaveLength(1); // only the 'a' keystroke
+    expect(s.targetErrors).toBe(0);
+  });
+
+  it("clears a latched error and advances", () => {
+    let s = start("a-b", 1000);
+    s = keystrokeReducer(s, { type: "keypress", char: "x", now: 1100 }); // error latched on 'a'
+    expect(s.activeError).not.toBeNull();
+    s = keystrokeReducer(s, { type: "skip" });
+    expect(s.position).toBe(1);
+    expect(s.activeError).toBeNull();
+    expect(s.charStatus[0]).toBe("skipped");
+  });
+
+  it("completes the session when skipping the last char", () => {
+    let s = start("a-", 1000);
+    s = type(s, "a", 1000, 100);
+    s = keystrokeReducer(s, { type: "skip" });
+    expect(s.position).toBe(2);
+    expect(s.status).toBe("complete");
+    expect(s.completedAt).not.toBeNull();
+  });
+
+  it("is a no-op when not active", () => {
+    let s = start("a", 1000);
+    s = type(s, "a", 1000, 100);
+    expect(s.status).toBe("complete");
+    const before = { ...s };
+    s = keystrokeReducer(s, { type: "skip" });
+    expect(s).toEqual(before);
+  });
+});

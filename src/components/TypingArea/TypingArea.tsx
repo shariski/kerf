@@ -200,6 +200,7 @@ function classFor(
   // Once typed (typed/error state), the status color takes precedence — we
   // don't want retrospective decoration.
   const targetClass = isTargetKey ? " kerf-typing-target" : "";
+  if (status === "skipped") return `${base} kerf-typing-skipped`;
   if (index < position) return `${base} kerf-typing-typed`;
   if (index === position) {
     if (status === "error") return `${base} kerf-typing-error`;

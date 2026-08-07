@@ -5,6 +5,10 @@
  * only translates raw DOM events into SessionActions:
  *   - Single printable char → { type: "keypress" }
  *   - Backspace              → { type: "backspace" }
+ *   - Shift+Tab              → { type: "skip" } — advance past a target
+ *     char the user's keyboard cannot produce (smart quotes, em dashes,
+ *     accented letters, …). Plain Tab stays reserved for the restart
+ *     bindings in the practice/drill/coach routes (they exclude shiftKey).
  *   - Everything else (Tab, Shift, arrows, F-keys, Esc, etc.) → ignored
  *
  * Tab/Esc are reserved for the upcoming pause/restart overlays (Task 2.4).
@@ -29,6 +33,15 @@ export function useKeystrokeCapture({ enabled = true }: Options = {}): void {
     const onKeyDown = (e: KeyboardEvent) => {
       // Let the browser and other handlers own modifier chords.
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      // Shift+Tab: skip the current target char. Shift is deliberately NOT
+      // excluded here — the routes' plain-Tab restart bindings already
+      // return early on shiftKey, so this chord is free.
+      if (e.key === "Tab" && e.shiftKey) {
+        e.preventDefault();
+        dispatch({ type: "skip" });
+        return;
+      }
 
       if (e.key === "Backspace") {
         e.preventDefault();
