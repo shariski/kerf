@@ -5,10 +5,11 @@
  * only translates raw DOM events into SessionActions:
  *   - Single printable char → { type: "keypress" }
  *   - Backspace              → { type: "backspace" }
- *   - Shift+Tab              → { type: "skip" } — advance past a target
+ *   - Enter                  → { type: "skip" } — advance past a target
  *     char the user's keyboard cannot produce (smart quotes, em dashes,
- *     accented letters, …). Plain Tab stays reserved for the restart
- *     bindings in the practice/drill/coach routes (they exclude shiftKey).
+ *     accented letters, …). Single-key primary binding; free during
+ *     active typing because the routes only bind Enter in their
+ *     post-session handlers. Shift+Tab works as an alias.
  *   - Everything else (Tab, Shift, arrows, F-keys, Esc, etc.) → ignored
  *
  * Tab/Esc are reserved for the upcoming pause/restart overlays (Task 2.4).
@@ -34,10 +35,18 @@ export function useKeystrokeCapture({ enabled = true }: Options = {}): void {
       // Let the browser and other handlers own modifier chords.
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-      // Shift+Tab: skip the current target char. Shift is deliberately NOT
-      // excluded here — the routes' plain-Tab restart bindings already
-      // return early on shiftKey, so this chord is free.
+      // Shift+Tab: skip alias. Shift is deliberately NOT excluded here —
+      // the routes' plain-Tab restart bindings already return early on
+      // shiftKey, so this chord is free.
       if (e.key === "Tab" && e.shiftKey) {
+        e.preventDefault();
+        dispatch({ type: "skip" });
+        return;
+      }
+
+      // Enter: primary skip key (single key). Free during active typing —
+      // the routes only bind Enter in post-session handlers.
+      if (e.key === "Enter") {
         e.preventDefault();
         dispatch({ type: "skip" });
         return;
