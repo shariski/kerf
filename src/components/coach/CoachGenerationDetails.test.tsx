@@ -38,6 +38,10 @@ const passage: PassageRecord = {
   llmOutput: {
     analysis: { content: "{\"suggested_topics\":[\"trade routes\"]}", usage: { promptTokens: 1, completionTokens: 2 } },
     generation: { content: "{\"test_cases\":[]}", usage: { promptTokens: 3, completionTokens: 4 } },
+    prompts: {
+      analysis: "You are an expert typing biomechanist...",
+      generation: "You are an adaptive typing practice content generator...",
+    },
     model: "deepseek-v4-flash",
     latencyMs: 150_000,
   },
@@ -65,6 +69,12 @@ describe("CoachGenerationDetails", () => {
     expect(screen.getByText(/test_cases/i)).toBeTruthy();
     expect(screen.getByText(/150000/i)).toBeTruthy();
     expect(screen.getByText(/The Silk Road/i)).toBeTruthy();
+  });
+
+  it("renders the prompts that generated the passage", () => {
+    render(<CoachGenerationDetails passage={passage} reviewMode />);
+    expect(screen.getByText(/expert typing biomechanist/i)).toBeTruthy();
+    expect(screen.getByText(/adaptive typing practice content generator/i)).toBeTruthy();
   });
 
   it("renders nothing when review mode is off", () => {

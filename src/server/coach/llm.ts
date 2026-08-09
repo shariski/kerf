@@ -28,6 +28,12 @@ function loadPromptFile(name: "analysis.md" | "generation.md"): string {
   return PROMPTS[name];
 }
 
+/** The exact prompt texts used for generation — persisted per passage
+    so the review UI can show what produced each candidate. */
+export function getPrompts(): { analysis: string; generation: string } {
+  return { analysis: PROMPTS["analysis.md"], generation: PROMPTS["generation.md"] };
+}
+
 function parsePromptFile(text: string): { system: string; user: string } {
   const parts = text.split("\n## system\n");
   if (parts.length < 2) throw new CoachError("LLM_PROMPT", `bad prompt file: ${text.slice(0, 40)}`);

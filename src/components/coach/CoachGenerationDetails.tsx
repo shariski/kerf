@@ -61,13 +61,23 @@ export function CoachGenerationDetails({ passage, reviewMode }: Props) {
         </p>
       </section>
       {llm && (
-        <section aria-label="Raw LLM output">
-          <p>
-            {llm.model} · {llm.latencyMs}ms
-          </p>
-          <pre>{llm.analysis.content}</pre>
-          <pre>{llm.generation.content}</pre>
-        </section>
+        <>
+          {llm.prompts && (
+            <section aria-label="Generation prompt">
+              <p>Analysis prompt</p>
+              <pre>{llm.prompts.analysis}</pre>
+              <p>Generation prompt</p>
+              <pre>{llm.prompts.generation}</pre>
+            </section>
+          )}
+          <section aria-label="Raw LLM output">
+            <p>
+              {llm.model} · {llm.latencyMs}ms
+            </p>
+            <pre>{llm.analysis.content}</pre>
+            <pre>{llm.generation.content}</pre>
+          </section>
+        </>
       )}
     </details>
   );

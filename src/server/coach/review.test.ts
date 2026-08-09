@@ -25,6 +25,11 @@ describe("buildLlmOutput", () => {
     expect(out.model).toBeTruthy();
     expect(out.latencyMs).toBeGreaterThanOrEqual(0);
   });
+  it("includes the prompts that generated the passage", () => {
+    const out = buildLlmOutput(res, res, 1_000);
+    expect(out.prompts.analysis).toContain("expert typing biomechanist");
+    expect(out.prompts.generation).toContain("adaptive typing practice content generator");
+  });
 });
 
 describe("REVIEW_TAGS", () => {
