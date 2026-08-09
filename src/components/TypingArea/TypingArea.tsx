@@ -116,41 +116,62 @@ export function TypingArea({
   }, [position]);
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: custom typing surface that renders per-char correctness highlighting; <input>/<textarea> can't render that. role="textbox" + aria-label is the canonical ARIA pattern for custom typing widgets.
-    <div
-      ref={containerRef}
-      className="kerf-typing"
-      role="textbox"
-      tabIndex={0}
-      aria-label="Typing exercise"
-      aria-readonly="false"
-      data-testid="typing-area"
-    >
-      {chunks.map((chunk) => {
-        const charElements = chunk.chars.map((ch, offset) => {
-          const index = chunk.start + offset;
-          const isTargetKey = targetKeySet?.has(ch) ?? false;
-          return (
-            <CharSpan
-              key={index}
-              char={ch}
-              className={classFor(index, position, charStatus[index] ?? "pending", isTargetKey)}
-              expectedBadge={
-                index === position && activeError && expectedLetterHint ? activeError : null
-              }
-            />
+    <>
+      <div
+        className="kerf-typing-progress"
+        role="progressbar"
+        aria-label="Typing progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pctComplete(target.length, position)}
+      >
+        <div
+          className="kerf-typing-progress-fill"
+          style={{ width: `${pctComplete(target.length, position)}%` }}
+        />
+      </div>
+      {/* biome-ignore lint/a11y/useSemanticElements: custom typing surface that renders per-char correctness highlighting; <input>/<textarea> can't render that. role="textbox" + aria-label is the canonical ARIA pattern for custom typing widgets. */}
+      <div
+        ref={containerRef}
+        className="kerf-typing"
+        role="textbox"
+        tabIndex={0}
+        aria-label="Typing exercise"
+        aria-readonly="false"
+        data-testid="typing-area"
+      >
+        {chunks.map((chunk) => {
+          const charElements = chunk.chars.map((ch, offset) => {
+            const index = chunk.start + offset;
+            const isTargetKey = targetKeySet?.has(ch) ?? false;
+            return (
+              <CharSpan
+                key={index}
+                char={ch}
+                className={classFor(index, position, charStatus[index] ?? "pending", isTargetKey)}
+                expectedBadge={
+                  index === position && activeError && expectedLetterHint ? activeError : null
+                }
+              />
+            );
+          });
+          return chunk.kind === "word" ? (
+            <span key={chunk.start} className="kerf-typing-word">
+              {charElements}
+            </span>
+          ) : (
+            <Fragment key={chunk.start}>{charElements}</Fragment>
           );
-        });
-        return chunk.kind === "word" ? (
-          <span key={chunk.start} className="kerf-typing-word">
-            {charElements}
-          </span>
-        ) : (
-          <Fragment key={chunk.start}>{charElements}</Fragment>
-        );
-      })}
-    </div>
+        })}
+      </div>
+    </>
   );
+}
+
+/** Percent of the target typed, 0-100. */
+function pctComplete(targetLength: number, position: number): number {
+  if (targetLength === 0) return 0;
+  return Math.min(100, Math.round((position / targetLength) * 100));
 }
 
 function CharSpan({

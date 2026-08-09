@@ -38,17 +38,24 @@ export type GateResult = {
   violations: string[];
 };
 
+/** Accepted passage length, in words. Overridable per-deployment. */
+export type WordRange = { min: number; max: number };
+export const DEFAULT_WORD_RANGE: WordRange = { min: 120, max: 350 };
+
 export function evaluateGate(
   mechanism: MechanismKey,
   text: string,
   fingerTable: FingerTable,
   baseline: TransitionProfile = BASELINE_PROFILE,
+  wordRange: WordRange = DEFAULT_WORD_RANGE,
 ): GateResult {
   const measured = profileText(text, fingerTable);
   const violations: string[] = [];
 
-  if (measured.nWords < 120 || measured.nWords > 350) {
-    violations.push(`length: ${measured.nWords} words (need 120-350)`);
+  if (measured.nWords < wordRange.min || measured.nWords > wordRange.max) {
+    violations.push(
+      `length: ${measured.nWords} words (need ${wordRange.min}-${wordRange.max})`,
+    );
   }
 
   const paragraphs = (text.match(/\n\n/g)?.length ?? 0) + 1;

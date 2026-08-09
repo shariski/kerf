@@ -434,6 +434,23 @@ body {
   color: var(--color-kerf-text-tertiary);
 }
 
+/* Typing progress bar — thin amber track above the exercise. */
+.kerf-typing-progress {
+  width: 100%;
+  max-width: 860px;
+  height: 4px;
+  margin: 0 auto 12px;
+  border-radius: 2px;
+  background: var(--color-kerf-border-subtle);
+  overflow: hidden;
+}
+.kerf-typing-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-kerf-amber-base);
+  transition: width 120ms ease;
+}
+
 .kerf-typing-error {
   color: var(--color-kerf-error-base);
   background: var(--color-kerf-error-subtle);

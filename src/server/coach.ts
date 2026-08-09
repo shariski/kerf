@@ -21,8 +21,10 @@ import {
   incrementUsage,
   countActiveForKey,
   listTopicsForTargetKey,
+  textExists,
   type PassageRecord,
 } from "./coach/catalog";
+import { DEFAULT_WORD_RANGE, type WordRange } from "#/domain/coach/gate";
 import {
   coachQuotaUsed, claimCoachQuota, DAILY_COACH_LIMIT, utcDateString,
 } from "./coach/quota";
@@ -128,6 +130,27 @@ export function passageTopicFor(
   llmTopic: string | undefined,
 ): string {
   return reviewMode ? cycledTopic : (llmTopic ?? cycledTopic);
+}
+
+/**
+ * Passage length range (words). Env-overridable for staging testing
+ * (COACH_WORD_RANGE="60,140" → ~1 min sessions at typical speeds);
+ * unset/invalid keeps the default 120-350.
+ */
+export function parseWordRange(raw: string | undefined): WordRange {
+  if (!raw) return DEFAULT_WORD_RANGE;
+  const [minRaw, maxRaw] = raw.split(",").map((s) => Number(s.trim()));
+  if (
+    minRaw === undefined ||
+    maxRaw === undefined ||
+    !Number.isFinite(minRaw) ||
+    !Number.isFinite(maxRaw) ||
+    minRaw < 1 ||
+    maxRaw <= minRaw
+  ) {
+    return DEFAULT_WORD_RANGE;
+  }
+  return { min: Math.floor(minRaw), max: Math.floor(maxRaw) };
 }
 
 /** Append `ms` to the bucket for `key`, creating the bucket on first use. */
@@ -381,7 +404,9 @@ export const getCoachSession = createServerFn({ method: "POST" })
       : pickTopic(analysis.suggested_topics ?? [], usedTopics);
 
     // The gate enforces the same target, so the model gets the exact
-    // required trigger rates for it.
+    // required trigger rates for it. The word range (staging lever via
+    // COACH_WORD_RANGE) is injected too so the model writes to it.
+    const wordRange = parseWordRange(process.env.COACH_WORD_RANGE);
     const targets = gateTargetsFor(targetMechanism);
     const requirementsBlock = targets
       ? [
@@ -389,20 +414,27 @@ export const getCoachSession = createServerFn({ method: "POST" })
           "passage text (measured on the passage you return). Below these, the",
           "passage is rejected:",
           ...Object.entries(targets).map(([k, v]) => `- ${k} >= ${v}`),
+          `WORD RANGE: the passage must be between ${wordRange.min} and ${wordRange.max} words.`,
           `Targeted mechanism for this passage: ${targetMechanism}`,
         ].join("\n")
-      : `Targeted mechanism for this passage: ${targetMechanism}`;
+      : `WORD RANGE: the passage must be between ${wordRange.min} and ${wordRange.max} words.\nTargeted mechanism for this passage: ${targetMechanism}`;
 
     let gateResult: GateResult | undefined;
     let testCase: GeneratedCase | undefined;
     let rawPassageText = "";
+    let passageText = "";
+    let duplicate = false;
     let lastGenRes: LlmResponse | undefined;
     const generationStartedAt = Date.now();
     for (let attempt = 0; attempt < 3; attempt++) {
       const genMsgs = buildGenerationMessages(analysisRes.content);
-      const feedback = gateResult?.violations?.length
-        ? `\nPrevious attempt was rejected by the gate: ${gateResult.violations.join("; ")}. Rewrite the passage so it passes.`
-        : "";
+      // Retry feedback: gate violations, or a duplicate-text note so the
+      // model paraphrases instead of repeating an existing passage.
+      const feedback = duplicate
+        ? "\nThe previous passage text is identical to an existing passage. Write a DIFFERENT passage (the same topic is fine — paraphrase it)."
+        : gateResult?.violations?.length
+          ? `\nPrevious attempt was rejected by the gate: ${gateResult.violations.join("; ")}. Rewrite the passage so it passes.`
+          : "";
       const userMsg = genMsgs[genMsgs.length - 1];
       if (!userMsg) {
         throw new CoachError("LLM_PROMPT", "generation prompt has no user message");
@@ -416,8 +448,20 @@ export const getCoachSession = createServerFn({ method: "POST" })
         throw new CoachError("LLM_PARSE", "generation missing test_cases[0].text");
       }
       rawPassageText = testCase.text;
-      gateResult = evaluateGate(targetMechanism, rawPassageText, fingerTable);
-      if (gateResult.passed) break;
+      gateResult = evaluateGate(targetMechanism, rawPassageText, fingerTable, undefined, wordRange);
+      if (!gateResult.passed) {
+        duplicate = false;
+        continue;
+      }
+      passageText = normalizePassageText(rawPassageText);
+      duplicate = await textExists(db, passageText);
+      if (!duplicate) break;
+    }
+    // A duplicate text is never accepted — a user must not be served the
+    // same passage twice, regardless of review mode (the gate is advisory
+    // there, the dedup is not).
+    if (duplicate) {
+      throw new CoachError("LLM_DUPLICATE", "passage text duplicates an existing passage");
     }
     // Review mode treats the gate as advisory: the verdict is stored and
     // shown, but a miss never blocks the owner from typing + annotating.
@@ -439,7 +483,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
     // The gate validates the raw multi-paragraph text; the typing engine
     // types character-by-character and cannot type newlines, so the stored
     // passage is normalized to a single line of regular spaces.
-    const passageText = normalizePassageText(rawPassageText);
+    const normalizedPassageText = passageText || normalizePassageText(rawPassageText);
 
     const passage = {
       title: testCase?.title ?? "Coach passage",
@@ -449,8 +493,8 @@ export const getCoachSession = createServerFn({ method: "POST" })
       triggerTargets: null,
       measuredDensity: gateResult.measured as unknown as Record<string, number>,
       qualityGate: gateResult,
-      text: passageText,
-      wordCount: passageText.split(/\s+/).filter(Boolean).length,
+      text: normalizedPassageText,
+      wordCount: normalizedPassageText.split(/\s+/).filter(Boolean).length,
       paragraphs,
       source: "ai:deepseek-v4-flash:v6",
       targetKey,

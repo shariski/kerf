@@ -142,6 +142,20 @@ export async function insertPassage(
   return row as PassageRecord;
 }
 
+/**
+ * Whether any passage already uses this exact (normalized) text. Drives
+ * the generation retry loop: a user must never be served the same text
+ * twice — same topic with paraphrased text is fine.
+ */
+export async function textExists(tx: Database, text: string): Promise<boolean> {
+  const rows = await tx
+    .select({ id: passages.id })
+    .from(passages)
+    .where(eq(passages.text, text))
+    .limit(1);
+  return rows.length > 0;
+}
+
 export async function incrementUsage(tx: Database, passageId: string): Promise<void> {
   await tx
     .update(passages)

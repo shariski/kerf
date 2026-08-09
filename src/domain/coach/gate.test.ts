@@ -88,3 +88,28 @@ describe("evaluateGate", () => {
     expect(measured.crossHand).toBeGreaterThanOrEqual(BASELINE_PROFILE.crossHand * 1.2);
   });
 });
+
+describe("evaluateGate — custom word range", () => {
+  const words = (n: number) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
+  const sofle = SOFLE_BASE_LAYER;
+  it("rejects 90 words under the default 120 minimum", () => {
+    const r = evaluateGate("adjacent-finger", words(90), sofle);
+    expect(r.passed).toBe(false);
+    expect(r.violations[0]).toContain("length");
+  });
+  it("accepts 90 words when the range allows 60-140", () => {
+    const r = evaluateGate("adjacent-finger", words(90), sofle, BASELINE_PROFILE, {
+      min: 60,
+      max: 140,
+    });
+    expect(r.passed).toBe(true);
+  });
+  it("rejects 150 words when the range caps at 140", () => {
+    const r = evaluateGate("adjacent-finger", words(150), sofle, BASELINE_PROFILE, {
+      min: 60,
+      max: 140,
+    });
+    expect(r.passed).toBe(false);
+    expect(r.violations[0]).toContain("length");
+  });
+});

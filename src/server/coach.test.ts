@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLlmDigest, passageTopicFor, pickTopic, reviewTopic } from "./coach";
+import { buildLlmDigest, parseWordRange, passageTopicFor, pickTopic, reviewTopic } from "./coach";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 
 const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
@@ -74,5 +74,20 @@ describe("buildLlmDigest", () => {
     expect(digest.user_profile.keystrokes).toBe(3);
     expect(digest.character_stats.length).toBeGreaterThan(0);
     expect(digest.worst_bigrams).toBeDefined();
+  });
+});
+
+describe("parseWordRange", () => {
+  it("defaults to 120-350 when unset", () => {
+    expect(parseWordRange(undefined)).toEqual({ min: 120, max: 350 });
+  });
+  it("parses a staging override", () => {
+    expect(parseWordRange("60,140")).toEqual({ min: 60, max: 140 });
+  });
+  it("falls back to the default on garbage", () => {
+    expect(parseWordRange("abc")).toEqual({ min: 120, max: 350 });
+  });
+  it("falls back to the default when min >= max", () => {
+    expect(parseWordRange("200,100")).toEqual({ min: 120, max: 350 });
   });
 });
