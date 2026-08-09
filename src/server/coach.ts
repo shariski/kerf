@@ -89,6 +89,25 @@ function significantTokens(topic: string): Set<string> {
 }
 
 /**
+ * Rotate the targeted mechanism across the user's top weaknesses while
+ * keeping the main one dominant. Pattern [0, 0, 1, 0, 2] by session
+ * index → the #1 weakness gets 60% of sessions, #2 and #3 get 20% each.
+ * Clamps to the available mechanism count. Deterministic per day so
+ * consecutive Coach sessions stay varied without ever losing focus on
+ * the main weakness.
+ */
+const MECHANISM_ROTATION = [0, 0, 1, 0, 2];
+
+export function pickTargetMechanism(
+  mechanisms: MechanismKey[],
+  sessionIndex: number,
+): MechanismKey {
+  const pattern = MECHANISM_ROTATION[sessionIndex % MECHANISM_ROTATION.length] ?? 0;
+  const index = Math.min(pattern, mechanisms.length - 1);
+  return mechanisms[index]!;
+}
+
+/**
  * Choose the generation topic. The analysis call suggests several topics;
  * prefer one that does not overlap with any topic already used for this
  * weakness-set, so repeated generations (same analysis input → same theme
@@ -319,20 +338,21 @@ export const getCoachSession = createServerFn({ method: "POST" })
       data.keyboardProfileId,
       request.headers,
     );
-    // The mechanism this session is built around. `topMechanisms` already has
-    // `non-alpha` filtered out, so this can differ from `report.mechanisms[0]`
-    // — it is returned explicitly so the UI names the same target the passage
-    // was generated (and gated) for.
-    const targetMechanism = topMechanisms[0];
-    if (!targetMechanism) {
-      throw new CoachError("INSUFFICIENT_DATA", "not enough typing data yet");
-    }
-
     const today = utcDateString();
     const usedToday = await coachQuotaUsed(db, userId, today);
     if (usedToday >= DAILY_COACH_LIMIT) {
       throw new CoachError("QUOTA_EXCEEDED", `daily coach limit reached (${DAILY_COACH_LIMIT})`);
     }
+    // The mechanism this session is built around. `topMechanisms` already has
+    // `non-alpha` filtered out, so this can differ from `report.mechanisms[0]`
+    // — it is returned explicitly so the UI names the same target the passage
+    // was generated (and gated) for. Rotates across the top weaknesses so
+    // practice isn't the same mechanism every session — the main weakness
+    // still dominates (60% of the rotation).
+    if (topMechanisms.length === 0) {
+      throw new CoachError("INSUFFICIENT_DATA", "not enough typing data yet");
+    }
+    const targetMechanism = pickTargetMechanism(topMechanisms, usedToday);
 
     const difficulty = "hard";
     const targetKey = targetKeyFor(topMechanisms, difficulty);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLlmDigest, parseWordRange, passageTopicFor, pickTopic, reviewTopic } from "./coach";
+import { buildLlmDigest, parseWordRange, passageTopicFor, pickTargetMechanism, pickTopic, reviewTopic } from "./coach";
 import type { KeystrokeEvent } from "#/domain/stats/types";
 
 const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
@@ -89,5 +89,36 @@ describe("parseWordRange", () => {
   });
   it("falls back to the default when min >= max", () => {
     expect(parseWordRange("200,100")).toEqual({ min: 120, max: 350 });
+  });
+});
+
+describe("pickTargetMechanism", () => {
+  const mechs = ["cross-hand", "row-cross", "space/timing"] as const;
+  it("keeps the main weakness dominant (60% of sessions)", () => {
+    const counts = { "cross-hand": 0, "row-cross": 0, "space/timing": 0 };
+    for (let i = 0; i < 10; i++) {
+      const m = pickTargetMechanism([...mechs], i);
+      counts[m]++;
+    }
+    expect(counts["cross-hand"]).toBe(6);
+    expect(counts["row-cross"]).toBe(2);
+    expect(counts["space/timing"]).toBe(2);
+  });
+  it("rotates deterministically by session index", () => {
+    expect(pickTargetMechanism([...mechs], 0)).toBe("cross-hand");
+    expect(pickTargetMechanism([...mechs], 1)).toBe("cross-hand");
+    expect(pickTargetMechanism([...mechs], 2)).toBe("row-cross");
+    expect(pickTargetMechanism([...mechs], 4)).toBe("space/timing");
+  });
+  it("clamps to the available mechanisms when only two exist", () => {
+    const two = ["cross-hand", "row-cross"] as const;
+    expect(pickTargetMechanism([...two], 2)).toBe("row-cross");
+    expect(pickTargetMechanism([...two], 4)).toBe("row-cross");
+  });
+  it("always targets the only mechanism when just one exists", () => {
+    const one = ["cross-hand"] as const;
+    for (let i = 0; i < 5; i++) {
+      expect(pickTargetMechanism([...one], i)).toBe("cross-hand");
+    }
   });
 });
