@@ -6,7 +6,6 @@ import { auth } from "../auth";
 import { db } from "../db";
 import { passages } from "../db/schema";
 import { CoachError } from "./llm";
-import { getPrompts } from "./llm";
 import { REVIEW_TAGS } from "#/domain/coach/review";
 import type { PassageRecord } from "./catalog";
 import type { LlmResponse } from "./llm";
@@ -53,8 +52,8 @@ export const annotateCoachPassage = createServerFn({ method: "POST" })
 export type LlmOutput = {
   analysis: { content: string; usage: LlmResponse["usage"] };
   generation: { content: string; usage: LlmResponse["usage"] };
-  /** The exact prompts that produced this passage (same for every
-      generation unless the prompt files change). */
+  /** The FILLED prompts actually sent to the model (values substituted —
+      system + user messages joined), not the templates. */
   prompts: { analysis: string; generation: string };
   model: string;
   latencyMs: number;
@@ -64,11 +63,12 @@ export function buildLlmOutput(
   analysis: LlmResponse,
   generation: LlmResponse,
   startedAtMs: number,
+  filledPrompts: { analysis: string; generation: string },
 ): LlmOutput {
   return {
     analysis: { content: analysis.content, usage: analysis.usage },
     generation: { content: generation.content, usage: generation.usage },
-    prompts: getPrompts(),
+    prompts: filledPrompts,
     model: process.env.DEEPSEEK_MODEL ?? "deepseek-v4-flash",
     latencyMs: Date.now() - startedAtMs,
   };

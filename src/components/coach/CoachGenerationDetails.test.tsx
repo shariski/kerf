@@ -77,6 +77,14 @@ describe("CoachGenerationDetails", () => {
     expect(screen.getByText(/adaptive typing practice content generator/i)).toBeTruthy();
   });
 
+  it("labels template prompts with placeholders as templates, filled prompts as filled", () => {
+    render(<CoachGenerationDetails passage={passage} reviewMode />);
+    expect(screen.getAllByText(/prompt \(filled\)/i).length).toBe(2);
+    const templated = { ...passage, llmOutput: { ...passage.llmOutput!, prompts: { analysis: "Here is the report:\n\n<WHY_REPORT>", generation: "Write about: <ROOT_CAUSE_RESULT>" } } };
+    render(<CoachGenerationDetails passage={templated} reviewMode />);
+    expect(screen.getAllByText(/prompt \(template\)/i).length).toBe(2);
+  });
+
   it("renders nothing when review mode is off", () => {
     const { container } = render(<CoachGenerationDetails passage={passage} reviewMode={false} />);
     expect(container.textContent ?? "").toBe("");

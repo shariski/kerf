@@ -409,6 +409,8 @@ export const getCoachSession = createServerFn({ method: "POST" })
       ["", "", ""],
       reviewMode ? usedTopics : [],
     );
+    // The FILLED analysis prompt actually sent (values substituted).
+    const analysisPrompt = analysisMsgs.map((m) => m.content).join("\n\n");
     const analysisRes = await llm(analysisMsgs, {
       thinkingOff: process.env.COACH_ANALYSIS_THINKING_OFF === "true",
     });
@@ -445,6 +447,7 @@ export const getCoachSession = createServerFn({ method: "POST" })
     let passageText = "";
     let duplicate = false;
     let lastGenRes: LlmResponse | undefined;
+    let lastGenMsgs: { role: string; content: string }[] | undefined;
     const generationStartedAt = Date.now();
     for (let attempt = 0; attempt < 3; attempt++) {
       const genMsgs = buildGenerationMessages(analysisRes.content);
@@ -460,6 +463,9 @@ export const getCoachSession = createServerFn({ method: "POST" })
         throw new CoachError("LLM_PROMPT", "generation prompt has no user message");
       }
       userMsg.content += `\n\nWrite the passage on the topic: ${topic}\n\n${requirementsBlock}${feedback}`;
+      // The FILLED generation prompt actually sent (topic, requirements,
+      // feedback substituted).
+      lastGenMsgs = genMsgs;
       const genRes = await llm(genMsgs, { thinkingOff: true });
       lastGenRes = genRes;
       const gen = extractJsonObject(genRes.content) as { test_cases?: GeneratedCase[] };
@@ -519,8 +525,13 @@ export const getCoachSession = createServerFn({ method: "POST" })
       source: "ai:deepseek-v4-flash:v6",
       targetKey,
       status: passageStatusFor(reviewMode),
-      ...(lastGenRes
-        ? { llmOutput: buildLlmOutput(analysisRes, lastGenRes, generationStartedAt) }
+      ...(lastGenRes && lastGenMsgs
+        ? {
+            llmOutput: buildLlmOutput(analysisRes, lastGenRes, generationStartedAt, {
+              analysis: analysisPrompt,
+              generation: lastGenMsgs.map((m) => m.content).join("\n\n"),
+            }),
+          }
         : {}),
     } satisfies Omit<PassageRecord, "id" | "usageCount">;
 

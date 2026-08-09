@@ -15,6 +15,14 @@ const MEASURED_KEY: Record<string, keyof TransitionProfile> = {
   vowel_initial_words: "vowelInitialWords",
 };
 
+// Prompt templates contain <PLACEHOLDER> tokens (e.g. <WHY_REPORT>);
+// filled prompts have real values. Old passages store the template.
+const PROMPT_PLACEHOLDER = /<[A-Z][A-Z0-9_]*>/;
+
+function promptLabel(kind: string, text: string): string {
+  return PROMPT_PLACEHOLDER.test(text) ? `${kind} prompt (template)` : `${kind} prompt (filled)`;
+}
+
 /**
  * Review-mode only: collapsible panel showing the gate verdict, measured
  * densities vs required thresholds, the raw DeepSeek outputs, and passage
@@ -64,9 +72,9 @@ export function CoachGenerationDetails({ passage, reviewMode }: Props) {
         <>
           {llm.prompts && (
             <section aria-label="Generation prompt">
-              <p>Analysis prompt</p>
+              <p>{promptLabel("Analysis", llm.prompts.analysis)}</p>
               <pre>{llm.prompts.analysis}</pre>
-              <p>Generation prompt</p>
+              <p>{promptLabel("Generation", llm.prompts.generation)}</p>
               <pre>{llm.prompts.generation}</pre>
             </section>
           )}
