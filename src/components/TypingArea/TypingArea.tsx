@@ -144,10 +144,14 @@ export function TypingArea({
           const charElements = chunk.chars.map((ch, offset) => {
             const index = chunk.start + offset;
             const isTargetKey = targetKeySet?.has(ch) ?? false;
+            // At the error position, show what the user ACTUALLY typed
+            // (red) — the badge above already shows the expected char, so
+            // rendering the target char here too would be a duplicate.
+            const isErrorPosition = index === position && activeError !== null;
             return (
               <CharSpan
                 key={index}
-                char={ch}
+                char={isErrorPosition ? activeError!.actual : ch}
                 className={classFor(index, position, charStatus[index] ?? "pending", isTargetKey)}
                 expectedBadge={
                   index === position && activeError && expectedLetterHint ? activeError : null
