@@ -155,7 +155,9 @@ describe("keystrokeReducer — error keystroke", () => {
     expect(s.position).toBe(0);
     expect(s.events).toHaveLength(2);
     expect(s.events[1]).toMatchObject({ targetChar: "n", actualChar: "v", isError: true });
-    expect(s.activeError).toEqual({ expected: "n", actual: "v" });
+    // activeError freezes on the FIRST wrong char — the display keeps
+    // showing what the user originally mistyped until backspace clears it.
+    expect(s.activeError).toEqual({ expected: "n", actual: "b" });
   });
 
   it("typing the correct letter while in error state does NOT advance (spec: must backspace)", () => {
@@ -166,7 +168,9 @@ describe("keystrokeReducer — error keystroke", () => {
     s = keystrokeReducer(s, { type: "keypress", char: "n", now: 1200 }); // correct letter
     expect(s.position).toBe(0);
     expect(s.charStatus[0]).toBe("error");
-    expect(s.activeError).toEqual({ expected: "n", actual: "n" });
+    // The display still shows the original wrong char 'b' — typing the
+    // correct letter does not change it (only backspace clears).
+    expect(s.activeError).toEqual({ expected: "n", actual: "b" });
     expect(s.events).toHaveLength(2);
     expect(s.events[1]).toMatchObject({ targetChar: "n", actualChar: "n", isError: true });
   });

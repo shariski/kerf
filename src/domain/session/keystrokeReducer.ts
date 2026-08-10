@@ -157,7 +157,14 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
         return {
           ...working,
           charStatus,
-          activeError: { expected: targetChar, actual: action.char },
+          // Freeze on the FIRST wrong char: while latched, the display
+          // keeps showing what the user originally mistyped (subsequent
+          // keystrokes are still recorded as error events in `events`,
+          // but activeError only clears via backspace). Without this,
+          // typing the correct letter mid-latch would show the correct
+          // char in red, duplicating the badge above it.
+          activeError:
+            working.activeError ?? { expected: targetChar, actual: action.char },
           events: [...working.events, event],
           lastKeystrokeAt: action.now,
           startedAt: sessionStartedAt,
