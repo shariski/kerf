@@ -81,10 +81,6 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:staging-${{ steps.meta.outputs.short_sha }}
             ${{ env.IMAGE_NAME }}:staging
-          # Use the runner's local cache. GitHub's cache service can stall
-          # buildx on this VPS and block staging deploys for many minutes.
-          cache-from: type=local,src=/tmp/kerf-buildx-cache
-          cache-to: type=local,dest=/tmp/kerf-buildx-cache,mode=max
 
   deploy:
     needs: build
