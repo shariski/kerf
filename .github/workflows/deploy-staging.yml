@@ -81,16 +81,10 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:staging-${{ steps.meta.outputs.short_sha }}
             ${{ env.IMAGE_NAME }}:staging
-          # gha cache (shared via GitHub's cache service) plus a local
-          # buildx cache on the self-hosted runner — the gha restore has
-          # been flaky there, and the local cache makes layer reuse
-          # instant on the VPS regardless of GitHub's cache service.
-          cache-from: |
-            type=gha
-            type=local,src=/tmp/kerf-buildx-cache
-          cache-to: |
-            type=gha,mode=max
-            type=local,dest=/tmp/kerf-buildx-cache,mode=max
+          # Use the runner's local cache. GitHub's cache service can stall
+          # buildx on this VPS and block staging deploys for many minutes.
+          cache-from: type=local,src=/tmp/kerf-buildx-cache
+          cache-to: type=local,dest=/tmp/kerf-buildx-cache,mode=max
 
   deploy:
     needs: build
