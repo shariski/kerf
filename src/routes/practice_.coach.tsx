@@ -1,45 +1,49 @@
 import {
   createFileRoute,
+  Link,
   redirect,
   useNavigate,
   useRouter,
   useRouterState,
 } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getAuthSession } from "#/lib/require-auth";
-import { noindexHead } from "#/lib/seo-head";
-import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
-import type { TransitionPhase } from "#/domain/profile/initialPhase";
-import { getCoachSession } from "#/server/coach";
-import { annotateCoachPassage } from "#/server/coach/review";
-import type { WhyReport } from "#/domain/coach/whyReport";
-import type { PassageRecord } from "#/server/coach/catalog";
+import { CoachGenerationDetails } from "#/components/coach/CoachGenerationDetails";
+import { CoachPassageAnnotation } from "#/components/coach/CoachPassageAnnotation";
+import { CoachPostSessionStage } from "#/components/coach/CoachPostSessionStage";
+import { CoachPreSessionStage } from "#/components/coach/CoachPreSessionStage";
 import {
   ActiveSessionStage,
   PauseOverlay,
-  TargetRibbon,
   type PauseSettings,
+  TargetRibbon,
 } from "#/components/practice";
-import { CoachPreSessionStage } from "#/components/coach/CoachPreSessionStage";
-import { CoachPostSessionStage } from "#/components/coach/CoachPostSessionStage";
-import { CoachGenerationDetails } from "#/components/coach/CoachGenerationDetails";
-import { CoachPassageAnnotation } from "#/components/coach/CoachPassageAnnotation";
+import { shouldRestoreCoachCache } from "#/domain/coach/cache";
 import { computeMechanismPerformance } from "#/domain/coach/mechanismPerformance";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
-import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
+import type { WhyReport } from "#/domain/coach/whyReport";
 import { LILY58_BASE_LAYER } from "#/domain/finger/lily58";
+import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
 import type { FingerTable } from "#/domain/finger/types";
+import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import { getAuthSession } from "#/lib/require-auth";
+import { noindexHead } from "#/lib/seo-head";
+import { getCoachSession } from "#/server/coach";
+import type { PassageRecord } from "#/server/coach/catalog";
+import { submitCoachFeedback } from "#/server/coach/feedback";
+import { annotateCoachPassage } from "#/server/coach/review";
+import { type DominantHand, getActiveProfile, type KeyboardType } from "#/server/profile";
 
 function fingerTableFor(keyboardType: KeyboardType): FingerTable {
   return keyboardType === "sofle" ? SOFLE_BASE_LAYER : LILY58_BASE_LAYER;
 }
-import { useSessionStore, sessionStore } from "#/stores/sessionStore";
-import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
-import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
-import { useOtherTabActive } from "#/hooks/useOtherTabActive";
-import { summarizeSession } from "#/domain/session/summarize";
-import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
+
 import { AppFooter } from "#/components/nav/AppFooter";
+import { summarizeSession } from "#/domain/session/summarize";
+import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
+import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
+import { useOtherTabActive } from "#/hooks/useOtherTabActive";
+import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
+import { sessionStore, useSessionStore } from "#/stores/sessionStore";
 
 type LoadedProfile = {
   id: string;
@@ -49,6 +53,21 @@ type LoadedProfile = {
 };
 
 type Stage = "loading" | "pre" | "typing" | "post" | "error";
+
+async function fetchCoachSession(profileId: string, excludePassageId?: string) {
+  // Another tab may already be preparing this user's next passage. Wait for
+  // its server-side candidate instead of launching a second LLM request.
+  for (let attempt = 0; attempt < 90; attempt++) {
+    try {
+      return await getCoachSession({ data: { keyboardProfileId: profileId, excludePassageId } });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/being prepared|changed in another tab/i.test(message) || attempt === 89) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+  throw new Error("Coach passage preparation timed out");
+}
 
 /**
  * Map server CoachError messages to flat user copy. Raw server strings
@@ -111,11 +130,12 @@ function CoachPage() {
   const [passage, setPassage] = useState<PassageRecord | null>(null);
   const [quota, setQuota] = useState<{ usedToday: number; remaining: number }>({
     usedToday: 0,
-    remaining: 1,
+    remaining: 0,
   });
   const [reviewMode, setReviewMode] = useState(false);
   const [annotated, setAnnotated] = useState(false);
   const [error, setError] = useState("");
+  const [loadingSeconds, setLoadingSeconds] = useState(0);
   const [paused, setPaused] = useState(false);
   const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
   const passageRef = useRef<PassageRecord | null>(null);
@@ -131,6 +151,16 @@ function CoachPage() {
     (suffix = "") => `coach:v1:${suffix}${profile.id}:${new Date().toISOString().slice(0, 10)}`,
     [profile.id],
   );
+
+  useEffect(() => {
+    if (stage !== "loading") return;
+    setLoadingSeconds(0);
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      setLoadingSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [stage]);
 
   /** Promote a fetched/cached session into the briefing state. */
   const applySession = useCallback((res: CachedCoachSession) => {
@@ -193,10 +223,8 @@ function CoachPage() {
     if (coachFetchInFlight.current) return;
     coachFetchInFlight.current = true;
 
-    // Session cache: the server consumes the daily quota at fetch time, so
-    // a refresh mid-flow would otherwise hit QUOTA_EXCEEDED with the fetched
-    // passage unrecoverable. Cache today's session in sessionStorage and
-    // restore it on quota exhaustion. Keyed per profile + UTC day.
+    // Keep the current passage recoverable across reloads in this tab.
+    // Once it is completed, the next arrival may claim a new session.
     const cacheKey = dayKey();
     const cacheCoachSession = (res: CachedCoachSession) => {
       try {
@@ -212,31 +240,38 @@ function CoachPage() {
       return true;
     };
 
-    // Arrival with a prefetched candidate (`next:` key — written by the
-    // /practice page or by the while-typing prefetch): promote it so the
-    // briefing shows the freshest passage, not the sticky day's first.
-    // Outside review mode the main cache is the day's quota allocation —
-    // restore it (prod semantics). In review mode (staging) refreshes
-    // must produce fresh candidates, so fall through to a real fetch.
+    // Older browser tabs may hold a next: cache from the previous client
+    // version. Those candidates already claimed quota and remain usable.
+    let completedStickyId: string | undefined;
     if (!explicitFetchRef.current) {
-      explicitFetchRef.current = false;
-      if (promoteNextCache()) return;
-      const sticky = readMainCache();
-      if (sticky && !sticky.reviewMode) {
-        applySession(sticky);
+      if (promoteNextCache()) {
+        coachFetchInFlight.current = false;
         return;
       }
+      const sticky = readMainCache();
+      if (sticky && !sticky.reviewMode) {
+        let completedPassageId: string | null = null;
+        try {
+          completedPassageId = sessionStorage.getItem(dayKey("completed:"));
+        } catch {
+          // Storage unavailable — preserving the fetched passage is safer.
+        }
+        if (shouldRestoreCoachCache(sticky, completedPassageId)) {
+          applySession(sticky);
+          coachFetchInFlight.current = false;
+          return;
+        }
+        completedStickyId = sticky.passage.id;
+      }
     }
+    const excludePassageId = explicitFetchRef.current ? passageRef.current?.id : completedStickyId;
     explicitFetchRef.current = false;
 
-    getCoachSession({ data: { keyboardProfileId: profile.id } })
+    fetchCoachSession(profile.id, excludePassageId)
       .then((res) => {
         cacheCoachSession(res);
-        // The server consumes the day's quota inside this call, so on a
-        // one-per-day plan `remaining` is honestly 0 here. The pre-stage
-        // does not gate its start button on that — the fetched passage IS
-        // today's allocation. True exhaustion never reaches this branch;
-        // it surfaces as a QUOTA_EXCEEDED error, mapped below.
+        // The server consumes one quota slot only after a deliberate Coach
+        // request, including when a prepared candidate was ready.
         applySession(res);
       })
       .catch((err: unknown) => {
@@ -349,55 +384,41 @@ function CoachPage() {
     setStage("typing");
   };
 
-  /**
-   * "Practice again" after a finished session — mirrors basic adaptive
-   * practice's generateSessionAndShowBriefing: start a NEW session. The
-   * next candidate was prefetched while the user typed the previous one,
-   * so this is normally an instant promotion from the `next` cache key.
-   * Falls back to a synchronous fetch (brief loading) when the prefetch
-   * hasn't landed yet, or to replaying the fetched passage when today's
-   * quota is spent (prod).
-   */
+  /** A new session claims the prepared candidate; repeats are free. */
   const nextSession = () => {
     if (quota.remaining <= 0) {
       restartSamePassage();
       return;
     }
-    // Normally the next candidate was prefetched while typing — promote
-    // it instantly. Otherwise fetch synchronously (brief loading).
-    if (promoteNextCache()) return;
     explicitFetchRef.current = true;
     setStage("loading");
   };
 
-  // While the user types the current passage, prefetch the NEXT
-  // candidate in the background so "Practice again" is instant. Quota is
-  // consumed at fetch time, so only prefetch while sessions remain today
-  // (on prod that's after the day's single fetch → no-op). Failures are
-  // swallowed — nextSession falls back to a synchronous fetch.
+  // Begin preparing the next candidate after the user has typed a quarter
+  // of this passage. The server keeps one candidate per next quota slot;
+  // preparation never spends quota, and the result survives refreshes.
   useEffect(() => {
-    if (stage !== "typing") return;
-    if (quota.remaining <= 0) return;
-    const nextKey = dayKey("next:");
-    let hasNext = false;
-    try {
-      hasNext = sessionStorage.getItem(nextKey) !== null;
-    } catch {
-      // sessionStorage unavailable — fall through.
-    }
-    if (hasNext) return;
-    getCoachSession({ data: { keyboardProfileId: profile.id } })
-      .then((res) => {
-        try {
-          sessionStorage.setItem(nextKey, JSON.stringify(res));
-        } catch {
-          // Cache write failure — nextSession fetches synchronously.
-        }
-      })
-      .catch(() => {
-        // Generation can fail (LLM hiccups); nextSession will surface it.
+    if (stage !== "typing" || quota.remaining <= 0 || reviewMode) return;
+    let started = false;
+    const maybePrefetch = () => {
+      if (started) return;
+      const state = sessionStore.getState();
+      if (state.target.length === 0 || state.position / state.target.length < 0.25) return;
+      started = true;
+      void getCoachSession({
+        data: {
+          keyboardProfileId: profile.id,
+          prefetch: true,
+          excludePassageId: passageRef.current?.id,
+        },
+      }).catch(() => {
+        // The next deliberate request can retry or use the catalog.
       });
-  }, [stage, quota.remaining, profile.id, dayKey]);
+    };
+    const unsubscribe = sessionStore.subscribe(maybePrefetch);
+    maybePrefetch();
+    return unsubscribe;
+  }, [stage, quota.remaining, profile.id, reviewMode]);
 
   // Post-session persistence — same dedup + event DTO mapping as the
   // practice/drill routes, with the passage attached for the coach
@@ -419,6 +440,13 @@ function CoachPage() {
     const startedAt = new Date(endedAt.getTime() - elapsedMs);
 
     const p = passageRef.current;
+    if (p) {
+      try {
+        sessionStorage.setItem(dayKey("completed:"), p.id);
+      } catch {
+        // Completion still persists to the server without browser storage.
+      }
+    }
     void persistSessionWithRetry({
       sessionId: crypto.randomUUID(),
       keyboardProfileId: profile.id,
@@ -440,7 +468,7 @@ function CoachPage() {
     }).finally(() => {
       void router.invalidate();
     });
-  }, [status, stage, profile.id, profile.transitionPhase, router]);
+  }, [status, stage, profile.id, profile.transitionPhase, router, dayKey]);
 
   // Once the session completes, move out of the typing stage into the
   // post-session summary.
@@ -600,9 +628,14 @@ function CoachPage() {
       <main id="main-content" className="kerf-practice-main">
         <div className="kerf-practice-container kerf-stage-fade-in">
           {stage === "loading" && (
-            <p className="kerf-coach-loading" role="status" aria-live="polite">
-              Preparing your session — the first passage can take a few minutes
-            </p>
+            <div className="kerf-coach-loading" role="status" aria-live="polite">
+              <p>
+                {loadingSeconds < 15
+                  ? "Preparing your focused passage…"
+                  : "Still preparing your passage. You can return to practice and come back."}
+              </p>
+              {loadingSeconds >= 15 && <Link to="/practice">Back to practice</Link>}
+            </div>
           )}
           {stage === "pre" && report && passage && targetMechanism && (
             <>
@@ -616,7 +649,7 @@ function CoachPage() {
               />
             </>
           )}
-          {stage === "post" && status === "complete" && (
+          {stage === "post" && status === "complete" && passage && (
             <>
               <CoachPostSessionStage
                 target={sessionStore.getState().target}
@@ -629,33 +662,61 @@ function CoachPage() {
                   pausedMs: sessionStore.getState().pausedMs,
                   phase: profile.transitionPhase,
                 })}
-              mechanismPerformance={computeMechanismPerformance(
-                sessionStore.getState().events,
-                fingerTableFor(profile.keyboardType),
-              )}
-              targetedMechanism={targetMechanism}
-              quota={quota}
-              onAgain={nextSession}
-            />
-            <CoachGenerationDetails passage={passage!} reviewMode={reviewMode} />
-            <CoachPassageAnnotation
-              reviewMode={reviewMode}
-              saved={annotated}
-              gatePassed={passage!.qualityGate.passed}
-              gateViolations={passage!.qualityGate.violations}
-              onSave={async (input) => {
-                await annotateCoachPassage({
-                  data: { passageId: passage!.id, ...input },
-                });
-                setAnnotated(true);
-              }}
-            />
+                mechanismPerformance={computeMechanismPerformance(
+                  sessionStore.getState().events,
+                  fingerTableFor(profile.keyboardType),
+                )}
+                targetedMechanism={targetMechanism}
+                quota={quota}
+                onAgain={nextSession}
+                onFeedback={async (useful) => {
+                  const currentPassage = passageRef.current;
+                  if (!currentPassage) throw new Error("No Coach passage is active");
+                  await submitCoachFeedback({ data: { passageId: currentPassage.id, useful } });
+                }}
+              />
+              <CoachGenerationDetails passage={passage} reviewMode={reviewMode} />
+              <CoachPassageAnnotation
+                reviewMode={reviewMode}
+                saved={annotated}
+                gatePassed={passage.qualityGate.passed}
+                gateViolations={passage.qualityGate.violations}
+                onSave={async (input) => {
+                  await annotateCoachPassage({
+                    data: { passageId: passage.id, ...input },
+                  });
+                  setAnnotated(true);
+                }}
+              />
             </>
           )}
           {stage === "error" && (
-            <p className="kerf-coach-error" role="alert" aria-live="polite">
-              {error}
-            </p>
+            <div className="kerf-coach-error" role="alert" aria-live="polite">
+              <p>{error}</p>
+              <div className="kerf-coach-actions">
+                <button
+                  type="button"
+                  className="kerf-coach-btn-primary"
+                  onClick={() => {
+                    setError("");
+                    explicitFetchRef.current = true;
+                    setStage("loading");
+                  }}
+                >
+                  Try again
+                </button>
+                {passageRef.current && (
+                  <button
+                    type="button"
+                    className="kerf-coach-btn-primary"
+                    onClick={restartSamePassage}
+                  >
+                    Repeat last passage
+                  </button>
+                )}
+                <Link to="/practice">Back to practice</Link>
+              </div>
+            </div>
           )}
           {otherTabActive && stage === "pre" && (
             <p className="kerf-multitab-banner" role="status" aria-live="polite">

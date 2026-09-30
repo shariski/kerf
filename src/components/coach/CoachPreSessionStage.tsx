@@ -1,3 +1,4 @@
+import { coachMechanismCopy } from "#/domain/coach/copy";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
 import type { WhyReport } from "#/domain/coach/whyReport";
 import type { PassageRecord } from "#/server/coach/catalog";
@@ -19,19 +20,19 @@ type Props = {
  */
 export function CoachPreSessionStage({ report, targetMechanism, quota, passage, onStart }: Props) {
   const top = report.mechanisms.find((m) => m.mechanism === targetMechanism);
+  const focus = coachMechanismCopy(targetMechanism);
 
   return (
     <section className="kerf-coach-pre" aria-label="Coach session briefing">
       <h2 className="kerf-coach-title">Coach</h2>
       <p className="kerf-coach-subtitle">
-        A passage generated for you personally, built around how you actually type.
+        A focused passage chosen for your current typing pattern.
       </p>
 
       {top ? (
         <div className="kerf-coach-brief">
           <p className="kerf-coach-mechanism">
-            <strong>{top.mechanism}</strong> — {top.sharePct}% of your slips, averaging {top.avgMs}
-            ms per keystroke.
+            <strong>{focus.label}</strong> — {top.sharePct}% of your recent slips.
           </p>
           {top.topConfusions[0] && (
             <p className="kerf-coach-detail">
@@ -40,7 +41,7 @@ export function CoachPreSessionStage({ report, targetMechanism, quota, passage, 
             </p>
           )}
           <p className="kerf-coach-notice">
-            What to notice: <strong>{top.mechanism}</strong> transitions as you type.
+            What to notice: <strong>{focus.tip}</strong>
           </p>
           <p className="kerf-coach-passage">
             Today's passage: <strong>{passage.title}</strong> · {passage.wordCount} words
@@ -55,18 +56,14 @@ export function CoachPreSessionStage({ report, targetMechanism, quota, passage, 
             passage below is already today's allocation. Genuine exhaustion
             fails earlier, in the route's fetch. */}
         <button type="button" className="kerf-coach-btn-primary" onClick={onStart}>
-          Start coach session
-        </button>
-        <button type="button" className="kerf-coach-subscribe" disabled>
-          <span>Subscribe</span>
-          <span className="kerf-mode-card-tag">coming soon</span>
+          Start this passage
         </button>
       </footer>
 
       <p className="kerf-coach-quota">
         {quota.remaining > 0
-          ? `Free: ${quota.remaining} more ${quota.remaining === 1 ? "session" : "sessions"} today · Subscribe for more`
-          : "Free: this is today's session · Subscribe for more"}
+          ? `Free beta · ${quota.remaining} more ${quota.remaining === 1 ? "session" : "sessions"} today`
+          : "Free beta · repeat this passage whenever you like"}
       </p>
     </section>
   );

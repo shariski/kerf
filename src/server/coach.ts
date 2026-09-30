@@ -2,47 +2,104 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { auth } from "./auth";
-import { db, type Database } from "./db";
-import { keyboardProfiles, sessions, keystrokeEvents } from "./db/schema";
-import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
-import { LILY58_BASE_LAYER } from "#/domain/finger/lily58";
-import type { KeyboardLayout, FingerTable } from "#/domain/finger/types";
-import type { KeystrokeEvent } from "#/domain/stats/types";
-import { computeWhyReport, type WhyReport } from "#/domain/coach/whyReport";
-import { evaluateGate, gateTargetsFor, type GateResult } from "#/domain/coach/gate";
-import { normalizePassageText } from "#/domain/coach/normalize";
-import type { MechanismKey } from "#/domain/coach/mechanisms";
 import {
-  targetKeyFor,
+  DEFAULT_WORD_RANGE,
+  evaluateGate,
+  type GateResult,
+  gateTargetsFor,
+  type WordRange,
+} from "#/domain/coach/gate";
+import type { MechanismKey } from "#/domain/coach/mechanisms";
+import { normalizePassageText } from "#/domain/coach/normalize";
+import { computeWhyReport, type WhyReport } from "#/domain/coach/whyReport";
+import { LILY58_BASE_LAYER } from "#/domain/finger/lily58";
+import { SOFLE_BASE_LAYER } from "#/domain/finger/sofle";
+import type { FingerTable, KeyboardLayout } from "#/domain/finger/types";
+import type { KeystrokeEvent } from "#/domain/stats/types";
+import { auth } from "./auth";
+import {
+  countActiveForKey,
   findPassage,
   findPassageAny,
-  insertPassage,
+  findPassageById,
   incrementUsage,
-  countActiveForKey,
+  insertPassage,
   listTopicsForTargetKey,
-  textExists,
   type PassageRecord,
+  passageForClient,
+  targetKeyFor,
+  textExists,
 } from "./coach/catalog";
-import { DEFAULT_WORD_RANGE, type WordRange } from "#/domain/coach/gate";
 import {
-  coachQuotaUsed, claimCoachQuota, DAILY_COACH_LIMIT, utcDateString,
-} from "./coach/quota";
-import {
-  createLlmClient,
   buildAnalysisMessages,
   buildGenerationMessages,
-  extractJsonObject,
   CoachError,
+  createLlmClient,
+  extractJsonObject,
   type LlmResponse,
 } from "./coach/llm";
+import {
+  beginCoachPrefetch,
+  claimCoachGenerationBudget,
+  claimCoachQuota,
+  claimPreparedCoachQuota,
+  clearCoachPrefetch,
+  coachPrefetchFor,
+  coachQuotaUsed,
+  DAILY_COACH_LIMIT,
+  finishCoachPrefetch,
+  lastCoachPassageId,
+  recordLastCoachPassage,
+  releaseCoachQuota,
+  utcDateString,
+} from "./coach/quota";
 import { buildLlmOutput, passageStatusFor } from "./coach/review";
+import { type Database, db } from "./db";
+import { keyboardProfiles, keystrokeEvents, sessions } from "./db/schema";
 
 const RECENT_SESSION_LIMIT = 50;
+const RECENT_EVENT_LIMIT = 20_000;
 const TOP_MECHANISMS = 3;
+
+function assertCoachEnabled(): void {
+  if (process.env.COACH_ENABLED === "false") {
+    throw new CoachError("COACH_DISABLED", "Coach is temporarily unavailable");
+  }
+}
+
+export function isCoachBetaEligible(
+  createdAt: Date | string,
+  cutoffRaw: string | undefined,
+): boolean {
+  if (!cutoffRaw) return true;
+  const cutoff = Date.parse(cutoffRaw);
+  if (!Number.isFinite(cutoff)) {
+    throw new CoachError("COACH_CONFIG", "invalid Coach beta signup cutoff");
+  }
+  return new Date(createdAt).getTime() <= cutoff;
+}
+
+function assertBetaEligible(createdAt: Date | string): void {
+  if (!isCoachBetaEligible(createdAt, process.env.COACH_BETA_SIGNUP_CUTOFF)) {
+    throw new CoachError("NOT_ELIGIBLE", "Coach beta is not available for this account");
+  }
+}
+
+function logCoachFailure(error: unknown, phase: "request" | "prefetch"): void {
+  console.warn(
+    JSON.stringify({
+      event: "coach_passage_failed",
+      phase,
+      code: error instanceof CoachError ? error.code : "UNKNOWN",
+    }),
+  );
+}
 
 export const getCoachSessionSchema = z.object({
   keyboardProfileId: z.string().uuid(),
+  /** Prepare the next passage after Coach practice has begun, without using quota. */
+  prefetch: z.boolean().optional(),
+  excludePassageId: z.string().uuid().optional(),
 });
 
 type CoachResponse = {
@@ -104,7 +161,9 @@ export function pickTargetMechanism(
 ): MechanismKey {
   const pattern = MECHANISM_ROTATION[sessionIndex % MECHANISM_ROTATION.length] ?? 0;
   const index = Math.min(pattern, mechanisms.length - 1);
-  return mechanisms[index]!;
+  const mechanism = mechanisms[index];
+  if (!mechanism) throw new CoachError("INSUFFICIENT_DATA", "no target mechanism available");
+  return mechanism;
 }
 
 /**
@@ -136,25 +195,20 @@ export function reviewTopic(topic: string, used: string[]): string {
     : topic;
 }
 
-/**
- * The passage topic is part of the catalog's unique key, so in review
- * mode the cycled topic is authoritative — the LLM's echoed topic would
- * otherwise re-collide with an existing row (the model tends to repeat
- * the first suggested topic). Outside review mode the model's refined
- * topic wins, falling back to the cycled one.
- */
-export function passageTopicFor(
-  reviewMode: boolean,
-  cycledTopic: string,
-  llmTopic: string | undefined,
-): string {
-  return reviewMode ? cycledTopic : (llmTopic ?? cycledTopic);
+/** Preserve a new catalog row when the model repeats a previous topic. */
+export function uniqueProductionTopic(topic: string, used: string[]): string {
+  if (!used.some((t) => t.toLowerCase() === topic.toLowerCase())) return topic;
+  let variant = 2;
+  while (used.some((t) => t.toLowerCase() === `${topic} — variation ${variant}`.toLowerCase())) {
+    variant += 1;
+  }
+  return `${topic} — variation ${variant}`;
 }
 
 /**
  * Passage length range (words). Env-overridable for staging testing
  * (COACH_WORD_RANGE="60,140" → ~1 min sessions at typical speeds);
- * unset/invalid keeps the default 120-350.
+ * unset/invalid keeps the beta default 80-140.
  */
 export function parseWordRange(raw: string | undefined): WordRange {
   if (!raw) return DEFAULT_WORD_RANGE;
@@ -267,6 +321,7 @@ async function loadCoachContext(
 ): Promise<CoachContext> {
   const authSession = await auth.api.getSession({ headers: requestHeaders });
   if (!authSession) throw new CoachError("UNAUTHORIZED", "not signed in");
+  assertBetaEligible(authSession.user.createdAt);
   const userId = authSession.user.id;
 
   const [profile] = await db
@@ -290,7 +345,9 @@ async function loadCoachContext(
     ? ((await db
         .select()
         .from(keystrokeEvents)
-        .where(inArray(keystrokeEvents.sessionId, sessionIds))) as unknown as KeystrokeEvent[])
+        .where(inArray(keystrokeEvents.sessionId, sessionIds))
+        .orderBy(desc(keystrokeEvents.id))
+        .limit(RECENT_EVENT_LIMIT)) as unknown as KeystrokeEvent[])
     : [];
 
   const report = computeWhyReport(events, fingerTable);
@@ -306,6 +363,7 @@ export type CoachPreview = {
   report: WhyReport;
   dominantMechanism: MechanismKey | null;
   quota: { usedToday: number; remaining: number };
+  repeatAvailable: boolean;
 };
 
 /**
@@ -315,10 +373,20 @@ export type CoachPreview = {
  */
 export const getCoachPreview = createServerFn({ method: "POST" })
   .inputValidator(getCoachSessionSchema)
-  .handler(async ({ data }): Promise<CoachPreview> => {
-    const context = await loadCoachContext(data.keyboardProfileId, getRequest().headers);
+  .handler(async ({ data }): Promise<CoachPreview | null> => {
+    assertCoachEnabled();
+    let context: CoachContext;
+    try {
+      context = await loadCoachContext(data.keyboardProfileId, getRequest().headers);
+    } catch (error) {
+      if (error instanceof CoachError && error.code === "NOT_ELIGIBLE") return null;
+      throw error;
+    }
     const today = utcDateString();
-    const usedToday = await coachQuotaUsed(db, context.userId, today);
+    const [usedToday, lastPassageId] = await Promise.all([
+      coachQuotaUsed(db, context.userId, today),
+      lastCoachPassageId(db, context.userId, today),
+    ]);
     return {
       report: context.report,
       dominantMechanism: context.topMechanisms[0] ?? null,
@@ -326,12 +394,14 @@ export const getCoachPreview = createServerFn({ method: "POST" })
         usedToday,
         remaining: Math.max(0, DAILY_COACH_LIMIT - usedToday),
       },
+      repeatAvailable: lastPassageId !== null,
     };
   });
 
 export const getCoachSession = createServerFn({ method: "POST" })
   .inputValidator(getCoachSessionSchema)
   .handler(async ({ data }): Promise<CoachResponse> => {
+    assertCoachEnabled();
     const request = getRequest();
     const reviewMode = process.env.COACH_REVIEW_MODE === "true";
     const { userId, fingerTable, report, topMechanisms, events } = await loadCoachContext(
@@ -341,231 +411,312 @@ export const getCoachSession = createServerFn({ method: "POST" })
     const today = utcDateString();
     const usedToday = await coachQuotaUsed(db, userId, today);
     if (usedToday >= DAILY_COACH_LIMIT) {
+      const lastId = await lastCoachPassageId(db, userId, today);
+      const lastPassage = lastId ? await findPassageById(db, lastId) : null;
+      if (!data.prefetch && lastPassage?.status === "active") {
+        return {
+          quota: { usedToday, remaining: 0 },
+          report,
+          targetMechanism: lastPassage.qualityGate.mechanism,
+          reviewMode,
+          passage: passageForClient(lastPassage, reviewMode),
+        };
+      }
       throw new CoachError("QUOTA_EXCEEDED", `daily coach limit reached (${DAILY_COACH_LIMIT})`);
     }
-    // The mechanism this session is built around. `topMechanisms` already has
-    // `non-alpha` filtered out, so this can differ from `report.mechanisms[0]`
-    // — it is returned explicitly so the UI names the same target the passage
-    // was generated (and gated) for. Rotates across the top weaknesses so
-    // practice isn't the same mechanism every session — the main weakness
-    // still dominates (60% of the rotation).
     if (topMechanisms.length === 0) {
       throw new CoachError("INSUFFICIENT_DATA", "not enough typing data yet");
     }
-    const targetMechanism = pickTargetMechanism(topMechanisms, usedToday);
-
-    const difficulty = "hard";
-    const targetKey = targetKeyFor(topMechanisms, difficulty);
-    // Catalog rotation: once a weakness-set has 2+ active variants, serve the
-    // least-used one (variety + balanced usage); while fewer exist, generate a
-    // new variant so the catalog grows.
-    //
-    // COACH_FORCE_GENERATION=true (staging test lever only; unset in prod)
-    // skips the catalog entirely and always runs the LLM generation path, so
-    // the AI pipeline can be exercised repeatedly without waiting for the
-    // catalog to drain or resetting the DB.
-    const forceGeneration = process.env.COACH_FORCE_GENERATION === "true";
-    const [existing, existingCount] = await Promise.all([
-      findPassage(db, targetKey, difficulty),
-      countActiveForKey(db, targetKey, difficulty),
-    ]);
-    if (!forceGeneration && existing && existingCount >= 2) {
-      let claimed = false;
-      await db.transaction(async (tx) => {
-        const txDb = tx as unknown as Database;
-        claimed = await claimCoachQuota(txDb, userId, today);
-        await incrementUsage(txDb, existing.id);
-      });
-      if (!claimed) {
-        throw new CoachError("QUOTA_EXCEEDED", `daily coach limit reached (${DAILY_COACH_LIMIT})`);
-      }
-      return {
-        quota: {
-          usedToday: usedToday + 1,
-          remaining: Math.max(0, DAILY_COACH_LIMIT - usedToday - 1),
-        },
-        report,
-        targetMechanism,
-        reviewMode,
-        passage: existing,
-      };
-    }
-
-    const digest = buildLlmDigest(events);
-    const llm = createLlmClient();
-    // Verbatim session transcripts are post-MVP — the analysis call gets the
-    // why-report plus the digest only, so the three verbatim slots stay empty.
-    // COACH_ANALYSIS_THINKING_OFF (staging lever) drops the reasoning mode,
-    // cutting the analysis call from ~60-90s to a few seconds — quality
-    // tradeoff, so it stays off in prod by default.
-    //
-    // Review mode: seed the analysis with the topics already used for this
-    // weakness-set so the model stops re-suggesting the same theme (the
-    // cycling below can only pick from what the model suggests).
-    const usedTopics = await listTopicsForTargetKey(db, targetKey);
-    const analysisMsgs = buildAnalysisMessages(
-      JSON.stringify(report),
-      digest,
-      ["", "", ""],
-      reviewMode ? usedTopics : [],
-    );
-    // The FILLED analysis prompt actually sent (values substituted).
-    const analysisPrompt = analysisMsgs.map((m) => m.content).join("\n\n");
-    const analysisRes = await llm(analysisMsgs, {
-      thinkingOff: process.env.COACH_ANALYSIS_THINKING_OFF === "true",
-    });
-    const analysis = extractJsonObject(analysisRes.content) as {
-      suggested_topics?: string[];
-      priority_order?: string[];
-    };
-    // Cycle suggested topics (prefer one unused for this weakness-set) so
-    // consecutive generations don't repeat the same theme. In review mode
-    // a repeated exact topic is uniquified so a fresh row always inserts.
-    const topic = reviewMode
-      ? reviewTopic(pickTopic(analysis.suggested_topics ?? [], usedTopics), usedTopics)
-      : pickTopic(analysis.suggested_topics ?? [], usedTopics);
-
-    // The gate enforces the same target, so the model gets the exact
-    // required trigger rates for it. The word range (staging lever via
-    // COACH_WORD_RANGE) is injected too so the model writes to it.
-    const wordRange = parseWordRange(process.env.COACH_WORD_RANGE);
-    const targets = gateTargetsFor(targetMechanism);
-    const requirementsBlock = targets
-      ? [
-          "REQUIRED TRIGGER MINIMUMS — the quality gate enforces these on your",
-          "passage text (measured on the passage you return). Below these, the",
-          "passage is rejected:",
-          ...Object.entries(targets).map(([k, v]) => `- ${k} >= ${v}`),
-          `WORD RANGE: the passage must be between ${wordRange.min} and ${wordRange.max} words.`,
-          `Targeted mechanism for this passage: ${targetMechanism}`,
-        ].join("\n")
-      : `WORD RANGE: the passage must be between ${wordRange.min} and ${wordRange.max} words.\nTargeted mechanism for this passage: ${targetMechanism}`;
-
-    let gateResult: GateResult | undefined;
-    let testCase: GeneratedCase | undefined;
-    let rawPassageText = "";
-    let passageText = "";
-    let duplicate = false;
-    let lastGenRes: LlmResponse | undefined;
-    let lastGenMsgs: { role: string; content: string }[] | undefined;
-    const generationStartedAt = Date.now();
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const genMsgs = buildGenerationMessages(analysisRes.content);
-      // Retry feedback: gate violations, or a duplicate-text note so the
-      // model paraphrases instead of repeating an existing passage.
-      const feedback = duplicate
-        ? "\nThe previous passage text is identical to an existing passage. Write a DIFFERENT passage (the same topic is fine — paraphrase it)."
-        : gateResult?.violations?.length
-          ? `\nPrevious attempt was rejected by the gate: ${gateResult.violations.join("; ")}. Rewrite the passage so it passes.`
-          : "";
-      const userMsg = genMsgs[genMsgs.length - 1];
-      if (!userMsg) {
-        throw new CoachError("LLM_PROMPT", "generation prompt has no user message");
-      }
-      userMsg.content += `\n\nWrite the passage on the topic: ${topic}\n\n${requirementsBlock}${feedback}`;
-      // The FILLED generation prompt actually sent (topic, requirements,
-      // feedback substituted).
-      lastGenMsgs = genMsgs;
-      const genRes = await llm(genMsgs, { thinkingOff: true });
-      lastGenRes = genRes;
-      const gen = extractJsonObject(genRes.content) as { test_cases?: GeneratedCase[] };
-      testCase = gen.test_cases?.[0];
-      if (!testCase?.text) {
-        throw new CoachError("LLM_PARSE", "generation missing test_cases[0].text");
-      }
-      rawPassageText = testCase.text;
-      gateResult = evaluateGate(targetMechanism, rawPassageText, fingerTable, undefined, wordRange);
-      if (!gateResult.passed) {
-        duplicate = false;
-        continue;
-      }
-      passageText = normalizePassageText(rawPassageText);
-      duplicate = await textExists(db, passageText);
-      if (!duplicate) break;
-    }
-    // A duplicate text is never accepted — a user must not be served the
-    // same passage twice, regardless of review mode (the gate is advisory
-    // there, the dedup is not).
-    if (duplicate) {
-      throw new CoachError("LLM_DUPLICATE", "passage text duplicates an existing passage");
-    }
-    // Review mode treats the gate as advisory: the verdict is stored and
-    // shown, but a miss never blocks the owner from typing + annotating.
-    if (!reviewMode && !gateResult?.passed) {
+    if (data.prefetch && (reviewMode || usedToday === 0)) {
       throw new CoachError(
-        "GATE_REJECTED",
-        `passage failed gate: ${gateResult?.violations.join("; ")}`,
+        "PREFETCH_UNAVAILABLE",
+        "Coach prefetch requires an active regular session",
       );
     }
-    // The generation loop always assigns gateResult (3 attempts); keep the
-    // type narrowed for the code below.
-    if (!gateResult) {
-      throw new CoachError("GATE_REJECTED", "passage failed gate: no measurement");
-    }
-
-    // Paragraph count must be read off the raw text — the normalization
-    // below collapses the very blank lines that delimit paragraphs.
-    const paragraphs = Math.min((rawPassageText.match(/\n\s*\n/g)?.length ?? 0) + 1, 3);
-    // The gate validates the raw multi-paragraph text; the typing engine
-    // types character-by-character and cannot type newlines, so the stored
-    // passage is normalized to a single line of regular spaces.
-    const normalizedPassageText = passageText || normalizePassageText(rawPassageText);
-
-    const passage = {
-      title: testCase?.title ?? "Coach passage",
-      topic: passageTopicFor(reviewMode, topic, testCase?.topic),
-      difficulty,
-      mechanisms: topMechanisms,
-      triggerTargets: null,
-      measuredDensity: gateResult.measured as unknown as Record<string, number>,
-      qualityGate: gateResult,
-      text: normalizedPassageText,
-      wordCount: normalizedPassageText.split(/\s+/).filter(Boolean).length,
-      paragraphs,
-      source: "ai:deepseek-v4-flash:v6",
-      targetKey,
-      status: passageStatusFor(reviewMode),
-      ...(lastGenRes && lastGenMsgs
-        ? {
-            llmOutput: buildLlmOutput(analysisRes, lastGenRes, generationStartedAt, {
-              analysis: analysisPrompt,
-              generation: lastGenMsgs.map((m) => m.content).join("\n\n"),
-            }),
-          }
-        : {}),
-    } satisfies Omit<PassageRecord, "id" | "usageCount">;
-
-    let claimed = false;
-    const passageId = await db.transaction(async (tx) => {
-      const txDb = tx as unknown as Database;
-      // `insertPassage` returns no row when the unique-key upsert collides
-      // with a concurrent insert; fall back to reading the winner's id.
-      const inserted = await insertPassage(txDb, passage);
-      const existingRow =
-        inserted ??
-        (await findPassageAny(txDb, passage.targetKey, passage.topic, passage.difficulty));
-      if (!existingRow) {
-        throw new CoachError("CATALOG_WRITE", "passage insert produced no row");
-      }
-      const id = existingRow.id;
-      claimed = await claimCoachQuota(txDb, userId, today);
-      await incrementUsage(txDb, id);
-      return id;
-    });
-    if (!claimed) {
-      // Another fetch won the daily slot; the passage stays cached for
-      // tomorrow's session.
-      throw new CoachError("QUOTA_EXCEEDED", `daily coach limit reached (${DAILY_COACH_LIMIT})`);
-    }
-
-    return {
-      quota: {
-        usedToday: usedToday + 1,
-        remaining: Math.max(0, DAILY_COACH_LIMIT - usedToday - 1),
-      },
+    // The next quota slot determines the targeted weakness. The target is
+    // part of the catalog key so a passage generated for another mechanism
+    // can never be presented under this briefing.
+    const targetMechanism = pickTargetMechanism(topMechanisms, usedToday);
+    const difficulty = "medium";
+    const targetKey = targetKeyFor(topMechanisms, difficulty, targetMechanism);
+    const forceGeneration = process.env.COACH_FORCE_GENERATION === "true";
+    const responseFor = (passage: PassageRecord, used: number): CoachResponse => ({
+      quota: { usedToday: used, remaining: Math.max(0, DAILY_COACH_LIMIT - used) },
       report,
       targetMechanism,
       reviewMode,
-      passage: { ...passage, id: passageId, usageCount: 1, status: passage.status } as PassageRecord,
+      passage: passageForClient(passage, reviewMode),
+    });
+
+    /** A warmup grows the catalog to two variants; direct requests can use
+        the first ready passage immediately. */
+    const preparePassage = async (growCatalog: boolean): Promise<PassageRecord> => {
+      const [existing, existingCount] = await Promise.all([
+        findPassage(db, targetKey, difficulty, data.excludePassageId),
+        countActiveForKey(db, targetKey, difficulty),
+      ]);
+      if (!forceGeneration && existing && (!growCatalog || existingCount >= 2)) {
+        return existing;
+      }
+
+      const digest = buildLlmDigest(events);
+      const llm = createLlmClient();
+      // Verbatim session transcripts are post-MVP — the analysis call gets the
+      // why-report plus the digest only, so the three verbatim slots stay empty.
+      // Fast analysis is the beta default. Set the env flag to "false" to
+      // re-enable reasoning for quality comparisons on staging.
+      //
+      // Review mode: seed the analysis with the topics already used for this
+      // weakness-set so the model stops re-suggesting the same theme (the
+      // cycling below can only pick from what the model suggests).
+      const usedTopics = await listTopicsForTargetKey(db, targetKey);
+      const analysisMsgs = buildAnalysisMessages(
+        JSON.stringify(report),
+        digest,
+        ["", "", ""],
+        reviewMode ? usedTopics : [],
+      );
+      // The FILLED analysis prompt actually sent (values substituted).
+      const analysisPrompt = analysisMsgs.map((m) => m.content).join("\n\n");
+      const analysisStartedAt = Date.now();
+      if (!(await claimCoachGenerationBudget(db, today))) {
+        throw new CoachError("GENERATION_BUDGET", "Coach generation is temporarily unavailable");
+      }
+      const analysisRes = await llm(analysisMsgs, {
+        thinkingOff: process.env.COACH_ANALYSIS_THINKING_OFF !== "false",
+      });
+      const analysis = extractJsonObject(analysisRes.content) as {
+        suggested_topics?: string[];
+        priority_order?: string[];
+      };
+      // Cycle suggested topics (prefer one unused for this weakness-set) so
+      // consecutive generations don't repeat the same theme. In review mode
+      // a repeated exact topic is uniquified so a fresh row always inserts.
+      const topic = reviewMode
+        ? reviewTopic(pickTopic(analysis.suggested_topics ?? [], usedTopics), usedTopics)
+        : uniqueProductionTopic(pickTopic(analysis.suggested_topics ?? [], usedTopics), usedTopics);
+
+      // The gate enforces the same target, so the model gets the exact
+      // required trigger rates for it. The word range (staging lever via
+      // COACH_WORD_RANGE) is injected too so the model writes to it.
+      const wordRange = parseWordRange(process.env.COACH_WORD_RANGE);
+      const targets = gateTargetsFor(targetMechanism);
+      const requirementsBlock = targets
+        ? [
+            "REQUIRED TRIGGER MINIMUMS — the quality gate enforces these on your",
+            "passage text (measured on the passage you return). Below these, the",
+            "passage is rejected:",
+            ...Object.entries(targets).map(([k, v]) => `- ${k} >= ${v}`),
+            `WORD RANGE: the passage must be between ${wordRange.min} and ${wordRange.max} words.`,
+            `Targeted mechanism for this passage: ${targetMechanism}`,
+          ].join("\n")
+        : `WORD RANGE: the passage must be between ${wordRange.min} and ${wordRange.max} words.\nTargeted mechanism for this passage: ${targetMechanism}`;
+
+      let gateResult: GateResult | undefined;
+      let testCase: GeneratedCase | undefined;
+      let rawPassageText = "";
+      let passageText = "";
+      let duplicate = false;
+      let lastGenRes: LlmResponse | undefined;
+      let lastGenMsgs: { role: string; content: string }[] | undefined;
+      let generationAttempts = 0;
+      let promptTokens = analysisRes.usage.promptTokens;
+      let completionTokens = analysisRes.usage.completionTokens;
+      const generationStartedAt = Date.now();
+      for (let attempt = 0; attempt < 3; attempt++) {
+        generationAttempts += 1;
+        const genMsgs = buildGenerationMessages(analysisRes.content);
+        // Retry feedback: gate violations, or a duplicate-text note so the
+        // model paraphrases instead of repeating an existing passage.
+        const feedback = duplicate
+          ? "\nThe previous passage text is identical to an existing passage. Write a DIFFERENT passage (the same topic is fine — paraphrase it)."
+          : gateResult?.violations?.length
+            ? `\nPrevious attempt was rejected by the gate: ${gateResult.violations.join("; ")}. Rewrite the passage so it passes.`
+            : "";
+        const userMsg = genMsgs[genMsgs.length - 1];
+        if (!userMsg) {
+          throw new CoachError("LLM_PROMPT", "generation prompt has no user message");
+        }
+        userMsg.content += `\n\nWrite the passage on the topic: ${topic}\n\n${requirementsBlock}${feedback}`;
+        // The FILLED generation prompt actually sent (topic, requirements,
+        // feedback substituted).
+        lastGenMsgs = genMsgs;
+        if (!(await claimCoachGenerationBudget(db, today))) {
+          throw new CoachError("GENERATION_BUDGET", "Coach generation is temporarily unavailable");
+        }
+        const genRes = await llm(genMsgs, { thinkingOff: true });
+        promptTokens += genRes.usage.promptTokens;
+        completionTokens += genRes.usage.completionTokens;
+        lastGenRes = genRes;
+        const gen = extractJsonObject(genRes.content) as { test_cases?: GeneratedCase[] };
+        testCase = gen.test_cases?.[0];
+        if (!testCase?.text) {
+          throw new CoachError("LLM_PARSE", "generation missing test_cases[0].text");
+        }
+        rawPassageText = testCase.text;
+        gateResult = evaluateGate(
+          targetMechanism,
+          rawPassageText,
+          fingerTable,
+          undefined,
+          wordRange,
+        );
+        passageText = normalizePassageText(rawPassageText);
+        duplicate = await textExists(db, passageText);
+        if (!duplicate && gateResult.passed) break;
+      }
+      // A duplicate text is never accepted — a user must not be served the
+      // same passage twice, regardless of review mode (the gate is advisory
+      // there, the dedup is not).
+      if (duplicate) {
+        throw new CoachError("LLM_DUPLICATE", "passage text duplicates an existing passage");
+      }
+      // Review mode treats the gate as advisory: the verdict is stored and
+      // shown, but a miss never blocks the owner from typing + annotating.
+      if (!reviewMode && !gateResult?.passed) {
+        throw new CoachError(
+          "GATE_REJECTED",
+          `passage failed gate: ${gateResult?.violations.join("; ")}`,
+        );
+      }
+      // The generation loop always assigns gateResult (3 attempts); keep the
+      // type narrowed for the code below.
+      if (!gateResult) {
+        throw new CoachError("GATE_REJECTED", "passage failed gate: no measurement");
+      }
+
+      // Paragraph count must be read off the raw text — the normalization
+      // below collapses the very blank lines that delimit paragraphs.
+      const paragraphs = Math.min((rawPassageText.match(/\n\s*\n/g)?.length ?? 0) + 1, 3);
+      // The gate validates the raw multi-paragraph text; the typing engine
+      // types character-by-character and cannot type newlines, so the stored
+      // passage is normalized to a single line of regular spaces.
+      const normalizedPassageText = passageText || normalizePassageText(rawPassageText);
+
+      const passage = {
+        title: testCase?.title ?? "Coach passage",
+        topic,
+        difficulty,
+        mechanisms: topMechanisms,
+        triggerTargets: targets,
+        measuredDensity: gateResult.measured as unknown as Record<string, number>,
+        qualityGate: gateResult,
+        text: normalizedPassageText,
+        wordCount: normalizedPassageText.split(/\s+/).filter(Boolean).length,
+        paragraphs,
+        source: "ai:deepseek-v4-flash:v7",
+        targetKey,
+        status: passageStatusFor(reviewMode),
+        ...(reviewMode && lastGenRes && lastGenMsgs
+          ? {
+              llmOutput: buildLlmOutput(analysisRes, lastGenRes, generationStartedAt, {
+                analysis: analysisPrompt,
+                generation: lastGenMsgs.map((m) => m.content).join("\n\n"),
+              }),
+            }
+          : {}),
+      } satisfies Omit<PassageRecord, "id" | "usageCount">;
+
+      const preparedPassage = await db.transaction(async (tx) => {
+        const txDb = tx as unknown as Database;
+        // `insertPassage` returns no row when the unique-key upsert collides
+        // with a concurrent insert; fall back to reading the winner.
+        const inserted = await insertPassage(txDb, passage);
+        const existingRow =
+          inserted ??
+          (await findPassageAny(txDb, passage.targetKey, passage.topic, passage.difficulty));
+        if (!existingRow) {
+          throw new CoachError("CATALOG_WRITE", "passage insert produced no row");
+        }
+        return existingRow;
+      });
+      console.info(
+        JSON.stringify({
+          event: "coach_passage_generated",
+          targetMechanism,
+          wordCount: preparedPassage.wordCount,
+          generationAttempts,
+          latencyMs: Date.now() - analysisStartedAt,
+          promptTokens,
+          completionTokens,
+        }),
+      );
+      return preparedPassage;
     };
+
+    const prefetched = await coachPrefetchFor(db, userId, today);
+    if (data.prefetch) {
+      if (prefetched?.passageId && prefetched.targetKey === targetKey) {
+        const passage = await findPassageById(db, prefetched.passageId);
+        if (
+          passage?.status === "active" &&
+          passage.targetKey === targetKey &&
+          passage.id !== data.excludePassageId
+        ) {
+          return responseFor(passage, usedToday);
+        }
+      }
+      const token = crypto.randomUUID();
+      const started = await beginCoachPrefetch(db, userId, today, token, targetKey);
+      if (!started) {
+        throw new CoachError("PREFETCH_IN_PROGRESS", "Coach passage is being prepared");
+      }
+      try {
+        const passage = await preparePassage(true);
+        await finishCoachPrefetch(db, userId, today, token, passage.id);
+        return responseFor(passage, usedToday);
+      } catch (error) {
+        await clearCoachPrefetch(db, userId, today, token);
+        logCoachFailure(error, "prefetch");
+        throw error;
+      }
+    }
+
+    if (prefetched?.passageId && prefetched.targetKey === targetKey) {
+      const passage = await findPassageById(db, prefetched.passageId);
+      if (
+        passage?.status === "active" &&
+        passage.targetKey === targetKey &&
+        passage.id !== data.excludePassageId
+      ) {
+        await db.transaction(async (tx) => {
+          const txDb = tx as unknown as Database;
+          const claimed = await claimPreparedCoachQuota(
+            txDb,
+            userId,
+            today,
+            prefetched.slot,
+            passage.id,
+          );
+          if (!claimed) {
+            throw new CoachError("PREFETCH_CONFLICT", "Coach passage changed in another tab");
+          }
+          await incrementUsage(txDb, passage.id);
+        });
+        return responseFor(passage, await coachQuotaUsed(db, userId, today));
+      }
+    }
+    if (prefetched?.preparing && prefetched.targetKey === targetKey) {
+      throw new CoachError("PREFETCH_IN_PROGRESS", "Coach passage is being prepared");
+    }
+
+    // Claim before an LLM call: concurrent tabs cannot each spend money on
+    // a generation after the user's last available slot has gone.
+    const claimed = await claimCoachQuota(db, userId, today);
+    if (!claimed) {
+      throw new CoachError("QUOTA_EXCEEDED", `daily coach limit reached (${DAILY_COACH_LIMIT})`);
+    }
+    try {
+      const passage = await preparePassage(false);
+      await db.transaction(async (tx) => {
+        const txDb = tx as unknown as Database;
+        await incrementUsage(txDb, passage.id);
+        await recordLastCoachPassage(txDb, userId, today, passage.id);
+      });
+      return responseFor(passage, await coachQuotaUsed(db, userId, today));
+    } catch (error) {
+      await releaseCoachQuota(db, userId, today);
+      logCoachFailure(error, "request");
+      throw error;
+    }
   });

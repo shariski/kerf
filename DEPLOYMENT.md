@@ -641,10 +641,9 @@ doesn't auto-revert. This is rare in practice but worth knowing.
 
 ## Coach (AI adaptive mode)
 
-Coach is the AI-adaptive practice mode at `/practice/coach` — one
-personalized session per user per day, built around their measured
-typing weaknesses. It is a paid feature rolled out progressively; the
-rest of kerf works without it.
+Coach is the free-beta adaptive practice mode at `/practice/coach`. The
+default allowance is five new sessions per user per UTC day; repeats of
+the current passage are free. The rest of kerf works without it.
 
 ### Runtime env
 
@@ -653,6 +652,14 @@ Add to `/opt/kerf/.env` (Step 9), alongside the existing vars:
     DEEPSEEK_API_KEY=<deepseek api key>
     DEEPSEEK_MODEL=deepseek-v4-flash
     DEEPSEEK_BASE_URL=https://api.deepseek.com/v1/chat/completions
+    COACH_ENABLED=true
+    COACH_BETA_SIGNUP_CUTOFF=2026-09-30T16:59:59Z
+    COACH_DAILY_LIMIT=5
+    COACH_DAILY_GENERATION_LIMIT=30
+    COACH_WORD_RANGE=80,140
+    COACH_ANALYSIS_THINKING_OFF=true
+    COACH_REVIEW_MODE=false
+    COACH_FORCE_GENERATION=false
 
 All three are read lazily by `src/server/coach/llm.ts` and only needed
 when a Coach session actually runs. `DEEPSEEK_MODEL` and
@@ -661,13 +668,58 @@ when a Coach session actually runs. `DEEPSEEK_MODEL` and
 affecting any other mode. No restart order concern: the app reads
 `.env` at boot, so apply them before recreating the `app` container.
 
-### Quota model
+### Quota and prefetch
 
-1 Coach session per day per user. The quota is charged at serve time —
-when a session is generated (LLM) or a catalog passage is served —
-and tracked in the `coach_quota` table (`user_id` + `date` primary
-key, `sessions_used` counter). Hitting the daily cap returns a
-quota error to the UI; it resets automatically the next day (UTC).
+`COACH_DAILY_LIMIT` defaults to 5 and can be changed in `/opt/kerf/.env`
+without a code release. Recreate the app container to apply it. Set
+`COACH_ENABLED=false` and recreate the app to pause the beta quickly.
+The quota is claimed when the user requests a Coach session. An ordinary
+visit to `/practice` only loads the preview. After typing begins, the
+next passage may be prepared in the background; preparation is limited
+to one candidate per next quota slot and does not claim the slot. The
+claim happens when the user chooses the next session. Quota resets at
+the next UTC date. The last claimed passage remains available for free
+repetition after the limit is reached, including after a reload.
+Migration `0008` adds the preparation and replay fields.
+
+`COACH_BETA_SIGNUP_CUTOFF` limits this beta to accounts created by the
+specified UTC timestamp. The example includes accounts created through
+September 30, 2026 in Jakarta. Omit it to make Coach available to all
+signed-in users. The server enforces the cutoff; excluded accounts do
+not see the Coach panel.
+
+`COACH_DAILY_GENERATION_LIMIT` defaults to 30 logical LLM calls
+across all users per UTC day. Catalog hits still work after the cap; new
+generations stop until the next day. The cap can be changed in the app env.
+
+`COACH_ANALYSIS_THINKING_OFF=true` makes the analysis call faster; set it
+to `false` to compare output quality with reasoning enabled. The default
+passage range is 80–140 words and can be changed with `COACH_WORD_RANGE`.
+Leave review and force-generation modes off in production.
+
+### Beta signals
+
+The `coach_quota` table records claimed sessions, `sessions` records
+completed Coach practice (`mode='coach'`), `coach_feedback` records one
+usefulness vote per user and passage, and `coach_generation_budget`
+records logical LLM calls. These read-only aggregates show initial use:
+
+```sql
+SELECT date, count(*) AS users_served, sum(sessions_used) AS sessions_served
+FROM coach_quota GROUP BY date ORDER BY date DESC;
+
+SELECT (started_at AT TIME ZONE 'UTC')::date AS day,
+       count(DISTINCT user_id) AS users_completed, count(*) AS completed_sessions
+FROM sessions WHERE mode = 'coach'
+GROUP BY day ORDER BY day DESC;
+
+SELECT useful, count(*) FROM coach_feedback GROUP BY useful;
+SELECT date, attempts_used FROM coach_generation_budget ORDER BY date DESC;
+```
+
+Repeated practice can produce more completed sessions than claimed new
+sessions, so these are usage signals rather than a strict conversion funnel.
+Generation logs include latency and token totals without user identifiers.
 
 ### Passage catalog
 

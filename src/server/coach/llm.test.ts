@@ -137,6 +137,7 @@ describe("createLlmClient", () => {
     await client([{ role: "user", content: "hi" }], { thinkingOff: true });
     const body = JSON.parse(fakeFetch.mock.calls[0]![1].body);
     expect(body.thinking).toEqual({ type: "disabled" });
+    expect(body.max_tokens).toBe(4096);
   });
 });
 
@@ -164,9 +165,12 @@ describe("prompt assembly", () => {
   });
 
   it("appends an avoid-list directive when topics are already used", () => {
-    const msgs = buildAnalysisMessages('{"total":1}', "digest", ["", "", ""], [
-      "The history of the Silk Road and its impact on trade",
-    ]);
+    const msgs = buildAnalysisMessages(
+      '{"total":1}',
+      "digest",
+      ["", "", ""],
+      ["The history of the Silk Road and its impact on trade"],
+    );
     const user = msgs[1]!.content;
     expect(user).toContain("TOPICS TO AVOID");
     expect(user).toContain("The history of the Silk Road and its impact on trade");

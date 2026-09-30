@@ -111,7 +111,7 @@ export function createLlmClient(fetchImpl: typeof fetch = fetch, apiKey?: string
       // Reasoning models count reasoning_content against this budget; 32k
       // gives deep thinking room without starving the actual content
       // (empty-content responses were the failure mode at 16k).
-      max_tokens: opts.maxTokens ?? 32000,
+      max_tokens: opts.maxTokens ?? (opts.thinkingOff ? 4096 : 32000),
       response_format: { type: "json_object" },
     };
     if (opts.thinkingOff) body.thinking = { type: "disabled" };

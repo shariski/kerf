@@ -151,8 +151,8 @@ jobs:
             # the running app. `up -d` would also pull, but only after
             # tearing down the old container.
             docker compose -f docker-compose.staging.yml pull app postgres
-            # Run pending migrations (0006: passages, coach_quota,
-            # sessions.passage_id) in a one-shot before swapping the
+            # Run pending migrations (including Coach beta tables and
+            # quota fields) in a one-shot before swapping the
             # app. Exits non-zero on failure → the next step never
             # runs and the previous version keeps serving.
             docker compose -f docker-compose.staging.yml --profile migrate run --rm migrate

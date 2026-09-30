@@ -75,6 +75,9 @@
     "wawoff2": "^2.0.1"
   },
   "pnpm": {
+    "overrides": {
+      "@tanstack/router-core": "1.168.16"
+    },
     "onlyBuiltDependencies": [
       "esbuild",
       "lightningcss",

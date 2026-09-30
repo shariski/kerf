@@ -6,8 +6,8 @@
  * components — each of those is trivial enough to not need isolation tests.
  */
 
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // `KeyboardContextPill` now renders a `<Link to="/keyboards">`, which
 // needs router context. Stub the Link to a plain anchor so this unit
@@ -28,13 +28,34 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
-import { PreSessionStage } from "./PreSessionStage";
+import type { CoachPreview } from "#/server/coach";
 import type { PreSessionFilterValues } from "./PreSessionFilters";
+import { PreSessionStage } from "./PreSessionStage";
 
 const FILTERS: PreSessionFilterValues = {
   handIsolation: "either",
   maxWordLength: 6,
   showKeyboard: true,
+};
+
+const COACH_READY: CoachPreview = {
+  dominantMechanism: "cross-hand",
+  quota: { usedToday: 0, remaining: 5 },
+  repeatAvailable: false,
+  report: {
+    totalTrueConfusions: 3,
+    mechanisms: [
+      {
+        mechanism: "cross-hand",
+        count: 3,
+        sharePct: 100,
+        avgMs: 220,
+        p95Ms: 300,
+        topConfusions: [],
+        topBigrams: [],
+      },
+    ],
+  },
 };
 
 /** Baseline props — tests override only what they assert on. */
@@ -99,7 +120,34 @@ describe("PreSessionStage", () => {
       <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
     );
     expect(container.querySelector(".kerf-coach-panel")).not.toBeNull();
-    expect(container.querySelector(".kerf-coach-btn-primary")).not.toBeNull();
+    expect(container.querySelector<HTMLButtonElement>(".kerf-coach-btn-primary")?.disabled).toBe(
+      true,
+    );
+  });
+
+  it("hides Coach for accounts outside the beta cohort", () => {
+    const { container } = render(
+      <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" coachHidden />,
+    );
+    expect(container.querySelector(".kerf-coach-panel")).toBeNull();
+  });
+
+  it("keeps the last passage available for a free repeat after the limit", () => {
+    const { container } = render(
+      <PreSessionStage
+        {...baseProps}
+        keyboardType="sofle"
+        phase="transitioning"
+        coachPreview={{
+          ...COACH_READY,
+          quota: { usedToday: 5, remaining: 0 },
+          repeatAvailable: true,
+        }}
+      />,
+    );
+    const button = container.querySelector<HTMLButtonElement>(".kerf-coach-btn-primary");
+    expect(button?.disabled).toBe(false);
+    expect(button?.textContent).toContain("Repeat last passage");
   });
 
   it("fires onDrillWeakness / onDrillInnerColumn / onCoach when the respective controls are clicked", () => {
@@ -114,6 +162,7 @@ describe("PreSessionStage", () => {
         onDrillWeakness={onDrill}
         onDrillInnerColumn={onInner}
         onCoach={onCoach}
+        coachPreview={COACH_READY}
       />,
     );
     const [drillCard, innerColumnCard] = Array.from(

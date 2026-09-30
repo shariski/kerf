@@ -11,9 +11,9 @@
  */
 
 import { Fragment, useEffect, useMemo, useRef } from "react";
-import { useSessionStore } from "#/stores/sessionStore";
+import type { ActiveError, CharStatus } from "#/domain/session/types";
 import { useKeystrokeCapture } from "#/hooks/useKeystrokeCapture";
-import type { CharStatus, ActiveError } from "#/domain/session/types";
+import { useSessionStore } from "#/stores/sessionStore";
 
 type Props = {
   target: string;
@@ -151,7 +151,7 @@ export function TypingArea({
             return (
               <CharSpan
                 key={index}
-                char={isErrorPosition ? activeError!.actual : ch}
+                char={isErrorPosition && activeError ? activeError.actual : ch}
                 className={classFor(index, position, charStatus[index] ?? "pending", isTargetKey)}
                 expectedBadge={
                   index === position && activeError && expectedLetterHint ? activeError : null

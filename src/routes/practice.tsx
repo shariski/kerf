@@ -6,44 +6,44 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getAuthSession } from "#/lib/require-auth";
-import { noindexHead } from "#/lib/seo-head";
-import { getCoachSession, getCoachPreview, type CoachPreview } from "#/server/coach";
+import { AppFooter } from "#/components/nav/AppFooter";
 import {
-  getActiveProfile,
-  getEngineStatsAndBaseline,
-  getCompletedSessionCountOnActiveProfile,
-  getRecentSessionTargetsOnActiveProfile,
-  type EngineStatsAndBaseline,
-  type KeyboardType,
-  type DominantHand,
-} from "#/server/profile";
-import type { TransitionPhase } from "#/domain/profile/initialPhase";
-import {
-  PreSessionStage,
   ActiveSessionStage,
   PauseOverlay,
+  type PauseSettings,
   PostSessionStage,
+  type PreSessionFilterValues,
+  PreSessionStage,
   SessionBriefing,
   TargetRibbon,
-  type PauseSettings,
-  type PreSessionFilterValues,
 } from "#/components/practice";
-import { useSessionStore, sessionStore } from "#/stores/sessionStore";
-import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
-import { useCorpus } from "#/hooks/useCorpus";
-import { summarizeSession } from "#/domain/session/summarize";
-import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
-import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
-import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
-import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
-import { useOtherTabActive } from "#/hooks/useOtherTabActive";
-import { AppFooter } from "#/components/nav/AppFooter";
-import { generateSession } from "#/domain/adaptive/sessionGenerator";
-import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
-import { RECENCY_WINDOW, rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
-import type { SessionTarget } from "#/domain/adaptive/targetSelection";
 import { DRILL_LIBRARY } from "#/domain/adaptive/drillLibraryData";
+import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
+import { generateSession } from "#/domain/adaptive/sessionGenerator";
+import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import { RECENCY_WINDOW, rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
+import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
+import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
+import { summarizeSession } from "#/domain/session/summarize";
+import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
+import { useCorpus } from "#/hooks/useCorpus";
+import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
+import { useOtherTabActive } from "#/hooks/useOtherTabActive";
+import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
+import { getAuthSession } from "#/lib/require-auth";
+import { noindexHead } from "#/lib/seo-head";
+import { type CoachPreview, getCoachPreview } from "#/server/coach";
+import {
+  type DominantHand,
+  type EngineStatsAndBaseline,
+  getActiveProfile,
+  getCompletedSessionCountOnActiveProfile,
+  getEngineStatsAndBaseline,
+  getRecentSessionTargetsOnActiveProfile,
+  type KeyboardType,
+} from "#/server/profile";
+import { sessionStore, useSessionStore } from "#/stores/sessionStore";
 
 /**
  * Drizzle types the profile columns as `string` (the schema uses `text()`
@@ -163,42 +163,24 @@ function PracticePage() {
   // Coach panel data (why-report teaser + quota). Fetched once per mount,
   // fire-and-forget — the panel degrades gracefully while null.
   const [coachPreview, setCoachPreview] = useState<CoachPreview | null>(null);
+  const [coachUnavailable, setCoachUnavailable] = useState(false);
+  const [coachHidden, setCoachHidden] = useState(false);
   useEffect(() => {
     let cancelled = false;
+    setCoachPreview(null);
+    setCoachUnavailable(false);
+    setCoachHidden(false);
     getCoachPreview({ data: { keyboardProfileId: profile.id } })
       .then((preview) => {
         if (cancelled) return;
-        setCoachPreview(preview);
-        // Prefetch the day's Coach session while the user browses the
-        // practice page, so arriving at /practice/coach is instant (the
-        // route promotes this `next:` slot instead of re-fetching).
-        // Quota is consumed at fetch time — that's the existing design —
-        // so only prefetch while a session is still available today.
-        if (preview.quota.remaining <= 0) return;
-        const cacheKey = `coach:v1:next:${profile.id}:${new Date().toISOString().slice(0, 10)}`;
-        let hasCache = false;
-        try {
-          hasCache = sessionStorage.getItem(cacheKey) !== null;
-        } catch {
-          // sessionStorage unavailable — the coach page fetches itself.
+        if (preview === null) {
+          setCoachHidden(true);
+          return;
         }
-        if (hasCache) return;
-        getCoachSession({ data: { keyboardProfileId: profile.id } })
-          .then((res) => {
-            if (cancelled) return;
-            try {
-              sessionStorage.setItem(cacheKey, JSON.stringify(res));
-            } catch {
-              // Cache write failure — the coach page will fetch on arrival.
-            }
-          })
-          .catch(() => {
-            // Generation can fail (LLM hiccups); the coach page surfaces
-            // errors when the user actually arrives there.
-          });
+        setCoachPreview(preview);
       })
       .catch(() => {
-        // Leave the panel in its neutral (null) state.
+        if (!cancelled) setCoachUnavailable(true);
       });
     return () => {
       cancelled = true;
@@ -844,6 +826,8 @@ function PracticePage() {
             }
             onCoach={() => navigate({ to: "/practice/coach" })}
             coachPreview={coachPreview}
+            coachUnavailable={coachUnavailable}
+            coachHidden={coachHidden}
             isFirstSession={useDiagnostic}
             awaitingCorpus={awaitingCorpus && !useDiagnostic}
           />

@@ -1,21 +1,21 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  boolean,
-  timestamp,
-  integer,
-  bigint,
-  real,
-  jsonb,
-  bigserial,
-  index,
-  uniqueIndex,
-  numeric,
-  primaryKey,
-  smallint,
-} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import {
+  bigint,
+  bigserial,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  primaryKey,
+  real,
+  smallint,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 // ── users ────────────────────────────────────────────────────────────────────
 
@@ -264,8 +264,40 @@ export const coachQuota = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     date: text("date").notNull(), // 'YYYY-MM-DD' UTC
     sessionsUsed: integer("sessions_used").notNull().default(0),
+    lastPassageId: uuid("last_passage_id").references(() => passages.id, { onDelete: "set null" }),
+    prefetchSlot: integer("prefetch_slot"),
+    prefetchToken: uuid("prefetch_token"),
+    prefetchTargetKey: text("prefetch_target_key"),
+    prefetchPassageId: uuid("prefetch_passage_id").references(() => passages.id, {
+      onDelete: "set null",
+    }),
+    prefetchStartedAt: timestamp("prefetch_started_at", { withTimezone: true }),
   },
   (t) => [primaryKey({ columns: [t.userId, t.date] })],
+);
+
+// ── coach_generation_budget (global daily LLM attempt cap) ────────────────
+
+export const coachGenerationBudget = pgTable("coach_generation_budget", {
+  date: text("date").primaryKey(), // 'YYYY-MM-DD' UTC
+  attemptsUsed: integer("attempts_used").notNull().default(0),
+});
+
+// ── coach_feedback (one usefulness signal per user and passage) ─────────────
+
+export const coachFeedback = pgTable(
+  "coach_feedback",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    passageId: uuid("passage_id")
+      .notNull()
+      .references(() => passages.id, { onDelete: "cascade" }),
+    useful: boolean("useful").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.passageId] })],
 );
 
 // ── auth_sessions (better-auth internal) ─────────────────────────────────────

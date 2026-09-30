@@ -1,10 +1,10 @@
 /** @vitest-environment jsdom */
 
-import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-import { CoachPreSessionStage } from "./CoachPreSessionStage";
+import { afterEach, describe, expect, it } from "vitest";
 import type { WhyReport } from "#/domain/coach/whyReport";
 import type { PassageRecord } from "#/server/coach/catalog";
+import { CoachPreSessionStage } from "./CoachPreSessionStage";
 
 const report: WhyReport = {
   totalTrueConfusions: 100,
@@ -56,7 +56,7 @@ const passage: PassageRecord = {
 afterEach(() => cleanup());
 
 describe("CoachPreSessionStage", () => {
-  it("renders the top mechanism with its share, timing, and passage title", () => {
+  it("renders the focus with its share, cue, and passage title", () => {
     render(
       <CoachPreSessionStage
         report={report}
@@ -66,8 +66,9 @@ describe("CoachPreSessionStage", () => {
         onStart={() => {}}
       />,
     );
-    expect(screen.getAllByText(/space\/timing/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/spacing and timing/i)).toBeTruthy();
     expect(screen.getByText(/40%/i)).toBeTruthy();
+    expect(screen.getByText(/deliberate space/i)).toBeTruthy();
     expect(screen.getByText(/The Rhythm of the Sea/i)).toBeTruthy();
   });
 
@@ -96,11 +97,11 @@ describe("CoachPreSessionStage", () => {
         onStart={() => {}}
       />,
     );
-    expect(screen.getAllByText(/space\/timing/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/spacing and timing/i)).toBeTruthy();
     expect(screen.queryByText(/non-alpha/i)).toBeNull();
   });
 
-  it("shows remaining free sessions with the subscribe path", () => {
+  it("shows the free beta allowance without a subscription button", () => {
     render(
       <CoachPreSessionStage
         report={report}
@@ -111,12 +112,12 @@ describe("CoachPreSessionStage", () => {
       />,
     );
     expect(screen.getByText(/1 more session today/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /subscribe/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /subscribe/i })).toBeNull();
   });
 
   // The passage on screen IS the allocation that was just consumed, so the
   // start button must stay enabled even at remaining: 0.
-  it("keeps start enabled and states this is today's session when quota is spent", () => {
+  it("keeps start enabled for an allocated passage when quota is spent", () => {
     render(
       <CoachPreSessionStage
         report={report}
@@ -126,8 +127,8 @@ describe("CoachPreSessionStage", () => {
         onStart={() => {}}
       />,
     );
-    expect(screen.getByText(/this is today's session/i)).toBeTruthy();
-    const start = screen.getByRole("button", { name: /start coach session/i });
+    expect(screen.getByText(/repeat this passage whenever you like/i)).toBeTruthy();
+    const start = screen.getByRole("button", { name: /start this passage/i });
     expect((start as HTMLButtonElement).disabled).toBe(false);
   });
 });

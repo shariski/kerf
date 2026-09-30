@@ -1,7 +1,32 @@
 # Coach (AI Adaptive Practice) — Development Status & Roadmap
 
-> Last updated: 2026-08-06
-> Branch: `feat/coach-ai-adaptive` (23 commits ahead of main, pushed to origin)
+> The sections below are the August 6 implementation snapshot. The September 30
+> beta update here supersedes its quota, staging, and rollout notes.
+
+## September 30 free beta update
+
+- Branch: `feat/coach-ai-adaptive`; production rollout is still pending.
+- Coach is a free beta for accounts created by the configured
+  `COACH_BETA_SIGNUP_CUTOFF`. The default is five new sessions per user per
+  UTC day; `COACH_DAILY_LIMIT` can be changed in the app environment.
+- An ordinary visit to `/practice` only loads a preview. Choosing Coach
+  claims a slot; after typing has begun, one next passage is prepared on the
+  server without claiming the next slot. A claimed passage can be repeated
+  after the limit, even after a reload.
+- Passages are keyed by targeted mechanism as well as weakness set, use an
+  80–140 word default range, and start at medium difficulty. Fast analysis
+  is the default; a global daily LLM-call cap and `COACH_ENABLED` kill switch
+  bound cost and exposure.
+- Free beta copy replaces the disabled subscription path. The result screen
+  states the focus outcome and a next cue, offers the correct next/repeat
+  action, and records one usefulness vote per user and passage.
+- Migration `0008` adds prepared passage state, replay, a global generation
+  budget, and feedback. See [DEPLOYMENT.md](../DEPLOYMENT.md) for the
+  current environment and rollout instructions.
+
+---
+
+> Historical August 6 snapshot follows.
 
 ## 1. TL;DR
 

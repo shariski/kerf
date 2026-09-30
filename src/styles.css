@@ -757,24 +757,21 @@ body {
   gap: 12px;
   margin-top: 4px;
 }
-.kerf-coach-subscribe {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: 1px solid var(--color-kerf-border-subtle);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-kerf-text-tertiary);
-  font-family: var(--font-sans, "Inter", sans-serif);
-  font-size: 13px;
-  cursor: not-allowed;
-}
 .kerf-coach-quota {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--color-kerf-text-tertiary);
+}
+.kerf-coach-privacy {
+  margin: 0;
+  color: var(--color-kerf-text-tertiary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.kerf-coach-privacy a {
+  color: var(--color-kerf-text-secondary);
+  text-decoration: underline;
 }
 
 /* Coach session briefing (/practice/coach). Mirrors the pre-session
@@ -997,6 +994,16 @@ body {
 .kerf-coach-post-intent-result,
 .kerf-coach-post-intent-other {
   color: var(--color-kerf-text-secondary);
+}
+.kerf-coach-feedback {
+  padding: 16px 20px;
+  border: 1px solid var(--color-kerf-border-subtle);
+  border-radius: 8px;
+  background: var(--color-kerf-bg-surface);
+  font-size: 13px;
+}
+.kerf-coach-feedback p {
+  margin: 0 0 10px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6138,4 +6145,3 @@ body {
     transition-duration: 1ms;
   }
 }
-

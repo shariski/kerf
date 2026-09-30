@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
-import { and, asc, eq, sql } from "drizzle-orm";
-import type { Database } from "#/server/db";
-import { passages } from "#/server/db/schema";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 import type { GateResult } from "#/domain/coach/gate";
 import type { MechanismKey } from "#/domain/coach/mechanisms";
+import type { Database } from "#/server/db";
+import { passages } from "#/server/db/schema";
 import type { LlmOutput } from "./review";
 
 export type PassageRecord = {
@@ -30,15 +30,35 @@ export type PassageRecord = {
   reviewedAt?: Date | string | null;
 };
 
-export function targetKeyFor(mechanisms: MechanismKey[], difficulty: string): string {
+export function targetKeyFor(
+  mechanisms: MechanismKey[],
+  difficulty: string,
+  targetMechanism: MechanismKey,
+): string {
   const canonical = [...mechanisms].sort().join("|");
-  return createHash("md5").update(`${canonical}#${difficulty}`).digest("hex");
+  return createHash("md5").update(`${canonical}#${difficulty}#${targetMechanism}`).digest("hex");
+}
+
+/** Review data includes the generating user's filled diagnostic prompt. */
+export function passageForClient(passage: PassageRecord, reviewMode: boolean): PassageRecord {
+  if (reviewMode) return passage;
+  const {
+    llmOutput: _llmOutput,
+    reviewVerdict: _reviewVerdict,
+    reviewRating: _reviewRating,
+    reviewTags: _reviewTags,
+    reviewNote: _reviewNote,
+    reviewedAt: _reviewedAt,
+    ...publicPassage
+  } = passage;
+  return publicPassage;
 }
 
 export async function findPassage(
   tx: Database,
   targetKey: string,
   difficulty: string,
+  excludePassageId?: string,
 ): Promise<PassageRecord | null> {
   const rows = await tx
     .select()
@@ -48,11 +68,17 @@ export async function findPassage(
         eq(passages.targetKey, targetKey),
         eq(passages.difficulty, difficulty),
         eq(passages.status, "active"),
+        ...(excludePassageId ? [ne(passages.id, excludePassageId)] : []),
       ),
     )
     .orderBy(asc(passages.usageCount), asc(passages.createdAt))
     .limit(1);
   return (rows[0] as PassageRecord | undefined) ?? null;
+}
+
+export async function findPassageById(tx: Database, id: string): Promise<PassageRecord | null> {
+  const [row] = await tx.select().from(passages).where(eq(passages.id, id)).limit(1);
+  return (row as PassageRecord | undefined) ?? null;
 }
 
 /**
@@ -84,10 +110,7 @@ export async function findPassageAny(
  * All topics ever used for a weakness-set (any status). Drives topic
  * cycling in generation so repeated generations stay distinct.
  */
-export async function listTopicsForTargetKey(
-  tx: Database,
-  targetKey: string,
-): Promise<string[]> {
+export async function listTopicsForTargetKey(tx: Database, targetKey: string): Promise<string[]> {
   const rows = await tx
     .select({ topic: passages.topic })
     .from(passages)

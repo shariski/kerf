@@ -1,6 +1,6 @@
 import type { FingerTable } from "#/domain/finger/types";
-import { profileText, type TransitionProfile } from "./triggerDensity";
 import type { MechanismKey } from "./mechanisms";
+import { profileText, type TransitionProfile } from "./triggerDensity";
 
 export const BASELINE_PROFILE: TransitionProfile = {
   sameFinger: 0.216,
@@ -40,7 +40,7 @@ export type GateResult = {
 
 /** Accepted passage length, in words. Overridable per-deployment. */
 export type WordRange = { min: number; max: number };
-export const DEFAULT_WORD_RANGE: WordRange = { min: 120, max: 350 };
+export const DEFAULT_WORD_RANGE: WordRange = { min: 80, max: 140 };
 
 export function evaluateGate(
   mechanism: MechanismKey,
@@ -53,9 +53,7 @@ export function evaluateGate(
   const violations: string[] = [];
 
   if (measured.nWords < wordRange.min || measured.nWords > wordRange.max) {
-    violations.push(
-      `length: ${measured.nWords} words (need ${wordRange.min}-${wordRange.max})`,
-    );
+    violations.push(`length: ${measured.nWords} words (need ${wordRange.min}-${wordRange.max})`);
   }
 
   const paragraphs = (text.match(/\n\n/g)?.length ?? 0) + 1;

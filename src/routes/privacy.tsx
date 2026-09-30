@@ -20,10 +20,10 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   return (
-    <DocPage title="Privacy" effectiveDate="2026-04-26">
+    <DocPage title="Privacy" effectiveDate="2026-09-30">
       <p>
-        Short version: kerf stores your email and your typing data. Nothing else, nowhere else, no
-        third parties beyond what magic-link sign-in needs.
+        Short version: kerf stores your account and typing data. If you use Coach, we send a summary
+        of your typing patterns to DeepSeek to prepare practice passages.
       </p>
 
       <h2>What's collected</h2>
@@ -40,10 +40,11 @@ function PrivacyPage() {
           Aggregate stats derived from sessions — per-character error rates, per-bigram timing,
           weakness scores, your phase, your keyboard profile.
         </li>
+        <li>Coach usage and your optional answer to whether a passage was useful.</li>
       </ul>
       <p>
-        That's it. No third-party analytics, no advertising trackers, no cookies beyond the one
-        needed to keep you signed in.
+        We do not use third-party analytics or advertising trackers. Sign-in uses the cookies needed
+        to keep you signed in.
       </p>
 
       <h2>How it's used</h2>
@@ -52,10 +53,18 @@ function PrivacyPage() {
         <li>Run the adaptive engine that picks your exercises.</li>
         <li>Render your dashboard and session summaries.</li>
         <li>Send the magic-link email when you sign in.</li>
+        <li>Prepare focused Coach passages and learn whether they are useful.</li>
       </ul>
       <p>
-        Your typing data is never sold, never shared with advertisers, never used to train
-        machine-learning models.
+        For Coach, our server sends DeepSeek an aggregated diagnostic report: counts of typing
+        confusions, character and bigram error rates, and timing averages. We do not send your
+        email, name, full session text, or raw keystroke stream in that request. Generated passages
+        may be reused for other users with similar practice needs. DeepSeek receives the summary to
+        generate the passage; see its{" "}
+        <a href="https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html">
+          Open Platform terms
+        </a>
+        . We do not sell typing data to advertisers or use raw sessions to train our own models.
       </p>
 
       <h2>Your rights</h2>

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import type { EmergentWeakness, ErrorPosition, SessionSummary } from "#/domain/session/summarize";
-import type { PatternDetection } from "#/domain/insight/types";
+import { useEffect, useRef, useState } from "react";
 import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import type { PatternDetection } from "#/domain/insight/types";
+import type { EmergentWeakness, ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import { IntentEchoBlock } from "./IntentEchoBlock";
 
 /**
@@ -23,6 +23,8 @@ type Props = {
   title: string;
   summary: SessionSummary;
   onPracticeAgain: () => void;
+  practiceAgainLabel?: string;
+  showWeaknessShifts?: boolean;
   /** ADR-003 §4 Stage 3: optional — present for adaptive sessions. */
   sessionTarget?: SessionTarget;
   /** Per-key accuracy breakdown for the declared target keys. */
@@ -36,6 +38,8 @@ export function PostSessionStage({
   title,
   summary,
   onPracticeAgain,
+  practiceAgainLabel = "Practice again",
+  showWeaknessShifts = true,
   sessionTarget,
   perKeyBreakdown,
   nextTargetPreview,
@@ -147,26 +151,30 @@ export function PostSessionStage({
         <ErrorPatterns patterns={patterns} uniqueErrorCount={uniqueErrorCount} />
       </div>
 
-      <div className="kerf-post-section-label">Weakness shifts this session</div>
-      <div className="kerf-weakness-shifts">
-        <div className="kerf-shift-group improved">
-          <div className="kerf-shift-group-title">
-            <span aria-hidden="true">✓</span>
-            <span>improved</span>
+      {showWeaknessShifts && (
+        <>
+          <div className="kerf-post-section-label">Weakness shifts this session</div>
+          <div className="kerf-weakness-shifts">
+            <div className="kerf-shift-group improved">
+              <div className="kerf-shift-group-title">
+                <span aria-hidden="true">✓</span>
+                <span>improved</span>
+              </div>
+              <p className="kerf-shift-empty">
+                Session history arrives in a future update — improvements will surface once this
+                isn't your first rep on record.
+              </p>
+            </div>
+            <div className="kerf-shift-group emergent">
+              <div className="kerf-shift-group-title">
+                <span aria-hidden="true">⚠</span>
+                <span>watch this</span>
+              </div>
+              <EmergentList items={emergentWeaknesses} />
+            </div>
           </div>
-          <p className="kerf-shift-empty">
-            Session history arrives in a future update — improvements will surface once this isn't
-            your first rep on record.
-          </p>
-        </div>
-        <div className="kerf-shift-group emergent">
-          <div className="kerf-shift-group-title">
-            <span aria-hidden="true">⚠</span>
-            <span>watch this</span>
-          </div>
-          <EmergentList items={emergentWeaknesses} />
-        </div>
-      </div>
+        </>
+      )}
 
       <div className="kerf-insight">
         <div className="kerf-insight-label">What the engine noticed</div>
@@ -180,7 +188,7 @@ export function PostSessionStage({
           onClick={onPracticeAgain}
           ref={practiceAgainRef}
         >
-          Practice again
+          {practiceAgainLabel}
           <span className="kerf-post-btn-shortcut" aria-hidden="true">
             ⏎
           </span>

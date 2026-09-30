@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { buildLlmDigest, parseWordRange, passageTopicFor, pickTargetMechanism, pickTopic, reviewTopic } from "./coach";
+import type { MechanismKey } from "#/domain/coach/mechanisms";
 import type { KeystrokeEvent } from "#/domain/stats/types";
+import {
+  buildLlmDigest,
+  isCoachBetaEligible,
+  parseWordRange,
+  pickTargetMechanism,
+  pickTopic,
+  reviewTopic,
+  uniqueProductionTopic,
+} from "./coach";
 
 const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
   targetChar: "e",
@@ -10,6 +19,17 @@ const ev = (over: Partial<KeystrokeEvent>): KeystrokeEvent => ({
   prevChar: "a",
   timestamp: new Date("2026-08-01T12:00:00Z"),
   ...over,
+});
+
+describe("isCoachBetaEligible", () => {
+  const cutoff = "2026-09-30T16:59:59Z";
+  it("keeps accounts created by the cutoff in the free beta", () => {
+    expect(isCoachBetaEligible("2026-09-30T16:59:59Z", cutoff)).toBe(true);
+    expect(isCoachBetaEligible("2026-10-01T00:00:00Z", cutoff)).toBe(false);
+  });
+  it("allows all accounts when no cohort cutoff is configured", () => {
+    expect(isCoachBetaEligible("2027-01-01T00:00:00Z", undefined)).toBe(true);
+  });
 });
 
 describe("pickTopic", () => {
@@ -27,7 +47,10 @@ describe("pickTopic", () => {
   });
   it("skips themes overlapping with used topics", () => {
     expect(
-      pickTopic(["The Silk Road", "The Space Race"], ["The history of the Silk Road and its impact on trade"]),
+      pickTopic(
+        ["The Silk Road", "The Space Race"],
+        ["The history of the Silk Road and its impact on trade"],
+      ),
     ).toBe("The Space Race");
   });
   it("falls back to the first suggestion when every theme overlaps", () => {
@@ -51,15 +74,14 @@ describe("reviewTopic", () => {
   });
 });
 
-describe("passageTopicFor", () => {
-  it("prefers the cycled topic in review mode", () => {
-    expect(passageTopicFor(true, "The Space Race", "The Silk Road")).toBe("The Space Race");
+describe("uniqueProductionTopic", () => {
+  it("keeps a fresh topic unchanged", () => {
+    expect(uniqueProductionTopic("The Space Race", ["The Silk Road"])).toBe("The Space Race");
   });
-  it("keeps the LLM's refined topic outside review mode", () => {
-    expect(passageTopicFor(false, "The Space Race", "The Silk Road")).toBe("The Silk Road");
-  });
-  it("falls back to the cycled topic when the LLM omits one", () => {
-    expect(passageTopicFor(false, "The Space Race", undefined)).toBe("The Space Race");
+  it("creates a fresh catalog variant when an exact topic repeats", () => {
+    expect(uniqueProductionTopic("The Silk Road", ["The Silk Road"])).toBe(
+      "The Silk Road — variation 2",
+    );
   });
 });
 
@@ -78,27 +100,31 @@ describe("buildLlmDigest", () => {
 });
 
 describe("parseWordRange", () => {
-  it("defaults to 120-350 when unset", () => {
-    expect(parseWordRange(undefined)).toEqual({ min: 120, max: 350 });
+  it("defaults to 80-140 when unset", () => {
+    expect(parseWordRange(undefined)).toEqual({ min: 80, max: 140 });
   });
   it("parses a staging override", () => {
     expect(parseWordRange("60,140")).toEqual({ min: 60, max: 140 });
   });
   it("falls back to the default on garbage", () => {
-    expect(parseWordRange("abc")).toEqual({ min: 120, max: 350 });
+    expect(parseWordRange("abc")).toEqual({ min: 80, max: 140 });
   });
   it("falls back to the default when min >= max", () => {
-    expect(parseWordRange("200,100")).toEqual({ min: 120, max: 350 });
+    expect(parseWordRange("200,100")).toEqual({ min: 80, max: 140 });
   });
 });
 
 describe("pickTargetMechanism", () => {
   const mechs = ["cross-hand", "row-cross", "space/timing"] as const;
   it("keeps the main weakness dominant (60% of sessions)", () => {
-    const counts = { "cross-hand": 0, "row-cross": 0, "space/timing": 0 };
+    const counts: Partial<Record<MechanismKey, number>> = {
+      "cross-hand": 0,
+      "row-cross": 0,
+      "space/timing": 0,
+    };
     for (let i = 0; i < 10; i++) {
       const m = pickTargetMechanism([...mechs], i);
-      counts[m]++;
+      counts[m] = (counts[m] ?? 0) + 1;
     }
     expect(counts["cross-hand"]).toBe(6);
     expect(counts["row-cross"]).toBe(2);
