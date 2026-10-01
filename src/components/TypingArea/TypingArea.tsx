@@ -130,10 +130,13 @@ export function TypingArea({
         const charElements = chunk.chars.map((ch, offset) => {
           const index = chunk.start + offset;
           const isTargetKey = targetKeySet?.has(ch) ?? false;
+          // The red character shows the first mistyped key. The badge above
+          // it shows the expected character until Backspace clears the error.
+          const isErrorPosition = index === position && activeError !== null;
           return (
             <CharSpan
               key={index}
-              char={ch}
+              char={isErrorPosition && activeError ? activeError.actual : ch}
               className={classFor(index, position, charStatus[index] ?? "pending", isTargetKey)}
               expectedBadge={
                 index === position && activeError && expectedLetterHint ? activeError : null
