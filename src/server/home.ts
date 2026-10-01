@@ -1,8 +1,6 @@
 /**
- * Home/lobby data loader. Single round trip that returns everything
- * `/` needs for both states (zero-data welcome vs returning-user
- * lobby), so the route doesn't have to fan out to three separate
- * dashboard fns.
+ * Home/lobby data loader. Returns only the latest session and the
+ * activity window needed by `/`, rather than a user's full history.
  *
  * Shape choice: `hasAnySession: boolean` is the state discriminant,
  * but the other fields always come through as empty/null when it's
@@ -13,20 +11,19 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { and, asc, eq } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
+import {
+  type ActivityDay,
+  bucketActivityByDay,
+  computeWeaknessRanking,
+  type WeaknessRankEntry,
+} from "#/domain/dashboard/aggregates";
+import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import { PHASE_BASELINES } from "#/domain/stats/baselines";
 import { auth } from "./auth";
 import { db } from "./db";
 import { bigramStats, characterStats, keyboardProfiles, sessions } from "./db/schema";
 import type { KeyboardType } from "./profile";
-import type { TransitionPhase } from "#/domain/profile/initialPhase";
-import {
-  bucketActivityByDay,
-  computeStreakDays,
-  computeWeaknessRanking,
-  type ActivityDay,
-  type WeaknessRankEntry,
-} from "#/domain/dashboard/aggregates";
-import { PHASE_BASELINES } from "#/domain/stats/baselines";
 
 const ACTIVITY_WINDOW_DAYS = 30;
 const HOME_TOP_WEAKNESSES = 3;
@@ -47,18 +44,16 @@ export type HomeData = {
   profile: { keyboardType: KeyboardType };
   phase: TransitionPhase;
   hasAnySession: boolean;
-  totalSessions: number;
   lastSession: HomeLastSession | null;
   /** Always 30 entries — empty days come through with sessionCount 0. */
   activity: ActivityDay[];
-  streakDays: number;
   /** Top 3 only — the Home lobby just needs the pill row, not the full
    * ranking. */
   topWeaknesses: WeaknessRankEntry[];
 };
 
 export const getHomeData = createServerFn({ method: "GET" }).handler(
-  async (): Promise<HomeData> => {
+  async (): Promise<HomeData | null> => {
     const request = getRequest();
     const authSession = await auth.api.getSession({ headers: request.headers });
     if (!authSession) {
@@ -76,38 +71,47 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
       .where(and(eq(keyboardProfiles.userId, userId), eq(keyboardProfiles.isActive, true)))
       .limit(1);
     if (!profile) {
-      throw new Error("getHomeData: no active profile");
+      return null;
     }
 
     const phase = profile.transitionPhase as TransitionPhase;
     const now = new Date();
+    const activityCutoff = new Date(now);
+    activityCutoff.setDate(activityCutoff.getDate() - ACTIVITY_WINDOW_DAYS);
+    const profileSessions = and(
+      eq(sessions.userId, userId),
+      eq(sessions.keyboardProfileId, profile.id),
+    );
+    const [latestRows, recentRows] = await Promise.all([
+      db
+        .select({
+          startedAt: sessions.startedAt,
+          endedAt: sessions.endedAt,
+          wpm: sessions.wpm,
+          accuracy: sessions.accuracy,
+        })
+        .from(sessions)
+        .where(profileSessions)
+        .orderBy(desc(sessions.startedAt))
+        .limit(1),
+      db
+        .select({ startedAt: sessions.startedAt })
+        .from(sessions)
+        .where(and(profileSessions, gte(sessions.startedAt, activityCutoff))),
+    ]);
 
-    const sessionRows = await db
-      .select({
-        startedAt: sessions.startedAt,
-        endedAt: sessions.endedAt,
-        wpm: sessions.wpm,
-        accuracy: sessions.accuracy,
-      })
-      .from(sessions)
-      .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
-      .orderBy(asc(sessions.startedAt));
-
-    if (sessionRows.length === 0) {
+    const latest = latestRows[0];
+    if (!latest) {
       return {
         profile: { keyboardType: profile.keyboardType as KeyboardType },
         phase,
         hasAnySession: false,
-        totalSessions: 0,
         lastSession: null,
         activity: bucketActivityByDay([], now, ACTIVITY_WINDOW_DAYS),
-        streakDays: 0,
         topWeaknesses: [],
       };
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: zero-session branch returned above; sessionRows is non-empty here. TS's noUncheckedIndexedAccess can't see that.
-    const latest = sessionRows[sessionRows.length - 1]!;
     const endedAtDate = latest.endedAt ?? null;
     const durationSec =
       endedAtDate === null
@@ -121,32 +125,31 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
       durationSec,
     };
 
-    const startedDates = sessionRows.map((s) => s.startedAt);
+    const startedDates = recentRows.map((s) => s.startedAt);
     const activity = bucketActivityByDay(startedDates, now, ACTIVITY_WINDOW_DAYS);
-    const streak = computeStreakDays(startedDates, now);
-
-    const charRows = await db
-      .select({
-        character: characterStats.character,
-        attempts: characterStats.totalAttempts,
-        errors: characterStats.totalErrors,
-        sumTime: characterStats.sumKeystrokeMs,
-        hesitationCount: characterStats.hesitationCount,
-      })
-      .from(characterStats)
-      .where(
-        and(eq(characterStats.userId, userId), eq(characterStats.keyboardProfileId, profile.id)),
-      );
-
-    const bigramRows = await db
-      .select({
-        bigram: bigramStats.bigram,
-        attempts: bigramStats.totalAttempts,
-        errors: bigramStats.totalErrors,
-        sumTime: bigramStats.sumKeystrokeMs,
-      })
-      .from(bigramStats)
-      .where(and(eq(bigramStats.userId, userId), eq(bigramStats.keyboardProfileId, profile.id)));
+    const [charRows, bigramRows] = await Promise.all([
+      db
+        .select({
+          character: characterStats.character,
+          attempts: characterStats.totalAttempts,
+          errors: characterStats.totalErrors,
+          sumTime: characterStats.sumKeystrokeMs,
+          hesitationCount: characterStats.hesitationCount,
+        })
+        .from(characterStats)
+        .where(
+          and(eq(characterStats.userId, userId), eq(characterStats.keyboardProfileId, profile.id)),
+        ),
+      db
+        .select({
+          bigram: bigramStats.bigram,
+          attempts: bigramStats.totalAttempts,
+          errors: bigramStats.totalErrors,
+          sumTime: bigramStats.sumKeystrokeMs,
+        })
+        .from(bigramStats)
+        .where(and(eq(bigramStats.userId, userId), eq(bigramStats.keyboardProfileId, profile.id))),
+    ]);
 
     const topWeaknesses = computeWeaknessRanking({
       chars: charRows,
@@ -160,10 +163,8 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(
       profile: { keyboardType: profile.keyboardType as KeyboardType },
       phase,
       hasAnySession: true,
-      totalSessions: sessionRows.length,
       lastSession,
       activity,
-      streakDays: streak.current,
       topWeaknesses,
     };
   },

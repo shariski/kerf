@@ -6,8 +6,8 @@
  * components — each of those is trivial enough to not need isolation tests.
  */
 
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // `KeyboardContextPill` now renders a `<Link to="/keyboards">`, which
 // needs router context. Stub the Link to a plain anchor so this unit
@@ -28,8 +28,8 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
-import { PreSessionStage } from "./PreSessionStage";
 import type { PreSessionFilterValues } from "./PreSessionFilters";
+import { PreSessionStage } from "./PreSessionStage";
 
 const FILTERS: PreSessionFilterValues = {
   handIsolation: "either",
@@ -79,16 +79,16 @@ describe("PreSessionStage", () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 
-  it("enables Drill and Inner-column mode cards, keeps Warm up disabled", () => {
+  it("shows only available drill modes", () => {
     const { container } = render(
       <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
     );
     const cards = Array.from(container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"));
-    expect(cards).toHaveLength(3);
-    const [drill, innerColumn, warmUp] = cards;
+    expect(cards).toHaveLength(2);
+    const [drill, innerColumn] = cards;
     expect(drill!.disabled).toBe(false);
     expect(innerColumn!.disabled).toBe(false);
-    expect(warmUp!.disabled).toBe(true);
+    expect(container.textContent).not.toContain("Warm up");
   });
 
   it("fires onDrillWeakness / onDrillInnerColumn when the respective cards are clicked", () => {

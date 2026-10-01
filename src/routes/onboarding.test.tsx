@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
-import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const createKeyboardProfile = vi.fn();
 const navigate = vi.fn();
@@ -77,7 +78,7 @@ describe("OnboardingPage", () => {
     expect(back?.style.visibility).toBe("hidden");
   });
 
-  it("advances through all four steps, submits, and lands on the summary", async () => {
+  it("advances through setup and opens practice after saving", async () => {
     createKeyboardProfile.mockResolvedValueOnce({ id: "p1" });
     render(<OnboardingPage />);
 
@@ -114,41 +115,17 @@ describe("OnboardingPage", () => {
       });
     });
 
-    // Landing shown.
-    await screen.findByText(/you're ready/i);
-    expect(screen.getByText(/all set/i)).toBeTruthy();
-
-    // Click "Start first session" to jump past the auto-redirect.
-    fireEvent.click(screen.getByRole("button", { name: /start first session/i }));
-    expect(navigate).toHaveBeenCalledWith({ to: "/practice" });
+    await vi.waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/practice" }));
+    expect(screen.queryByText(/you're ready/i)).toBeNull();
   });
 
-  it("landing auto-redirects after 3 seconds", async () => {
-    vi.useFakeTimers();
+  it("saves the final setup only once when Enter also activates its button", async () => {
     createKeyboardProfile.mockResolvedValueOnce({ id: "p1" });
-    render(<OnboardingPage />);
-
-    fireEvent.click(screen.getByRole("button", { name: /^sofle$/i }));
-    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
-    fireEvent.click(screen.getByRole("button", { name: /right-handed/i }));
-    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
-    fireEvent.click(screen.getByRole("button", { name: /first day on split/i }));
-    fireEvent.click(screen.getByRole("button", { name: /^continue/i }));
-    // Step 4: pick any journey option (unsure is pre-selected, just finish)
-    fireEvent.click(screen.getByRole("button", { name: /finish setup/i }));
-
-    // Flush the pending createKeyboardProfile promise.
-    await vi.waitFor(() => {
-      expect(createKeyboardProfile).toHaveBeenCalled();
-    });
-    // Landing should render.
-    await vi.waitFor(() => {
-      expect(screen.getByText(/you're ready/i)).toBeTruthy();
-    });
-
-    expect(navigate).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(3000);
-    expect(navigate).toHaveBeenCalledWith({ to: "/practice" });
+    advanceToJourneyStep();
+    const finish = screen.getByRole("button", { name: /finish setup/i });
+    fireEvent.keyDown(finish, { key: "Enter" });
+    fireEvent.click(finish);
+    await vi.waitFor(() => expect(createKeyboardProfile).toHaveBeenCalledTimes(1));
   });
 
   it("Back navigates to the previous step while preserving selections", () => {

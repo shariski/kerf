@@ -1,8 +1,8 @@
+import { createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { HeadContent, Scripts, createRootRoute, useRouterState } from "@tanstack/react-router";
-import { AppNav } from "#/components/nav/AppNav";
-import { AppFooter } from "#/components/nav/AppFooter";
 import { MobileGate } from "#/components/MobileGate";
+import { AppFooter } from "#/components/nav/AppFooter";
+import { AppNav } from "#/components/nav/AppNav";
 
 // Routes that own their full viewport chrome and should not render the
 // global AppNav:
@@ -10,6 +10,16 @@ import { MobileGate } from "#/components/MobileGate";
 //   - /login is a centered full-screen card
 //   - /welcome is the public landing page (unauth-redirect target)
 const CHROMELESS_PATHS = ["/onboarding", "/login", "/welcome"];
+const MOBILE_READING_PATHS = new Set([
+  "/welcome",
+  "/login",
+  "/how-it-works",
+  "/why-split-is-hard",
+  "/faq",
+  "/privacy",
+  "/terms",
+  "/contact",
+]);
 
 // Routes that manage footer visibility per-stage rather than letting
 // the root render it unconditionally. /practice and /practice/drill
@@ -80,6 +90,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const chromeless = CHROMELESS_PATHS.some((p) => pathname.startsWith(p));
   const noGlobalFooter = chromeless || NO_GLOBAL_FOOTER_PATHS.some((p) => pathname.startsWith(p));
+  const mobileGated = !MOBILE_READING_PATHS.has(pathname);
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -91,8 +102,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <a href="#main-content" className="kerf-skip-link">
           Skip to main content
         </a>
-        <MobileGate />
-        <div className="kerf-app-root">
+        <MobileGate visible={mobileGated} />
+        <div className="kerf-app-root" data-mobile-gated={mobileGated || undefined}>
           {!chromeless && <AppNav />}
           {children}
           {!noGlobalFooter && <AppFooter />}
