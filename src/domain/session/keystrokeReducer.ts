@@ -137,7 +137,9 @@ export function keystrokeReducer(state: SessionState, action: SessionAction): Se
         return {
           ...working,
           charStatus,
-          activeError: { expected: targetChar, actual: action.char },
+          // Keep the original wrong key visible while the error is latched.
+          // Later keystrokes still contribute error events and statistics.
+          activeError: working.activeError ?? { expected: targetChar, actual: action.char },
           events: [...working.events, event],
           lastKeystrokeAt: action.now,
           startedAt: sessionStartedAt,

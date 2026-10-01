@@ -155,7 +155,7 @@ describe("keystrokeReducer — error keystroke", () => {
     expect(s.position).toBe(0);
     expect(s.events).toHaveLength(2);
     expect(s.events[1]).toMatchObject({ targetChar: "n", actualChar: "v", isError: true });
-    expect(s.activeError).toEqual({ expected: "n", actual: "v" });
+    expect(s.activeError).toEqual({ expected: "n", actual: "b" });
   });
 
   it("typing the correct letter while in error state does NOT advance (spec: must backspace)", () => {
@@ -166,7 +166,7 @@ describe("keystrokeReducer — error keystroke", () => {
     s = keystrokeReducer(s, { type: "keypress", char: "n", now: 1200 }); // correct letter
     expect(s.position).toBe(0);
     expect(s.charStatus[0]).toBe("error");
-    expect(s.activeError).toEqual({ expected: "n", actual: "n" });
+    expect(s.activeError).toEqual({ expected: "n", actual: "b" });
     expect(s.events).toHaveLength(2);
     expect(s.events[1]).toMatchObject({ targetChar: "n", actualChar: "n", isError: true });
   });

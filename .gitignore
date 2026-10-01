@@ -42,3 +42,6 @@ logo-fix-verify.png
 
 # Added by code-review-graph
 .code-review-graph/
+
+# Generated local architecture graph
+graphify-out/

@@ -75,11 +75,21 @@ describe("TypingArea — typing progression", () => {
 
     const error = container.querySelector(".kerf-typing-error");
     expect(error).not.toBeNull();
-    expect(error?.textContent).toContain("n"); // displayed char + badge text
+    expect(error?.textContent).toContain("b");
 
     const badge = container.querySelector(".kerf-typing-expected");
     expect(badge).not.toBeNull();
     expect(badge?.textContent).toBe("n");
+  });
+
+  it("keeps the first wrong character visible until Backspace", () => {
+    const { container } = render(<TypingArea target="nice" />);
+    fireEvent.keyDown(window, { key: "b" });
+    fireEvent.keyDown(window, { key: "n" });
+    expect(container.querySelector(".kerf-typing-error")?.textContent).toContain("b");
+    expect(container.querySelector(".kerf-typing-expected")?.textContent).toBe("n");
+    fireEvent.keyDown(window, { key: "Backspace" });
+    expect(container.querySelector(".kerf-typing-current")?.textContent).toBe("n");
   });
 
   it("clears error and badge after backspace", () => {
