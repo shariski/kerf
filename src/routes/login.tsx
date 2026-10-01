@@ -121,7 +121,7 @@ function LoginPage() {
         </div>
 
         <div
-          className="flex items-center gap-3 text-kerf-text-tertiary"
+          className="flex items-center gap-3 text-kerf-text-secondary"
           style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em" }}
         >
           <div className="flex-1 h-px bg-kerf-border-subtle" />

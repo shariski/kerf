@@ -1,12 +1,12 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
-import type { DominantHand, KeyboardType } from "#/server/profile";
-import { createKeyboardProfile, getActiveProfile } from "#/server/profile";
-import type { InitialLevel } from "#/domain/profile/initialPhase";
-import type { JourneyCode } from "#/domain/adaptive/journey";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { JourneyQuestion } from "#/components/onboarding/JourneyQuestion";
+import type { JourneyCode } from "#/domain/adaptive/journey";
+import type { InitialLevel } from "#/domain/profile/initialPhase";
 import { getAuthSession } from "#/lib/require-auth";
 import { noindexHead } from "#/lib/seo-head";
+import type { DominantHand, KeyboardType } from "#/server/profile";
+import { createKeyboardProfile, getActiveProfile } from "#/server/profile";
 
 export const Route = createFileRoute("/onboarding")({
   beforeLoad: async () => {
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-type Stage = "step1" | "step2" | "step3" | "step4" | "landing";
+type Stage = "step1" | "step2" | "step3" | "step4";
 
 const LEVELS: ReadonlyArray<{
   value: InitialLevel;
@@ -27,7 +27,6 @@ const LEVELS: ReadonlyArray<{
   name: string;
   desc: string;
   effect: string;
-  summary: string;
 }> = [
   {
     value: "first_day",
@@ -35,7 +34,6 @@ const LEVELS: ReadonlyArray<{
     name: "First day on split",
     desc: "Just unboxed it, or barely touched it. Your fingers don't know where keys are yet.",
     effect: "→ engine starts with single-letter drills, expects high error rate baseline",
-    summary: "first day on split",
   },
   {
     value: "few_weeks",
@@ -43,7 +41,6 @@ const LEVELS: ReadonlyArray<{
     name: "Few weeks in",
     desc: "Getting accustomed. Most letters work, but some columns still feel awkward (esp. inner B/G/T/Y).",
     effect: "→ engine focuses on common transitioner pain points, mixed difficulty",
-    summary: "few weeks in",
   },
   {
     value: "comfortable",
@@ -51,7 +48,6 @@ const LEVELS: ReadonlyArray<{
     name: "Comfortable, refining",
     desc: "Already proficient. Looking to push WPM, smooth out bigrams, eliminate residual quirks.",
     effect: "→ engine pushes speed-focused exercises, narrow-focus drills",
-    summary: "comfortable, refining",
   },
 ];
 
@@ -66,6 +62,7 @@ export function OnboardingPage() {
   const [initialLevel, setInitialLevel] = useState<InitialLevel | null>("first_day");
   const [fingerAssignment, setFingerAssignment] = useState<JourneyCode>("unsure");
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const canAdvance =
@@ -73,10 +70,6 @@ export function OnboardingPage() {
     (stage === "step2" && dominantHand !== null) ||
     (stage === "step3" && initialLevel !== null) ||
     stage === "step4"; // fingerAssignment always has a value (defaults to "unsure")
-
-  const goPractice = useCallback(() => {
-    router.navigate({ to: "/practice" });
-  }, [router]);
 
   const handleNext = useCallback(async () => {
     if (stage === "step1") {
@@ -93,20 +86,23 @@ export function OnboardingPage() {
     }
     if (stage === "step4") {
       if (!keyboardType || !dominantHand || !initialLevel) return;
+      if (submittingRef.current) return;
+      submittingRef.current = true;
       setSubmitting(true);
       setError(null);
       try {
         await createKeyboardProfile({
           data: { keyboardType, dominantHand, initialLevel, fingerAssignment },
         });
-        setStage("landing");
+        void router.navigate({ to: "/practice" });
       } catch {
         setError("Couldn't save your setup. Try again.");
       } finally {
+        submittingRef.current = false;
         setSubmitting(false);
       }
     }
-  }, [stage, keyboardType, dominantHand, initialLevel, fingerAssignment]);
+  }, [stage, keyboardType, dominantHand, initialLevel, fingerAssignment, router]);
 
   const handleBack = useCallback(() => {
     if (stage === "step2") setStage("step1");
@@ -114,15 +110,13 @@ export function OnboardingPage() {
     else if (stage === "step4") setStage("step3");
   }, [stage]);
 
-  // Enter key: advance on steps 1-3, fire redirect on landing.
+  // Enter advances the focused setup step; the final step saves and opens practice.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Enter") return;
-      if (stage === "landing") {
-        e.preventDefault();
-        goPractice();
+      const target = e.target as HTMLElement | null;
+      if (target instanceof Element && target.closest("button, input, textarea, [role='radio']"))
         return;
-      }
       if (canAdvance && !submitting) {
         e.preventDefault();
         handleNext();
@@ -130,14 +124,7 @@ export function OnboardingPage() {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [stage, canAdvance, submitting, handleNext, goPractice]);
-
-  // Landing auto-redirect after 3s.
-  useEffect(() => {
-    if (stage !== "landing") return;
-    const t = window.setTimeout(goPractice, 3000);
-    return () => window.clearTimeout(t);
-  }, [stage, goPractice]);
+  }, [canAdvance, submitting, handleNext]);
 
   return (
     <main
@@ -153,14 +140,6 @@ export function OnboardingPage() {
         {stage === "step4" && (
           <JourneyQuestion selected={fingerAssignment} onSelect={setFingerAssignment} />
         )}
-        {stage === "landing" && (
-          <Landing
-            keyboardType={keyboardType}
-            dominantHand={dominantHand}
-            initialLevel={initialLevel}
-            onStart={goPractice}
-          />
-        )}
 
         {error && (
           <p
@@ -173,15 +152,13 @@ export function OnboardingPage() {
         )}
       </section>
 
-      {stage !== "landing" && (
-        <BottomActions
-          stage={stage}
-          canAdvance={canAdvance}
-          submitting={submitting}
-          onBack={handleBack}
-          onNext={handleNext}
-        />
-      )}
+      <BottomActions
+        stage={stage}
+        canAdvance={canAdvance}
+        submitting={submitting}
+        onBack={handleBack}
+        onNext={handleNext}
+      />
     </main>
   );
 }
@@ -189,7 +166,7 @@ export function OnboardingPage() {
 /* ─── Top bar ─────────────────────────────────────────────────────────── */
 
 function TopBar({ stage }: { stage: Stage }) {
-  const stepNum = stage === "step1" ? 1 : stage === "step2" ? 2 : stage === "step3" ? 3 : 4; // step4 or landing
+  const stepNum = stage === "step1" ? 1 : stage === "step2" ? 2 : stage === "step3" ? 3 : 4;
 
   return (
     <div className="px-12 py-6 flex items-center justify-between gap-8">
@@ -210,13 +187,13 @@ function TopBar({ stage }: { stage: Stage }) {
         role="progressbar"
         aria-valuemin={1}
         aria-valuemax={4}
-        aria-valuenow={stage === "landing" ? 4 : stepNum}
+        aria-valuenow={stepNum}
         aria-label="onboarding progress"
         className="flex items-center gap-3 flex-1 max-w-[400px] mx-auto"
       >
         {[1, 2, 3, 4].map((n) => {
-          const done = stage === "landing" || n < stepNum;
-          const active = stage !== "landing" && n === stepNum;
+          const done = n < stepNum;
+          const active = n === stepNum;
           return (
             <span
               key={n}
@@ -233,7 +210,7 @@ function TopBar({ stage }: { stage: Stage }) {
         className="text-kerf-text-tertiary text-right min-w-[48px]"
         style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}
       >
-        {stage === "landing" ? "all set" : `step ${stepNum} of 4`}
+        step {stepNum} of 4
       </span>
     </div>
   );
@@ -637,118 +614,6 @@ function Step3Level({
           );
         })}
       </div>
-    </div>
-  );
-}
-
-/* ─── Landing ─────────────────────────────────────────────────────────── */
-
-function Landing({
-  keyboardType,
-  dominantHand,
-  initialLevel,
-  onStart,
-}: {
-  keyboardType: KeyboardType | null;
-  dominantHand: DominantHand | null;
-  initialLevel: InitialLevel | null;
-  onStart: () => void;
-}) {
-  const levelSummary = LEVELS.find((l) => l.value === initialLevel)?.summary;
-
-  return (
-    <div className="text-center w-full max-w-[640px] mx-auto">
-      <div
-        className="text-kerf-amber-base mb-6"
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontWeight: 700,
-          fontSize: "56px",
-        }}
-      >
-        ⏎
-      </div>
-      <h1
-        className="text-kerf-text-primary mb-4 tracking-tight"
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontSize: "28px",
-          fontWeight: 700,
-          lineHeight: 1.2,
-        }}
-      >
-        You&apos;re ready
-      </h1>
-      <p className="text-kerf-text-secondary mb-6" style={{ fontSize: "15px", lineHeight: 1.7 }}>
-        We&apos;ll start you with a curated warm-up exercise — words you&apos;ll likely find
-        familiar, just to capture an honest baseline. After that, the adaptive engine takes over.
-      </p>
-
-      <div className="bg-kerf-bg-surface border border-kerf-border-subtle rounded-lg text-left my-8 px-6 py-5">
-        <p
-          className="text-kerf-text-tertiary mb-3"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "11px",
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
-          Your setup
-        </p>
-        <SummaryRow label="keyboard" value={keyboardType ?? "—"} />
-        <SummaryRow label="dominant hand" value={dominantHand ?? "—"} />
-        <SummaryRow label="starting level" value={levelSummary ?? "—"} last />
-      </div>
-
-      <button
-        type="button"
-        onClick={onStart}
-        className="bg-kerf-amber-base text-kerf-text-inverse rounded-md inline-flex items-center gap-3"
-        style={{
-          padding: "14px 32px",
-          fontWeight: 600,
-          fontSize: "15px",
-        }}
-      >
-        Start first session
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "11px",
-            background: "rgba(0, 0, 0, 0.2)",
-            padding: "3px 8px",
-            borderRadius: "3px",
-          }}
-        >
-          ⏎ enter
-        </span>
-      </button>
-
-      <p
-        className="mt-4 text-kerf-text-tertiary"
-        style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}
-      >
-        auto-redirecting in 3s · or press enter to start now
-      </p>
-    </div>
-  );
-}
-
-function SummaryRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
-  return (
-    <div
-      className={`flex justify-between py-2 ${last ? "" : "border-b border-kerf-border-subtle"}`}
-      style={{ fontSize: "13px" }}
-    >
-      <span className="text-kerf-text-secondary">{label}</span>
-      <span
-        className="text-kerf-text-primary"
-        style={{ fontFamily: "var(--font-mono)", fontWeight: 500 }}
-      >
-        {value}
-      </span>
     </div>
   );
 }

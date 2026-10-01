@@ -18,11 +18,10 @@
 
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { getAuthSession } from "#/lib/require-auth";
-import { getActiveProfile } from "#/server/profile";
-import { getHomeData, type HomeData } from "#/server/home";
 import { KeyboardContextPill } from "#/components/practice/KeyboardContextPill";
 import { formatRelativeDay } from "#/domain/dashboard/aggregates";
+import { getAuthSession } from "#/lib/require-auth";
+import { getHomeData, type HomeData } from "#/server/home";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
@@ -33,12 +32,8 @@ export const Route = createFileRoute("/")({
     if (!session) throw redirect({ to: "/welcome", statusCode: 301 });
   },
   loader: async (): Promise<{ home: HomeData }> => {
-    // Profile check up front so a user with an account but no profile
-    // lands on /onboarding before the home query runs (which would
-    // throw "no active profile").
-    const profile = await getActiveProfile();
-    if (!profile) throw redirect({ to: "/onboarding" });
     const home = await getHomeData();
+    if (!home) throw redirect({ to: "/onboarding" });
     return { home };
   },
   component: HomePage,
@@ -136,7 +131,7 @@ function ReturningState({ home }: { home: HomeData }) {
       <div className="kerf-home-hero-cta-group">
         <Link to="/practice" search={{ autostart: true }} className="kerf-home-cta-primary">
           <span className="kerf-home-cta-primary-text">
-            <span className="kerf-home-cta-primary-label">Continue adaptive practice</span>
+            <span className="kerf-home-cta-primary-label">Start typing</span>
             <span className="kerf-home-cta-primary-meta">{buildFocusLine(home)}</span>
           </span>
           <span className="kerf-home-cta-primary-action" aria-hidden>
@@ -198,7 +193,7 @@ function ReturningState({ home }: { home: HomeData }) {
           <header className="kerf-home-activity-strip-header">
             <div className="kerf-home-activity-strip-title">Last 30 days</div>
             <div className="kerf-home-activity-strip-meta">
-              {home.streakDays === 0 ? "no streak" : `${home.streakDays} day streak`}
+              {home.activity.filter((day) => day.sessionCount > 0).length} practice days
             </div>
           </header>
           <div

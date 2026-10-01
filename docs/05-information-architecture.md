@@ -38,7 +38,8 @@ Based on conversations with the target user (split keyboard transitioner), we as
 
 ```
 PUBLIC ROUTES
-/                          → Landing page (visitors not logged in)
+/                          → Home for signed-in users; redirects visitors to /welcome
+/welcome                   → Compact public entry
 /login                     → Login / register
 
 AUTHENTICATED ROUTES
@@ -51,7 +52,7 @@ AUTHENTICATED ROUTES
 /settings                  → Account & preferences
 ```
 
-**Total: 7 top-level routes** (kept intentionally minimal for MVP).
+The core routes remain intentionally limited; deeper reading pages live outside primary navigation.
 
 ### Excluded Routes (and Rationale)
 
@@ -73,7 +74,7 @@ AUTHENTICATED ROUTES
 1. **Hero CTA section**: Primary button "Start practice" (amber, prominent) + secondary "Drill weakness". This honors the quick-start path.
 2. **Active keyboard indicator**: Small visual showing the currently active keyboard profile (Sofle/Lily58) with a subtle "switch" affordance.
 3. **Last session summary** (if exists): Compact card showing WPM, accuracy, top weakness from the most recent session. Click → navigate to `/dashboard`.
-4. **Streak / activity**: Simple 7-30 day visualization (GitHub-style contribution graph). Non-intrusive but shows consistency.
+4. **Activity**: A 30-day visualization and practice-day count. It shows consistency without streak pressure.
 5. **Top 3 weaknesses preview**: Brief peek at weakness ranking. Click → navigate to `/dashboard`.
 
 **What's NOT here:**
@@ -93,7 +94,7 @@ Brief intermediate screen offering:
 
 - "Continue adaptive practice" (default, large CTA)
 - "Switch to drill mode"
-- "Start with warm-up" (gentle exercise before adaptive engages, honors the warm-up preference)
+- "Practice inner keys" (focused shortcut for B, G, H, N, T, and Y)
 - Filter adjustments (hand isolation, max length) - collapsed by default
 
 **Active session state**:
@@ -193,7 +194,7 @@ Top of page: **"Add new keyboard profile"** CTA → opens onboarding flow with s
 
 **Purpose**: Capture minimum required info with lowest friction.
 
-**Flow**: Linear, 3 steps, no skip allowed.
+**Flow**: Linear, 4 steps, with defaults selected to reduce setup time.
 
 1. **Step 1: Pick keyboard**. Visual cards for Sofle and Lily58 with images. Click to select.
 2. **Step 2: Pick dominant hand**. Two simple cards (left / right).
@@ -201,10 +202,11 @@ Top of page: **"Add new keyboard profile"** CTA → opens onboarding flow with s
    - "First day on split" - new to columnar, just started
    - "Few weeks in" - getting accustomed
    - "Comfortable but want refinement" - already proficient, tuning
+4. **Step 4: Finger assignment**. Choose conventional, columnar, or unsure (default).
 
-After step 3: redirect to `/practice` with a curated first-session exercise (not random adaptive output, since stats are zero).
+After step 4: navigate directly to `/practice`, where the user can start the curated first diagnostic. There is no intermediate setup-summary screen.
 
-**No top nav during onboarding.** Just progress indicator (1/3, 2/3, 3/3) and Back/Next buttons.
+**No top nav during onboarding.** Just progress indicator (1/4 through 4/4) and Back/Next buttons.
 
 ### 4.7 `/settings`
 
@@ -276,8 +278,8 @@ Click on initials avatar opens dropdown:
 ### Flow 1: First-Time User
 
 ```
-/ (landing for visitor)
-  → "Get started" CTA
+/ → /welcome (compact public entry)
+  → "Start typing" CTA
 /login (register form, magic link option)
   → email magic link sent → user clicks link in email
 /onboarding step 1 (pick keyboard)
@@ -286,21 +288,21 @@ Click on initials avatar opens dropdown:
   → next
 /onboarding step 3 (self-report level)
   → next
-/practice (auto-start with curated first exercise)
+/onboarding step 4 (finger assignment, defaults to unsure)
+  → finish setup
+/practice (first-session CTA with curated diagnostic)
 ```
 
-**Time to first keystroke target**: under 60 seconds from landing page.
+**Time to first keystroke target**: under 60 seconds after sign-in is complete.
 
 ### Flow 2: Returning User - Quick Practice
 
 ```
-/ (auto-redirect from landing if logged in cookie)
+/ (opens Home when already signed in)
   = home with prominent "Start practice" CTA
   → click CTA
-/practice (pre-session screen)
-  → "Continue adaptive practice" (default, focused button)
 /practice (active session)
-  → user types for 5-10 minutes
+  → target remains visible in the focus ribbon while the user types
 /practice (auto-shown post-session summary)
   → "Practice again" or "Take a break"
 ```

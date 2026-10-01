@@ -5,6 +5,20 @@ https://typekerf.com/. This audit covers entry, sign-in, onboarding, practice,
 navigation, and the first result. It is a code and public-page review; it does
 not claim measured conversion or usability-test results.
 
+## Implementation update
+
+The follow-up branch now has a one-screen `/welcome`, a Home quick start
+that enters typing with the target visible, a loading state while the word
+corpus is prepared, available-only practice choices, measured-only
+post-session content, a practice-day count, and a bounded Home activity
+query. Saving the final onboarding step opens `/practice` without a
+redundant summary screen. Public entry, login, and reading pages work on
+phones; keyboard-dependent routes retain the desktop gate.
+
+The four setup questions, signed-in mobile dashboard, and journey funnel
+metrics remain outside this iteration. The existing 301/canonical
+relationship between `/` and `/welcome` is unchanged.
+
 ## Current path to a keystroke
 
 | Visitor | Current path |

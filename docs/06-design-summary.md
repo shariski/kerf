@@ -44,12 +44,13 @@ Full token list: see `04-design-system.md`.
 
 ## Information Architecture (Locked)
 
-7 top-level routes:
+Core routes:
 
 ```
-/                    → Home (lobby for logged-in, landing for visitors)
+/                    → Home for logged-in users; visitors redirect to /welcome
+/welcome             → Compact public entry
 /login               → Magic link + GitHub + Google OAuth
-/onboarding          → 3-step first-time setup
+/onboarding          → 4-step first-time setup
 /practice            → Heart of product (adaptive mode default)
 /practice/drill      → Drill submode (with preset modes: inner column, thumb cluster, cross-hand bigrams)
 /dashboard           → Stats, heatmap, weakness ranking, insights, split-specific metrics
@@ -58,6 +59,8 @@ Full token list: see `04-design-system.md`.
 ```
 
 Navigation: top nav bar (48px), auto-hide during active typing on /practice, always visible elsewhere.
+
+**October 2026 usability revision:** `/welcome` is a one-screen public entry with one primary Start typing CTA and optional reading links. The Home quick-start CTA enters active typing directly; the target stays visible in the focus ribbon. Choosing practice from the mode picker still shows a briefing. Public entry, login, and reading pages work on narrow screens; keyboard-dependent routes retain the mobile gate. Existing color, typography, spacing, and button tokens are unchanged.
 
 Full spec: see `05-information-architecture.md`.
 
@@ -109,9 +112,9 @@ See 01-product-spec.md §6.2 for full guidelines.
 
 1. Greeting
 2. Active keyboard pill + phase badge
-3. Hero CTA grid: primary "Continue adaptive practice" + secondary "Drill weakness"
+3. Hero CTA grid: primary "Start typing" (direct quick start) + secondary "Drill weakness"
 4. Last session card (when, WPM, accuracy, time, click → dashboard)
-5. Activity strip (30-day grid + streak count)
+5. Activity strip (30-day grid + practice-day count)
 6. Weakness strip (3 amber pills + context line)
 
 **Zero data state**:
@@ -153,7 +156,9 @@ Wireframe: `design/login-wireframe.html`
 
 **Maps to transition_phase**: first_day + few_weeks → `transitioning`; comfortable → `refining`.
 
-**Landing**: return arrow icon, setup summary, 3s auto-redirect to `/practice` with curated first-session exercise.
+**Step 4 — Finger assignment**: conventional, columnar, or unsure (default).
+
+After saving, navigate directly to `/practice` with the curated first-session CTA. The intermediate summary screen is removed.
 
 Wireframe: `design/onboarding-wireframe.html`
 
@@ -165,7 +170,7 @@ Wireframe: `design/onboarding-wireframe.html`
 
 - Keyboard context + phase badge
 - Primary CTA with columnar-aware engine preview
-- 3 mode cards: Drill weakness / Inner column / Warm up
+- 2 available mode cards: Drill weakness / Practice inner keys
 - Collapsible filters (hand isolation, max length, visual keyboard)
 
 **State 2 — Active typing**:
@@ -190,7 +195,7 @@ Wireframe: `design/onboarding-wireframe.html`
 - Complete badge + title (context-aware based on accuracy/speed outcome)
 - **Stats: accuracy FIRST (featured), speed second, time third** — ordering reflects value
 - **Error review section**: full exercise text with error chars highlighted, hover tooltip, pattern analysis below
-- Weakness shifts (improved + emergent)
+- Observed patterns from this session only; no unmeasured improvement claim
 - Insight callout (amber, plain-language)
 - Actions: Practice again / Drill [specific weakness] / View dashboard
 

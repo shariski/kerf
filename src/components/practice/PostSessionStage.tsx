@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import type { EmergentWeakness, ErrorPosition, SessionSummary } from "#/domain/session/summarize";
-import type { PatternDetection } from "#/domain/insight/types";
+import { useEffect, useRef, useState } from "react";
 import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import type { PatternDetection } from "#/domain/insight/types";
+import type { EmergentWeakness, ErrorPosition, SessionSummary } from "#/domain/session/summarize";
 import { IntentEchoBlock } from "./IntentEchoBlock";
 
 /**
@@ -13,9 +13,8 @@ import { IntentEchoBlock } from "./IntentEchoBlock";
  * `summarizeSession` (pure domain) and `pickSummaryTitle` (pure copy).
  * The route passes in ready-to-render values.
  *
- * Phase 2 constraint still active: session history lands in Phase 3, so
- * the "improved" column in weakness shifts shows a muted placeholder
- * instead of real deltas.
+ * Only measured results are shown; historical improvement is not inferred
+ * from a single session.
  */
 
 type Props = {
@@ -147,26 +146,16 @@ export function PostSessionStage({
         <ErrorPatterns patterns={patterns} uniqueErrorCount={uniqueErrorCount} />
       </div>
 
-      <div className="kerf-post-section-label">Weakness shifts this session</div>
-      <div className="kerf-weakness-shifts">
-        <div className="kerf-shift-group improved">
-          <div className="kerf-shift-group-title">
-            <span aria-hidden="true">✓</span>
-            <span>improved</span>
+      {emergentWeaknesses.length > 0 && (
+        <>
+          <div className="kerf-post-section-label">Worth watching</div>
+          <div className="kerf-weakness-shifts">
+            <div className="kerf-shift-group emergent">
+              <EmergentList items={emergentWeaknesses} />
+            </div>
           </div>
-          <p className="kerf-shift-empty">
-            Session history arrives in a future update — improvements will surface once this isn't
-            your first rep on record.
-          </p>
-        </div>
-        <div className="kerf-shift-group emergent">
-          <div className="kerf-shift-group-title">
-            <span aria-hidden="true">⚠</span>
-            <span>watch this</span>
-          </div>
-          <EmergentList items={emergentWeaknesses} />
-        </div>
-      </div>
+        </>
+      )}
 
       <div className="kerf-insight">
         <div className="kerf-insight-label">What the engine noticed</div>
@@ -317,9 +306,6 @@ function ErrorPatterns({
 }
 
 function EmergentList({ items }: { items: readonly EmergentWeakness[] }) {
-  if (items.length === 0) {
-    return <p className="kerf-shift-empty">Nothing noteworthy surfaced this session.</p>;
-  }
   return (
     <>
       {items.map((w) => (

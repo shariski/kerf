@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
-import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("#/lib/require-auth", () => ({
   getAuthSession: vi.fn(),
@@ -36,30 +37,18 @@ afterEach(() => {
 });
 
 describe("WelcomePage", () => {
-  it("renders the H1 with the brand line", () => {
+  it("renders one short entry message", () => {
     render(<WelcomePage />);
     const h1 = screen.getByRole("heading", { level: 1 });
-    expect(h1.textContent).toMatch(/typing practice that adapts to your split keyboard/i);
+    expect(h1.textContent).toMatch(/build accuracy on your split keyboard/i);
+    expect(screen.queryByRole("heading", { level: 2 })).toBeNull();
   });
 
-  it("renders all four mid-page section headings", () => {
+  it("offers one clear start action with the sign-in step named", () => {
     render(<WelcomePage />);
-    expect(
-      screen.getByRole("heading", { level: 2, name: /why split keyboards are hard at first/i }),
-    ).toBeTruthy();
-    expect(screen.getByRole("heading", { level: 2, name: /how kerf adapts/i })).toBeTruthy();
-    expect(
-      screen.getByRole("heading", { level: 2, name: /built for these keyboards/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("heading", { level: 2, name: /what a session looks like/i }),
-    ).toBeTruthy();
-  });
-
-  it("links the primary CTA to /login", () => {
-    render(<WelcomePage />);
-    const primary = screen.getAllByRole("link", { name: /start practicing/i })[0];
+    const primary = screen.getByRole("link", { name: /start typing/i });
     expect(primary?.getAttribute("href")).toBe("/login");
+    expect(primary?.textContent).toMatch(/sign in or create your account/i);
   });
 
   it("links to the deep content routes", () => {
@@ -67,7 +56,7 @@ describe("WelcomePage", () => {
     const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
     expect(hrefs).toContain("/why-split-is-hard");
     expect(hrefs).toContain("/how-it-works");
-    expect(hrefs).toContain("/keyboards");
+    expect(hrefs).not.toContain("/keyboards");
   });
 
   it("mentions Sofle and Lily58 by name (long-tail keyword density)", () => {

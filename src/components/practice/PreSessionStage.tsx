@@ -5,8 +5,7 @@
  *   - Keyboard context pill + transition phase badge (top row)
  *   - Title + subtitle ("What will you practice?" / "Accuracy first…")
  *   - Primary CTA (Enter key shortcut) → fires generateExercise + dispatch start
- *   - Secondary mode cards (Drill / Inner column / Warm up) — disabled for
- *     Task 2.4; they unlock in Tasks 2.6+
+ *   - Secondary mode cards for focused drills
  *   - Collapsible filters panel
  *
  * Cold-start copy: until session history is persisted (Phase 3), the CTA
@@ -19,8 +18,8 @@ import { useEffect } from "react";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
 import type { KeyboardType } from "#/server/profile";
 import { KeyboardContextPill } from "./KeyboardContextPill";
-import { PhaseBadge } from "./PhaseBadge";
 import { ModeCard } from "./ModeCard";
+import { PhaseBadge } from "./PhaseBadge";
 import { PreSessionFilters, type PreSessionFilterValues } from "./PreSessionFilters";
 
 type Props = {
@@ -137,15 +136,9 @@ export function PreSessionStage({
             />
             <ModeCard
               icon="⬌"
-              name="Inner column"
-              description="Focus drill on B, G, H, N, T, Y — classic split pain points"
+              name="Practice inner keys"
+              description="Focus on B, G, H, N, T, and Y"
               onSelect={onDrillInnerColumn}
-            />
-            <ModeCard
-              icon="◷"
-              name="Warm up"
-              description="Comfortable pace, no evaluation tracking"
-              disabled
             />
           </div>
 

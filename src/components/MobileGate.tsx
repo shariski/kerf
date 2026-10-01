@@ -1,16 +1,17 @@
 /**
  * Mobile gate — Task 4.3.
  *
- * Rendered as a sibling of the app tree in __root.tsx; a CSS media
- * query at max-width: 767px hides the app and shows this gate. No
- * props, no state, no interactivity — kerf is a split-keyboard
- * practice platform and a touch screen literally cannot host the
- * product. Firm and respectful per CLAUDE.md §B3 accuracy-first tone.
+ * Shown on narrow screens for keyboard-dependent app routes. Public
+ * entry, login, and reading pages remain available on phones.
  */
 
-export function MobileGate() {
+export function MobileGate({ visible = true }: { visible?: boolean }) {
   return (
-    <main className="kerf-mobile-gate" aria-labelledby="kerf-mobile-gate-headline">
+    <main
+      className="kerf-mobile-gate"
+      data-visible={visible || undefined}
+      aria-labelledby="kerf-mobile-gate-headline"
+    >
       <div className="kerf-mobile-gate-inner">
         <div className="kerf-mobile-gate-logo" aria-hidden>
           kerf<span className="kerf-mobile-gate-logo-accent">.</span>

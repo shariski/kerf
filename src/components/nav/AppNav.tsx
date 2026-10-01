@@ -11,10 +11,7 @@ import { useNavAutoHide } from "#/hooks/useNavAutoHide";
  * to a later task — this component renders the chrome; the hide/show
  * timing lives alongside the keystroke capture logic.
  *
- * The avatar is visual-only for now; the user-menu dropdown (sign out,
- * account) lands in Phase 3. Settings was originally reached via a cog
- * icon in the right-hand cluster, but discoverability of a small icon
- * proved poor in practice, so it was promoted to a top-level link.
+ * Settings is a top-level link so account controls remain discoverable.
  */
 
 const NAV_LINKS = [
@@ -54,10 +51,6 @@ export function AppNav() {
           );
         })}
       </nav>
-
-      <div className="kerf-nav-right">
-        <span className="kerf-nav-avatar">U</span>
-      </div>
     </header>
   );
 }

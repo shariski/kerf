@@ -6,43 +6,43 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AppFooter } from "#/components/nav/AppFooter";
+import {
+  ActiveSessionStage,
+  PauseOverlay,
+  type PauseSettings,
+  PostSessionStage,
+  type PreSessionFilterValues,
+  PreSessionStage,
+  SessionBriefing,
+  TargetRibbon,
+} from "#/components/practice";
+import { DRILL_LIBRARY } from "#/domain/adaptive/drillLibraryData";
+import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
+import { generateSession } from "#/domain/adaptive/sessionGenerator";
+import type { SessionTarget } from "#/domain/adaptive/targetSelection";
+import { RECENCY_WINDOW, rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
+import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
+import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
+import { summarizeSession } from "#/domain/session/summarize";
+import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
+import { useCorpus } from "#/hooks/useCorpus";
+import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
+import { useOtherTabActive } from "#/hooks/useOtherTabActive";
+import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
 import { getAuthSession } from "#/lib/require-auth";
 import { noindexHead } from "#/lib/seo-head";
 import {
-  getActiveProfile,
-  getEngineStatsAndBaseline,
-  getCompletedSessionCountOnActiveProfile,
-  getRecentSessionTargetsOnActiveProfile,
-  type EngineStatsAndBaseline,
-  type KeyboardType,
   type DominantHand,
+  type EngineStatsAndBaseline,
+  getActiveProfile,
+  getCompletedSessionCountOnActiveProfile,
+  getEngineStatsAndBaseline,
+  getRecentSessionTargetsOnActiveProfile,
+  type KeyboardType,
 } from "#/server/profile";
-import type { TransitionPhase } from "#/domain/profile/initialPhase";
-import {
-  PreSessionStage,
-  ActiveSessionStage,
-  PauseOverlay,
-  PostSessionStage,
-  SessionBriefing,
-  TargetRibbon,
-  type PauseSettings,
-  type PreSessionFilterValues,
-} from "#/components/practice";
-import { useSessionStore, sessionStore } from "#/stores/sessionStore";
-import { useIdleAutoPause } from "#/hooks/useIdleAutoPause";
-import { useCorpus } from "#/hooks/useCorpus";
-import { summarizeSession } from "#/domain/session/summarize";
-import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
-import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
-import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSessionWithRetry";
-import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
-import { useOtherTabActive } from "#/hooks/useOtherTabActive";
-import { AppFooter } from "#/components/nav/AppFooter";
-import { generateSession } from "#/domain/adaptive/sessionGenerator";
-import type { SessionOutput } from "#/domain/adaptive/sessionGenerator";
-import { RECENCY_WINDOW, rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
-import type { SessionTarget } from "#/domain/adaptive/targetSelection";
-import { DRILL_LIBRARY } from "#/domain/adaptive/drillLibraryData";
+import { sessionStore, useSessionStore } from "#/stores/sessionStore";
 
 /**
  * Drizzle types the profile columns as `string` (the schema uses `text()`
@@ -58,9 +58,9 @@ type LoadedProfile = {
 };
 
 /**
- * `/practice?autostart=1` skips the pre-session stage and drops the
+ * `/practice?autostart=1` skips the picker and briefing, dropping the
  * user straight into active typing. Home's hero CTAs use this so the
- * commit-to-practice step only happens once. The param is cleared
+ * commitment to practice happens once. The param is cleared
  * with `replace: true` immediately after firing so a refresh (or
  * back/forward) won't re-auto-start a session the user has since
  * ended or completed.
@@ -180,7 +180,7 @@ function PracticePage() {
 
   const useDiagnostic = isFirstSession && !diagnosticConsumedRef.current;
 
-  const generateSessionAndShowBriefing = () => {
+  const generateSessionAndShowBriefing = (quickStart = false) => {
     // First-session gate — serve the curated diagnostic target in place
     // of adaptive sampling, so the first DB row is a comparable baseline
     // (Task 4.1). Adaptive sampling on an empty weakness profile is just
@@ -255,11 +255,21 @@ function PracticePage() {
 
     briefingShownAtRef.current = new Date();
     sessionModeRef.current = "adaptive";
+    if (quickStart) {
+      currentSessionTargetRef.current = output.target;
+      sessionStore.getState().dispatch({
+        type: "start",
+        target: output.exercise,
+        now: performance.now(),
+        targetKeys: output.target.keys,
+      });
+      return;
+    }
     setPendingSession(output);
   };
 
   // Kept for post-session Enter shortcut and post-complete keyboard handler.
-  const startAdaptive = generateSessionAndShowBriefing;
+  const startAdaptive = () => generateSessionAndShowBriefing();
 
   const restartSameExercise = () => {
     if (!currentTarget) return;
@@ -278,19 +288,21 @@ function PracticePage() {
   // exactly once: the effect immediately clears the param via
   // `replace: true`, so on the subsequent render autostart is falsy and
   // a real "end session → back to pre-session" transition won't retrigger.
-  // With the new briefing flow, autostart still shows the briefing — it just
-  // skips the PreSessionStage click and goes straight to the SessionBriefing.
+  // The target remains visible in the active TargetRibbon without a second
+  // confirmation screen. The ordinary /practice CTA still shows briefing.
   // We read generateSessionAndShowBriefing through a ref so we don't have to
   // thread its (transitively state-dependent) closure into the effect deps.
   const generateSessionRef = useRef(generateSessionAndShowBriefing);
   generateSessionRef.current = generateSessionAndShowBriefing;
+  const skipSearchClearResetRef = useRef(false);
   useEffect(() => {
     if (!search.autostart) return;
     if (status !== "idle") return;
     if (pendingSession !== null) return;
     // Diagnostic doesn't need the corpus; adaptive does. Wait for it.
     if (!useDiagnostic && corpus.status !== "ready") return;
-    generateSessionRef.current();
+    generateSessionRef.current(true);
+    skipSearchClearResetRef.current = true;
     void navigate({ to: "/practice", search: {}, replace: true });
   }, [search.autostart, status, pendingSession, useDiagnostic, corpus.status, navigate]);
 
@@ -413,6 +425,10 @@ function PracticePage() {
   useEffect(() => {
     if (pathname !== "/practice") return;
     if (search.autostart) return;
+    if (skipSearchClearResetRef.current) {
+      skipSearchClearResetRef.current = false;
+      return;
+    }
     setPendingSession(null);
     setPaused(false);
     setAwaitingCorpus(false);
@@ -779,6 +795,18 @@ function PracticePage() {
     );
   }
 
+  if (search.autostart && !useDiagnostic && corpus.status === "loading") {
+    return (
+      <main id="main-content" className="kerf-practice-main">
+        <div className="kerf-practice-container kerf-stage-fade-in">
+          <p className="kerf-pre-subtitle" role="status" aria-live="polite">
+            Preparing your practice session…
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <>
       <main id="main-content" className="kerf-practice-main">
@@ -788,7 +816,7 @@ function PracticePage() {
             phase={profile.transitionPhase}
             filterValues={filters}
             onFilterChange={setFilters}
-            onStartAdaptive={generateSessionAndShowBriefing}
+            onStartAdaptive={startAdaptive}
             onDrillWeakness={() => navigate({ to: "/practice/drill", search: {} })}
             onDrillInnerColumn={() =>
               navigate({
