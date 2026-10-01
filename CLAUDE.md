@@ -208,17 +208,17 @@ The developer (solo, part-time) has already pushed back against multiple over-en
 
 ## B11. Versioning and CHANGELOG
 
-kerf follows [Semantic Versioning](https://semver.org/) and tracks notable changes in `CHANGELOG.md` per the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) convention. Releases are git-tagged as `vX.Y.Z`.
+kerf follows [Semantic Versioning](https://semver.org/) and tracks notable changes in `CHANGELOG.md` per the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) convention. The operational workflow is in [`docs/RELEASING.md`](docs/RELEASING.md). Follow it for every production PR.
 
 **Rules:**
 
 - `package.json` `version` is the single source of truth.
-- Notable changes go in `CHANGELOG.md` under `## [Unreleased]` **as part of the PR that ships them**, not in a follow-up commit. Subsections: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
-- At release time: move `[Unreleased]` entries under a new `## [X.Y.Z] - YYYY-MM-DD` heading, bump `package.json` `version`, commit, then tag (`git tag vX.Y.Z && git push origin vX.Y.Z`).
-- Pre-1.0 (`0.x.y`): pre-public-launch. UX, data, and APIs may change without notice.
-- `1.0.0`: first public launch.
-- Post-1.0: MAJOR for breaking changes (rare for a SaaS — reserve for user-data shape changes), MINOR for new features or notable additions, PATCH for fixes and copy/UI tweaks.
-- Trivial chores (typo fixes, whitespace, dependency bumps that don't affect behavior) do not need a CHANGELOG entry. Use judgment — if a future user would want to know about it, log it.
+- Notable changes go in `CHANGELOG.md` **as part of the PR that ships them**, not in a follow-up commit. Subsections: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- Because every non-documentation push to `main` deploys to production, each such PR must bump `package.json` and move its notes from `[Unreleased]` under a dated `## [X.Y.Z] - YYYY-MM-DD` heading before merge. CI checks the version increase and changelog match.
+- Pre-1.0 (`0.x.y`): public beta. UX, data, and APIs may change; `1.0.0` is the stable product milestone.
+- In public beta, MINOR is for new features or meaningful flow changes, PATCH for fixes and small UI/copy changes. After 1.0, MAJOR is for breaking changes.
+- Deploy success triggers the `vX.Y.Z` tag and GitHub Release automatically. Do not tag an unmerged branch or a failed deploy.
+- Documentation-only changes do not deploy and need no bump. Other changes need at least a patch bump because they produce a new production build; summarize operational changes briefly if they have no user-facing effect.
 - If unsure whether a change is notable, **ask**. Better to over-include than to retroactively backfill.
 
 **Why this exists:** the changelog is the release-notes draft and audit trail. Without it, "what shipped in 1.2.0" requires re-reading commit messages and PR descriptions — fine for the dev who lived through it, opaque for everyone else. Keeping the entry inline with the PR (not as a follow-up commit) avoids the same lying-checklist problem the prior version of §B11 (`README ## Status` checkbox flipping) was trying to prevent before that section was retired.
@@ -262,7 +262,7 @@ The repo uses **pnpm** as its package manager. `pnpm-lock.yaml` is committed; `p
 4. Implement the minimum to pass tests.
 5. Run `biome format --write` on touched files and confirm `biome lint` delta vs main is ≈0 — see §B12.
 6. Report diff, test results, lint + format status, and any assumptions you made.
-7. Add a CHANGELOG entry under `## [Unreleased]` if the change is notable — see §B11.
+7. Prepare the version bump and dated CHANGELOG release section before a production PR merges — see §B11 and `docs/RELEASING.md`.
 8. Wait for developer review before moving to next task.
 
 ---

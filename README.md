@@ -60,11 +60,11 @@ The repo's working conventions live in [CLAUDE.md](./CLAUDE.md). The file was or
 
 kerf follows [Semantic Versioning](https://semver.org/) and tracks notable changes in [CHANGELOG.md](./CHANGELOG.md) per the [Keep a Changelog](https://keepachangelog.com/) convention.
 
-- Pre-1.0 (`0.x.y`): pre-public-launch. UX, data shapes, and APIs may change without notice.
-- `1.0.0` will mark the first public launch.
-- Post-1.0: MAJOR for breaking changes, MINOR for new features, PATCH for fixes and copy/UI tweaks.
+- Pre-1.0 (`0.x.y`): public beta. UX, data shapes, and APIs may still change.
+- `1.0.0` will mark the stable product milestone.
+- Before and after 1.0: MINOR for new features or meaningful flow changes; PATCH for fixes and small UI/copy changes. MAJOR is reserved for breaking changes after 1.0.
 
-Releases are git-tagged as `vX.Y.Z`.
+Every production build shows `vX.Y.Z` in the app footer. CI tracks the exact deployed commit using the image tag and GitHub Actions history. Releases are git-tagged as `vX.Y.Z` after a successful deploy. See [the release workflow](./docs/RELEASING.md) for the steps agents and contributors follow.
 
 ## License
 
