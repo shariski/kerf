@@ -23,6 +23,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 import { AppFooter } from "./AppFooter";
+import { version } from "../../../package.json";
 
 afterEach(() => cleanup());
 
@@ -60,9 +61,15 @@ describe("AppFooter", () => {
     expect(screen.getAllByRole("link")).toHaveLength(7);
   });
 
-  it("renders 6 separators between 7 links", () => {
+  it("shows the build version without adding a navigation link", () => {
+    render(<AppFooter />);
+    expect(screen.getByText(`v${version}`)).toBeTruthy();
+    expect(screen.getAllByRole("link")).toHaveLength(7);
+  });
+
+  it("renders 7 separators between 7 links and the build version", () => {
     const { container } = render(<AppFooter />);
     const separators = container.querySelectorAll(".kerf-app-footer-sep");
-    expect(separators).toHaveLength(6);
+    expect(separators).toHaveLength(7);
   });
 });

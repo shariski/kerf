@@ -14,6 +14,7 @@
  */
 
 import { Link } from "@tanstack/react-router";
+import { version } from "../../../package.json";
 
 const LINKS = [
   { kind: "internal", to: "/how-it-works", label: "how it works" },
@@ -53,6 +54,12 @@ export function AppFooter() {
             )}
           </span>
         ))}
+        <span className="kerf-app-footer-cell">
+          <span className="kerf-app-footer-sep" aria-hidden>
+            ·
+          </span>
+          <span>v{version}</span>
+        </span>
       </div>
     </footer>
   );

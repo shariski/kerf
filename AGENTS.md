@@ -1,4 +1,9 @@
 <!-- code-review-graph MCP tools -->
+
+## Production release rule
+
+For every PR to `main` that changes anything beyond Markdown documentation, follow [docs/RELEASING.md](docs/RELEASING.md). Bump the single version in `package.json`, add a dated matching section to `CHANGELOG.md`, and run `node scripts/release.mjs check --base origin/main` before opening the PR. Production shows the version in the footer; the image tag and Actions history retain the exact commit internally. CI publishes the `vX.Y.Z` tag and GitHub Release only after deployment succeeds. Never tag a branch or failed deploy. Markdown-only PRs do not trigger production deployment.
+
 ## MCP Tools: code-review-graph
 
 **IMPORTANT: This project has a knowledge graph. ALWAYS use the

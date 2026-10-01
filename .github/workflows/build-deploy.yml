@@ -19,6 +19,8 @@ name: build and deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**/*.md"
   workflow_dispatch:
 
 # Never run two deploys concurrently. Queue them so a fast-follow push
@@ -40,6 +42,36 @@ jobs:
       image_tag: ${{ steps.meta.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: check release version and changelog
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = push ] && [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            node scripts/release.mjs check --base "$BEFORE_SHA"
+          else
+            node scripts/release.mjs check
+          fi
+          version=$(node scripts/release.mjs version)
+          set +e
+          tag_ref=$(git ls-remote --exit-code --tags origin "refs/tags/v${version}")
+          tag_status=$?
+          set -e
+          if [ "$tag_status" -ne 0 ] && [ "$tag_status" -ne 2 ]; then
+            echo "Could not check whether v${version} is already tagged" >&2
+            exit "$tag_status"
+          fi
+          if [ -n "$tag_ref" ]; then
+            git fetch --quiet origin "refs/tags/v${version}:refs/tags/v${version}"
+            if [ "$(git rev-list -n 1 "v${version}")" != "$GITHUB_SHA" ]; then
+              echo "v${version} already tags a different commit" >&2
+              exit 1
+            fi
+          fi
 
       # Use env-var indirection rather than expanding ${{ github.sha }}
       # directly into the shell. Safe-by-default pattern even though
@@ -147,3 +179,24 @@ jobs:
             # tag we care about is referenced by the running container
             # or by GHCR.
             docker image prune -f
+
+  release:
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: publish release for the deployed commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(node scripts/release.mjs version)
+          tag="v${version}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag already has a release"
+            exit 0
+          fi
+          node scripts/release.mjs notes > release-notes.md
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --notes-file release-notes.md

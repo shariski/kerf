@@ -1,0 +1,21 @@
+name: check release
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: check release version and changelog
+        run: |
+          git fetch --quiet origin main:refs/remotes/origin/main
+          node scripts/release.mjs check --base origin/main

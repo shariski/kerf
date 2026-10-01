@@ -4,8 +4,13 @@ All notable changes to kerf are documented here. Format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-01
+
+Production baseline for the public beta. Earlier entries in this section were already deployed before release numbers were shown in the app; this release establishes the first traceable production version.
+
 ### Added
 
+- A small app version in the footer. Production deploys now require a new version and changelog section, then publish a GitHub Release after a successful deploy.
 - `src/server/env.ts` — boot-time validation for `AUTH_SECRET`, `AUTH_URL`, and `DATABASE_URL`. Production now refuses to start if any is unset or empty rather than silently falling back to a dev default. Dev/test still falls back with a console warning so first-run setup is frictionless. ([#73](https://github.com/shariski/kerf/pull/73))
 - Magic-link send rate limiting — 3 per IP per minute via Better Auth `customRules`, matching the convention for paid email-sending endpoints. OAuth bounces capped at 10/min/IP. ([#73](https://github.com/shariski/kerf/pull/73))
 - `GET /api/health` — liveness probe for reverse proxies and orchestrators. Returns `{"ok":true}`; intentionally static (no DB ping) so Postgres hiccups don't flap the upstream off.
@@ -96,5 +101,6 @@ Initial pre-public-launch version. Captures the MVP feature set built across Pha
 - **Mobile gate** at viewports below 768px (desktop/tablet only for MVP).
 - **Accessibility.** WCAG 2.1 AA via `@axe-core/playwright` sweep across 8 routes/states; global `:focus-visible` amber ring; skip-to-main-content link.
 
-[Unreleased]: https://github.com/shariski/kerf/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/shariski/kerf/releases/tag/v0.1.0
+[Unreleased]: https://github.com/shariski/kerf/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/shariski/kerf/releases/tag/v0.2.0
+[0.1.0]: https://github.com/shariski/kerf/tree/74da310
