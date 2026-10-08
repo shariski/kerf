@@ -32,6 +32,8 @@ type Props = {
   onDrillWeakness: () => void;
   /** Shortcut to /practice/drill?preset=innerColumn. */
   onDrillInnerColumn: () => void;
+  /** Opens the optional code typing mode. */
+  onPracticeCode: () => void;
   /**
    * True on first-ever session for this profile — swaps in curated
    * diagnostic copy and hides the drill cards + filters, which assume
@@ -65,6 +67,7 @@ export function PreSessionStage({
   onStartAdaptive,
   onDrillWeakness,
   onDrillInnerColumn,
+  onPracticeCode,
   isFirstSession = false,
   awaitingCorpus = false,
 }: Props) {
@@ -139,6 +142,12 @@ export function PreSessionStage({
               name="Practice inner keys"
               description="Focus on B, G, H, N, T, and Y"
               onSelect={onDrillInnerColumn}
+            />
+            <ModeCard
+              icon="{ }"
+              name="Practice code"
+              description="Apply your typing skills to code examples"
+              onSelect={onPracticeCode}
             />
           </div>
 

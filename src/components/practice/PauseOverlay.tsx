@@ -19,6 +19,8 @@
  */
 
 import { useEffect, useRef } from "react";
+import { KEYBOARD_FOCUS_OPTIONS, type KeyboardFocus } from "#/domain/practice/plan";
+import { KerfSelect } from "./KerfSelect";
 
 export type PauseSettings = {
   typingSize: "S" | "M" | "L" | "XL";
@@ -37,12 +39,24 @@ export type PauseSettings = {
 type Props = {
   settings: PauseSettings;
   onSettingsChange: (next: PauseSettings) => void;
+  focusChoice?: "current" | "recommended" | KeyboardFocus;
+  currentFocusLabel?: string;
+  onFocusChoiceChange?: (next: "current" | "recommended" | KeyboardFocus) => void;
   onResume: () => void;
   onRestart: () => void;
   onEnd: () => void;
 };
 
-export function PauseOverlay({ settings, onSettingsChange, onResume, onRestart, onEnd }: Props) {
+export function PauseOverlay({
+  settings,
+  onSettingsChange,
+  focusChoice,
+  currentFocusLabel,
+  onFocusChoiceChange,
+  onResume,
+  onRestart,
+  onEnd,
+}: Props) {
   const resumeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -58,10 +72,25 @@ export function PauseOverlay({ settings, onSettingsChange, onResume, onRestart, 
         <div className="kerf-pause-label">paused</div>
         <h2 className="kerf-pause-title">Take a breath.</h2>
         <p className="kerf-pause-subtitle">
-          Accuracy improves when you slow down. Adjust settings below or resume when ready.
+          Adjust this session. Changes apply when you resume or press Esc again.
         </p>
 
         <div className="kerf-pause-settings">
+          {focusChoice && onFocusChoiceChange && (
+            <SettingRow label="Focus" description="changing focus starts a fresh exercise">
+              <KerfSelect
+                className="kerf-pause-focus-select"
+                label="Focus"
+                value={focusChoice}
+                onChange={onFocusChoiceChange}
+                options={[
+                  { value: "current", label: `Keep current · ${currentFocusLabel ?? "exercise"}` },
+                  { value: "recommended", label: "Recommended next focus" },
+                  ...KEYBOARD_FOCUS_OPTIONS.map((item) => ({ value: item.id, label: item.label })),
+                ]}
+              />
+            </SettingRow>
+          )}
           <SettingRow label="Typing text size" description="larger = easier on the eyes">
             {(["S", "M", "L", "XL"] as const).map((s) => (
               <PillOption

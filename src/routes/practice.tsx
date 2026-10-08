@@ -6,7 +6,6 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AppFooter } from "#/components/nav/AppFooter";
 import {
   ActiveSessionStage,
   PauseOverlay,
@@ -23,6 +22,7 @@ import { generateSession } from "#/domain/adaptive/sessionGenerator";
 import type { SessionTarget } from "#/domain/adaptive/targetSelection";
 import { RECENCY_WINDOW, rankTargets, selectTarget } from "#/domain/adaptive/targetSelection";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import type { KeyboardFocus } from "#/domain/practice/plan";
 import { getFirstSessionTarget } from "#/domain/session/firstSessionExercise";
 import { pickSummaryTitle } from "#/domain/session/pickSummaryTitle";
 import { summarizeSession } from "#/domain/session/summarize";
@@ -140,6 +140,11 @@ function PracticePage() {
   const [filters, setFilters] = useState<PreSessionFilterValues>(DEFAULT_FILTERS);
   const [paused, setPaused] = useState(false);
   const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
+  const [pauseDraftSettings, setPauseDraftSettings] =
+    useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
+  const [pauseFocusChoice, setPauseFocusChoice] = useState<
+    "current" | "recommended" | KeyboardFocus
+  >("current");
   // True once the user has fired the "Continue adaptive practice" CTA
   // (click or Enter) while `corpus.status !== "ready"`. Without this,
   // the early-return in `generateSessionAndShowBriefing` would silently
@@ -284,6 +289,41 @@ function PracticePage() {
     setPaused(false);
   };
 
+  const openSessionOptions = () => {
+    setPauseDraftSettings(pauseSettings);
+    setPauseFocusChoice("current");
+    if (sessionStore.getState().status === "active") {
+      sessionStore.getState().dispatch({ type: "pause", now: performance.now() });
+    }
+    setPaused(true);
+  };
+
+  const resumeSessionOptions = () => {
+    setPauseSettings(pauseDraftSettings);
+    setFilters((current) => ({ ...current, showKeyboard: pauseDraftSettings.showKeyboard }));
+    setPaused(false);
+    if (pauseFocusChoice !== "current") {
+      sessionStore.getState().dispatch({ type: "reset" });
+      if (pauseFocusChoice === "recommended") {
+        generateSessionAndShowBriefing(true);
+      } else {
+        void navigate({
+          to: "/practice/drill",
+          search: { preset: pauseFocusChoice, autostart: true },
+        });
+      }
+      return;
+    }
+    if (sessionStore.getState().status === "paused") {
+      sessionStore.getState().dispatch({ type: "resume", now: performance.now() });
+    }
+  };
+
+  const openSessionOptionsRef = useRef(openSessionOptions);
+  const resumeSessionOptionsRef = useRef(resumeSessionOptions);
+  openSessionOptionsRef.current = openSessionOptions;
+  resumeSessionOptionsRef.current = resumeSessionOptions;
+
   // Auto-start when arriving with `?autostart=1` (Home hero CTAs). Fires
   // exactly once: the effect immediately clears the param via
   // `replace: true`, so on the subsequent render autostart is falsy and
@@ -321,44 +361,19 @@ function PracticePage() {
     generateSessionRef.current();
   }, [awaitingCorpus, corpus.status, status, pendingSession]);
 
-  // Esc toggles the manual pause overlay during a live session. We
-  // listen while active *or* paused — the latter because idle auto-
-  // pause may have flipped the store into "paused" without the overlay
-  // being open, and Esc should still escalate that into the overlay.
-  //
-  // Clock state is reducer-managed: opening the overlay dispatches a
-  // `pause` (freezing the clock if it wasn't frozen already); resuming
-  // dispatches `resume`. This is what makes Esc pause actually freeze
-  // the timer — previously it only unbound keystroke capture and
-  // WPM/elapsed kept ticking on wall time.
+  // Esc opens options; a second Esc applies staged choices and resumes.
   useEffect(() => {
     if (status !== "active" && status !== "paused") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       e.preventDefault();
-      setPaused((prev) => {
-        const next = !prev;
-        const state = sessionStore.getState();
-        if (next) {
-          // Opening overlay. Dispatch pause only if not already paused
-          // (idle auto-pause may have already done it for us).
-          if (state.status === "active") {
-            state.dispatch({ type: "pause", now: performance.now() });
-          }
-        } else {
-          // Closing overlay. Explicit resume — capture is gated off
-          // while paused, so reducer's keypress auto-resume can't fire.
-          if (state.status === "paused") {
-            state.dispatch({ type: "resume", now: performance.now() });
-          }
-        }
-        return next;
-      });
+      if (paused) resumeSessionOptionsRef.current();
+      else openSessionOptionsRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [status]);
+  }, [status, paused]);
 
   // Tab → restart current exercise. Only bound while the session is
   // live and the pause overlay is closed; when the overlay is open,
@@ -711,14 +726,12 @@ function PracticePage() {
         {idleAutoPaused && <IdlePauseChip />}
         {paused && (
           <PauseOverlay
-            settings={pauseSettings}
-            onSettingsChange={setPauseSettings}
-            onResume={() => {
-              if (sessionStore.getState().status === "paused") {
-                sessionStore.getState().dispatch({ type: "resume", now: performance.now() });
-              }
-              setPaused(false);
-            }}
+            settings={pauseDraftSettings}
+            onSettingsChange={setPauseDraftSettings}
+            focusChoice={pauseFocusChoice}
+            currentFocusLabel={activeTarget?.label}
+            onFocusChoiceChange={setPauseFocusChoice}
+            onResume={resumeSessionOptions}
             onRestart={restartSameExercise}
             onEnd={endSession}
           />
@@ -744,19 +757,16 @@ function PracticePage() {
       setPendingSession(null);
     };
     return (
-      <>
-        <main id="main-content" className="kerf-practice-main">
-          <div className="kerf-practice-container kerf-stage-fade-in">
-            <SessionBriefing
-              target={pendingSession.target}
-              briefingText={pendingSession.briefing.text}
-              onStart={handleBriefingStart}
-              onBack={() => setPendingSession(null)}
-            />
-          </div>
-        </main>
-        <AppFooter />
-      </>
+      <main id="main-content" className="kerf-practice-main">
+        <div className="kerf-practice-container kerf-stage-fade-in">
+          <SessionBriefing
+            target={pendingSession.target}
+            briefingText={pendingSession.briefing.text}
+            onStart={handleBriefingStart}
+            onBack={() => setPendingSession(null)}
+          />
+        </div>
+      </main>
     );
   }
 
@@ -776,28 +786,25 @@ function PracticePage() {
     });
     const title = pickSummaryTitle(summary.accuracyPct, profile.transitionPhase);
     return (
-      <>
-        <main id="main-content" className="kerf-practice-main">
-          <div className="kerf-practice-container kerf-stage-fade-in">
-            <PostSessionStage
-              target={state.target}
-              title={title}
-              summary={summary}
-              onPracticeAgain={startAdaptive}
-              sessionTarget={currentSessionTargetRef.current ?? undefined}
-              perKeyBreakdown={perKeyBreakdown}
-              nextTargetPreview={nextTargetPreview}
-            />
-          </div>
-        </main>
-        <AppFooter />
-      </>
+      <main id="main-content" className="kerf-practice-main">
+        <div className="kerf-practice-container kerf-stage-fade-in">
+          <PostSessionStage
+            target={state.target}
+            title={title}
+            summary={summary}
+            onPracticeAgain={startAdaptive}
+            sessionTarget={currentSessionTargetRef.current ?? undefined}
+            perKeyBreakdown={perKeyBreakdown}
+            nextTargetPreview={nextTargetPreview}
+          />
+        </div>
+      </main>
     );
   }
 
   if (search.autostart && !useDiagnostic && corpus.status === "loading") {
     return (
-      <main id="main-content" className="kerf-practice-main">
+      <main id="main-content" className="kerf-practice-main" data-hide-footer>
         <div className="kerf-practice-container kerf-stage-fade-in">
           <p className="kerf-pre-subtitle" role="status" aria-live="polite">
             Preparing your practice session…
@@ -808,40 +815,35 @@ function PracticePage() {
   }
 
   return (
-    <>
-      <main id="main-content" className="kerf-practice-main">
-        <div className="kerf-practice-container kerf-stage-fade-in">
-          <PreSessionStage
-            keyboardType={profile.keyboardType}
-            phase={profile.transitionPhase}
-            filterValues={filters}
-            onFilterChange={setFilters}
-            onStartAdaptive={startAdaptive}
-            onDrillWeakness={() => navigate({ to: "/practice/drill", search: {} })}
-            onDrillInnerColumn={() =>
-              navigate({
-                to: "/practice/drill",
-                search: { preset: "innerColumn" },
-              })
-            }
-            isFirstSession={useDiagnostic}
-            awaitingCorpus={awaitingCorpus && !useDiagnostic}
-          />
-          {otherTabActive && (
-            <p className="kerf-multitab-banner" role="status" aria-live="polite">
-              Another tab has an active practice session. Starting here will save as a separate
-              session alongside it.
-            </p>
-          )}
-          {corpus.status === "error" && (
-            <p className="kerf-corpus-error" role="alert" aria-live="polite">
-              Could not load the word list. Refresh the page to try again.
-            </p>
-          )}
-        </div>
-      </main>
-      <AppFooter />
-    </>
+    <main id="main-content" className="kerf-practice-main">
+      <div className="kerf-practice-container kerf-stage-fade-in">
+        <PreSessionStage
+          keyboardType={profile.keyboardType}
+          phase={profile.transitionPhase}
+          filterValues={filters}
+          onFilterChange={setFilters}
+          onStartAdaptive={startAdaptive}
+          onDrillWeakness={() => navigate({ to: "/practice/drill", search: {} })}
+          onDrillInnerColumn={() =>
+            navigate({ to: "/practice/drill", search: { preset: "innerColumn" } })
+          }
+          onPracticeCode={() => navigate({ to: "/practice/code", search: {} })}
+          isFirstSession={useDiagnostic}
+          awaitingCorpus={awaitingCorpus && !useDiagnostic}
+        />
+        {otherTabActive && (
+          <p className="kerf-multitab-banner" role="status" aria-live="polite">
+            Another tab has an active practice session. Starting here will save as a separate
+            session alongside it.
+          </p>
+        )}
+        {corpus.status === "error" && (
+          <p className="kerf-corpus-error" role="alert" aria-live="polite">
+            Could not load the word list. Refresh the page to try again.
+          </p>
+        )}
+      </div>
+    </main>
   );
 }
 

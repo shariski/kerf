@@ -47,7 +47,6 @@ vi.mock("#/components/practice", () => ({
   TargetRibbon: ({ label }: { label: string }) => <div data-testid="focus-cue">{label}</div>,
 }));
 
-vi.mock("#/components/nav/AppFooter", () => ({ AppFooter: () => null }));
 vi.mock("#/hooks/useCorpus", () => ({
   useCorpus: () =>
     mockRoute.corpusReady

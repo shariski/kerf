@@ -45,16 +45,13 @@ function HomePage() {
 
   // Enter anywhere on Home → go to /practice. Matches the wireframe's
   // "⏎ enter" affordance on the hero CTA and respects the keyboard-first
-  // nature of the tool. Skip when focus is in a text input (none today,
-  // but future-proofs against adding one).
+  // nature of the tool. Interactive controls keep their native Enter action.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Enter") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const tgt = e.target as HTMLElement | null;
-      if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) {
-        return;
-      }
+      if (tgt?.closest("button, a, input, select, textarea, [contenteditable]")) return;
       e.preventDefault();
       void navigate({ to: "/practice", search: { autostart: true } });
     };
@@ -122,7 +119,11 @@ function ReturningState({ home }: { home: HomeData }) {
           Ready to <span className="kerf-home-highlight">practice</span>?
         </h1>
         <p className="kerf-home-greeting-subtitle">
-          Pick up where you left off, or try something different today.
+          Start a new adaptive session, or{" "}
+          <Link to="/practice" search={{}} className="kerf-home-mode-link">
+            choose a practice mode
+          </Link>
+          .
         </p>
       </section>
 
@@ -131,7 +132,7 @@ function ReturningState({ home }: { home: HomeData }) {
       <div className="kerf-home-hero-cta-group">
         <Link to="/practice" search={{ autostart: true }} className="kerf-home-cta-primary">
           <span className="kerf-home-cta-primary-text">
-            <span className="kerf-home-cta-primary-label">Start typing</span>
+            <span className="kerf-home-cta-primary-label">Start adaptive practice</span>
             <span className="kerf-home-cta-primary-meta">{buildFocusLine(home)}</span>
           </span>
           <span className="kerf-home-cta-primary-action" aria-hidden>
@@ -153,7 +154,7 @@ function ReturningState({ home }: { home: HomeData }) {
       {home.lastSession && (
         <section className="kerf-home-preview-section">
           <header className="kerf-home-preview-label">
-            <span>Last session</span>
+            <span>Last keyboard session</span>
             <Link to="/dashboard" className="kerf-home-preview-link">
               view all →
             </Link>

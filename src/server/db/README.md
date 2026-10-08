@@ -4,7 +4,7 @@ PostgreSQL 16 runs in Docker. Follow these steps to get the database running loc
 
 ## Prerequisites
 
-- Docker Desktop installed and running
+- Docker Desktop or Colima installed and running
 - Node.js 22 (`nvm use 22`)
 - `.env` file configured (copy from `.env.example`)
 
@@ -23,6 +23,10 @@ The defaults in `.env.example` work as-is for local development. No changes need
 ```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
+
+If port 5432 is already used, start this container on another host port, for example
+`POSTGRES_PORT=5433 docker compose -f docker-compose.dev.yml up -d`, and set
+`DATABASE_URL` to use port 5433 when migrating and running the app.
 
 Verify it's running:
 ```bash

@@ -1,19 +1,19 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  boolean,
-  timestamp,
-  integer,
-  bigint,
-  real,
-  jsonb,
-  bigserial,
-  index,
-  uniqueIndex,
-  numeric,
-} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import {
+  bigint,
+  bigserial,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  real,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 // ── users ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +69,38 @@ export const sessions = pgTable("sessions", {
   wpm: real("wpm"),
   accuracy: real("accuracy"),
 });
+
+// ── code_practice_sessions ────────────────────────────────────────────────────
+// Kept apart from sessions/character_stats/bigram_stats so code symbols and
+// indentation do not alter the English-word adaptive engine's baseline.
+export const codePracticeSessions = pgTable(
+  "code_practice_sessions",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    keyboardProfileId: uuid("keyboard_profile_id")
+      .notNull()
+      .references(() => keyboardProfiles.id, { onDelete: "cascade" }),
+    corpusVersion: integer("corpus_version").notNull(),
+    snippetId: text("snippet_id").notNull(),
+    language: text("language").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    endedAt: timestamp("ended_at", { withTimezone: true }).notNull(),
+    totalChars: integer("total_chars").notNull(),
+    totalErrors: integer("total_errors").notNull(),
+    wpm: real("wpm").notNull(),
+    accuracy: real("accuracy").notNull(),
+    tabCount: integer("tab_count").notNull().default(0),
+    /** Raw expected/actual events and Tab provenance feed the Code adaptive selector. */
+    events: jsonb("events").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("code_practice_user_profile_date_idx").on(t.userId, t.keyboardProfileId, t.startedAt),
+  ],
+);
 
 // ── session_targets ──────────────────────────────────────────────────────────
 
