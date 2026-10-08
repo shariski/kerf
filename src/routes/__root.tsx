@@ -21,14 +21,6 @@ const MOBILE_READING_PATHS = new Set([
   "/contact",
 ]);
 
-// Routes that manage footer visibility per-stage rather than letting
-// the root render it unconditionally. /practice and /practice/drill
-// (matched via prefix) hide the footer while the user is actively
-// typing and render it inline in pre-/post-session stages. Every other
-// non-chromeless route gets the global footer — including /dashboard,
-// where CSS handles hint-strip clearance.
-const NO_GLOBAL_FOOTER_PATHS = ["/practice"];
-
 import appCss from "../styles.css?url";
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`;
@@ -89,7 +81,6 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const chromeless = CHROMELESS_PATHS.some((p) => pathname.startsWith(p));
-  const noGlobalFooter = chromeless || NO_GLOBAL_FOOTER_PATHS.some((p) => pathname.startsWith(p));
   const mobileGated = !MOBILE_READING_PATHS.has(pathname);
   return (
     <html lang="en" suppressHydrationWarning>
@@ -106,7 +97,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div className="kerf-app-root" data-mobile-gated={mobileGated || undefined}>
           {!chromeless && <AppNav />}
           {children}
-          {!noGlobalFooter && <AppFooter />}
+          {!chromeless && <AppFooter />}
           {import.meta.env.DEV && <DevtoolsLazy />}
           <Scripts />
         </div>

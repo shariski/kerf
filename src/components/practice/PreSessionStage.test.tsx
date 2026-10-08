@@ -44,6 +44,7 @@ const baseProps = {
   onStartAdaptive: () => {},
   onDrillWeakness: () => {},
   onDrillInnerColumn: () => {},
+  onPracticeCode: () => {},
 } as const;
 
 afterEach(() => cleanup());
@@ -79,21 +80,23 @@ describe("PreSessionStage", () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 
-  it("shows only available drill modes", () => {
+  it("keeps transitioning primary and shows code as an additional mode", () => {
     const { container } = render(
       <PreSessionStage {...baseProps} keyboardType="sofle" phase="transitioning" />,
     );
     const cards = Array.from(container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"));
-    expect(cards).toHaveLength(2);
-    const [drill, innerColumn] = cards;
+    expect(cards).toHaveLength(3);
+    const [drill, innerColumn, code] = cards;
     expect(drill!.disabled).toBe(false);
     expect(innerColumn!.disabled).toBe(false);
+    expect(code?.textContent).toContain("Practice code");
     expect(container.textContent).not.toContain("Warm up");
   });
 
-  it("fires onDrillWeakness / onDrillInnerColumn when the respective cards are clicked", () => {
+  it("opens each optional mode from its card", () => {
     const onDrill = vi.fn();
     const onInner = vi.fn();
+    const onCode = vi.fn();
     const { container } = render(
       <PreSessionStage
         {...baseProps}
@@ -101,15 +104,18 @@ describe("PreSessionStage", () => {
         phase="transitioning"
         onDrillWeakness={onDrill}
         onDrillInnerColumn={onInner}
+        onPracticeCode={onCode}
       />,
     );
-    const [drillCard, innerColumnCard] = Array.from(
+    const [drillCard, innerColumnCard, codeCard] = Array.from(
       container.querySelectorAll<HTMLButtonElement>(".kerf-mode-card"),
     );
     fireEvent.click(drillCard!);
     fireEvent.click(innerColumnCard!);
+    fireEvent.click(codeCard!);
     expect(onDrill).toHaveBeenCalledTimes(1);
     expect(onInner).toHaveBeenCalledTimes(1);
+    expect(onCode).toHaveBeenCalledTimes(1);
   });
 
   it("toggles the filters panel open/closed via the header button", () => {

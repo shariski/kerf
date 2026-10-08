@@ -10,6 +10,7 @@ import { getAuthSession } from "#/lib/require-auth";
 import { noindexHead } from "#/lib/seo-head";
 import { getActiveProfile, type KeyboardType, type DominantHand } from "#/server/profile";
 import type { TransitionPhase } from "#/domain/profile/initialPhase";
+import type { KeyboardFocus } from "#/domain/practice/plan";
 import {
   ActiveSessionStage,
   PauseOverlay,
@@ -40,7 +41,6 @@ import { flushSessionQueue, persistSessionWithRetry } from "#/lib/persistSession
 import { useBeforeUnloadWarning } from "#/hooks/useBeforeUnloadWarning";
 import { useOtherTabActive } from "#/hooks/useOtherTabActive";
 import type { Corpus } from "#/domain/corpus/types";
-import { AppFooter } from "#/components/nav/AppFooter";
 
 type LoadedProfile = {
   id: string;
@@ -52,6 +52,7 @@ type LoadedProfile = {
 type DrillSearch = {
   target?: string;
   preset?: PresetKey;
+  autostart?: boolean;
 };
 
 const VALID_PRESETS: ReadonlySet<string> = new Set([
@@ -88,6 +89,9 @@ function validateDrillSearch(search: Record<string, unknown>): DrillSearch {
   const p = search.preset;
   if (typeof p === "string" && VALID_PRESETS.has(p)) {
     out.preset = p as PresetKey;
+  }
+  if (search.autostart === true || search.autostart === "true" || search.autostart === "1") {
+    out.autostart = true;
   }
   return out;
 }
@@ -382,6 +386,11 @@ function DrillPage() {
 
   const [paused, setPaused] = useState(false);
   const [pauseSettings, setPauseSettings] = useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
+  const [pauseDraftSettings, setPauseDraftSettings] =
+    useState<PauseSettings>(DEFAULT_PAUSE_SETTINGS);
+  const [pauseFocusChoice, setPauseFocusChoice] = useState<
+    "current" | "recommended" | KeyboardFocus
+  >("current");
 
   // ADR-003 §4 — briefing state machine (Gap 3).
   // generateSession result held here until the user confirms start.
@@ -410,6 +419,40 @@ function DrillPage() {
   } | null>(null);
 
   const hasRouteDrill = Boolean(search.target || search.preset);
+
+  const openSessionOptions = () => {
+    setPauseDraftSettings(pauseSettings);
+    setPauseFocusChoice("current");
+    if (sessionStore.getState().status === "active") {
+      sessionStore.getState().dispatch({ type: "pause", now: performance.now() });
+    }
+    setPaused(true);
+  };
+
+  const resumeSessionOptions = () => {
+    setPauseSettings(pauseDraftSettings);
+    setPaused(false);
+    if (pauseFocusChoice !== "current") {
+      sessionStore.getState().dispatch({ type: "reset" });
+      if (pauseFocusChoice === "recommended") {
+        void navigate({ to: "/practice", search: { autostart: true } });
+      } else {
+        void navigate({
+          to: "/practice/drill",
+          search: { preset: pauseFocusChoice, autostart: true },
+        });
+      }
+      return;
+    }
+    if (sessionStore.getState().status === "paused") {
+      sessionStore.getState().dispatch({ type: "resume", now: performance.now() });
+    }
+  };
+
+  const openSessionOptionsRef = useRef(openSessionOptions);
+  const resumeSessionOptionsRef = useRef(resumeSessionOptions);
+  openSessionOptionsRef.current = openSessionOptions;
+  resumeSessionOptionsRef.current = resumeSessionOptions;
 
   const startFromPending = (output: SessionOutput) => {
     if (!output.exercise) return;
@@ -470,7 +513,8 @@ function DrillPage() {
     if (output) {
       briefingShownAtRef.current = new Date();
       drillSourceRef.current = search;
-      setPendingSession(output);
+      if (search.autostart) startFromPending(output);
+      else setPendingSession(output);
       void navigate({ to: "/practice/drill", search: {}, replace: true });
     }
   }, [
@@ -483,31 +527,19 @@ function DrillPage() {
     navigate,
   ]);
 
-  // Escape toggles the pause overlay.
+  // Escape opens options; a second Escape applies the staged choices.
   useEffect(() => {
     if (status !== "active" && status !== "paused") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       e.preventDefault();
-      setPaused((prev) => {
-        const next = !prev;
-        const state = sessionStore.getState();
-        if (next) {
-          if (state.status === "active") {
-            state.dispatch({ type: "pause", now: performance.now() });
-          }
-        } else {
-          if (state.status === "paused") {
-            state.dispatch({ type: "resume", now: performance.now() });
-          }
-        }
-        return next;
-      });
+      if (paused) resumeSessionOptionsRef.current();
+      else openSessionOptionsRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [status]);
+  }, [status, paused]);
 
   useIdleAutoPause(status === "active" || status === "paused");
 
@@ -687,7 +719,7 @@ function DrillPage() {
       window.removeEventListener("keydown", onKey);
       if (gTimer) clearTimeout(gTimer);
     };
-    // runAgainRef is a stable ref — no need to list it.
+    // Action refs stay current without rebinding scroll shortcuts each render.
   }, [status, pendingSession, navigate]);
 
   // Session persistence on complete.
@@ -773,8 +805,6 @@ function DrillPage() {
     setPaused(false);
   };
 
-  // Stable ref so the post-session keydown effect doesn't have to re-bind
-  // every render (runAgain closes over corpus/search/profile).
   const runAgainRef = useRef(runAgain);
   runAgainRef.current = runAgain;
 
@@ -859,14 +889,12 @@ function DrillPage() {
         {idleAutoPaused && <DrillIdlePauseChip />}
         {paused && (
           <PauseOverlay
-            settings={pauseSettings}
-            onSettingsChange={setPauseSettings}
-            onResume={() => {
-              if (sessionStore.getState().status === "paused") {
-                sessionStore.getState().dispatch({ type: "resume", now: performance.now() });
-              }
-              setPaused(false);
-            }}
+            settings={pauseDraftSettings}
+            onSettingsChange={setPauseDraftSettings}
+            focusChoice={pauseFocusChoice}
+            currentFocusLabel={activeDrill?.label}
+            onFocusChoiceChange={setPauseFocusChoice}
+            onResume={resumeSessionOptions}
             onRestart={restartSameExercise}
             onEnd={endDrill}
           />
@@ -882,26 +910,23 @@ function DrillPage() {
   // the same DrillPostSessionStage.
   if (pendingSession !== null) {
     return (
-      <>
-        <main id="main-content" className="kerf-practice-main">
-          <div className="kerf-practice-container kerf-stage-fade-in">
-            <SessionBriefing
-              target={pendingSession.target}
-              briefingText={pendingSession.briefing.text}
-              onStart={() => startFromPending(pendingSession)}
-              onBack={() => {
-                // Drill briefing is driven by URL params (?target=… or
-                // ?preset=…), so we have to clear both the local pending
-                // session AND the URL — otherwise the URL-watching effect
-                // would just regenerate the briefing on the next render.
-                setPendingSession(null);
-                void navigate({ to: "/practice/drill", search: {} });
-              }}
-            />
-          </div>
-        </main>
-        <AppFooter />
-      </>
+      <main id="main-content" className="kerf-practice-main">
+        <div className="kerf-practice-container kerf-stage-fade-in">
+          <SessionBriefing
+            target={pendingSession.target}
+            briefingText={pendingSession.briefing.text}
+            onStart={() => startFromPending(pendingSession)}
+            onBack={() => {
+              // Drill briefing is driven by URL params (?target=… or
+              // ?preset=…), so we have to clear both the local pending
+              // session AND the URL — otherwise the URL-watching effect
+              // would just regenerate the briefing on the next render.
+              setPendingSession(null);
+              void navigate({ to: "/practice/drill", search: {} });
+            }}
+          />
+        </div>
+      </main>
     );
   }
 
@@ -921,23 +946,20 @@ function DrillPage() {
       targetChars: activeDrill.targetChars,
     });
     return (
-      <>
-        <main id="main-content" className="kerf-practice-main">
-          <div className="kerf-practice-container kerf-stage-fade-in">
-            <DrillPostSessionStage
-              drillLabel={activeDrill.label}
-              target={state.target}
-              summary={summary}
-              drillDelta={drillDelta}
-              onRunAgain={runAgain}
-              onMoveToAdaptive={moveToAdaptive}
-              sessionTarget={activeDrill.sessionTarget ?? undefined}
-              perKeyBreakdown={perKeyBreakdown}
-            />
-          </div>
-        </main>
-        <AppFooter />
-      </>
+      <main id="main-content" className="kerf-practice-main">
+        <div className="kerf-practice-container kerf-stage-fade-in">
+          <DrillPostSessionStage
+            drillLabel={activeDrill.label}
+            target={state.target}
+            summary={summary}
+            drillDelta={drillDelta}
+            onRunAgain={runAgain}
+            onMoveToAdaptive={moveToAdaptive}
+            sessionTarget={activeDrill.sessionTarget ?? undefined}
+            perKeyBreakdown={perKeyBreakdown}
+          />
+        </div>
+      </main>
     );
   }
 
@@ -945,37 +967,38 @@ function DrillPage() {
   // waiting for the corpus load before showing briefing.
   const showPicker = !hasRouteDrill;
   return (
-    <>
-      <main id="main-content" className="kerf-practice-main">
-        <div className="kerf-practice-container kerf-stage-fade-in">
-          {showPicker ? (
-            <DrillPreSessionStage
-              keyboardType={profile.keyboardType}
-              dominantHand={profile.dominantHand}
-              phase={profile.transitionPhase}
-              onSelectTarget={(target) => navigate({ to: "/practice/drill", search: { target } })}
-              onSelectPreset={(preset) => navigate({ to: "/practice/drill", search: { preset } })}
-            />
-          ) : (
-            <p className="kerf-drill-loading" aria-live="polite">
-              Building drill…
-            </p>
-          )}
-          {otherTabActive && (
-            <p className="kerf-multitab-banner" role="status" aria-live="polite">
-              Another tab has an active practice session. Starting here will save as a separate
-              session alongside it.
-            </p>
-          )}
-          {corpus.status === "error" && (
-            <p className="kerf-corpus-error" role="alert" aria-live="polite">
-              Could not load the word list. Refresh the page to try again.
-            </p>
-          )}
-        </div>
-      </main>
-      {showPicker && <AppFooter />}
-    </>
+    <main
+      id="main-content"
+      className="kerf-practice-main"
+      data-hide-footer={!showPicker || undefined}
+    >
+      <div className="kerf-practice-container kerf-stage-fade-in">
+        {showPicker ? (
+          <DrillPreSessionStage
+            keyboardType={profile.keyboardType}
+            dominantHand={profile.dominantHand}
+            phase={profile.transitionPhase}
+            onSelectTarget={(target) => navigate({ to: "/practice/drill", search: { target } })}
+            onSelectPreset={(preset) => navigate({ to: "/practice/drill", search: { preset } })}
+          />
+        ) : (
+          <p className="kerf-drill-loading" aria-live="polite">
+            Building drill…
+          </p>
+        )}
+        {otherTabActive && (
+          <p className="kerf-multitab-banner" role="status" aria-live="polite">
+            Another tab has an active practice session. Starting here will save as a separate
+            session alongside it.
+          </p>
+        )}
+        {corpus.status === "error" && (
+          <p className="kerf-corpus-error" role="alert" aria-live="polite">
+            Could not load the word list. Refresh the page to try again.
+          </p>
+        )}
+      </div>
+    </main>
   );
 }
 

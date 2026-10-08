@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSessionStore } from "#/stores/sessionStore";
+import { useCodeSessionActivity } from "#/stores/codeSessionActivity";
 
 /**
  * Monkeytype-style global nav auto-hide, per IA §5.
@@ -38,6 +39,8 @@ const REVEAL_TOP_PX = 60;
 
 export function useNavAutoHide(): { hidden: boolean } {
   const status = useSessionStore((s) => s.status);
+  const codeActive = useCodeSessionActivity((s) => s.active);
+  const practiceActive = status === "active" || codeActive;
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -45,7 +48,7 @@ export function useNavAutoHide(): { hidden: boolean } {
     // pre-session → active transitions (visible until first keystroke)
     // and active → complete transitions (immediately visible for the
     // post-session summary).
-    if (status !== "active") {
+    if (!practiceActive) {
       setHidden(false);
       return;
     }
@@ -114,7 +117,7 @@ export function useNavAutoHide(): { hidden: boolean } {
       clearHide();
       clearPause();
     };
-  }, [status]);
+  }, [practiceActive]);
 
   return { hidden };
 }

@@ -32,6 +32,8 @@ The adaptive engine runs entirely client-side. There's no LLM picking your words
 
 Sessions persist server-side so dashboards stay coherent across devices. Stats are scoped per keyboard profile — your Sofle data and your Lily58 data don't merge.
 
+Kerf's main Practice flow develops split-keyboard movement and transitions. Code practice is an additional mode in Practice, with 225 fixed multiline examples across 18 languages. The code mode preserves line breaks and Tab indentation within Kerf's session, pause, and review layout; Ctrl+Enter restarts the current code example. Its next focus and example adapt to recurring Code errors and hesitations, with a balanced rotation when evidence is sparse. Dashboard recent activity and practice streak include both modes; Keyboard skill metrics and Code session metrics retain their own contexts.
+
 For the user-facing version of this, see [How it works](https://typekerf.com/how-it-works) and [Why split is hard](https://typekerf.com/why-split-is-hard) on the live site.
 
 ## Local development

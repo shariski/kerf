@@ -38,6 +38,7 @@ import { WeeklyInsight } from "#/components/dashboard/WeeklyInsight";
 import { TemporalPatterns } from "#/components/dashboard/TemporalPatterns";
 import { Section } from "#/components/dashboard/Section";
 import { composeDashboardInsight } from "#/domain/dashboard/insight";
+import { getPracticeHistory, type PracticeHistoryData } from "#/server/practiceHistory";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: async () => {
@@ -54,6 +55,7 @@ export const Route = createFileRoute("/dashboard")({
     weekly: DashboardWeeklyInsightData;
     temporal: DashboardTemporalPatternsData;
     profiles: ProfileListEntry[];
+    history: PracticeHistoryData;
   }> => {
     // Eight independent queries against the same user —
     // parallel so the dashboard's first paint scales with the
@@ -69,6 +71,7 @@ export const Route = createFileRoute("/dashboard")({
       weekly,
       temporal,
       profiles,
+      history,
     ] = await Promise.all([
       getDashboardHeroStats(),
       getDashboardActivity(),
@@ -79,6 +82,7 @@ export const Route = createFileRoute("/dashboard")({
       getDashboardWeeklyInsight(),
       getDashboardTemporalPatterns(),
       listKeyboardProfiles(),
+      getPracticeHistory(),
     ]);
     return {
       hero,
@@ -90,6 +94,7 @@ export const Route = createFileRoute("/dashboard")({
       weekly,
       temporal,
       profiles,
+      history,
     };
   },
   head: () => noindexHead(),
@@ -107,6 +112,7 @@ function DashboardPage() {
     weekly,
     temporal,
     profiles,
+    history,
   } = Route.useLoaderData();
   const router = useRouter();
 
@@ -215,20 +221,22 @@ function DashboardPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (!hero.hasAnyData) {
+  if (!hero.hasAnyData && history.items.length === 0) {
     return <EmptyState />;
   }
 
   const keyboardName = hero.profile.keyboardType;
   const sessionSuffix = hero.totalSessions === 1 ? "session" : "sessions";
-  const meta = `all-time on ${keyboardName} · ${hero.totalSessions} ${sessionSuffix}`;
+  const meta = `Keyboard · all-time on ${keyboardName} · ${hero.totalSessions} ${sessionSuffix}`;
 
   return (
     <main id="main-content" className="kerf-dash-page">
-      <PhaseSuggestionBanner
-        signal={phaseSuggestion.signal}
-        currentPhase={phaseSuggestion.currentPhase}
-      />
+      {hero.hasAnyData && (
+        <PhaseSuggestionBanner
+          signal={phaseSuggestion.signal}
+          currentPhase={phaseSuggestion.currentPhase}
+        />
+      )}
 
       <header className="kerf-dash-page-header">
         <div className="kerf-dash-page-header-left">
@@ -238,55 +246,71 @@ function DashboardPage() {
         <KeyboardSwitcherPill profiles={switcherProfiles} onSwitchProfile={handleSwitchProfile} />
       </header>
 
-      <Section title="Where you are now" meta={meta}>
-        <HeroStats data={hero} />
-      </Section>
+      {hero.hasAnyData ? (
+        <Section title="Where you are now" meta={meta}>
+          <HeroStats data={hero} />
+        </Section>
+      ) : (
+        <div className="kerf-dash-empty">
+          <h2 className="kerf-dash-empty-title">Keyboard baseline pending</h2>
+          <p className="kerf-dash-empty-body">
+            Your Code sessions appear below. Start a Keyboard session to build transition stats.
+          </p>
+          <Link to="/practice" search={{ autostart: true }} className="kerf-dash-empty-cta">
+            Start Keyboard practice
+          </Link>
+        </div>
+      )}
 
       <Section title="Recent activity" meta="last 30 days">
-        <ActivityLog data={activity} />
+        <ActivityLog data={activity} history={history} />
       </Section>
 
-      <Section title="Per-key heatmap" meta={`${heatmap.keyboardType} base layer`}>
-        <Heatmap data={heatmap} />
-      </Section>
+      {hero.hasAnyData && (
+        <>
+          <Section title="Per-key heatmap" meta={`${heatmap.keyboardType} base layer`}>
+            <Heatmap data={heatmap} />
+          </Section>
 
-      <Section title="Top weaknesses" meta={`ranked by ${weakness.phase} engine`}>
-        <WeaknessRanking data={weakness} />
-      </Section>
+          <Section title="Top weaknesses" meta={`ranked by ${weakness.phase} engine`}>
+            <WeaknessRanking data={weakness} />
+          </Section>
 
-      <Section title="Skill trajectory" meta="last 30 sessions">
-        <TrajectoryCharts data={trajectory} />
-      </Section>
+          <Section title="Skill trajectory" meta="last 30 sessions">
+            <TrajectoryCharts data={trajectory} />
+          </Section>
 
-      <Section title="This week vs last" meta="rolling 7-day windows">
-        <WeeklyInsight data={weekly.insight} />
-      </Section>
+          <Section title="This week vs last" meta="rolling 7-day windows">
+            <WeeklyInsight data={weekly.insight} />
+          </Section>
 
-      <Section title="When you practice best" meta="last 30 days, local time">
-        <TemporalPatterns data={temporal} />
-      </Section>
+          <Section title="When you practice best" meta="last 30 days, local time">
+            <TemporalPatterns data={temporal} />
+          </Section>
 
-      <Section title="Split-keyboard metrics" meta="recent sessions">
-        <SplitMetrics data={hero} />
-      </Section>
+          <Section title="Split-keyboard metrics" meta="recent sessions">
+            <SplitMetrics data={hero} />
+          </Section>
 
-      <Section title="Engine insight" meta="how the engine reads your history">
-        <EngineInsight
-          insight={composeDashboardInsight({
-            totalSessions: hero.totalSessions,
-            accuracyTrendPct: hero.accuracyTrendPct,
-            wpmTrend: hero.avgWpmTrend,
-            phase: weakness.phase,
-            topWeaknesses: weakness.entries,
-          })}
-          phase={weakness.phase}
-          topWeaknessName={weakness.entries[0]?.unit ?? null}
-        />
-      </Section>
+          <Section title="Engine insight" meta="how the engine reads your history">
+            <EngineInsight
+              insight={composeDashboardInsight({
+                totalSessions: hero.totalSessions,
+                accuracyTrendPct: hero.accuracyTrendPct,
+                wpmTrend: hero.avgWpmTrend,
+                phase: weakness.phase,
+                topWeaknesses: weakness.entries,
+              })}
+              phase={weakness.phase}
+              topWeaknessName={weakness.entries[0]?.unit ?? null}
+            />
+          </Section>
 
-      <Section title="How is this calculated?" meta="live formula + top-weakness breakdown">
-        <TransparencyPanel breakdown={weakness.topBreakdown} phase={weakness.phase} />
-      </Section>
+          <Section title="How is this calculated?" meta="live formula + top-weakness breakdown">
+            <TransparencyPanel breakdown={weakness.topBreakdown} phase={weakness.phase} />
+          </Section>
+        </>
+      )}
 
       <div
         className="kerf-post-floating-scroll-hint"

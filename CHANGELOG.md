@@ -4,6 +4,23 @@ All notable changes to kerf are documented here. Format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-08
+
+### Added
+
+- Optional code practice inside the existing Practice flow, with 225 fixed multiline examples across 18 languages. Users can change language during a paused session, type indentation with Tab or spaces, and review overall and symbol accuracy.
+- Code focus and example selection adapt to recent Code errors and hesitations. Tab-generated spaces are marked separately from physical key presses so adaptive evidence stays accurate.
+- Code practice sessions are saved separately from adaptive word sessions, preserving keystroke evidence for Code-specific adaptation without changing existing Keyboard weakness scores.
+- Dashboard Recent activity and practice streak include Keyboard and Code sessions, with per-mode filtering and context-specific session metrics. Keyboard skill trends remain based on Keyboard data.
+
+### Changed
+
+- Practice keeps split-keyboard transitioning as its main flow and offers Code as an additional mode. Code typing, pause options, and session review follow Kerf's existing layout and keyboard shortcuts.
+
+### Fixed
+
+- Choosing a Code language or other pause option now moves focus to Resume, so Enter applies the staged changes. The footer no longer briefly duplicates when navigating between Practice and Dashboard.
+
 ## [0.2.0] - 2026-10-01
 
 Production baseline for the public beta. Earlier entries in this section were already deployed before release numbers were shown in the app; this release establishes the first traceable production version.
@@ -101,6 +118,7 @@ Initial pre-public-launch version. Captures the MVP feature set built across Pha
 - **Mobile gate** at viewports below 768px (desktop/tablet only for MVP).
 - **Accessibility.** WCAG 2.1 AA via `@axe-core/playwright` sweep across 8 routes/states; global `:focus-visible` amber ring; skip-to-main-content link.
 
-[Unreleased]: https://github.com/shariski/kerf/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/shariski/kerf/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/shariski/kerf/releases/tag/v0.3.0
 [0.2.0]: https://github.com/shariski/kerf/releases/tag/v0.2.0
 [0.1.0]: https://github.com/shariski/kerf/tree/74da310

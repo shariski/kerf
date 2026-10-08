@@ -44,7 +44,7 @@ export function HeroStats({ data }: Props) {
       />
 
       <SecondaryCard
-        label="streak"
+        label="practice streak"
         value={
           <>
             {data.currentStreakDays}

@@ -6,6 +6,7 @@ import { db } from "./db";
 import {
   bigramStats,
   characterStats,
+  codePracticeSessions,
   keyboardProfiles,
   sessions,
   splitMetricsSnapshots,
@@ -132,20 +133,40 @@ export const getDashboardHeroStats = createServerFn({
 
   // Fetch sessions in chronological order — both aggregates
   // (trend, sparkline, streak) depend on chronology.
-  const sessionRows = await db
-    .select({
-      id: sessions.id,
-      startedAt: sessions.startedAt,
-      endedAt: sessions.endedAt,
-      wpm: sessions.wpm,
-      accuracy: sessions.accuracy,
-    })
-    .from(sessions)
-    .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
-    .orderBy(asc(sessions.startedAt));
+  const [sessionRows, codeDates] = await Promise.all([
+    db
+      .select({
+        id: sessions.id,
+        startedAt: sessions.startedAt,
+        endedAt: sessions.endedAt,
+        wpm: sessions.wpm,
+        accuracy: sessions.accuracy,
+      })
+      .from(sessions)
+      .where(and(eq(sessions.userId, userId), eq(sessions.keyboardProfileId, profile.id)))
+      .orderBy(asc(sessions.startedAt)),
+    db
+      .select({ startedAt: codePracticeSessions.startedAt })
+      .from(codePracticeSessions)
+      .where(
+        and(
+          eq(codePracticeSessions.userId, userId),
+          eq(codePracticeSessions.keyboardProfileId, profile.id),
+        ),
+      ),
+  ]);
+
+  const practiceStreak = computeStreakDays(
+    [...sessionRows, ...codeDates].map((row) => row.startedAt),
+    new Date(),
+  );
 
   if (sessionRows.length === 0) {
-    return emptyDashboardData(profile.keyboardType as KeyboardType);
+    return {
+      ...emptyDashboardData(profile.keyboardType as KeyboardType),
+      currentStreakDays: practiceStreak.current,
+      longestStreakDays: practiceStreak.longest,
+    };
   }
 
   // Running stats are the live per-user / per-profile UPSERT rows
@@ -229,11 +250,6 @@ export const getDashboardHeroStats = createServerFn({
     { minAttempts: MASTERED_MIN_ATTEMPTS, maxErrorRate: MASTERED_MAX_ERROR_RATE },
   );
 
-  const streak = computeStreakDays(
-    sessionRows.map((s) => s.startedAt),
-    new Date(),
-  );
-
   const splitMetrics = averageSplitMetrics(splitRows);
 
   return {
@@ -248,8 +264,8 @@ export const getDashboardHeroStats = createServerFn({
     avgWpm,
     avgWpmTrend,
     mastered: { count: mastered.mastered, total: mastered.total },
-    currentStreakDays: streak.current,
-    longestStreakDays: streak.longest,
+    currentStreakDays: practiceStreak.current,
+    longestStreakDays: practiceStreak.longest,
     splitMetrics,
   } satisfies DashboardHeroData;
 });
